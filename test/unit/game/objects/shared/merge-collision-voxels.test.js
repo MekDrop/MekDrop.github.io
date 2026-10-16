@@ -6,11 +6,13 @@ it("merges a solid volume into one box", () => {
   const cells = [];
   for (let y = 0; y < 5; y++) {
     for (let z = -2; z < 2; z++) {
-      for (let x = -3; x < 3; x++) cells.push({
-        x,
-        y,
-        z,
-      });
+      for (let x = -3; x < 3; x++) {
+        cells.push({
+          x,
+          y,
+          z,
+        });
+      }
     }
   }
   assert.deepEqual(mergeCollisionVoxels(cells), [{
@@ -30,7 +32,9 @@ it("preserves sparse voxel occupancy without overlapping boxes or filling openin
     for (let x = -3; x <= 3; x++) {
       for (let y = 0; y <= 4; y++) {
         for (let z = -3; z <= 3; z++) {
-          if ((x * 31 + y * 17 + z * 13 + seed * 7) % 5 === 0) continue;
+          if ((x * 31 + y * 17 + z * 13 + seed * 7) % 5 === 0) {
+            continue;
+          }
           cells.push({
             x,
             y,

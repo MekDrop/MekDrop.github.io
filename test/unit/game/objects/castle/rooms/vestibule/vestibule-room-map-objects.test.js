@@ -191,7 +191,9 @@ it("publishes exactly one central island in each variant and reflected service-w
     assert.equal(first.filter(item => item.object === "Satchel").length, bags.length);
     assert.deepEqual(first.filter(item => item.object === "Satchel").map(item => item.variant), bags.map(item => item.variant));
     assert.ok(!first.some(item => item.object === "Bench" && item.variant === "wall"));
-    if (bench) { assert.equal(islands[0].stretch.x, 1.5); }
+    if (bench) {
+      assert.equal(islands[0].stretch.x, 1.5);
+    }
     assert.equal(first.filter(item => item.object === "Table" && (item.variant ?? item.properties?.variant) === "writingDesk").length, 1);
     assert.equal(first.filter(item => item.object === "Lantern").length, 2);
     const arrivalStorage = authored.find(item => item.id.endsWith("arrival-storage"));

@@ -33,7 +33,9 @@ export class TerraceParticipantStateMachine extends NpcStateMachine {
   /**
    * @param {(() => boolean)|null} value
    */
-  set canComplete(value) { this.#canComplete = value; }
+  set canComplete(value) {
+    this.#canComplete = value;
+  }
 
   /**
    *
@@ -144,7 +146,9 @@ export class TerraceParticipantStateMachine extends NpcStateMachine {
    * @param {import("../../states/terrace/AbstractTerraceParticipantState.js").AbstractTerraceParticipantState} state
    */
   enterAction(state) {
-    if (this.resumingReaction) { return; }
+    if (this.resumingReaction) {
+      return;
+    }
     this.#actionHandler?.enter?.(state, this);
   }
 
@@ -161,7 +165,9 @@ export class TerraceParticipantStateMachine extends NpcStateMachine {
    * @param {import("../../states/terrace/AbstractTerraceParticipantState.js").AbstractTerraceParticipantState} state
    */
   exitAction(state) {
-    if (this.reactionTransition) { return; }
+    if (this.reactionTransition) {
+      return;
+    }
     this.#actionHandler?.exit?.(state, this);
   }
 

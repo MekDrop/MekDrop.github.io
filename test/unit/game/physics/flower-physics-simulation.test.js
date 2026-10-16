@@ -59,17 +59,27 @@ function createSimulation() {
 }
 
 describe("flower worker Ammo simulation", () => {
-  beforeEach(() => { globalThis.Ammo = wasmAmmo; });
-  afterEach(() => { globalThis.Ammo = previousAmmo; });
+  beforeEach(() => {
+    globalThis.Ammo = wasmAmmo;
+  });
+  afterEach(() => {
+    globalThis.Ammo = previousAmmo;
+  });
   it("keeps the spring bounded and follows a floating island without accumulating offsets", (context) => {
     const simulation = createSimulation();
     context.after(() => {
       const currentAmmo = globalThis.Ammo;
       globalThis.Ammo = wasmAmmo;
-      try { simulation.destroy(); } finally { globalThis.Ammo = currentAmmo; }
+      try {
+        simulation.destroy();
+      } finally {
+        globalThis.Ammo = currentAmmo;
+      }
     });
     let transforms;
-    for (let frame = 0; frame < 180; frame++) { transforms = simulation.step(state()); }
+    for (let frame = 0; frame < 180; frame++) {
+      transforms = simulation.step(state());
+    }
     const settledY = transforms[1];
     assert.ok(Number.isFinite(settledY) && Math.abs(settledY) < 0.4);
     const shifted = simulation.step(state(0.6));
@@ -82,9 +92,15 @@ describe("flower worker Ammo simulation", () => {
     context.after(() => {
       const currentAmmo = globalThis.Ammo;
       globalThis.Ammo = wasmAmmo;
-      try { simulation.destroy(); } finally { globalThis.Ammo = currentAmmo; }
+      try {
+        simulation.destroy();
+      } finally {
+        globalThis.Ammo = currentAmmo;
+      }
     });
-    for (let frame = 0; frame < 60; frame++) { simulation.step(state()); }
+    for (let frame = 0; frame < 60; frame++) {
+      simulation.step(state());
+    }
     let contact;
     for (let frame = 0; frame < 30; frame++) {
       contact = simulation.step(state(0, false, new Float32Array([-0.5 + frame * 0.025, 0.32, 0.12, 0, -1000, 0])));
@@ -92,7 +108,9 @@ describe("flower worker Ammo simulation", () => {
     const contactTilt = Math.abs(contact[3]) + Math.abs(contact[5]);
     assert.ok(contactTilt > 0.01, "foot contact must bend the flower");
     let recovered;
-    for (let frame = 0; frame < 240; frame++) { recovered = simulation.step(state()); }
+    for (let frame = 0; frame < 240; frame++) {
+      recovered = simulation.step(state());
+    }
     assert.ok(Math.abs(recovered[3]) + Math.abs(recovered[5]) < contactTilt);
   });
   it("removes collected flowers from subsequent simulation snapshots", (context) => {
@@ -100,7 +118,11 @@ describe("flower worker Ammo simulation", () => {
     context.after(() => {
       const currentAmmo = globalThis.Ammo;
       globalThis.Ammo = wasmAmmo;
-      try { simulation.destroy(); } finally { globalThis.Ammo = currentAmmo; }
+      try {
+        simulation.destroy();
+      } finally {
+        globalThis.Ammo = currentAmmo;
+      }
     });
     simulation.step(state());
     const hidden = simulation.step(state(0, true));
@@ -112,7 +134,11 @@ describe("flower worker Ammo simulation", () => {
     context.after(() => {
       const currentAmmo = globalThis.Ammo;
       globalThis.Ammo = wasmAmmo;
-      try { simulation.destroy(); } finally { globalThis.Ammo = currentAmmo; }
+      try {
+        simulation.destroy();
+      } finally {
+        globalThis.Ammo = currentAmmo;
+      }
     });
     const spawn = simulation.step(state(0, false, new Float32Array([-0.13, 0.32, 0.1, 0.13, 0.32, 0.1])));
     assert.ok(spawn[1] < 0.006, "first spawn snapshot must place the tip beneath the boots");
@@ -142,9 +168,15 @@ describe("flower worker Ammo simulation", () => {
     context.after(() => {
       const currentAmmo = globalThis.Ammo;
       globalThis.Ammo = wasmAmmo;
-      try { simulation.destroy(); } finally { globalThis.Ammo = currentAmmo; }
+      try {
+        simulation.destroy();
+      } finally {
+        globalThis.Ammo = currentAmmo;
+      }
     });
-    for (let frame = 0; frame < 120; frame++) { simulation.step(state()); }
+    for (let frame = 0; frame < 120; frame++) {
+      simulation.step(state());
+    }
     for (const deltaTime of [1 / 30, 1 / 60, 1 / 144]) {
       for (let frame = 0; frame < 720; frame++) {
         const angle = Math.floor(frame / 60) * Math.PI / 2;

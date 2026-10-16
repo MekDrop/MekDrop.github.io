@@ -117,7 +117,9 @@ export class SeatedRoyal {
       ROYAL_ANIMATION.WALK_OUT,
       ROYAL_ANIMATION.CRY,
     ]);
-    if (!this.#model.anim) { this.#model.addComponent("anim", { activate: true }); }
+    if (!this.#model.anim) {
+      this.#model.addComponent("anim", { activate: true });
+    }
     this.#model.anim.addAnimationState(ROYAL_ANIMATION.SIT, tracks.get(ROYAL_ANIMATION.SIT), 1, true);
     this.#model.anim.addAnimationState(
       ROYAL_ANIMATION.WALK_OUT,
@@ -162,12 +164,16 @@ export class SeatedRoyal {
   /**
    * @param {import("./CastleResidentMotion.js").CastleResidentMotion|null} value
    */
-  set navigation(value) { this.#navigation = value; }
+  set navigation(value) {
+    this.#navigation = value;
+  }
 
   /**
    * @returns {boolean}
    */
-  get persistent() { return this.#resident !== null; }
+  get persistent() {
+    return this.#resident !== null;
+  }
 
   get entity() {
     return this.#entity;
@@ -187,7 +193,9 @@ export class SeatedRoyal {
    * @returns {number}
    */
   get terraceScale() {
-    if (this.#resident) { return CHARACTER_HEIGHT / this.#resident.height; }
+    if (this.#resident) {
+      return CHARACTER_HEIGHT / this.#resident.height;
+    }
     let bottom = Number.POSITIVE_INFINITY;
     let top = Number.NEGATIVE_INFINITY;
     for (const render of this.#entity.findComponents("render")) {
@@ -277,7 +285,9 @@ export class SeatedRoyal {
       isBlocked: route.isBlocked,
       getCameraPosition,
     };
-    if (this.#resident) { this.#resident.behavior = this.#gameOverBehavior.stateMachine; }
+    if (this.#resident) {
+      this.#resident.behavior = this.#gameOverBehavior.stateMachine;
+    }
     this.#model.anim.speed = 1;
     this.#gameOverBehavior.start();
   }
@@ -327,14 +337,18 @@ export class SeatedRoyal {
       this.#model.anim.speed = this.#suspendedAnimationSpeed;
       this.#suspendedAnimationSpeed = null;
     }
-    if (this.#returning) { this.#navigation.update(deltaTime); }
+    if (this.#returning) {
+      this.#navigation.update(deltaTime);
+    }
     this.#gameOverBehavior.update(deltaTime);
   }
 
   destroy() {
     this.#doorAvoidance?.destroy();
     this.#tears?.destroy();
-    if (!this.#resident) { this.#entity?.destroy(); }
+    if (!this.#resident) {
+      this.#entity?.destroy();
+    }
     this.#entity = null;
     this.#gameOverBehavior = null;
     this.#gameOverRoute = null;
@@ -356,7 +370,9 @@ export class SeatedRoyal {
    */
   #moveGameOverWalk(progress) {
     if (this.#returning) {
-      if (!this.#navigation.arrived) { return null; }
+      if (!this.#navigation.arrived) {
+        return null;
+      }
       this.#returning = false;
       this.#playAnimation(ROYAL_ANIMATION.WALK_OUT);
       this.#model.anim.speed = 1;

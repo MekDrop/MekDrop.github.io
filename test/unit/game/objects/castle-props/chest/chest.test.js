@@ -4,7 +4,7 @@ import { test } from "node:test";
 import * as pc from "playcanvas";
 
 const hooks = registerHooks({
-  resolve(specifier, context, nextResolve) {
+  resolve: (specifier, context, nextResolve) => {
     if (specifier.endsWith(".glb?url")) {
       return {
         url: `data:text/javascript,export default ${JSON.stringify(specifier)}`,
@@ -34,9 +34,11 @@ test("chest retains the authored visual and collision asset and transforms", () 
   const chest = new Chest({
     pc,
     modelLibrary: {
-      instantiate: url => { urls.push(url);
+      instantiate: url => {
+        urls.push(url);
 
-        return new pc.Entity("model"); },
+        return new pc.Entity("model");
+      },
     },
     definition: {
       id: "chest",

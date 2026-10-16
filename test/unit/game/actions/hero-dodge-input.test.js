@@ -49,14 +49,14 @@ function controls(context, dodgeAccepted = true) {
     movements,
     dodges,
     queuedFacingInputs,
-    press(time, repeat = false) {
+    press: (time, repeat = false) => {
       now = time;
       action.pressDirection("down", {
         repeat,
         shiftKey: false,
       }, 0.28);
     },
-    setFacing(direction) {
+    setFacing: (direction) => {
       facingDirection = direction;
     },
   };

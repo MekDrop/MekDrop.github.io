@@ -319,7 +319,9 @@ export class CastleEntityBuilder {
   /**
    * @returns {CastleResidence|null}
    */
-  get residence() { return this.#residence; }
+  get residence() {
+    return this.#residence;
+  }
 
   /**
    *
@@ -458,7 +460,9 @@ export class CastleEntityBuilder {
     if (this.#buildPlan.metadata.runtime.residential?.version === 2) {
       return this.#stairs?.surfaceHeightAt(x, z) ?? this.#serviceStairs?.surfaceHeightAt(x, z) ?? null;
     }
-    if (this.#residence?.layout.stairSurfaceHeightAt(x, z, this.#heroElevation) != null) { return null; }
+    if (this.#residence?.layout.stairSurfaceHeightAt(x, z, this.#heroElevation) != null) {
+      return null;
+    }
     return this.surfaceHeightAt(x, z);
   }
 
@@ -495,7 +499,9 @@ export class CastleEntityBuilder {
    */
   set testEntranceOpenAmount(amount) {
     for (const door of this.#animatedDoors) {
-      if (!door.exteriorEntrance) { continue; }
+      if (!door.exteriorEntrance) {
+        continue;
+      }
       door.testOpenAmount = amount === null ? null : Math.max(0, Math.min(1, amount));
     }
   }
@@ -539,9 +545,13 @@ export class CastleEntityBuilder {
     this.#renderBatch = null;
     this.#updateHandle?.off();
     this.#updateHandle = null;
-    for (const door of this.#animatedDoors) door.destroy();
+    for (const door of this.#animatedDoors) {
+      door.destroy();
+    }
     this.#animatedDoors = [];
-    for (const arch of this.#doorArches) arch.destroy();
+    for (const arch of this.#doorArches) {
+      arch.destroy();
+    }
     this.#doorArches = [];
     this.#audienceRoom?.destroy();
     this.#audienceRoom = null;
@@ -560,9 +570,13 @@ export class CastleEntityBuilder {
     this.#serviceStairs = null;
     this.#entity?.destroy();
     this.#entity = null;
-    for (const buffer of this.#vertexBuffers) buffer.destroy();
+    for (const buffer of this.#vertexBuffers) {
+      buffer.destroy();
+    }
     this.#vertexBuffers = [];
-    for (const material of this.#materials.values()) material.destroy();
+    for (const material of this.#materials.values()) {
+      material.destroy();
+    }
     this.#materials.clear();
     this.#stoneTexture = null;
     this.#doorTexture = null;
@@ -654,7 +668,9 @@ export class CastleEntityBuilder {
        */ (area) =>
           Math.abs(area.floorY - point.y) < 0.15 && local.x >= area.minX + 0.5 &&
         local.x <= area.maxX - 0.5 && local.z >= area.minZ + 0.5 && local.z <= area.maxZ - 0.5);
-      if (!supported) { return false; }
+      if (!supported) {
+        return false;
+      }
     }
     return !this.blocksCameraAt(point.x, point.y + 0.6, point.z, 0.5) &&
       !this.blocksCameraAt(point.x, point.y + 1.5, point.z, 0.5);
@@ -794,7 +810,9 @@ export class CastleEntityBuilder {
       new this.#pc.Vec3(sx, sy, sz),
     );
     const data = batches.get(material) ?? [];
-    for (const value of matrix.data) data.push(value);
+    for (const value of matrix.data) {
+      data.push(value);
+    }
     batches.set(material, data);
   }
 
@@ -804,7 +822,9 @@ export class CastleEntityBuilder {
    */
   #createInstancedBatches(batches) {
     for (const [materialName, matrices] of batches.entries()) {
-      if (!matrices.length) continue;
+      if (!matrices.length) {
+        continue;
+      }
       const { entity, vertexBuffer } = this.#modelLibrary.instantiateMergedBatch(
         stoneBlockUrl, matrices,
         {
@@ -1084,7 +1104,9 @@ export class CastleEntityBuilder {
    * @param {boolean} atThrone
    */
   #onRoyalAtThroneChange(atThrone) {
-    if (this.#audienceRoom) { this.#audienceRoom.royalVisible = atThrone; }
+    if (this.#audienceRoom) {
+      this.#audienceRoom.royalVisible = atThrone;
+    }
   }
 
   /**
@@ -1101,7 +1123,9 @@ export class CastleEntityBuilder {
            * @param {{x:number,y:number,z:number,halfX:number,halfY:number,halfZ:number}} block
            */
             (block) => {
-              if (block.y + block.halfY <= point.y + 0.32 || block.y - block.halfY >= point.y + 1.6) { return false; }
+              if (block.y + block.halfY <= point.y + 0.32 || block.y - block.halfY >= point.y + 1.6) {
+                return false;
+              }
               return Math.hypot(Math.max(0, Math.abs(point.x - block.x) - block.halfX),
                 Math.max(0, Math.abs(point.z - block.z) - block.halfZ)) < 0.22;
             })
@@ -1114,7 +1138,11 @@ export class CastleEntityBuilder {
    */
   #clear(point, operator) {
     if (!point) {
-      for (const door of this.#animatedDoors) { if (door.operator === operator) { door.operator = null; } }
+      for (const door of this.#animatedDoors) {
+        if (door.operator === operator) {
+          door.operator = null;
+        }
+      }
 
       return true;
     }
@@ -1122,8 +1150,9 @@ export class CastleEntityBuilder {
       if (Math.hypot(door.entity.getPosition().x - point.x, door.entity.getPosition().z - point.z) < 2.4 &&
               Math.abs(door.entity.getPosition().y - point.y) < 2.8) {
         door.operator = operator; door.openTemporarily(1);
+      } else if (door.operator === operator) {
+        door.operator = null;
       }
-      else if (door.operator === operator) { door.operator = null; }
     }
 
     return !this.#animatedDoors.some(/**

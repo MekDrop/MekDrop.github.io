@@ -42,7 +42,9 @@ describe("async map generation", () => {
     const validate = RouteValidator.prototype.validateGatePlacement;
     let attempts = 0;
     const validation = mock.method(RouteValidator.prototype, "validateGatePlacement", function (...args) {
-      if (attempts++ === 0) { throw new PathOutsideGateError(); }
+      if (attempts++ === 0) {
+        throw new PathOutsideGateError();
+      }
       return validate.apply(this, args);
     });
     const originalNow = Date.now;
@@ -63,7 +65,9 @@ describe("async map generation", () => {
   });
 
   it("rejects an invalid named map without changing its seed", async () => {
-    const validation = mock.method(RouteValidator.prototype, "validateGatePlacement", () => { throw new PathOutsideGateError(); });
+    const validation = mock.method(RouteValidator.prototype, "validateGatePlacement", () => {
+      throw new PathOutsideGateError();
+    });
     try {
       await assert.rejects(generateMap({ mapName: "1_0000010" }), PathOutsideGateError);
       assert.equal(validation.mock.callCount(), 1);
@@ -97,8 +101,11 @@ describe("async map generation", () => {
         generateMap(generationOptions), generateMap(generationOptions),
       ]);
       assert.equal(second.status, first.status);
-      if (first.status === "fulfilled") { assert.deepEqual(second.value, first.value); }
-      else { assert.equal(second.reason.name, first.reason.name); assert.equal(second.reason.message, first.reason.message); }
+      if (first.status === "fulfilled") {
+        assert.deepEqual(second.value, first.value);
+      } else {
+        assert.equal(second.reason.name, first.reason.name); assert.equal(second.reason.message, first.reason.message);
+      }
     }
   });
 });

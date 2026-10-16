@@ -23,7 +23,7 @@ function createMood() {
     reactToPat: () => mood.reactToPat(),
     attemptAction: () => mood.attemptAction(),
     reset: () => mood.reset(),
-    advance(deltaTime, options) {
+    advance: (deltaTime, options) => {
       buffs.advance(deltaTime, options);
       mood.advance(deltaTime);
     },

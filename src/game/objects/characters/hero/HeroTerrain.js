@@ -252,7 +252,9 @@ export class HeroTerrain {
         minX = Math.min(minX, vertex[0]); maxX = Math.max(maxX, vertex[0]);
         minZ = Math.min(minZ, vertex[2]); maxZ = Math.max(maxZ, vertex[2]);
       }
-      if (maxX - minX <= COLLISION_DISTANCE_EPSILON || maxZ - minZ <= COLLISION_DISTANCE_EPSILON) { continue; }
+      if (maxX - minX <= COLLISION_DISTANCE_EPSILON || maxZ - minZ <= COLLISION_DISTANCE_EPSILON) {
+        continue;
+      }
       const dx = Math.max(minX - x, x - maxX, 0);
       const dz = Math.max(minZ - z, z - maxZ, 0);
       distance = Math.min(distance, dx * dx + dz * dz);

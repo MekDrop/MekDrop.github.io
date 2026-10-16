@@ -41,7 +41,9 @@ export class Painting {
   /**
    * @returns {string[]}
    */
-  static get modelUrls() { return [paintingUrl, royalBedroomUrl, vestibuleUrl]; }
+  static get modelUrls() {
+    return [paintingUrl, royalBedroomUrl, vestibuleUrl];
+  }
 
   /**
    * @param {{pc: typeof import("playcanvas"), modelLibrary: import("../../../models/GameModelLibrary.js").GameModelLibrary, definition: import("../../ObjectTypes.js").MapObjectDefinition, runtime?: import("../../ObjectTypes.js").MapObjectRuntime}} options
@@ -80,12 +82,18 @@ export class Painting {
     this.#visual.addChild(model);
   }
 
-  get entity() { return this.#entity; }
-  get definition() { return this.#definition; }
+  get entity() {
+    return this.#entity;
+  }
+  get definition() {
+    return this.#definition;
+  }
   /**
    * @returns {import("playcanvas").Entity[]}
    */
-  get visualRoots() { return [this.#visual]; }
+  get visualRoots() {
+    return [this.#visual];
+  }
   /**
    * @param {number} near
    * @param {number} far

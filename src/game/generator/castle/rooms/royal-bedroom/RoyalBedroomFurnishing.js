@@ -56,7 +56,9 @@ export class RoyalBedroomFurnishing {
     let seed = Number(context.seed);
     if (!Number.isFinite(seed)) {
       seed = 0;
-      for (const character of `${context.seed}:${room.id}`) { seed = (Math.imul(seed, 31) + character.charCodeAt(0)) >>> 0; }
+      for (const character of `${context.seed}:${room.id}`) {
+        seed = (Math.imul(seed, 31) + character.charCodeAt(0)) >>> 0;
+      }
     }
     this.#variant = Math.floor(Math.abs(seed) / 2) % 5;
     const walls = this.#variant === 1 || this.#variant === 3 ? [180, 90, 0, 270] : [90, 180, 270, 0];
@@ -64,7 +66,9 @@ export class RoyalBedroomFurnishing {
     if (!bed) {
       return;
     }
-    if (this.#variant === 1) { this.#writingDesk(); }
+    if (this.#variant === 1) {
+      this.#writingDesk();
+    }
     const spacious = (room.maxX - room.minX) * (room.maxZ - room.minZ) > 18;
     if (this.#variant === 2 && !spacious) {
       const chair = this.#perimeter("Chair", 0.75, 0.735, 0.85, [90, 0, 270, 180]);
@@ -73,37 +77,59 @@ export class RoyalBedroomFurnishing {
         height: 0.55,
         depth: 0.6162,
       });
-      if (table) { this.#supported("Book", table, 0.36, 0.227, 0.0673, {isOpen: true}); }
+      if (table) {
+        this.#supported("Book", table, 0.36, 0.227, 0.0673, {isOpen: true});
+      }
     }
-    if (this.#variant === 3) { this.#bedside(bed, -1); }
+    if (this.#variant === 3) {
+      this.#bedside(bed, -1);
+    }
     if (this.#variant === 4) {
       const washstand = this.#perimeter("BedsideDrawers", 0.6004, 0.5604, 0.65, [0, 270, 90, 180]);
-      if (washstand) { this.#supported("WashBasin", washstand, 0.5899, 0.5084, 0.2362); }
+      if (washstand) {
+        this.#supported("WashBasin", washstand, 0.5899, 0.5084, 0.2362);
+      }
     }
     this.#perimeter("wardrobe", 0.65, 0.46, 1.15, [0, 270, 180, 90]);
     const chest = this.#perimeter("Chest", 0.7, 0.55, 0.3291, [180, 0, 270, 90]);
-    if (chest && this.#variant === 4) { this.#supported("FoldedLinens", chest, 0.3, 0.22, 0.16); }
+    if (chest && this.#variant === 4) {
+      this.#supported("FoldedLinens", chest, 0.3, 0.22, 0.16);
+    }
     // One desk serves reading and writing; a bookcase and wash cabinet add useful storage.
     if (spacious) {
       const bookshelf = this.#perimeter("Shelf", 0.935, 0.36, 1.8, [90, 270, 0, 180]);
-      if (bookshelf) { bookshelf.role = "libraryProp"; }
-      if (this.#variant !== 1) { this.#writingDesk(); }
+      if (bookshelf) {
+        bookshelf.role = "libraryProp";
+      }
+      if (this.#variant !== 1) {
+        this.#writingDesk();
+      }
       if (this.#variant !== 4) {
         const washstand = this.#perimeter("BedsideDrawers", 0.6004, 0.5604, 0.65, [270, 90, 180, 0]);
-        if (washstand) { this.#supported("WashBasin", washstand, 0.5899, 0.5084, 0.2362); }
+        if (washstand) {
+          this.#supported("WashBasin", washstand, 0.5899, 0.5084, 0.2362);
+        }
       }
-      if (bookshelf) { this.#extendShelf(bookshelf); }
-      if (chest && this.#variant !== 4) { this.#supported("FoldedLinens", chest, 0.3, 0.22, 0.16); }
+      if (bookshelf) {
+        this.#extendShelf(bookshelf);
+      }
+      if (chest && this.#variant !== 4) {
+        this.#supported("FoldedLinens", chest, 0.3, 0.22, 0.16);
+      }
     }
     this.#picture(bed, context.openings);
     this.#rug(bed);
-    for (const item of this.#items) { item.furnishingVariant = RoyalBedroomFurnishing.variations[this.#variant]; }
+    for (const item of this.#items) {
+      item.furnishingVariant = RoyalBedroomFurnishing.variations[this.#variant];
+    }
   }
 
   /**
    * @returns {import("../AbstractCastleRoomGenerator.js").RoomItem[]}
    */
-  get items() { return this.#items; }
+  get items() {
+    return this.#items;
+  }
 
   /**
    * @param {import("../AbstractCastleRoomGenerator.js").RoomItem} bed
@@ -115,7 +141,9 @@ export class RoyalBedroomFurnishing {
       const x = bed.x + direction * Math.cos(angle) * 0.95 - Math.sin(angle) * 0.55;
       const z = bed.z - direction * Math.sin(angle) * 0.95 - Math.cos(angle) * 0.55;
       const drawer = this.#place("BedsideDrawers", x, z, 0.6004, 0.5604, 0.65, bed.rotation);
-      if (!drawer) { continue; }
+      if (!drawer) {
+        continue;
+      }
       this.#supported("CandleStand", drawer, 0.1407, 0.1916, 0.2311, {variant: "table"});
 
       return;
@@ -127,15 +155,21 @@ export class RoyalBedroomFurnishing {
    */
   #writingDesk() {
     const group = this.#perimeter("deskReserve", 0.9, 1.45, 0.85, [0, 90, 270, 180]);
-    if (!group) { return; }
+    if (!group) {
+      return;
+    }
     this.#items.pop();
     const angle = group.rotation * Math.PI / 180;
     const desk = this.#place("Table", group.x - Math.sin(angle) * 0.45,
       group.z - Math.cos(angle) * 0.45, 0.9, 0.55, 0.65, group.rotation, { variant: "writingDesk" });
-    if (!desk) { return; }
+    if (!desk) {
+      return;
+    }
     const chair = this.#place("Chair", group.x + Math.sin(angle) * 0.25,
       group.z + Math.cos(angle) * 0.25, 0.43, 0.51, 0.85, (group.rotation + 270) % 360);
-    if (chair) { chair.mirrorRotationOffset = 180; }
+    if (chair) {
+      chair.mirrorRotationOffset = 180;
+    }
     this.#supported("DeskParchment", desk, 0.3034, 0.35, 0.0376);
     this.#access.push({
       minX: group.x - group.width / 2,
@@ -185,9 +219,13 @@ export class RoyalBedroomFurnishing {
       if (item && object === "royalBed") {
         const before = this.#items.length;
         this.#bedside(item);
-        if (this.#items.length === before) { this.#items.pop(); continue; }
+        if (this.#items.length === before) {
+          this.#items.pop(); continue;
+        }
       }
-      if (item) { return item; }
+      if (item) {
+        return item;
+      }
     }
   }
 
@@ -218,7 +256,9 @@ export class RoyalBedroomFurnishing {
       scale: 1,
       y: 0,
     };
-    if (!RoomPlacementRules.accepts(item, this.#room, this.#items, this.#thickness)) { return; }
+    if (!RoomPlacementRules.accepts(item, this.#room, this.#items, this.#thickness)) {
+      return;
+    }
     const bounds = {
       minX: x - item.width / 2 - 0.05,
       maxX: x + item.width / 2 + 0.05,
@@ -228,7 +268,9 @@ export class RoyalBedroomFurnishing {
     const intersects = /**
      * @param {{minX:number,maxX:number,minZ:number,maxZ:number}} area
      */ area => bounds.minX < area.maxX && bounds.maxX > area.minX && bounds.minZ < area.maxZ && bounds.maxZ > area.minZ;
-    if (this.#access.some(intersects) || this.#stairs.some(intersects)) { return; }
+    if (this.#access.some(intersects) || this.#stairs.some(intersects)) {
+      return;
+    }
     for (const door of this.#doors) {
       const crosswise = door.axis === "x";
       const low = crosswise ? this.#room.minX : this.#room.minZ;
@@ -242,12 +284,16 @@ export class RoyalBedroomFurnishing {
         minZ: crosswise ? door.center - door.width / 2 - 0.15 : Math.min(door.coordinate, end),
         maxZ: crosswise ? door.center + door.width / 2 + 0.15 : Math.max(door.coordinate, end),
       };
-      if (intersects(doorBounds)) { return; }
+      if (intersects(doorBounds)) {
+        return;
+      }
     }
     this.#items.push(item);
-    if (!this.#connected()) { this.#items.pop();
+    if (!this.#connected()) {
+      this.#items.pop();
 
-      return; }
+      return;
+    }
     return item;
   }
 
@@ -283,16 +329,22 @@ export class RoyalBedroomFurnishing {
     let first = -1, distance = Infinity;
     for (const [index, point] of points.entries()) {
       const nextDistance = Math.hypot(point.x - targetX, point.z - targetZ);
-      if (point.free && nextDistance < distance) { first = index; distance = nextDistance; }
+      if (point.free && nextDistance < distance) {
+        first = index; distance = nextDistance;
+      }
     }
-    if (first < 0) { return false; }
+    if (first < 0) {
+      return false;
+    }
     const reached = new Set([first]);
     const queue = [first];
     for (let cursor = 0; cursor < queue.length; cursor++) {
       const index = queue[cursor];
       for (const next of [index - columns - 1, index + columns + 1,
         ...(index % (columns + 1) > 0 ? [index - 1] : []), ...(index % (columns + 1) < columns ? [index + 1] : [])]) {
-        if (points[next]?.free && !reached.has(next)) { reached.add(next); queue.push(next); }
+        if (points[next]?.free && !reached.has(next)) {
+          reached.add(next); queue.push(next);
+        }
       }
     }
     // Tiny inaccessible pockets behind furniture are irrelevant; every doorway
@@ -303,7 +355,9 @@ export class RoyalBedroomFurnishing {
        */
       const reachesDoor = index => Math.abs((door.axis === "x" ? points[index].x : points[index].z) - door.coordinate) < 0.6 &&
         Math.abs((door.axis === "x" ? points[index].z : points[index].x) - door.center) < door.width / 2 - 0.15;
-      if (!queue.some(reachesDoor)) { return false; }
+      if (!queue.some(reachesDoor)) {
+        return false;
+      }
     }
     const bed = this.#items.find(RoyalBedroomFurnishing.#findItem);
 
@@ -339,7 +393,9 @@ export class RoyalBedroomFurnishing {
       rotation: support.rotation,
       scale: 1,
     };
-    if (RoomPlacementRules.accepts(item, this.#room, this.#items, this.#thickness)) { this.#items.push(item); }
+    if (RoomPlacementRules.accepts(item, this.#room, this.#items, this.#thickness)) {
+      this.#items.push(item);
+    }
   }
 
   /**
@@ -357,9 +413,13 @@ export class RoyalBedroomFurnishing {
           const offset = direction * (previousLength + length) / 2;
           next = this.#place("Shelf", previous.x + (sideways ? 0 : offset),
             previous.z + (sideways ? offset : 0), length, 0.36, 1.8, first.rotation);
-          if (next) { break; }
+          if (next) {
+            break;
+          }
         }
-        if (!next) { break; }
+        if (!next) {
+          break;
+        }
         next.role = "libraryProp";
         previous = next;
       }
@@ -395,7 +455,9 @@ export class RoyalBedroomFurnishing {
         scale: 1,
         wallAttachment: true,
       };
-      if (!RoomPlacementRules.accepts(item, this.#room, this.#items, this.#thickness)) { continue; }
+      if (!RoomPlacementRules.accepts(item, this.#room, this.#items, this.#thickness)) {
+        continue;
+      }
       /**
        * @param {import("../../CastleBasePlanGenerator.js").CompiledCastleOpening} opening
        */
@@ -403,7 +465,9 @@ export class RoyalBedroomFurnishing {
         Math.abs(opening.coordinate - (sideways ? x : z)) < 0.3 &&
         Math.abs(opening.center - (sideways ? z : x)) < opening.width / 2 + 0.6 &&
         (opening.bottom ?? 0) < 2.08 && (opening.bottom ?? 0) + opening.height > 1.3;
-      if (openings.some(overlapsWallDecoration)) { continue; }
+      if (openings.some(overlapsWallDecoration)) {
+        continue;
+      }
       this.#items.push(item);
 
       return;
@@ -433,7 +497,9 @@ export class RoyalBedroomFurnishing {
         y: 0.003,
         floorCovering: true,
       };
-      if (RoomPlacementRules.accepts(rug, room, [], this.#thickness)) { this.#items.push(rug); }
+      if (RoomPlacementRules.accepts(rug, room, [], this.#thickness)) {
+        this.#items.push(rug);
+      }
       return;
     }
     const angle = bed.rotation * Math.PI / 180;
@@ -453,7 +519,9 @@ export class RoyalBedroomFurnishing {
       y: 0.003,
       floorCovering: true,
     };
-    if (RoomPlacementRules.accepts(rug, this.#room, [], this.#thickness)) { this.#items.push(rug); }
+    if (RoomPlacementRules.accepts(rug, this.#room, [], this.#thickness)) {
+      this.#items.push(rug);
+    }
   }
 
   /**

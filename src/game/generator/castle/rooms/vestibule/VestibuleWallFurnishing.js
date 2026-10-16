@@ -15,7 +15,9 @@ export class VestibuleWallFurnishing {
     const alongX = room.maxX - room.minX >= room.maxZ - room.minZ;
     const length = alongX ? room.maxX - room.minX : room.maxZ - room.minZ;
     const breadth = alongX ? room.maxZ - room.minZ : room.maxX - room.minX;
-    if (length < 4 || breadth < 3.3) { return []; }
+    if (length < 4 || breadth < 3.3) {
+      return [];
+    }
     for (const fraction of [0.5, 0.55, 0.45, 0.6, 0.4, 0.65, 0.35, 0.75, 0.25]) {
       const x = alongX ? room.minX + length * fraction : room.maxX - 0.375;
       const z = alongX ? room.maxZ - 0.375 : room.minZ + length * fraction;
@@ -40,7 +42,9 @@ export class VestibuleWallFurnishing {
         rotation,
         y: 0.002,
       };
-      if (!safe(console) || !RoomPlacementRules.accepts(console, room, occupied, wallThickness)) { continue; }
+      if (!safe(console) || !RoomPlacementRules.accepts(console, room, occupied, wallThickness)) {
+        continue;
+      }
       const items = [console];
       const rail = {
         id: `${console.id}-hooks`,
@@ -56,7 +60,9 @@ export class VestibuleWallFurnishing {
         y: 1.4,
         wallAttachment: true,
       };
-      if (safe(rail) && RoomPlacementRules.accepts(rail, room, [...occupied, ...items], wallThickness)) { items.push(rail); }
+      if (safe(rail) && RoomPlacementRules.accepts(rail, room, [...occupied, ...items], wallThickness)) {
+        items.push(rail);
+      }
       for (const [object, offset, width, depth, height, scale, properties] of [
         ["Lantern", -0.35, 0.22, 0.2136, 0.427, 0.8, { type: "table" }],
         ["Planter", 0.35, 0.745, 0.745, 0.99, 0.27],
@@ -75,7 +81,9 @@ export class VestibuleWallFurnishing {
           y: 0.752,
           supportId: console.id,
         };
-        if (safe(item) && RoomPlacementRules.accepts(item, room, [...occupied, ...items], wallThickness)) { items.push(item); }
+        if (safe(item) && RoomPlacementRules.accepts(item, room, [...occupied, ...items], wallThickness)) {
+          items.push(item);
+        }
       }
 
       return items;

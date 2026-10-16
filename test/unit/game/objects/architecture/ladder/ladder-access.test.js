@@ -23,13 +23,17 @@ it('allows climbing both ways only beside the corresponding ladder landing',()=>
   const ladder={
     definition:{id:'ladder'},
     landing:end=>points[end],
-    openHatch(){openings++;},
+    openHatch: () => {
+      openings++;
+    },
   };
   const hero={
     position:{...points.bottom},
-    teleport(position){this.position={...position};
+    teleport(position){
+      this.position={...position};
 
-      return true;},
+      return true;
+    },
   };
   const up=new LadderInteraction(ladder,hero,'bottom');
   assert.equal(up.description.labelKey,'game.interaction.climb_ladder');
@@ -90,7 +94,9 @@ it('connects stairs to the ladder and retains supported landings around an open 
       maxZ:gate.coordinate-tower.minZ,
     };
     for(const room of plan.spaces.filter(space=>space.floorY>layout.origin.y&&space.id.includes('room'))) {
-      if(room.minX<towerBuilding.minX||room.maxX>towerBuilding.maxX||room.minZ<towerBuilding.minZ||room.maxZ>towerBuilding.maxZ)continue;
+      if(room.minX<towerBuilding.minX||room.maxX>towerBuilding.maxX||room.minZ<towerBuilding.minZ||room.maxZ>towerBuilding.maxZ){
+        continue;
+      }
       for(const doorway of plan.openings.filter(opening=>opening.kind==='door'&&opening.roomId===room.id)) {
         for(const offset of [-0.49,0,0.49]) {
           const x=doorway.axis==='x'?doorway.coordinate+offset:doorway.center;

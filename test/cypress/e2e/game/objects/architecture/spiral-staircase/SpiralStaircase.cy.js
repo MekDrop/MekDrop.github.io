@@ -17,7 +17,9 @@ async function walkTo(window, target, perspective) {
     const dx = target.x - state.position.x;
     const dz = target.z - state.position.z;
     const tolerance = target.tolerance ?? (perspective ? 0.12 : 0.18);
-    if ((perspective ? Math.hypot(dx, dz) : Math.max(Math.abs(dx), Math.abs(dz))) < tolerance) { reached = true; break; }
+    if ((perspective ? Math.hypot(dx, dz) : Math.max(Math.abs(dx), Math.abs(dz))) < tolerance) {
+      reached = true; break;
+    }
     if (perspective) {
       const camera = window.gameCameraTest.state().firstPersonCamera;
       const length = Math.hypot(camera.direction.x, camera.direction.z);
@@ -74,12 +76,16 @@ describe("Spiral staircase", () => {
         }
         try {
           for (const [index, target] of targets.entries()) {
-            if (perspective && index === 1) firstPerson(window);
+            if (perspective && index === 1) {
+              firstPerson(window);
+            }
             await walkTo(window, target, perspective && index >= 1);
           }
           expect(driver.state().position.y).to.be.closeTo(4, 0.05);
           expect(driver.state().grounded).to.equal(true);
-        } finally { driver.move(0, 0); }
+        } finally {
+          driver.move(0, 0);
+        }
       });
     });
   }
@@ -115,7 +121,9 @@ describe("Spiral staircase", () => {
         {
           x: 2.8,
           z: hallZ,
-        }]) await walkTo(window, target, true);
+        }]) {
+          await walkTo(window, target, true);
+        }
         const camera = window.gameCameraTest.state().firstPersonCamera;
         const length = Math.hypot(camera.direction.x, camera.direction.z);
         driver.move(camera.right.x, camera.direction.x / length);
@@ -131,7 +139,9 @@ describe("Spiral staircase", () => {
         const landedY = driver.state().position.y;
         await new Promise((resolve) => window.setTimeout(resolve, 1000));
         expect(driver.state().position.y).to.be.closeTo(landedY, 0.05);
-      } finally { driver.move(0, 0); }
+      } finally {
+        driver.move(0, 0);
+      }
     });
   });
 
@@ -174,7 +184,9 @@ describe("Spiral staircase", () => {
         const pitch = Math.asin(camera.direction.y) * 180 / Math.PI;
         window.gameCameraTest.lookFirstPersonBy(-75 - yaw, pitch + 40);
         await new Promise((resolve) => window.setTimeout(resolve, 600));
-      } finally { driver.move(0, 0); }
+      } finally {
+        driver.move(0, 0);
+      }
     });
     cy.viewport(1280, 900);
     cy.wait(700);
@@ -230,7 +242,9 @@ async function climbCastle(window) {
     }
     expect(driver.state().position.y).to.be.closeTo(stair.center.y + stair.rise, 0.05);
     expect(driver.state().grounded).to.equal(true);
-  } finally { driver.move(0, 0); }
+  } finally {
+    driver.move(0, 0);
+  }
 
   return {
     plan,

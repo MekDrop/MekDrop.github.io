@@ -97,7 +97,9 @@ export class TerraceRoyalActions {
       performanceSeed,
     });
     if (actor && navigation) {
-      if (this.#kind === "king") { actor.performanceFrame = stage; }
+      if (this.#kind === "king") {
+        actor.performanceFrame = stage;
+      }
       this.#motion = new CastleResidentMotion({
         actor,
         ...navigation,
@@ -113,17 +115,23 @@ export class TerraceRoyalActions {
   /**
    * @returns {boolean}
    */
-  get arrived() { return this.#motion?.arrived ?? true; }
+  get arrived() {
+    return this.#motion?.arrived ?? true;
+  }
 
   /**
    * @param {number} deltaTime
    */
-  update(deltaTime) { this.#motion?.update(deltaTime); }
+  update(deltaTime) {
+    this.#motion?.update(deltaTime);
+  }
 
   /**
    * @returns {CastleResidentMotion|null}
    */
-  get motion() { return this.#motion; }
+  get motion() {
+    return this.#motion;
+  }
 
   get actor() {
     return this.#royal;
@@ -153,7 +161,9 @@ export class TerraceRoyalActions {
    * @param {import("./RoyalTerraceActivityBehavior.js").RoyalTerraceActivityBehavior} behavior
    */
   sync(behavior) {
-    if (behavior.reacting) { return; }
+    if (behavior.reacting) {
+      return;
+    }
     const phase = behavior.stagePhase;
     if (this.#motion) {
       if ([PHASE.ROYAL_ENTER, PHASE.ROYAL_EXIT].includes(phase)) {
@@ -165,14 +175,22 @@ export class TerraceRoyalActions {
         return;
       }
       if (![PHASE.SETTLE, PHASE.ACTIVITY, PHASE.RISE].includes(phase)) {
-        if (behavior.onThrone && this.#motion.arrived) { this.#royal.entity.setRotation(this.#homeRotation); }
+        if (behavior.onThrone && this.#motion.arrived) {
+          this.#royal.entity.setRotation(this.#homeRotation);
+        }
         return;
       }
-      if (phase === PHASE.ACTIVITY) { this.#activityTime = behavior.elapsed; }
-      if (phase === PHASE.SETTLE) { this.#activityTime = 0; }
-      if (this.#kind === "queen") { this.#syncQueen(behavior);
+      if (phase === PHASE.ACTIVITY) {
+        this.#activityTime = behavior.elapsed;
+      }
+      if (phase === PHASE.SETTLE) {
+        this.#activityTime = 0;
+      }
+      if (this.#kind === "queen") {
+        this.#syncQueen(behavior);
 
-        return; }
+        return;
+      }
       const target = this.#kind === "princess" ? [-0.75, 0, 3.2] : [0, 0, 3.1];
       this.#place(...target, this.#kind === "princess" ? 90 : 0);
       this.#royal.pose(behavior.action, this.#activityTime, phase === PHASE.SETTLE
@@ -220,11 +238,15 @@ export class TerraceRoyalActions {
     this.#royal.pose(behavior.action, this.#activityTime, blend);
   }
 
-  stop() { this.#motion?.stop(); }
+  stop() {
+    this.#motion?.stop();
+  }
 
   destroy() {
     this.stop();
-    if (this.#ownsActor) { this.#royal.destroy(); }
+    if (this.#ownsActor) {
+      this.#royal.destroy();
+    }
     this.#royal = null;
   }
 

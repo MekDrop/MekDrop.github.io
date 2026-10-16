@@ -71,19 +71,27 @@ it("keeps resident sword movement in the terrace frame and resumes clips after s
     .replace(/^import[^\n]+\r?\n/gm, "");
   const layer = {
     activeState: null,
-    play(name) { this.activeState = name; },
-    transition(name) { this.play(name); },
+    play(name) {
+      this.activeState = name;
+    },
+    transition(name) {
+      this.play(name);
+    },
   };
   const entity = new pc.Entity();
   const model = new pc.Entity();
-  model.addComponent = () => { model.anim = {
-    speed: 1,
-    baseLayer: layer,
-    addAnimationState() {},
-  }; };
+  model.addComponent = () => {
+    model.anim = {
+      speed: 1,
+      baseLayer: layer,
+      addAnimationState: () => {},
+    };
+  };
   const King = new Function("kingModelUrl", "KING_ANIMATION", "KingTerracePerformance", "TerraceActor",
     `${source.replace("export class", "class")}\nreturn TerraceKing;`)("king", KING_ANIMATION, KingTerracePerformance,
-    class { entity = entity; model = model; });
+    class {
+      entity = entity; model = model;
+    });
   const actor = new King({
     pc,
     modelLibrary: { getAnimationTracks: () => new Map(Object.values(KING_ANIMATION).map((name) => [name, { duration: 1 }])) },

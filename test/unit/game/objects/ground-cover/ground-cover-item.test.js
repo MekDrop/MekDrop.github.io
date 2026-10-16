@@ -163,18 +163,18 @@ function createSourceMesh(yOffset) {
         baseVertex: 0,
       },
     ],
-    getPositions(target) {
+    getPositions: (target) => {
       target.push(...positions);
 
       return positions.length / 3;
     },
-    getNormals(target) {
+    getNormals: (target) => {
       target.push(...normals);
     },
-    getUvs(_channel, target) {
+    getUvs: (_channel, target) => {
       target.push(...uvs);
     },
-    getIndices(target) {
+    getIndices: (target) => {
       target.push(...indices);
     },
   };
@@ -271,15 +271,15 @@ function createSubject(ambientMotion) {
           teleport() {
             this.teleportCount += 1;
           },
-          on(event, handler) {
+          on: (event, handler) => {
             listeners.set(event, handler);
           },
-          off(event, handler) {
+          off: (event, handler) => {
             if (listeners.get(event) === handler) {
               listeners.delete(event);
             }
           },
-          fire(event, value) {
+          fire: (event, value) => {
             listeners.get(event)?.(value);
           },
         };
@@ -303,7 +303,7 @@ function createSubject(ambientMotion) {
   ];
   const modelLibrary = {
     instantiateMerged: () => new Entity("Merged ground cover"),
-    instantiate() {
+    instantiate: () => {
       const root = new Entity("Mushroom model");
       [
         {

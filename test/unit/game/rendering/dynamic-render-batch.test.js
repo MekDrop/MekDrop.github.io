@@ -9,11 +9,15 @@ function fixture() {
   const added = [], removed = [];
   const app = {
     batcher: {
-      addGroup() { const id = added.length; added.push(id);
+      addGroup: () => {
+        const id = added.length; added.push(id);
 
-        return { id }; },
-      markGroupDirty() {},
-      removeGroup(id) { removed.push(id); },
+        return { id };
+      },
+      markGroupDirty: () => {},
+      removeGroup: (id) => {
+        removed.push(id);
+      },
     },
   };
 

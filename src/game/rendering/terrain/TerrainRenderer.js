@@ -106,11 +106,15 @@ export class TerrainRenderer {
     this.#instanceRenderer.build();
   }
 
-  get instanceRenderer() { return this.#instanceRenderer; }
+  get instanceRenderer() {
+    return this.#instanceRenderer;
+  }
   /**
    * @param {(value: string) => string} value
    */
-  set resolveMaterial(value) { this.#resolveMaterial = value; }
+  set resolveMaterial(value) {
+    this.#resolveMaterial = value;
+  }
 
 
   /**

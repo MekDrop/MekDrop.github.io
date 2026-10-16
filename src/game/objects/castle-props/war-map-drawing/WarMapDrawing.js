@@ -70,18 +70,26 @@ export class WarMapDrawing {
     });
   }
 
-  get entity() { return this.#entity; }
-  get definition() { return this.#definition; }
+  get entity() {
+    return this.#entity;
+  }
+  get definition() {
+    return this.#definition;
+  }
   /**
    * @returns {import("playcanvas").Entity[]}
    */
-  get visualRoots() { return [this.#visual]; }
+  get visualRoots() {
+    return [this.#visual];
+  }
   /**
    * @param {number} near
    * @param {number} far
    * @param {number[]} [offsets]
    */
-  setIslandOffsets(near, far, offsets = [near, far]) { this.#islandRoots.setOffsets(near, far, offsets); }
+  setIslandOffsets(near, far, offsets = [near, far]) {
+    this.#islandRoots.setOffsets(near, far, offsets);
+  }
   destroy() {
     this.#entity.destroy();
     this.#material.destroy();
@@ -125,9 +133,13 @@ export class WarMapDrawing {
           color = tile === MAP_TILE_TYPE.WATER || rivers.has(`${col}:${row}`) ? [88, 136, 154] :
             tile === MAP_TILE_TYPE.PATH ? [149, 108, 66] :
               [135 - Math.min(30, height * 3), 148 - Math.min(35, height * 3), 92];
-          if (castles.has(`${col}:${row}`)) { color = [165, 53, 46]; }
+          if (castles.has(`${col}:${row}`)) {
+            color = [165, 53, 46];
+          }
         }
-        if (x === 7 || y === 7 || x === size - 8 || y === size - 8) { color = [113, 77, 43]; }
+        if (x === 7 || y === 7 || x === size - 8 || y === size - 8) {
+          color = [113, 77, 43];
+        }
         pixels.set([...color, 255], (y * size + x) * 4);
       }
     }

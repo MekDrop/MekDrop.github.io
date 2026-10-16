@@ -7,7 +7,9 @@ import { IslandObjectRoots } from "../../../../../src/game/objects/shared/Island
 const source = readFileSync(new URL("../../../../../src/game/objects/flag/Flag.js", import.meta.url), "utf8")
   .replace(/^import[^\n]*\n/gm, "").replace("export class Flag", "class Flag");
 class Physics {
-  createCloth() { return {}; }
+  createCloth() {
+    return {};
+  }
   endPointer() {}
   destroy() {}
 }
@@ -81,7 +83,7 @@ it("owns custom texture loading, placement, dimensions, and cleanup", () => {
     createElement: () => ({
       width: 0,
       height: 0,
-      getContext: () => ({ fillRect() {} }),
+      getContext: () => ({ fillRect: () => {} }),
     }),
   };
   const mesh = {
@@ -102,19 +104,35 @@ it("owns custom texture loading, placement, dimensions, and cleanup", () => {
      * @param {string} type
      * @param {{meshInstances: import("playcanvas").MeshInstance[]}} data
      */
-    addComponent(type, data) { this.render = data; }
-    destroy() { for (const instance of this.render?.meshInstances ?? []) instance.destroy(); delete this.render; super.destroy(); }
+    addComponent(type, data) {
+      this.render = data;
+    }
+    destroy() {
+      for (const instance of this.render?.meshInstances ?? []) {
+        instance.destroy();
+      } delete this.render; super.destroy();
+    }
   }
   let loaded, removed, unsubscribed = false;
   const app = {
     graphicsDevice,
-    on: () => ({ off() { unsubscribed = true; } }),
+    on: () => ({
+      off: () => {
+        unsubscribed = true;
+      },
+    }),
     assets: {
-      fire() {},
-      _loader: { clearCache() {} },
-      add(asset) { asset.registry = this; },
-      load(asset) { loaded = asset; },
-      remove(asset) { removed = asset; },
+      fire: () => {},
+      _loader: { clearCache: () => {} },
+      add(asset) {
+        asset.registry = this;
+      },
+      load: (asset) => {
+        loaded = asset;
+      },
+      remove: (asset) => {
+        removed = asset;
+      },
     },
   };
   const definition = {

@@ -6,7 +6,7 @@ import * as pc from "playcanvas";
 import { BowlPacking } from "../../../../../../src/game/objects/castle-props/bowl/BowlPacking.js";
 
 const hooks = registerHooks({
-  resolve(specifier, context, nextResolve) {
+  resolve: (specifier, context, nextResolve) => {
     if (specifier.endsWith(".glb?url")) {
       return {
         url: `data:text/javascript,export default ${JSON.stringify(specifier)}`,
@@ -21,13 +21,17 @@ hooks.deregister();
 
 test("bowls accept ordinary game objects, freeze snapshots, and pack only once", () => {
   class BowlWithoutPhysics extends Bowl {
-    static get hasAuthoredCollision() { return false; }
+    static get hasAuthoredCollision() {
+      return false;
+    }
   }
   const requests = [];
   const modelLibrary = {
-    instantiate(url) { requests.push(url);
+    instantiate: (url) => {
+      requests.push(url);
 
-      return new pc.Entity(url); },
+      return new pc.Entity(url);
+    },
   };
   const items = [{ object: "Apple" }, {
     object: "Book",
@@ -57,14 +61,16 @@ test("bowls accept ordinary game objects, freeze snapshots, and pack only once",
   };
   const created = [], destroyed = [];
   const runtime = {
-    createObject(item) {
+    createObject: (item) => {
       created.push(item);
       const entity = new pc.Entity(item.id);
       entity.clone = () => new pc.Entity(item.id);
 
       return {
         entity,
-        destroy() { destroyed.push(item.id); entity.destroy(); },
+        destroy: () => {
+          destroyed.push(item.id); entity.destroy();
+        },
       };
     },
   };
@@ -137,16 +143,20 @@ test("shell tint clones materials and never recolors shared assets or contents",
   const clones = [];
   Bowl.prototype.prepareModel.call({
     definition: { color: "#804020" },
-    cloneMaterial(material) { const clone = material.clone(); clones.push(clone);
+    cloneMaterial: (material) => {
+      const clone = material.clone(); clones.push(clone);
 
-      return clone; },
+      return clone;
+    },
   },
   { findComponents: () => [{ meshInstances: [mesh] }] }, false);
   assert.notEqual(mesh.material, original);
   assert.deepEqual(original.diffuse.toArray(), [0.8, 0.7, 0.6, 1]);
   assert.ok(mesh.material.diffuse.r < original.diffuse.r);
   assert.ok(mesh.material.diffuse.g < original.diffuse.g);
-  for (const clone of clones) { clone.destroy(); }
+  for (const clone of clones) {
+    clone.destroy();
+  }
   original.destroy();
 });
 
@@ -178,14 +188,16 @@ test("real Engine objects survive source destruction and remain fixed after Ammo
   };
   let disposed = 0;
   const runtime = {
-    createObject(definition) {
+    createObject: (definition) => {
       const entity = new pc.Entity(definition.object);
       const mesh = pc.Mesh.fromGeometry(device, new pc.BoxGeometry({ halfExtents: new pc.Vec3(0.03, 0.02, 0.01) }));
       entity.addComponent("render", { meshInstances: [new pc.MeshInstance(mesh, material, entity)] });
 
       return {
         entity,
-        destroy() { disposed++; entity.destroy(); mesh.destroy(); },
+        destroy: () => {
+          disposed++; entity.destroy(); mesh.destroy();
+        },
       };
     },
   };

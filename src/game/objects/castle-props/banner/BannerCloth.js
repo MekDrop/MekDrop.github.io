@@ -15,7 +15,9 @@ export class BannerCloth {
   /**
    * @returns {string[]}
    */
-  static get modelUrls() { return [authoredModelUrl, clothModelUrl, vestibuleModelUrl]; }
+  static get modelUrls() {
+    return [authoredModelUrl, clothModelUrl, vestibuleModelUrl];
+  }
   /**
    * @type {import("../../../models/GameModelLibrary.js").GameModelLibrary}
    */
@@ -144,7 +146,9 @@ export class BannerCloth {
       castShadows: true,
       receiveShadows: true,
     });
-    if (vestibule) { cloth.setLocalPosition(0, -0.035, 0.04); }
+    if (vestibule) {
+      cloth.setLocalPosition(0, -0.035, 0.04);
+    }
     root.addChild(cloth);
 
     const rail = authored ?? this.#modelLibrary.instantiate(authoredModelUrl);
@@ -203,7 +207,9 @@ export class BannerCloth {
     let closest = null;
     for (const banner of this.#banners) {
       const hit = this.#intersectBannerRay(banner, rayStart, rayEnd, true);
-      if (!hit || (closest && hit.distance >= closest.distance)) continue;
+      if (!hit || (closest && hit.distance >= closest.distance)) {
+        continue;
+      }
       closest = hit;
     }
 
@@ -259,7 +265,9 @@ export class BannerCloth {
     this.#entity = null;
     for (const { mesh } of this.#banners) {
       mesh.decRefCount();
-      if (mesh.refCount < 1) mesh.destroy();
+      if (mesh.refCount < 1) {
+        mesh.destroy();
+      }
     }
     this.#banners = [];
     this.#material?.destroy();
@@ -377,7 +385,9 @@ export class BannerCloth {
       positions[index] *= width;
       positions[index + 1] *= height;
       vertexUv.push(u, v);
-      if (v < 0.001) { pinnedIndices.push(index / 3); }
+      if (v < 0.001) {
+        pinnedIndices.push(index / 3);
+      }
     }
     const animatedPositions = Float32Array.from(positions);
     const meshIndices = Uint16Array.from(indices);

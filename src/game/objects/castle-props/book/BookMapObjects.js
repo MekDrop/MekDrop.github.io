@@ -15,7 +15,9 @@ export class BookMapObjects {
     );
     // Iterate a snapshot: newly generated volumes are ordinary map records.
     for (const shelf of objects.filter(BookMapObjects.#filterDefinition2)) {
-      if (shelf.books === false && !shelf.booksAsObjects) { continue; }
+      if (shelf.books === false && !shelf.booksAsObjects) {
+        continue;
+      }
       objects.push(...this.forShelf(shelf));
       shelf.books = false;
       shelf.booksAsObjects = true;

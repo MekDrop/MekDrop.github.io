@@ -37,11 +37,13 @@ class FakeEntity {
     };
   }
 
-  setLocalEulerAngles(x, y, z) { this.euler = {
-    x,
-    y,
-    z,
-  }; }
+  setLocalEulerAngles(x, y, z) {
+    this.euler = {
+      x,
+      y,
+      z,
+    };
+  }
 
   setLocalScale(x, y, z) {
     this.scale = {
@@ -69,18 +71,22 @@ class FakeEntity {
     };
   }
 
-  findComponents() { this.render ??= { meshInstances: [{ material: null }] };
+  findComponents() {
+    this.render ??= { meshInstances: [{ material: null }] };
 
-    return [this.render]; }
+    return [this.render];
+  }
   destroy() {}
 }
 
 class FakeMaterial {
   update() {}
 
-  findComponents() { this.render ??= { meshInstances: [{ material: null }] };
+  findComponents() {
+    this.render ??= { meshInstances: [{ material: null }] };
 
-    return [this.render]; }
+    return [this.render];
+  }
   destroy() {}
 }
 
@@ -88,7 +94,11 @@ const pc = {
   Entity: FakeEntity,
   StandardMaterial: FakeMaterial,
   ADDRESS_REPEAT: 0,
-  Vec2: class Vec2 { constructor(x, y) { this.x = x; this.y = y; } },
+  Vec2: class Vec2 {
+    constructor(x, y) {
+      this.x = x; this.y = y;
+    }
+  },
   Vec3: class Vec3 {
     constructor(x, y, z) {
       this.x = x;
@@ -136,7 +146,7 @@ const { CastleAudienceRoom } = await import(
 delete globalThis.__castleAudienceTestPc;
 
 const app = {
-  on: () => ({ off() {} }),
+  on: () => ({ off: () => {} }),
 };
 const modelLibrary = {
   instantiate: () => new FakeEntity("Model"),
@@ -203,8 +213,8 @@ function createRoom(side, occupant = null, options = {}) {
     },
     occupant: occupant ?? {
       entity: new FakeEntity("Royal"),
-      update() {},
-      destroy() {},
+      update: () => {},
+      destroy: () => {},
     },
     availableDepth: 4.1,
     availableWidth: 6.4,
@@ -294,11 +304,11 @@ it("routes a royal through the doorway with castle collision knowledge", () => {
         z: 1,
       },
     },
-    beginGameOver(options) {
+    beginGameOver: (options) => {
       gameOverOptions = options;
     },
-    update() {},
-    destroy() {},
+    update: () => {},
+    destroy: () => {},
   };
   const isBlocked = () => false;
   const room = createRoom("NORTH", occupant);
@@ -501,7 +511,9 @@ it("keeps room timber and carpet within the planned chamber", async () => {
       const room = createRoom(side, null, { residentialLayout: shared });
       const entry = room.entity.children.find((part) => part.name === "Audience entrance floor");
       assert.equal(Boolean(entry), shared.audienceFloorBounds.minZ > 0);
-      if (entry) assert.equal(entry.scale.x, 2);
+      if (entry) {
+        assert.equal(entry.scale.x, 2);
+      }
       const work = shared.audienceFloorBounds;
       for (const part of room.entity.children.filter((item) => item.name.includes("floor") || item.name === "Audience carpet runner")) {
         const center = shared.toLocal(part.position.x, part.position.z);

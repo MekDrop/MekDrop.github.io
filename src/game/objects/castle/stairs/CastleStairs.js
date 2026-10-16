@@ -211,7 +211,9 @@ export class CastleStairs {
   destroy() {
     this.#entity?.destroy();
     this.#entity = null;
-    for (const buffer of this.#vertexBuffers) buffer.destroy();
+    for (const buffer of this.#vertexBuffers) {
+      buffer.destroy();
+    }
     this.#vertexBuffers = [];
     this.#surfaces = [];
   }
@@ -225,7 +227,9 @@ export class CastleStairs {
     const blocksPerTile = 1 / this.#cubeSize;
     for (const door of this.#doors) {
       const flight = createCastleStairFlight(this.#position, door, this.#cubeSize);
-      if (!flight) continue;
+      if (!flight) {
+        continue;
+      }
       const { approachElevation, riseBlocks, stepHeight } = flight;
       const widthBlocks = Math.round(flight.width * blocksPerTile);
       const offsetBlocks = Math.round(flight.offset * blocksPerTile);
@@ -261,7 +265,9 @@ export class CastleStairs {
               layer,
               stepHeight,
             );
-            if (!position) continue;
+            if (!position) {
+              continue;
+            }
             this.#addModuleMatrix(
               batches,
               this.#materialFor(distanceBlocks, acrossBlocks, layer),
@@ -371,7 +377,9 @@ export class CastleStairs {
       ),
     );
     const matrices = batches.get(material) ?? [];
-    for (const value of matrix.data) matrices.push(value);
+    for (const value of matrix.data) {
+      matrices.push(value);
+    }
     batches.set(material, matrices);
   }
 
@@ -389,7 +397,9 @@ export class CastleStairs {
           material: this.#materials.get(materialName),
         },
       );
-      if (!batch) continue;
+      if (!batch) {
+        continue;
+      }
       this.#vertexBuffers.push(batch.vertexBuffer);
       this.#entity.addChild(batch.entity);
     }

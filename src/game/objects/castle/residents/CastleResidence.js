@@ -75,7 +75,9 @@ export class CastleResidence {
     this.#entity.setLocalPosition(origin.x, origin.y, origin.z);
     this.#entity.setLocalEulerAngles(0, yaw, 0);
     for (const placement of this.#layout.placements) {
-      if (["wardrobe", "bookshelf", "storageShelf", "royalBed", "servantBed", "workDesk", "kitchenTable"].includes(placement.role)) { continue; }
+      if (["wardrobe", "bookshelf", "storageShelf", "royalBed", "servantBed", "workDesk", "kitchenTable"].includes(placement.role)) {
+        continue;
+      }
       const visual = modelLibrary.instantiate(MODEL_URLS[placement.role]);
       visual.name = `Castle ${placement.role}`;
       const local = this.#layout.toLocal(placement.position.x, placement.position.z);
@@ -97,11 +99,19 @@ export class CastleResidence {
       });
     }
     if (buildPlan.metadata.runtime.residential?.version === 2) {
-      if (!buildPlan.metadata.runtime.residential.basePlanId) { this.#buildExterior(buildPlan, modelLibrary, pc); }
+      if (!buildPlan.metadata.runtime.residential.basePlanId) {
+        this.#buildExterior(buildPlan, modelLibrary, pc);
+      }
       this.#buildPlannedFloors(buildPlan, modelLibrary, pc);
-      for (const stair of this.#layout.authoredStairs) { this.#buildStair(pc, modelLibrary, stair, "Castle authored staircase", stair.shaft); }
-      if (this.#layout.stairs) { this.#buildStair(pc, modelLibrary, this.#layout.stairs, "Castle upper staircase", buildPlan.metadata.runtime.residential.shaft); }
-      if (this.#layout.serviceStair) { this.#buildStair(pc, modelLibrary, this.#layout.serviceStair, "Castle basement staircase"); }
+      for (const stair of this.#layout.authoredStairs) {
+        this.#buildStair(pc, modelLibrary, stair, "Castle authored staircase", stair.shaft);
+      }
+      if (this.#layout.stairs) {
+        this.#buildStair(pc, modelLibrary, this.#layout.stairs, "Castle upper staircase", buildPlan.metadata.runtime.residential.shaft);
+      }
+      if (this.#layout.serviceStair) {
+        this.#buildStair(pc, modelLibrary, this.#layout.serviceStair, "Castle basement staircase");
+      }
       addGeneratedVoxelPhysics({
         pc,
         parent: this.#entity,
@@ -168,7 +178,9 @@ export class CastleResidence {
           const right = Math.min(maxX, audienceFloor.maxX);
           const front = Math.max(minZ, audienceFloor.minZ);
           const rear = Math.min(maxZ, audienceFloor.maxZ);
-          if (right <= left || rear <= front) { continue; }
+          if (right <= left || rear <= front) {
+            continue;
+          }
           this.#solids.push({
             x: (left + right) / 2,
             y: area.floorY - plan.origin.y - 0.125,
@@ -182,9 +194,13 @@ export class CastleResidence {
       }
       for (const [pieces, timber] of [[stonePieces, false], [visibleWoodPieces, true]]) {
         // The generated brick shell already owns exposed upper surfaces.
-        if (!plan.basePlanId && !timber && area.floorY > plan.origin.y && !area.id.endsWith("Threshold")) { continue; }
+        if (!plan.basePlanId && !timber && area.floorY > plan.origin.y && !area.id.endsWith("Threshold")) {
+          continue;
+        }
         for (const [minX, maxX, minZ, maxZ] of pieces) {
-          if (maxX <= minX || maxZ <= minZ) { continue; }
+          if (maxX <= minX || maxZ <= minZ) {
+            continue;
+          }
           // Door thresholds already have masonry and exterior stair support.
           // Keep their support record without adding another visible slab.
           const threshold = area.id.endsWith("Threshold");
@@ -207,11 +223,13 @@ export class CastleResidence {
                */
                 (room) => x >= room.minX && x <= room.maxX && z >= room.minZ && z <= room.maxZ);
             const key = `${owner.id}:${area.floorY}`;
-            if (!timberFinishes.has(key)) { timberFinishes.set(key, {
-              id: owner.id,
-              y,
-              pieces: [],
-            }); }
+            if (!timberFinishes.has(key)) {
+              timberFinishes.set(key, {
+                id: owner.id,
+                y,
+                pieces: [],
+              });
+            }
             timberFinishes.get(key).pieces.push([minX, maxX, minZ, maxZ]);
           }
           if (panel && (wood || !plan.basePlanId)) {
@@ -270,18 +288,26 @@ export class CastleResidence {
     }
   }
 
-  get entity() { return this.#entity; }
-  get layout() { return this.#layout; }
+  get entity() {
+    return this.#entity;
+  }
+  get layout() {
+    return this.#layout;
+  }
 
   /**
    * @param {import("../../characters/servant/Servant.js").Servant} servant
    */
-  set servant(servant) { this.#layout.servant = servant; }
+  set servant(servant) {
+    this.#layout.servant = servant;
+  }
 
   /**
    * @param {import("../../characters/servant/Servant.js").Servant} actor
    */
-  canEnterBasement(actor) { return this.#layout.canEnterBasement(actor); }
+  canEnterBasement(actor) {
+    return this.#layout.canEnterBasement(actor);
+  }
 
   /**
    * @param {number} x
@@ -345,13 +371,21 @@ export class CastleResidence {
   }
 
   destroy() {
-    for (const material of this.#gardenMaterials) material.destroy();
+    for (const material of this.#gardenMaterials) {
+      material.destroy();
+    }
     this.#entity.destroy();
-    for (const graph of this.#stairPhysicsGraphs) graph.destroy();
+    for (const graph of this.#stairPhysicsGraphs) {
+      graph.destroy();
+    }
     this.#stairPhysicsGraphs = [];
-    for (const instance of this.#stairSupportInstances) instance.destroy();
+    for (const instance of this.#stairSupportInstances) {
+      instance.destroy();
+    }
     this.#stairSupportInstances = [];
-    for (const mesh of this.#stairProfileMeshes) mesh.destroy();
+    for (const mesh of this.#stairProfileMeshes) {
+      mesh.destroy();
+    }
     this.#stairProfileMeshes = [];
     this.#solids = [];
   }
@@ -372,12 +406,16 @@ export class CastleResidence {
     stair.name = name;
     const landingProfile = definition.landingProfile ?? false;
     const turns = definition.turns ?? 1.5;
-    if (landingProfile || turns !== 1.5) this.#stairProfileMeshes.push(...reshapeSpiralModel(pc, stair, shaft, definition.radius, landingProfile, turns));
+    if (landingProfile || turns !== 1.5) {
+      this.#stairProfileMeshes.push(...reshapeSpiralModel(pc, stair, shaft, definition.radius, landingProfile, turns));
+    }
     const entranceRails = new Set(["Handrail", "Handrail.001", "Handrail.022", "Handrail.023",
       "Rail post", "Rail post.001", "Rail post.022", "Rail post.023",
       "Rail tread connection 00", "Rail tread connection 01", "Rail tread connection 22", "Rail tread connection 23"]);
     for (const render of stair.findComponents("render")) {
-      if (entranceRails.has(render.entity.name)) { render.enabled = false; }
+      if (entranceRails.has(render.entity.name)) {
+        render.enabled = false;
+      }
     }
     const local = this.#layout.toLocal(definition.center.x, definition.center.z);
     root.setLocalPosition(local.x, definition.center.y - this.#layout.origin.y, local.z);
@@ -391,7 +429,9 @@ export class CastleResidence {
     // Bake dimensions into a separate mesh. Ammo caches triangle data by mesh ID,
     // so differently scaled main and servant stairs must not share that data.
     const collisionGraph = modelLibrary.instantiate(stairUrl);
-    if (landingProfile || turns !== 1.5) this.#stairProfileMeshes.push(...reshapeSpiralModel(pc, collisionGraph, shaft, definition.radius, landingProfile, turns));
+    if (landingProfile || turns !== 1.5) {
+      this.#stairProfileMeshes.push(...reshapeSpiralModel(pc, collisionGraph, shaft, definition.radius, landingProfile, turns));
+    }
     model.graph = collisionGraph;
     model.meshInstances = collisionGraph.findComponents("render").flatMap(
       /**
@@ -496,7 +536,9 @@ export class CastleResidence {
           maxZ: stair.z + radius,
         });
         for (const [minX, maxX, minZ, maxZ] of pieces) {
-          if (maxX <= minX || maxZ <= minZ) continue;
+          if (maxX <= minX || maxZ <= minZ) {
+            continue;
+          }
           const panel = WoodenFloor.createPanel(modelLibrary);
           panel.name = "Bedroom oak parquet panel";
           panel.setLocalPosition((minX + maxX) / 2, y + 0.002, (minZ + maxZ) / 2);
@@ -604,7 +646,9 @@ export class CastleResidence {
     this.#entity.addChild(stone);
     const { bedroom, balcony, stairLanding, sideTerrace } = this.#layout.rooms;
     for (const room of [bedroom, balcony, stairLanding, sideTerrace, ...this.#layout.walkableAreas].filter(Boolean)) {
-      if (room.id === "serviceStairLanding") continue;
+      if (room.id === "serviceStairLanding") {
+        continue;
+      }
       if (["mainStairLanding", "serviceDoorThreshold"].includes(room.id)) {
         const x = (room.minX + room.maxX) / 2;
         const z = (room.minZ + room.maxZ) / 2;
@@ -662,7 +706,9 @@ export class CastleResidence {
             (area) => area.id === "courtyard" ||
             area.id.endsWith("Threshold") || area.id.startsWith("doorThreshold") ||
             (room.id === "castleGroundFloor" && area.id === "serviceGroundBay"))];
-        for (const area of exclusions) rectangles = subtractFloorArea(rectangles, area);
+        for (const area of exclusions) {
+          rectangles = subtractFloorArea(rectangles, area);
+        }
       }
       if (room.id === "courtyard") {
         // Stone thresholds pass through the garden. They own those patches;
@@ -675,7 +721,9 @@ export class CastleResidence {
         }
       }
       for (const [minX, maxX, minZ, maxZ] of rectangles) {
-        if (maxX <= minX || maxZ <= minZ) continue;
+        if (maxX <= minX || maxZ <= minZ) {
+          continue;
+        }
         if (room.id === "courtyard" || room.id === "castleGroundFloor" || room.id === "serviceGroundBay" || room.id?.startsWith("interiorFloor:")) {
           const panel = WoodenFloor.createPanel(modelLibrary);
           const garden = room.id === "courtyard";
@@ -846,7 +894,9 @@ export function findCastleMapMount(plan, layout, preferredSide, shelfBack) {
   for (const side of [preferredSide, -preferredSide]) {
     const wallX = side > 0 ? work.maxX : work.minX;
     for (let z = work.minZ + 0.46; z <= work.maxZ - 0.46; z += 0.05) {
-      if (side === preferredSide && Math.abs(z - shelfBack) < 0.92) continue;
+      if (side === preferredSide && Math.abs(z - shelfBack) < 0.92) {
+        continue;
+      }
       let supported = true;
       for (let across = -0.44; across <= 0.440001 && supported; across += 0.04) {
         for (let height = 0.8; height <= 1.560001; height += 0.04) {
@@ -863,11 +913,13 @@ export function findCastleMapMount(plan, layout, preferredSide, shelfBack) {
           }
         }
       }
-      if (supported) return {
-        x: wallX - side * 0.035,
-        z,
-        yaw: -side * 90,
-      };
+      if (supported) {
+        return {
+          x: wallX - side * 0.035,
+          z,
+          yaw: -side * 90,
+        };
+      }
     }
   }
 
@@ -892,7 +944,9 @@ function subtractFloorArea(rectangles, area) {
     ([minX, maxX, minZ, maxZ]) => {
       const left = Math.max(minX, area.minX), right = Math.min(maxX, area.maxX);
       const front = Math.max(minZ, area.minZ), rear = Math.min(maxZ, area.maxZ);
-      if (right <= left || rear <= front) return [[minX, maxX, minZ, maxZ]];
+      if (right <= left || rear <= front) {
+        return [[minX, maxX, minZ, maxZ]];
+      }
       return [[minX, left, minZ, maxZ], [right, maxX, minZ, maxZ],
         [left, right, minZ, front], [left, right, rear, maxZ]];
     });
@@ -916,7 +970,9 @@ function reshapeSpiralModel(pc, graph, shaft, radius, landingProfile = true, tur
   const point = new pc.Vec3();
   for (const render of graph.findComponents("render")) {
     const name = render.entity.name;
-    if (!/^(Stone tread|Handrail|Rail post|Rail tread connection)/.test(name)) continue;
+    if (!/^(Stone tread|Handrail|Rail post|Rail tread connection)/.test(name)) {
+      continue;
+    }
     const suffix = name.match(/(?:\.| )(\d+)$/);
     const step = Number(suffix?.[1] ?? 0) + 1;
     const base = step / 24;
@@ -930,7 +986,9 @@ function reshapeSpiralModel(pc, graph, shaft, radius, landingProfile = true, tur
         point.set(positions[index], positions[index + 1], positions[index + 2]);
         transform.transformPoint(point, point);
         // Stretch the last retained rail into the rear masonry, on both meshes.
-        if (terminalCap && landingProfile) point.z -= (shaft.maxZ - shaft.minZ) / 2 * 0.65 / radius - 0.62 / Math.SQRT2;
+        if (terminalCap && landingProfile) {
+          point.z -= (shaft.maxZ - shaft.minZ) / 2 * 0.65 / radius - 0.62 / Math.SQRT2;
+        }
         // Handrails follow the varying slope; posts and flat treads translate.
         const progress = name.startsWith("Handrail") ? Math.max(0, Math.min(1, point.y - 0.22)) : base;
         const rawAngle = Math.atan2(point.x, point.z);
@@ -944,7 +1002,9 @@ function reshapeSpiralModel(pc, graph, shaft, radius, landingProfile = true, tur
       mesh.setPositions(positions); mesh.setIndices(indices);
       mesh.setNormals(pc.calculateNormals(positions, indices));
       meshes.push(mesh);
-      if (uvs.length) mesh.setUvs(0, uvs);
+      if (uvs.length) {
+        mesh.setUvs(0, uvs);
+      }
       mesh.update(pc.PRIMITIVE_TRIANGLES);
       instance.mesh = mesh;
     }

@@ -29,7 +29,9 @@ test("reusable books remain supported, fit every shelf and isolate cover colors"
   for (const seed of [42, 42, 43]) {
     let state = seed;
     const shelf = new Entity("shelf");
-    for (const name of ["Leather bound book", "Book spine brass"]) { shelf.addChild(new Entity(name)); }
+    for (const name of ["Leather bound book", "Book spine brass"]) {
+      shelf.addChild(new Entity(name));
+    }
     const models = {
       instantiate: () => {
         const book = new Entity("book");

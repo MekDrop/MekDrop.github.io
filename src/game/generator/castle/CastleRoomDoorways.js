@@ -45,7 +45,9 @@ export function createCastleRoomDoorways(plan) {
     const side = x < 0 ? room.maxX + 0.125 : room.minX - 0.125;
     const approachX = side + (x < 0 ? 0.6 : -0.6);
     const centers = [];
-    for (let center = room.minZ + 0.75; center <= room.maxZ - 0.75; center += 0.25) centers.push(center);
+    for (let center = room.minZ + 0.75; center <= room.maxZ - 0.75; center += 0.25) {
+      centers.push(center);
+    }
     centers.sort(/**
      *
      * @param {number} a

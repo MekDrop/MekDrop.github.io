@@ -9,7 +9,9 @@ export class CastleBrazierMapObjects {
     const objects = mapData.objects ??= [];
     for (const castle of objects.filter(CastleBrazierMapObjects.#isCastle)) {
       for (let index = objects.length - 1; index >= 0; index--) {
-        if (objects[index].castleBrazier && objects[index].sourceCastleId === castle.id) { objects.splice(index, 1); }
+        if (objects[index].castleBrazier && objects[index].sourceCastleId === castle.id) {
+          objects.splice(index, 1);
+        }
       }
       const { x, z } = castle.buildPlan.input.position;
       for (const [index, flame] of (castle.buildPlan.geometry.decorations.flames ?? []).entries()) {
@@ -39,5 +41,7 @@ export class CastleBrazierMapObjects {
   /**
    * @param {import("../../ObjectTypes.js").MapObjectDefinition} definition
    */
-  static #isCastle(definition) { return definition.object === "Castle"; }
+  static #isCastle(definition) {
+    return definition.object === "Castle";
+  }
 }

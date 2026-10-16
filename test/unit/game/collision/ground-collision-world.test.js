@@ -19,8 +19,12 @@ describe("ground collision world physics surfaces", () => {
     const world = new GroundCollisionWorld();
     world.add({
       floor: 2,
-      surfaceHeightAt(x) { return x < 0 ? 2.25 : this.floor; },
-      physicsSurfaceHeightAt(x) { return x < 0 ? null : this.floor; },
+      surfaceHeightAt(x) {
+        return x < 0 ? 2.25 : this.floor;
+      },
+      physicsSurfaceHeightAt(x) {
+        return x < 0 ? null : this.floor;
+      },
     });
     assert.equal(world.surfaceHeightAt(-1, 0), 2.25);
     assert.equal(world.physicsSurfaceHeightAt(-1, 0), null);

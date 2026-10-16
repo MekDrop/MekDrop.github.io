@@ -33,15 +33,19 @@ class FakeVec3 {
 }
 
 class FakeQuat {
-  setFromDirections() { return this; }
-  set(x, y, z, w) { Object.assign(this, {
-    x,
-    y,
-    z,
-    w,
-  });
+  setFromDirections() {
+    return this;
+  }
+  set(x, y, z, w) {
+    Object.assign(this, {
+      x,
+      y,
+      z,
+      w,
+    });
 
-  return this; }
+    return this;
+  }
   setFromEulerAngles() {
     return this;
   }
@@ -91,8 +95,8 @@ class FakeEntity {
     this.components.set(type, options);
     if (type === "rigidbody") {
       this.rigidbody = {
-        on() {},
-        syncEntityToBody() {},
+        on: () => {},
+        syncEntityToBody: () => {},
         teleport: (x, y, z) => this.setPosition(x, y, z),
       };
     }
@@ -103,8 +107,11 @@ class FakeEntity {
   }
 
   setPosition(x, y, z) {
-    if (typeof x === "object") { this.position.set(x.x, x.y, x.z); }
-    else { this.position.set(x, y, z); }
+    if (typeof x === "object") {
+      this.position.set(x.x, x.y, x.z);
+    } else {
+      this.position.set(x, y, z);
+    }
   }
 
   setPositionAndRotation(position, rotation) {
@@ -164,7 +171,7 @@ describe("flower physics", () => {
     const storage = new Float32Array(16);
     physics.setBatch("daisy-patch", {
       lock: () => storage,
-      unlock() {},
+      unlock: () => {},
     });
     flower.body.setPosition(2, 3.18, 4);
     physics.setOffset(flower, 0.6);
@@ -243,7 +250,7 @@ describe("flower physics", () => {
     const storage = new Float32Array(16);
     physics.setBatch("daisy-patch", {
       lock: () => storage,
-      unlock() {},
+      unlock: () => {},
     });
     // A compressed, laterally displaced tip must keep the visible canopy below
     // the sole, even when its direction would otherwise rotate the entire patch.
@@ -261,7 +268,7 @@ describe("flower physics", () => {
     const storage = new Float32Array(16);
     physics.setBatch("daisy-patch", {
       lock: () => storage,
-      unlock() {},
+      unlock: () => {},
     });
     const contacts = new Map();
     physics.setContactMaterial({ setParameter: (name, value) => contacts.set(name, Array.from(value)) });
@@ -299,10 +306,18 @@ class FakeWorker {
   static current;
   messages = [];
   terminated = false;
-  constructor() { FakeWorker.current = this; }
-  postMessage(message) { this.messages.push(message); }
-  terminate() { this.terminated = true; }
-  emit(data) { this.onmessage({ data }); }
+  constructor() {
+    FakeWorker.current = this;
+  }
+  postMessage(message) {
+    this.messages.push(message);
+  }
+  terminate() {
+    this.terminated = true;
+  }
+  emit(data) {
+    this.onmessage({ data });
+  }
 }
 
 describe("flower worker lifecycle", () => {
@@ -318,7 +333,7 @@ describe("flower worker lifecycle", () => {
       const storage = new Float32Array(16);
       physics.setBatch("daisy-patch", {
         lock: () => storage,
-        unlock() {},
+        unlock: () => {},
       });
       physics.advance(1 / 60);
       const worker = FakeWorker.current;
@@ -345,7 +360,9 @@ describe("flower worker lifecycle", () => {
       assert.equal(worker.messages.at(-1).hidden[0], 1);
       physics.destroy();
       assert.equal(worker.terminated, true);
-    } finally { globalThis.Worker = originalWorker; }
+    } finally {
+      globalThis.Worker = originalWorker;
+    }
   });
   it("restores main-thread simulation when the worker fails", () => {
     const originalWorker = globalThis.Worker;
@@ -364,7 +381,9 @@ describe("flower worker lifecycle", () => {
       let prevented = false;
       worker.onerror({
         message: "test failure",
-        preventDefault() { prevented = true; },
+        preventDefault: () => {
+          prevented = true;
+        },
       });
       assert.equal(prevented, true);
       assert.equal(physics.entity.enabled, true);
@@ -372,6 +391,8 @@ describe("flower worker lifecycle", () => {
       physics.advance(1 / 60);
       assert.equal(FakeWorker.current, worker);
       physics.destroy();
-    } finally { globalThis.Worker = originalWorker; console.warn = originalWarn; }
+    } finally {
+      globalThis.Worker = originalWorker; console.warn = originalWarn;
+    }
   });
 });

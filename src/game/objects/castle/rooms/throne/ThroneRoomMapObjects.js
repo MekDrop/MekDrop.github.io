@@ -20,10 +20,14 @@ export class ThroneRoomMapObjects {
         !definition.courtFurnishing || !castleIds.has(definition.sourceCastleId));
     for (const castle of castles) {
       const plan = castle.buildPlan?.metadata?.runtime?.residential;
-      if (!plan?.basePlanId) { continue; }
+      if (!plan?.basePlanId) {
+        continue;
+      }
       const layout = new CastleResidentialLayout(castle.buildPlan);
       for (const [index, item] of plan.furniture.entries()) {
-        if (item.role !== "courtProp" || !item.object) { continue; }
+        if (item.role !== "courtProp" || !item.object) {
+          continue;
+        }
         const position = layout.toWorld(item.x, item.z,
           item.floorY - layout.origin.y + (item.elevation ?? 0));
         const rotation = layout.yaw + 180 + (item.rotation ?? 0);
@@ -57,8 +61,11 @@ export class ThroneRoomMapObjects {
             y: position.y,
             z: position.z - Math.sin(angle) * 0.425,
           };
-          if (Math.abs(Math.cos(angle)) < 0.5) { definition.from.x = definition.to.x = position.x; }
-          else { definition.from.z = definition.to.z = position.z; }
+          if (Math.abs(Math.cos(angle)) < 0.5) {
+            definition.from.x = definition.to.x = position.x;
+          } else {
+            definition.from.z = definition.to.z = position.z;
+          }
           definition.facing = Math.abs(Math.cos(angle)) > 0.5 ? Math.cos(angle) > 0 ? 1 : -1 : Math.sin(angle) > 0 ? 1 : -1;
           definition.height = item.height;
           definition.seed = `${castle.buildPlan.input.seed}:court:${index}`;

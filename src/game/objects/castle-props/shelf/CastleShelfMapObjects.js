@@ -12,11 +12,15 @@ export class CastleShelfMapObjects {
     for (const castle of objects.filter(CastleShelfMapObjects.#isCastle)) {
       const layout = new CastleResidentialLayout(castle.buildPlan);
       for (let index = objects.length - 1; index >= 0; index--) {
-        if (objects[index].castleShelf && objects[index].sourceCastleId === castle.id) { objects.splice(index, 1); }
+        if (objects[index].castleShelf && objects[index].sourceCastleId === castle.id) {
+          objects.splice(index, 1);
+        }
       }
       let index = 0;
       for (const placement of layout.placements) {
-        if (placement.role !== "storageShelf") { continue; }
+        if (placement.role !== "storageShelf") {
+          continue;
+        }
         objects.push({
           id: `${castle.id}-storage-shelf-${index++}`,
           object: "Shelf",
@@ -36,7 +40,9 @@ export class CastleShelfMapObjects {
       const shelves = [];
       if (plan?.version === 2) {
         for (const item of plan.furniture) {
-          if (item.role !== "bookshelf") { continue; }
+          if (item.role !== "bookshelf") {
+            continue;
+          }
           shelves.push({
             x: item.x,
             z: item.z,
@@ -62,8 +68,11 @@ export class CastleShelfMapObjects {
       for (const shelf of shelves) {
         const from = layout.toWorld(shelf.x, shelf.z - shelf.length / 2, shelf.y);
         const to = layout.toWorld(shelf.x, shelf.z + shelf.length / 2, shelf.y);
-        if (Math.abs(from.x - to.x) < 1e-6) { to.x = from.x; }
-        else { to.z = from.z; }
+        if (Math.abs(from.x - to.x) < 1e-6) {
+          to.x = from.x;
+        } else {
+          to.z = from.z;
+        }
         const rotation = layout.yaw + (shelf.facing === 1 ? 90 : -90);
         const angle = rotation * Math.PI / 180;
         objects.push({
@@ -85,11 +94,15 @@ export class CastleShelfMapObjects {
   /**
    * @param {import("../../ObjectTypes.js").MapObjectDefinition} definition
    */
-  static #isCastle(definition) { return definition.object === "Castle"; }
+  static #isCastle(definition) {
+    return definition.object === "Castle";
+  }
   /**
    * @param {{role:string}} reservation
    */
-  static #isDesk(reservation) { return reservation.role === "workDesk"; }
+  static #isDesk(reservation) {
+    return reservation.role === "workDesk";
+  }
   /**
    * @param {import("../../../GameContracts.js").GameMapData} map
    * @param {import("../../ObjectTypes.js").Point3} position

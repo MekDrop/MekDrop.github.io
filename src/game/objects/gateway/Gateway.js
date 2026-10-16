@@ -31,7 +31,9 @@ export class Gateway {
   /**
    * @returns {string}
    */
-  get sceneObjectType() { return SCENE_OBJECT_TYPE.GATEWAY; }
+  get sceneObjectType() {
+    return SCENE_OBJECT_TYPE.GATEWAY;
+  }
 
   /**
    * Assign each gateway a banner once per scene, without renderer-owned setup.
@@ -521,13 +523,19 @@ export class Gateway {
     this.#entity = null;
     this.#visualRoot = null;
 
-    for (const material of this.#materials) material.destroy();
+    for (const material of this.#materials) {
+      material.destroy();
+    }
     this.#materials = [];
-    for (const texture of this.#textures) texture.destroy();
+    for (const texture of this.#textures) {
+      texture.destroy();
+    }
     this.#textures = [];
     for (const mesh of this.#meshes) {
       mesh.decRefCount();
-      if (mesh.refCount < 1) mesh.destroy();
+      if (mesh.refCount < 1) {
+        mesh.destroy();
+      }
     }
     this.#meshes = [];
     this.#portalMaterial = null;

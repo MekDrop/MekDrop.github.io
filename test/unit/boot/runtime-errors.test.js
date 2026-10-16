@@ -267,7 +267,9 @@ it("copies full error details and reports clipboard failures without dismissing"
     console.error = () => null;
     globalThis.window = { location: { href: "https://example.test/game" } };
     globalThis.setInterval = () => 41;
-    globalThis.clearInterval = () => { stopped += 1; };
+    globalThis.clearInterval = () => {
+      stopped += 1;
+    };
     const cause = new TypeError("underlying failure");
     const error = new TypeError("copy recovery", { cause });
     error.code = "RENDER_FAILED";

@@ -50,7 +50,9 @@ function scenario(overrides = {}) {
 
 it("refuses an unsupported ledge but allows a safe descent, dodge and repulsion", () => {
   const { map, movement, state } = scenario();
-  for (const row of map.heightmap) row[4] = 0;
+  for (const row of map.heightmap) {
+    row[4] = 0;
+  }
   assert.equal(movement.occupancyAt(0.3, 0, state), "edge");
   assert.equal(movement.occupancyAt(0.3, 0, {
     ...state,
@@ -64,7 +66,9 @@ it("refuses an unsupported ledge but allows a safe descent, dodge and repulsion"
     ...state,
     grounded: false,
   }), "open");
-  for (const row of map.heightmap) row[4] = 1;
+  for (const row of map.heightmap) {
+    row[4] = 1;
+  }
   assert.equal(movement.occupancyAt(0.3, 0, state), "open");
 });
 
@@ -92,7 +96,9 @@ it("uses current query state after relocation and retains forward torso clearanc
 
 it("leaves ledge contact to physics-managed supports without exempting authored surfaces", () => {
   const { map, movement, state, collision } = scenario();
-  for (const row of map.heightmap) row[4] = 0;
+  for (const row of map.heightmap) {
+    row[4] = 0;
+  }
   collision.surfaceHeightAt = (x) => x <= 0 ? state.position.y : null;
   assert.equal(movement.occupancyAt(0.3, 0, state), "open");
   collision.physicsSurfaceHeightAt = () => state.position.y;
@@ -105,9 +111,11 @@ it("checks the ceiling and scenery at the hero's elevation and forward footprint
   assert.equal(movement.occupancyAt(0.1, 0, state), "blocked");
   collision.ceilingHeightAt = () => 5;
   const probes = [];
-  collision.isMovementBlocked = (...args) => { probes.push(args);
+  collision.isMovementBlocked = (...args) => {
+    probes.push(args);
 
-    return args[2] > 0.3; };
+    return args[2] > 0.3;
+  };
   assert.equal(movement.occupancyAt(0.1, 0, state), "blocked");
   assert.equal(probes.length, 2);
   assert.equal(probes[0][5], state.position.y);
@@ -117,16 +125,20 @@ it("checks the ceiling and scenery at the hero's elevation and forward footprint
 it("queries hole refusal at the body then the forward footprint with nullish fallback", () => {
   const { movement, state, collision } = scenario();
   const probes = [];
-  collision.movementRefusalAt = (...args) => { probes.push(args);
+  collision.movementRefusalAt = (...args) => {
+    probes.push(args);
 
-    return args[0] > 0.2 ? "hole" : null; };
+    return args[0] > 0.2 ? "hole" : null;
+  };
   assert.equal(movement.refusalAt(0, 0, state.position.y, state.direction), "hole");
   assert.equal(probes.length, 2);
   assert.equal(probes[1][3], state.position.y);
   probes.length = 0;
-  collision.movementRefusalAt = (...args) => { probes.push(args);
+  collision.movementRefusalAt = (...args) => {
+    probes.push(args);
 
-    return "hole"; };
+    return "hole";
+  };
   assert.equal(movement.refusalAt(0, 0, state.position.y, state.direction), "hole");
   assert.equal(probes.length, 1);
 });

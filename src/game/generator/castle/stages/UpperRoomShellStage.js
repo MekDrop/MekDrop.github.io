@@ -10,7 +10,9 @@ export class UpperRoomShellStage extends AbstractCastleGenerationStage {
    */
   async run(context) {
     const plan = context.layout.roomPlan;
-    if (!plan) return;
+    if (!plan) {
+      return;
+    }
     if (plan.version === 2) {
       await new CastleRoomShellBuilder().build(context);
 
@@ -36,11 +38,15 @@ export class UpperRoomShellStage extends AbstractCastleGenerationStage {
         const divider = Math.abs(x - partition) < 0.01;
         const inside = x >= room.minX - 0.125 && x <= room.maxX + 0.125 &&
           z >= room.minZ - 0.125 && z <= room.maxZ + 0.125;
-        if (!inside) continue;
+        if (!inside) {
+          continue;
+        }
         for (let y = bottom; y <= top; y += 1) {
           const terraceDoor = Math.abs(z - room.maxZ - 0.125) < 0.01 && Math.abs(x) < 0.5;
           const stairDoor = divider && Math.abs(z - 2.125) < 0.45;
-          if (y < top && (terraceDoor || stairDoor)) continue;
+          if (y < top && (terraceDoor || stairDoor)) {
+            continue;
+          }
           if (outer || divider || y === top) {
             context.planning.writer.addBlock(u, y, v, "roomShell");
           }

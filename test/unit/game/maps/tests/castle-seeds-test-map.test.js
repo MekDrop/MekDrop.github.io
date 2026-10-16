@@ -64,10 +64,14 @@ it("stores generation inputs rather than castle layouts in every test map", asyn
   const { readdir, readFile } = await import("node:fs/promises");
   const directory = new URL("../../../../../src/game/maps/tests/", import.meta.url);
   for (const name of await readdir(directory)) {
-    if (!name.endsWith(".json")) continue;
+    if (!name.endsWith(".json")) {
+      continue;
+    }
     const data = JSON.parse(await readFile(new URL(name, directory), "utf8"));
     for (const castle of data.objects ?? []) {
-      if (castle.object !== "Castle") continue;
+      if (castle.object !== "Castle") {
+        continue;
+      }
       assert.equal(castle.buildPlan, undefined, name);
       assert.equal(castle.useBasePlans, undefined, name);
       assert.equal(castle.basePlanId, undefined, name);

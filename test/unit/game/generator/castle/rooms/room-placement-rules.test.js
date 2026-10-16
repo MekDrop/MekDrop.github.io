@@ -248,7 +248,9 @@ test("fits the shelf and its supported linens outside final masonry in every cas
       const halfX = (crosswise ? shelf.depth : shelf.width) * shelf.scale / 2;
       const halfZ = (crosswise ? shelf.width : shelf.depth) * shelf.scale / 2;
       for (const block of plan.metadata.collision.cameraBlocks) {
-        if (block.y + block.halfY <= shelf.floorY + 0.005 || block.y - block.halfY >= shelf.floorY + shelf.height * shelf.scale) { continue; }
+        if (block.y + block.halfY <= shelf.floorY + 0.005 || block.y - block.halfY >= shelf.floorY + shelf.height * shelf.scale) {
+          continue;
+        }
         assert.ok(Math.abs(x - block.x) >= halfX + block.halfX + 0.024 || Math.abs(z - block.z) >= halfZ + block.halfZ + 0.024, `${side}/${seed}: shelf clears the emitted masonry by 25 mm`);
       }
     }

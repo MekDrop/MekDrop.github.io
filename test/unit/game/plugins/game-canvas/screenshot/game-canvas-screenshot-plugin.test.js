@@ -10,7 +10,7 @@ describe("GameCanvasScreenshotPlugin", () => {
     let unregisterCount = 0;
     const plugin = new GameCanvasScreenshotPlugin({
       renderer: () => renderer,
-      registerControlAction(name, action, options) {
+      registerControlAction: (name, action, options) => {
         registrations.push({
           name,
           action,

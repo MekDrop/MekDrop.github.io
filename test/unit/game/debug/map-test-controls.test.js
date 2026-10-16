@@ -41,7 +41,9 @@ test("scripts can set camera presets through the normal viewport API", () => {
   const controls = new MapTestControls({
     getObjects: () => new SceneObjectRegistry(),
     getMap: () => ({}),
-    setViewport: (value) => { actual = value; },
+    setViewport: (value) => {
+      actual = value;
+    },
     setFirstPerson: (value) => modes.push(value),
   });
   controls.execute({

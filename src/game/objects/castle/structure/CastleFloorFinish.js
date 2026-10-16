@@ -12,7 +12,9 @@ export class CastleFloorFinish {
     const finish = { ...room };
     for (const building of buildings) {
       if (building.floorY > room.floorY || room.minX < building.minX ||
-        room.maxX > building.maxX || room.minZ < building.minZ || room.maxZ > building.maxZ) { continue; }
+        room.maxX > building.maxX || room.minZ < building.minZ || room.maxZ > building.maxZ) {
+        continue;
+      }
       for (const edge of ["minX", "maxX", "minZ", "maxZ"]) {
         if (Math.abs(room[edge] - building[edge]) <= 0.125 + 1e-6) {
           finish[edge] = building[edge];
@@ -22,7 +24,9 @@ export class CastleFloorFinish {
       // doorstep remains stone; a recessed doorway must not leave a bare strip.
       if (room.id.startsWith("vestibule")) {
         for (const opening of openings) {
-          if (!opening.exteriorEntrance || opening.floorY !== room.floorY) { continue; }
+          if (!opening.exteriorEntrance || opening.floorY !== room.floorY) {
+            continue;
+          }
           for (const edge of opening.axis === "x" ? ["minX", "maxX"] : ["minZ", "maxZ"]) {
             if (Math.abs(room[edge] - opening.coordinate) <= 0.5 + 1e-6 &&
               Math.abs(building[edge] - opening.coordinate) <= 1e-6) {
@@ -53,7 +57,9 @@ export class CastleFloorFinish {
             Math.max(a[2], b[2]) <= Math.min(a[3], b[3]) + 1e-6;
           const sameZ = Math.abs(a[2] - b[2]) <= 1e-6 && Math.abs(a[3] - b[3]) <= 1e-6 &&
             Math.max(a[0], b[0]) <= Math.min(a[1], b[1]) + 1e-6;
-          if (!sameX && !sameZ) { continue; }
+          if (!sameX && !sameZ) {
+            continue;
+          }
           result[i] = [Math.min(a[0], b[0]), Math.max(a[1], b[1]),
             Math.min(a[2], b[2]), Math.max(a[3], b[3])];
           result.splice(j, 1);

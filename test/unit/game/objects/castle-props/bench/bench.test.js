@@ -4,7 +4,7 @@ import { test } from "node:test";
 import * as pc from "playcanvas";
 
 const hooks = registerHooks({
-  resolve(specifier, context, nextResolve) {
+  resolve: (specifier, context, nextResolve) => {
     if (specifier.endsWith(".glb?url")) {
       return {
         url: `data:text/javascript,export default ${JSON.stringify(specifier)}`,
@@ -47,7 +47,7 @@ test("both models preserve authored visual and collision transforms", () => {
       pc,
       definition,
       modelLibrary: {
-        instantiate(url) {
+        instantiate: (url) => {
           const entity = new pc.Entity(url);
           models.push(entity);
 

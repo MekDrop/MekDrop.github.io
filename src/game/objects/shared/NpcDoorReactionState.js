@@ -25,27 +25,39 @@ export class NpcDoorReactionState extends State {
   /**
    * @returns {string}
    */
-  get phase() { return this.constructor.name; }
+  get phase() {
+    return this.constructor.name;
+  }
 
   /**
    * @returns {string|null}
    */
-  get stagePhase() { return this.suspendedState?.stagePhase ?? null; }
+  get stagePhase() {
+    return this.suspendedState?.stagePhase ?? null;
+  }
 
   /**
    * @returns {number}
    */
-  get duration() { return this.suspendedState?.duration ?? Infinity; }
+  get duration() {
+    return this.suspendedState?.duration ?? Infinity;
+  }
 
   /**
    * @returns {string}
    */
-  get action() { return "walk"; }
+  get action() {
+    return "walk";
+  }
 
   /**
    * @returns {string}
    */
-  get animation() { return "walk"; }
+  get animation() {
+    return "walk";
+  }
 
-  execute() { this.#react(); }
+  execute() {
+    this.#react();
+  }
 }

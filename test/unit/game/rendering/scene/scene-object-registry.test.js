@@ -52,7 +52,9 @@ it("destroys and forgets every object for a type", () => {
 });
 
 it("refreshes class lookups after creation, replacement, destruction, and clearing", () => {
-  class Service { destroy() {} onFrame() {} }
+  class Service {
+    destroy() {} onFrame() {}
+  }
   const registry = new SceneObjectRegistry();
   assert.equal(registry.getFirstByClass(Service.name), null);
   const first = new Service();

@@ -42,7 +42,9 @@ export class Boots extends AbstractCastleProp {
       1,
       "Boot Right",
     );
-    if (collision) { return; }
+    if (collision) {
+      return;
+    }
     for (const render of model.findComponents("render")) {
       for (const mesh of render.meshInstances) {
         const material = this.cloneMaterial(mesh.material);
@@ -56,7 +58,9 @@ export class Boots extends AbstractCastleProp {
   /**
    * @returns {string}
    */
-  static get modelUrl() { return modelUrl; }
+  static get modelUrl() {
+    return modelUrl;
+  }
 
   /**
    * @param {import("playcanvas").Entity} model
@@ -75,7 +79,9 @@ export class Boots extends AbstractCastleProp {
     name,
   ) {
     const boot = model.findByName(name);
-    if (!boot) { return; }
+    if (!boot) {
+      return;
+    }
     const bootPosition = boot.getLocalPosition().clone();
     bootPosition.z += (index ? -1 : 1) * leadingSide * stagger;
     boot.setLocalPosition(bootPosition);

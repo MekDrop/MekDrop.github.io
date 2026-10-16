@@ -10,14 +10,20 @@ export class ThreadSpool extends AbstractCastleProp {
   /**
    * @returns {string[]}
    */
-  static get modelUrls() { return [tiltedUrl, smallUrl, largeUrl]; }
+  static get modelUrls() {
+    return [tiltedUrl, smallUrl, largeUrl];
+  }
 
   /**
    * @returns {string}
    */
   get modelUrl() {
-    if (this.definition.variant === "tilted") { return tiltedUrl; }
-    if (this.definition.variant === "small") { return smallUrl; }
+    if (this.definition.variant === "tilted") {
+      return tiltedUrl;
+    }
+    if (this.definition.variant === "small") {
+      return smallUrl;
+    }
     return largeUrl;
   }
 }

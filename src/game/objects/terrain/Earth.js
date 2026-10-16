@@ -10,7 +10,9 @@ export class Earth {
   /**
    * @param {import("src/game/GameContracts.js").GameMapData} mapData
    */
-  static prepareMap(mapData) { TerrainBlockDefinitions.populate(mapData); }
+  static prepareMap(mapData) {
+    TerrainBlockDefinitions.populate(mapData);
+  }
   /**
    * @type {import("playcanvas").Entity}
    */
@@ -23,12 +25,16 @@ export class Earth {
   /**
    * @returns {Readonly<Record<string, string>>}
    */
-  static get textureUrls() { return EarthSurfaceMaterials.textureUrls; }
+  static get textureUrls() {
+    return EarthSurfaceMaterials.textureUrls;
+  }
 
   /**
    * @param {Array} args
    */
-  static registerMaterials(...args) { EarthSurfaceMaterials.register(...args); }
+  static registerMaterials(...args) {
+    EarthSurfaceMaterials.register(...args);
+  }
 
   /**
    * @param {import("../ObjectTypes.js").MapObjectRuntime} runtime
@@ -103,12 +109,22 @@ export class Earth {
    * Batched terrain retains the map camera bounds rather than adding per-block pan targets.
    * @returns {Array<import("playcanvas").Entity>}
    */
-  get visualRoots() { return []; }
-  get entity() { return this.#entity; }
-  get definition() { return this.#definition; }
+  get visualRoots() {
+    return [];
+  }
+  get entity() {
+    return this.#entity;
+  }
+  get definition() {
+    return this.#definition;
+  }
   /**
    * @returns {import("../ObjectTypes.js").GridPoint|undefined}
    */
-  get tile() { return this.#definition.tile; }
-  destroy() { this.#entity.destroy(); }
+  get tile() {
+    return this.#definition.tile;
+  }
+  destroy() {
+    this.#entity.destroy();
+  }
 }

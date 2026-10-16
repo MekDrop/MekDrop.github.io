@@ -8,7 +8,9 @@ export class ServingTray extends AbstractCastleProp {
   /**
    * @returns {string}
    */
-  static get modelUrl() { return modelUrl; }
+  static get modelUrl() {
+    return modelUrl;
+  }
 
   /**
    * @param {import("../../../GameContracts.js").GameMapData} mapData
@@ -17,9 +19,13 @@ export class ServingTray extends AbstractCastleProp {
     const objects = mapData.objects ??= [];
     const trays = [];
     for (const definition of objects) {
-      if (definition.object !== "Servant") { continue; }
+      if (definition.object !== "Servant") {
+        continue;
+      }
       const id = definition.id + "-serving-tray";
-      if (objects.some(ServingTray.#matchesId.bind(null, id))) { continue; }
+      if (objects.some(ServingTray.#matchesId.bind(null, id))) {
+        continue;
+      }
       trays.push({
         id,
         object: "ServingTray",
@@ -49,14 +55,18 @@ export class ServingTray extends AbstractCastleProp {
    * @param {import("../../ObjectTypes.js").MapObjectDefinition} definition
    * @returns {boolean}
    */
-  static #isNotCarried(definition) { return !ServingTray.#isCarried(definition); }
+  static #isNotCarried(definition) {
+    return !ServingTray.#isCarried(definition);
+  }
 
   /**
    * @param {string} id
    * @param {import("../../ObjectTypes.js").MapObjectDefinition} definition
    * @returns {boolean}
    */
-  static #matchesId(id, definition) { return definition.id === id; }
+  static #matchesId(id, definition) {
+    return definition.id === id;
+  }
 
   /**
    * @param {ConstructorParameters<typeof AbstractCastleProp>[0]} options
@@ -64,13 +74,17 @@ export class ServingTray extends AbstractCastleProp {
   constructor(options) {
     super(options);
 
-    if (this.definition.carrierId) { this.visualRoots[0].enabled = false; }
+    if (this.definition.carrierId) {
+      this.visualRoots[0].enabled = false;
+    }
   }
 
   /**
    * @returns {boolean}
    */
-  get hasAuthoredCollision() { return !this.definition.carrierId; }
+  get hasAuthoredCollision() {
+    return !this.definition.carrierId;
+  }
 
   /**
    * Mount in activity coordinates, retaining activity-driven carrying poses.
@@ -87,11 +101,15 @@ export class ServingTray extends AbstractCastleProp {
   }
 
   onSceneReady() {
-    if (!this.definition.carrierId) { super.onSceneReady(); }
+    if (!this.definition.carrierId) {
+      super.onSceneReady();
+    }
   }
 
   destroy() {
-    if (this.definition.carrierId) { this.visualRoots[0].destroy(); }
+    if (this.definition.carrierId) {
+      this.visualRoots[0].destroy();
+    }
     super.destroy();
   }
 }

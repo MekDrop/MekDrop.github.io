@@ -67,11 +67,15 @@ export class DoorSwingPhysics {
     this.#ownBodies.clear();
     for (const { entity } of this.#parts) {
       const body = entity.rigidbody?.body;
-      if (body) this.#ownBodies.add(ammo.getPointer(body));
+      if (body) {
+        this.#ownBodies.add(ammo.getPointer(body));
+      }
     }
     for (const { entity } of this.#parts) {
       const body = entity.rigidbody?.body;
-      if (!body || !entity.enabled) continue;
+      if (!body || !entity.enabled) {
+        continue;
+      }
       const position = entity.getPosition();
       const rotation = entity.getRotation();
       this.#position.setValue(position.x, position.y, position.z);
@@ -100,7 +104,9 @@ export class DoorSwingPhysics {
   }
 
   destroy() {
-    if (!this.#probe) return;
+    if (!this.#probe) {
+      return;
+    }
     for (const resource of [this.#callback, this.#probe, this.#transform, this.#position, this.#rotation]) {
       this.#ammo.destroy(resource);
     }
@@ -125,15 +131,21 @@ export class DoorSwingPhysics {
     this.#callback.addSingleResult = (pointPointer, firstPointer, firstPart, firstIndex, secondPointer) => {
       const contact = ammo.wrapPointer(pointPointer, ammo.btManifoldPoint);
       const depth = -contact.getDistance();
-      if (depth <= 0) return 0;
+      if (depth <= 0) {
+        return 0;
+      }
       // A vertical hinge cannot move deeper into a level floor or ceiling.
       // Ignore their support normals, including small manifold-depth variations.
-      if (Math.abs(contact.get_m_normalWorldOnB().y()) > 0.999) return 0;
+      if (Math.abs(contact.get_m_normalWorldOnB().y()) > 0.999) {
+        return 0;
+      }
       const first = ammo.wrapPointer(firstPointer, ammo.btCollisionObjectWrapper).getCollisionObject();
       const second = ammo.wrapPointer(secondPointer, ammo.btCollisionObjectWrapper).getCollisionObject();
       const other = ammo.getPointer(first) === ammo.getPointer(this.#probe) ? second : first;
       const pointer = ammo.getPointer(other);
-      if (this.#ownBodies.has(pointer) || (other.getCollisionFlags() & 4)) return 0;
+      if (this.#ownBodies.has(pointer) || (other.getCollisionFlags() & 4)) {
+        return 0;
+      }
       this.#contacts.set(pointer, Math.max(this.#contacts.get(pointer) ?? 0, depth));
 
       return 0;

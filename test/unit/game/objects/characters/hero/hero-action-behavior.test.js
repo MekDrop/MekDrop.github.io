@@ -11,7 +11,13 @@ it("reports a stalled dying state and respawns only after ten seconds", (context
   context.mock.method(console, "error", (error) => errors.push(error));
   let respawns = 0;
   const behavior = createBehavior({
-    feedback: { respawning: { begin: () => { respawns += 1; } } },
+    feedback: {
+      respawning: {
+        begin: () => {
+          respawns += 1;
+        },
+      },
+    },
   });
   behavior.fallingToDeath = true;
   behavior.update(10);
@@ -652,12 +658,16 @@ it("cancels an interrupted or blocked bell approach without a late strike", asyn
         z: 0,
       }),
       supported: () => interrupt !== "unsupported",
-      begin() {},
-      onStart() {},
+      begin: () => {},
+      onStart: () => {},
       onStrike: () => strikes++,
       onEnd: () => released++,
     };
-    if (interrupt === "teleport") { behavior.finish(); } else { behavior.update(3.1); }
+    if (interrupt === "teleport") {
+      behavior.finish();
+    } else {
+      behavior.update(3.1);
+    }
     behavior.update(1);
     await Promise.resolve();
     assert.equal(strikes, 0);
@@ -690,10 +700,10 @@ it("keeps approaching while the capsule makes progress across slow frames", () =
     struck: false,
     currentPosition: () => position,
     supported: () => true,
-    begin() {},
+    begin: () => {},
     onStart: () => starts++,
-    onStrike() {},
-    onEnd() {},
+    onStrike: () => {},
+    onEnd: () => {},
   };
   for (let step = 1; step <= 9; step++) {
     position.x = step / 10;

@@ -23,7 +23,9 @@ it("registers a double-click control, follows debug state, and unregisters once"
         options,
       };
 
-      return () => { unregisterCount += 1; };
+      return () => {
+        unregisterCount += 1;
+      };
     },
   });
   plugin.install();

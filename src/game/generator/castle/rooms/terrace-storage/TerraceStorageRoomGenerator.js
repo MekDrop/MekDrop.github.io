@@ -14,7 +14,9 @@ export class TerraceStorageRoomGenerator extends AbstractCastleRoomGenerator {
    * @returns {import("../AbstractCastleRoomGenerator.js").RoomItem[]}
    */
   furnish(room) {
-    if (room.maxX - room.minX < this.min.x || room.maxZ - room.minZ < this.min.y) { return []; }
+    if (room.maxX - room.minX < this.min.x || room.maxZ - room.minZ < this.min.y) {
+      return [];
+    }
     const storageScale = 0.65;
     const tableX = room.maxX - 0.1 - 0.625 * storageScale;
     const tableZ = room.minZ + 0.1 + 0.625 * storageScale;

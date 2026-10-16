@@ -97,7 +97,9 @@ export class DynamicRenderBatch {
         group.handle?.off();
         this.#app.batcher?.removeGroup(group.id);
         groups.delete(this.#groupKey);
-        if (!groups.size) DynamicRenderBatch.#groups.delete(this.#app);
+        if (!groups.size) {
+          DynamicRenderBatch.#groups.delete(this.#app);
+        }
       } else {
         this.#app.batcher?.markGroupDirty(this.#groupId);
       }

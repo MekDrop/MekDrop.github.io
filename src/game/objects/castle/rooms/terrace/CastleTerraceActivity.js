@@ -132,7 +132,9 @@ export class CastleTerraceActivity {
     const scale = Math.min(0.45, layout.depth / 5.5, layout.width / 4.2);
     this.#stage.setLocalScale(scale, scale, scale);
     this.#entity.addChild(this.#stage);
-    if (door) { this.#stage.tags.add("flat-terrace-entry"); }
+    if (door) {
+      this.#stage.tags.add("flat-terrace-entry");
+    }
     const royalParticipant = royal.createTerraceParticipant({
       pc,
       modelLibrary,

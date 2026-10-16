@@ -33,7 +33,7 @@ it("applies fixed first-person island transforms once and resumes floating updat
   objects.getOne = () => hero;
   let motionUpdates = 0;
   const motion = {
-    update() {
+    update: () => {
       motionUpdates += 1;
 
       return {

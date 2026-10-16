@@ -9,7 +9,9 @@ export class ServiceRoomGenerator extends AbstractCastleRoomGenerator {
   /**
    * @returns {number[]}
    */
-  get levels() { return [0, -1]; }
+  get levels() {
+    return [0, -1];
+  }
   /**
    * @param {import("../AbstractCastleRoomGenerator.js").PlannedCastleRoom} room
    * @param {{seed?:string|number,wallThickness?:number,openings?:Array,stairs?:Array}} [context]

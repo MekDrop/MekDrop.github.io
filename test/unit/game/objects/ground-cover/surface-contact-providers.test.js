@@ -7,18 +7,24 @@ it("avoids repeated scene scans while retaining live contacts and detecting repl
   const objects = new SceneObjectRegistry();
   let scans = 0;
   const iterate = objects[Symbol.iterator].bind(objects);
-  objects[Symbol.iterator] = () => { scans++;
+  objects[Symbol.iterator] = () => {
+    scans++;
 
-    return iterate(); };
-  for (let index = 0; index < 7000; index++) objects.add("terrain", {});
+    return iterate();
+  };
+  for (let index = 0; index < 7000; index++) {
+    objects.add("terrain", {});
+  }
   let x = 1;
   const provider = {
-    get grassSurfaceContacts() { return [{
-      x,
-      y: 0,
-      z: 0,
-      radius: 1,
-    }]; },
+    get grassSurfaceContacts() {
+      return [{
+        x,
+        y: 0,
+        z: 0,
+        radius: 1,
+      }];
+    },
   };
   objects.setOne("provider", provider);
   let extra = provider;

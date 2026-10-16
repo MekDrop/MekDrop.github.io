@@ -125,26 +125,37 @@ export class GrassCarpetLayout {
           });
         // A continuous sod lip per exposed side, with lawn blades above it.
         for (let side = 0; side < 4; side += 1) {
-          if (!(exposedSides & (1 << side))) continue;
+          if (!(exposedSides & (1 << side))) {
+            continue;
+          }
           const x = col - (cols - 1) / 2 + (side === 0 ? -0.49 : side === 2 ? 0.49 : 0);
           const z = row - (rows - 1) / 2 + (side === 1 ? -0.49 : side === 3 ? 0.49 : 0);
           let spans = [[-0.5, 0.5]];
           const acrossX = side === 1 || side === 3;
           for (const cut of metadata?.terrainCutouts ?? []) {
-            if (surfaceHeight < cut.minY || surfaceHeight > cut.maxY) continue;
+            if (surfaceHeight < cut.minY || surfaceHeight > cut.maxY) {
+              continue;
+            }
             const normal = acrossX ? z : x;
             const minNormal = acrossX ? cut.minZ : cut.minX;
             const maxNormal = acrossX ? cut.maxZ : cut.maxX;
-            if (normal < minNormal - 0.05 || normal > maxNormal + 0.05) continue;
+            if (normal < minNormal - 0.05 || normal > maxNormal + 0.05) {
+              continue;
+            }
             const center = acrossX ? x : z;
             const start = (acrossX ? cut.minX : cut.minZ) - center - 0.02;
             const end = (acrossX ? cut.maxX : cut.maxZ) - center + 0.02;
             const remaining = [];
             for (const [low, high] of spans) {
-              if (start >= high || end <= low) remaining.push([low, high]);
-              else {
-                if (start > low) remaining.push([low, start]);
-                if (end < high) remaining.push([end, high]);
+              if (start >= high || end <= low) {
+                remaining.push([low, high]);
+              } else {
+                if (start > low) {
+                  remaining.push([low, start]);
+                }
+                if (end < high) {
+                  remaining.push([end, high]);
+                }
               }
             }
             spans = remaining;
@@ -194,12 +205,16 @@ export class GrassCarpetLayout {
           const z = row - (rows - 1) / 2 + offsetZ;
           let groundClearance = Infinity;
           for (const cut of metadata?.terrainCutouts ?? []) {
-            if (surfaceHeight + 0.35 < cut.minY || surfaceHeight > cut.maxY) continue;
+            if (surfaceHeight + 0.35 < cut.minY || surfaceHeight > cut.maxY) {
+              continue;
+            }
             const dx = Math.max(cut.minX - x, x - cut.maxX, 0);
             const dz = Math.max(cut.minZ - z, z - cut.maxZ, 0);
             groundClearance = Math.min(groundClearance, Math.hypot(dx, dz));
           }
-          if (groundClearance < 0.08) continue;
+          if (groundClearance < 0.08) {
+            continue;
+          }
           width = Math.min(width, groundClearance * 0.9);
           const stoneInfluence = nearbyStones.reduce(/**
            *

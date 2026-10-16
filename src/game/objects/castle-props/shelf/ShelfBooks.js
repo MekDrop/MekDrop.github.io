@@ -47,7 +47,9 @@ export class ShelfBooks {
     }
     const materials = new Map();
     shelf.once("destroy", () => {
-      for (const material of materials.values()) { material.destroy(); }
+      for (const material of materials.values()) {
+        material.destroy();
+      }
     });
     for (const definition of this.layout(random, levels)) {
       const book = models.instantiate(bookUrl);
@@ -62,7 +64,9 @@ export class ShelfBooks {
        */
         material => {
           const key = definition.coverColor.join(",");
-          if (!materials.has(key)) { materials.set(key, material.clone()); }
+          if (!materials.has(key)) {
+            materials.set(key, material.clone());
+          }
           return materials.get(key);
         });
       shelf.addChild(book);

@@ -5,7 +5,9 @@
  * @param {import("../residents/CastleResidentialLayout.js").CastleResidentialLayout} layout
  */
 export function createCastleInteriorFloorAreas(plan, layout) {
-  if (!plan.metadata.runtime?.residential || !plan.metadata.collision?.cameraBlocks?.length) return [];
+  if (!plan.metadata.runtime?.residential || !plan.metadata.collision?.cameraBlocks?.length) {
+    return [];
+  }
   const size = plan.metadata.collision?.blockSize ?? 0.25;
   const position = plan.input.position;
   const cols = Math.round(position.width / size), rows = Math.round(position.depth / size);
@@ -15,12 +17,18 @@ export function createCastleInteriorFloorAreas(plan, layout) {
   for (const block of plan.metadata.collision?.cameraBlocks ?? []) {
     const ground = block.y - block.halfY < floor + 0.4 && block.y + block.halfY > floor + 0.4;
     const roof = block.y + block.halfY > ceiling - 0.5 && block.y - block.halfY < ceiling + 0.25;
-    if (!ground && !roof) continue;
+    if (!ground && !roof) {
+      continue;
+    }
     for (let row = Math.max(0, Math.floor((block.z - block.halfZ - position.z) / size + 0.000001)); row < Math.min(rows, Math.ceil((block.z + block.halfZ - position.z) / size - 0.000001)); row += 1) {
       for (let col = Math.max(0, Math.floor((block.x - block.halfX - position.x) / size + 0.000001)); col < Math.min(cols, Math.ceil((block.x + block.halfX - position.x) / size - 0.000001)); col += 1) {
         const key = `${col},${row}`;
-        if (ground) occupied.add(key);
-        if (roof) covered.add(key);
+        if (ground) {
+          occupied.add(key);
+        }
+        if (roof) {
+          covered.add(key);
+        }
       }
     }
   }
@@ -43,8 +51,12 @@ export function createCastleInteriorFloorAreas(plan, layout) {
        */
         (area) => point.x > area.minX - 0.000001 && point.x < area.maxX + 0.000001 && point.z > area.minZ - 0.000001 && point.z < area.maxZ + 0.000001);
       const valid = col < cols - 1 && covered.has(key) && !occupied.has(key) && !omitted;
-      if (valid && start === null) start = col;
-      if (!valid && start !== null) { spans.push([start, col]); start = null; }
+      if (valid && start === null) {
+        start = col;
+      }
+      if (!valid && start !== null) {
+        spans.push([start, col]); start = null;
+      }
     }
     const next = new Map();
     for (const [startCol, endCol] of spans) {
@@ -56,11 +68,15 @@ export function createCastleInteriorFloorAreas(plan, layout) {
         endRow: row,
       };
       rectangle.endRow = row + 1;
-      if (!active.has(key)) rectangles.push(rectangle);
+      if (!active.has(key)) {
+        rectangles.push(rectangle);
+      }
       next.set(key, rectangle);
     }
     active.clear();
-    for (const [key, rectangle] of next) active.set(key, rectangle);
+    for (const [key, rectangle] of next) {
+      active.set(key, rectangle);
+    }
   }
 
   return rectangles.map(/**

@@ -351,7 +351,9 @@ export class BuriedTreasureField {
    * Buried contents and excavations stay within the terrain's camera bounds.
    * @returns {Array<import("playcanvas").Entity>}
    */
-  get visualRoots() { return []; }
+  get visualRoots() {
+    return [];
+  }
 
   get entity() {
     return this.#entity;

@@ -34,14 +34,20 @@ export class Flag {
     const objects = mapData.objects ??= [];
     for (let index = objects.length - 1; index >= 0; index--) {
       const flag = objects[index];
-      if (!flag.sourceCastleId) continue;
+      if (!flag.sourceCastleId) {
+        continue;
+      }
       const castle = objects.find(/**
        * @param {import("../ObjectTypes.js").MapObjectDefinition} item
        */ (item) => item.id === flag.sourceCastleId);
-      if (!castle || castle.seed !== flag.sourceCastleSeed) objects.splice(index, 1);
+      if (!castle || castle.seed !== flag.sourceCastleSeed) {
+        objects.splice(index, 1);
+      }
     }
     for (const castle of [...objects]) {
-      if (castle.object !== "Castle") continue;
+      if (castle.object !== "Castle") {
+        continue;
+      }
       for (const [index, flag] of (castle.buildPlan?.geometry?.decorations?.flags ?? []).entries()) {
         const id = `${castle.id}-flag-${index}`;
         /**
@@ -49,7 +55,9 @@ export class Flag {
          * @param {import("../ObjectTypes.js").MapObjectDefinition} item
          */
         const hasFlagId = (item) => item.id === id;
-        if (objects.some(hasFlagId)) continue;
+        if (objects.some(hasFlagId)) {
+          continue;
+        }
         objects.push({
           id,
           object: Flag.name,
@@ -71,7 +79,9 @@ export class Flag {
     }
   }
 
-  get definition() { return this.#definition; }
+  get definition() {
+    return this.#definition;
+  }
   /**
    * @returns {import("playcanvas").Entity[]}
    */
@@ -83,7 +93,9 @@ export class Flag {
    * @param {number} far
    * @param {number[]} [offsets]
    */
-  setIslandOffsets(near, far, offsets = [near, far]) { this.#islandRoots.setOffsets(near, far, offsets); }
+  setIslandOffsets(near, far, offsets = [near, far]) {
+    this.#islandRoots.setOffsets(near, far, offsets);
+  }
   /**
    * @param {import("playcanvas").Vec3} rayStart
    * @param {import("playcanvas").Vec3} rayEnd
@@ -99,24 +111,34 @@ export class Flag {
   /**
    * @param {{hit: Parameters<Flag["beginWindGesture"]>[0]}} options
    */
-  handlePointerDown({ hit }) { this.beginWindGesture(hit);
+  handlePointerDown({ hit }) {
+    this.beginWindGesture(hit);
 
-    return { capturePointer: true }; }
+    return { capturePointer: true };
+  }
   /**
    * @param {{ray: {start: import("playcanvas").Vec3, end: import("playcanvas").Vec3}, deltaTime: number}} options
    */
-  handlePointerMove({ ray, deltaTime }) { this.applyMouseWind(ray.start, ray.end, deltaTime);
+  handlePointerMove({ ray, deltaTime }) {
+    this.applyMouseWind(ray.start, ray.end, deltaTime);
 
-    return true; }
-  handlePointerUp() { this.endWindGesture();
+    return true;
+  }
+  handlePointerUp() {
+    this.endWindGesture();
 
-    return true; }
-  handlePointerCancel() { this.endWindGesture(); }
+    return true;
+  }
+  handlePointerCancel() {
+    this.endWindGesture();
+  }
 
   /**
    * @returns {string[]}
    */
-  static get modelUrls() { return [authoredModelUrl, finialModelUrl, clothModelUrl]; }
+  static get modelUrls() {
+    return [authoredModelUrl, finialModelUrl, clothModelUrl];
+  }
   /**
    * @type {import("../../models/GameModelLibrary.js").GameModelLibrary}
    */
@@ -320,7 +342,9 @@ export class Flag {
     let closest = null;
     for (const flag of this.#flags) {
       const hit = this.#intersectFlagRay(flag, rayStart, rayEnd);
-      if (!hit || (closest && hit.distance >= closest.distance)) continue;
+      if (!hit || (closest && hit.distance >= closest.distance)) {
+        continue;
+      }
       closest = hit;
     }
 
@@ -371,7 +395,9 @@ export class Flag {
     this.#entity = null;
     for (const { mesh } of this.#flags) {
       mesh.decRefCount();
-      if (mesh.refCount < 1) mesh.destroy();
+      if (mesh.refCount < 1) {
+        mesh.destroy();
+      }
     }
     this.#flags = [];
     this.#flagMaterial?.destroy();
@@ -475,7 +501,9 @@ export class Flag {
       positions[index] *= width;
       positions[index + 1] = centerY + positions[index + 1] * height;
       vertexUv.push(vertical, freedom);
-      if (freedom < 0.001) { pinnedIndices.push(index / 3); }
+      if (freedom < 0.001) {
+        pinnedIndices.push(index / 3);
+      }
     }
     authored.destroy();
     const animatedPositions = Float32Array.from(positions);

@@ -16,7 +16,11 @@ function createCollider({ parent, voxels }) {
   const collider = new pc.Entity("collider");
   collider.voxels = voxels;
   collider.syncCount = 0;
-  collider.rigidbody = { syncEntityToBody() { collider.syncCount++; } };
+  collider.rigidbody = {
+    syncEntityToBody: () => {
+      collider.syncCount++;
+    },
+  };
   parent.addChild(collider);
 
   return collider;
@@ -46,10 +50,12 @@ it("keeps storage artwork and collision together, replaces embedded supplies, an
         items,
       },
       modelLibrary: {
-        instantiate(url) {
+        instantiate: (url) => {
           assert.equal(url, "storage");
           const model = new pc.Entity("rack");
-          for (const name of ["Shelf board", "Supply crate", "Crate iron band"]) { model.addChild(new pc.Entity(name)); }
+          for (const name of ["Shelf board", "Supply crate", "Crate iron band"]) {
+            model.addChild(new pc.Entity(name));
+          }
           models.push(model);
 
           return model;

@@ -14,19 +14,25 @@ function fixture(options = {}) {
   let sampled = false;
   const layer = {
     activeStateCurrentTime: -1,
-    play(name) { assert.equal(name, "Custom opening"); },
+    play: (name) => {
+      assert.equal(name, "Custom opening");
+    },
   };
   entity.addComponent = () => {
     entity.anim = {
       baseLayer: layer,
-      addAnimationState(name) { assert.equal(name, "Custom opening"); },
-      update() { sampled = true; },
+      addAnimationState: (name) => {
+        assert.equal(name, "Custom opening");
+      },
+      update: () => {
+        sampled = true;
+      },
     };
   };
   const door = new Door({
     entity,
     modelLibrary: {
-      getAnimationTracks(url, names) {
+      getAnimationTracks: (url, names) => {
         assert.equal(url, "custom.glb");
         assert.deepEqual(names, ["Custom opening"]);
 
@@ -95,9 +101,11 @@ it("keeps scripted doors closed for nearby visitors while allowing click opening
 it("lets choreography own click interaction and releases the door hierarchy on destruction", () => {
   let clicks = 0;
   const { door, entity } = fixture({
-    onOpen: () => { clicks++;
+    onOpen: () => {
+      clicks++;
 
-      return true; },
+      return true;
+    },
   });
   const parent = new Entity("Structure");
   parent.addChild(entity);
@@ -114,7 +122,13 @@ it("lets choreography own click interaction and releases the door hierarchy on d
 
 it("releases owned model materials exactly once when destroyed", () => {
   let destroyed = 0;
-  const { door } = fixture({ ownedMaterials: [{ destroy() { destroyed++; } }] });
+  const { door } = fixture({
+    ownedMaterials: [{
+      destroy: () => {
+        destroyed++;
+      },
+    }],
+  });
   door.destroy();
   door.destroy();
   assert.equal(destroyed, 1);

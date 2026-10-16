@@ -34,7 +34,9 @@ import { ServiceRoomGenerator } from "../../../../../src/game/generator/castle/r
 import { LeisureRoomGenerator } from "../../../../../src/game/generator/castle/rooms/leisure/LeisureRoomGenerator.js";
 import { TowerRoomGenerator } from "../../../../../src/game/generator/castle/rooms/tower/TowerRoomGenerator.js";
 class UpstairsLeisureGenerator extends LeisureRoomGenerator {
-  get levels() { return [1]; }
+  get levels() {
+    return [1];
+  }
 }
 const basementOptions = () => {
   const service = new ServiceRoomGenerator();
@@ -154,13 +156,17 @@ it("towers start at ground corners and never occupy an upstairs room footprint",
       assert.ok(tower.minX === outerBounds.minX || tower.maxX === outerBounds.maxX);
       assert.ok(tower.minZ === outerBounds.minZ || tower.maxZ === outerBounds.maxZ);
       for (const room of placedRooms) {
-        if (room === tower || room.level < 0) { continue; }
+        if (room === tower || room.level < 0) {
+          continue;
+        }
         assert.equal(CastleRoomPacker.overlaps(tower, room), false);
       }
     }
     assert.equal(plan.structure.towers.length, placedRooms.filter((room) => room.id.startsWith("tower")).length);
     const extendsAboveGroundFloor = (room) => room.level + room.floorSpan > 1;
-    if (placedRooms.some(extendsAboveGroundFloor)) { assert.ok(plan.layout.roomPlan.stair); }
+    if (placedRooms.some(extendsAboveGroundFloor)) {
+      assert.ok(plan.layout.roomPlan.stair);
+    }
   }
 });
 
@@ -363,7 +369,9 @@ it("keeps stair shafts clear, supports their exits, and samples the correct uppe
       elevation = tread.y;
     }
     for (const block of plan.metadata.collision.cameraBlocks) {
-      if (block.y + block.halfY <= layout.origin.y || block.y - block.halfY >= elevation + 2) { continue; }
+      if (block.y + block.halfY <= layout.origin.y || block.y - block.halfY >= elevation + 2) {
+        continue;
+      }
       const p = layout.toLocal(block.x, block.z);
       const distance = Math.hypot(Math.max(0, Math.abs(p.x - local.x) - block.halfX),
         Math.max(0, Math.abs(p.z - local.z) - block.halfZ));

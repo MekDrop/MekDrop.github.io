@@ -11,7 +11,9 @@ export class StairwellRoomMapObjects {
     const objects = mapData.objects ??= [];
     for (const castle of [...objects]) {
       const plan = castle.object === "Castle" ? castle.buildPlan?.metadata?.runtime?.residential : null;
-      if (!plan?.basePlanId) { continue; }
+      if (!plan?.basePlanId) {
+        continue;
+      }
       const layout = new CastleResidentialLayout(castle.buildPlan);
       for (let index = objects.length - 1; index >= 0; index--) {
         if (objects[index].stairwellFurnishing && objects[index].sourceCastleId === castle.id) {
@@ -19,13 +21,17 @@ export class StairwellRoomMapObjects {
         }
       }
       for (const [index, item] of plan.furniture.entries()) {
-        if (item.role !== "stairwellProp") { continue; }
+        if (item.role !== "stairwellProp") {
+          continue;
+        }
         const id = `${castle.id}-stairwell-prop-${index}`;
         /**
          * @param {import("../../../ObjectTypes.js").MapObjectDefinition} definition
          */
         const hasPropId = definition => definition.id === id;
-        if (objects.some(hasPropId)) { continue; }
+        if (objects.some(hasPropId)) {
+          continue;
+        }
         const position = layout.toWorld(item.x, item.z, item.floorY - layout.origin.y + item.y);
         objects.push({
           id,

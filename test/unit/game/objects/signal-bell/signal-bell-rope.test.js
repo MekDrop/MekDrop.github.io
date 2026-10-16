@@ -32,8 +32,12 @@ before(async () => {
   });
 });
 
-beforeEach(() => { globalThis.Ammo = wasmAmmo; });
-afterEach(() => { globalThis.Ammo = previousAmmo; });
+beforeEach(() => {
+  globalThis.Ammo = wasmAmmo;
+});
+afterEach(() => {
+  globalThis.Ammo = previousAmmo;
+});
 it("updates the visible rope and held grip on the application's actual render event", () => {
   const world = new AmmoPhysicsWorld();
   world.setGravity(new Vec3(0, -9.81, 0));
@@ -79,7 +83,9 @@ it("updates the visible rope and held grip on the application's actual render ev
       hand.y = 1.15 - Math.sqrt(0.5 ** 2 - hand.z ** 2);
       world.step(1 / 60, 1, 1 / 60);
       app.fire("prerender");
-      if (frame > 5) { maxError = Math.max(maxError, knot.getPosition().distance(hand)); }
+      if (frame > 5) {
+        maxError = Math.max(maxError, knot.getPosition().distance(hand));
+      }
       for (let index = 1; index < 8; index++) {
         const previous = root.findByName(`Rope link ${index - 1}`);
         const next = root.findByName(`Rope link ${index}`);
@@ -97,5 +103,7 @@ it("updates the visible rope and held grip on the application's actual render ev
       app.fire("prerender");
     }
     assert.ok(knot.getPosition().distance(before) > 0.05, "the visible rope swings after release");
-  } finally { rope.destroy(); model.destroy(); world.destroy(); }
+  } finally {
+    rope.destroy(); model.destroy(); world.destroy();
+  }
 });

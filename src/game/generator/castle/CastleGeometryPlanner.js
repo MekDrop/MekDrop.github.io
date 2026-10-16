@@ -371,7 +371,9 @@ export class CastleGeometryPlanner {
           const rearWindowColumn = localV === Math.floor(spanV / 2);
           const rearWindowTunnel =
             rearWindowCourse && rearWindowColumn && localU >= spanU - 2;
-          if (rearWindowTunnel) continue;
+          if (rearWindowTunnel) {
+            continue;
+          }
           const rearWindowInterior =
             rearWindowCourse && rearWindowColumn && localU === spanU - 3;
           const isShell =
@@ -939,7 +941,9 @@ export class CastleGeometryPlanner {
           blockY < gatehouseHeight;
           blockY += 1
         ) {
-          if (isRoofDoorOpening(depth, horizontal, blockY)) continue;
+          if (isRoofDoorOpening(depth, horizontal, blockY)) {
+            continue;
+          }
           placeBoundaryBlock(depth, horizontal, blockY);
         }
       }
@@ -962,7 +966,9 @@ export class CastleGeometryPlanner {
 
     const torchHeight = Math.min(7, gatehouseHeight - 5);
     for (const horizontal of [opening.start - 2, opening.end + 1]) {
-      if (horizontal < 0) continue;
+      if (horizontal < 0) {
+        continue;
+      }
       placeBoundaryDecoration(
         -0.55,
         horizontal,

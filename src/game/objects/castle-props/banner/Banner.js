@@ -21,7 +21,9 @@ export class Banner {
   /**
    * @returns {string[]}
    */
-  static get modelUrls() { return BannerCloth.modelUrls; }
+  static get modelUrls() {
+    return BannerCloth.modelUrls;
+  }
 
   /**
    * Publish castle cloth through map objects.
@@ -31,24 +33,32 @@ export class Banner {
     const objects = mapData.objects ??= [];
     for (let index = objects.length - 1; index >= 0; index--) {
       const item = objects[index];
-      if (!item.castleBanner) { continue; }
+      if (!item.castleBanner) {
+        continue;
+      }
       const castle = objects.find(
         /**
          * @param {import("../../ObjectTypes.js").MapObjectDefinition} candidate
          */
         (candidate) => candidate.object === "Castle" && candidate.id === item.sourceCastleId,
       );
-      if (!castle || castle.seed !== item.sourceCastleSeed) { objects.splice(index, 1); }
+      if (!castle || castle.seed !== item.sourceCastleSeed) {
+        objects.splice(index, 1);
+      }
     }
     for (const castle of [...objects]) {
-      if (castle.object !== "Castle") { continue; }
+      if (castle.object !== "Castle") {
+        continue;
+      }
       for (const [index, banner] of (castle.buildPlan?.geometry?.decorations?.banners ?? []).entries()) {
         const id = `${castle.id}-banner-${index}`;
         /**
          * @param {import("../../ObjectTypes.js").MapObjectDefinition} item
          */
         const hasBannerId = (item) => item.id === id;
-        if (objects.some(hasBannerId)) { continue; }
+        if (objects.some(hasBannerId)) {
+          continue;
+        }
         objects.push({
           id,
           object: Banner.name,
@@ -99,22 +109,30 @@ export class Banner {
     root.setLocalScale(scale * stretch.x, scale * stretch.y, scale * stretch.z);
   }
 
-  get definition() { return this.#definition; }
+  get definition() {
+    return this.#definition;
+  }
   /**
    * @returns {import("playcanvas").Entity}
    */
-  get entity() { return this.#visual.entity; }
+  get entity() {
+    return this.#visual.entity;
+  }
   /**
    * @returns {import("playcanvas").Entity[]}
    */
-  get visualRoots() { return [this.#visual.entity]; }
+  get visualRoots() {
+    return [this.#visual.entity];
+  }
   /**
    * @param {number} near
    * @param {number} far
    * @param {number[]} [offsets]
    */
   setIslandOffsets(near, far, offsets = [near, far]) {
-    if (this.#islandRoots) { this.#islandRoots.setOffsets(near, far, offsets); }
+    if (this.#islandRoots) {
+      this.#islandRoots.setOffsets(near, far, offsets);
+    }
   }
   /**
    * @param {import("playcanvas").Vec3} start
@@ -131,18 +149,28 @@ export class Banner {
   /**
    * @param {{hit: Parameters<BannerCloth["beginWindGesture"]>[0]}} options
    */
-  handlePointerDown({ hit }) { this.#visual.beginWindGesture(hit);
+  handlePointerDown({ hit }) {
+    this.#visual.beginWindGesture(hit);
 
-    return { capturePointer: true }; }
+    return { capturePointer: true };
+  }
   /**
    * @param {{ray: {start: import("playcanvas").Vec3, end: import("playcanvas").Vec3}, deltaTime: number}} options
    */
-  handlePointerMove({ ray, deltaTime }) { this.#visual.applyMouseWind(ray.start, ray.end, deltaTime);
+  handlePointerMove({ ray, deltaTime }) {
+    this.#visual.applyMouseWind(ray.start, ray.end, deltaTime);
 
-    return true; }
-  handlePointerUp() { this.#visual.endWindGesture();
+    return true;
+  }
+  handlePointerUp() {
+    this.#visual.endWindGesture();
 
-    return true; }
-  handlePointerCancel() { this.#visual.endWindGesture(); }
-  destroy() { this.#visual.destroy(); }
+    return true;
+  }
+  handlePointerCancel() {
+    this.#visual.endWindGesture();
+  }
+  destroy() {
+    this.#visual.destroy();
+  }
 }

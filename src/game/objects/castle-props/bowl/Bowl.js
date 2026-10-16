@@ -32,7 +32,9 @@ export class Bowl extends AbstractCastleProp {
   }
 
   onSceneReady() {
-    if (this.#packed) { return; }
+    if (this.#packed) {
+      return;
+    }
     const model = this.visualRoots[0].children[0];
     const shell = BowlPacking.geometry(model, model);
     const geometries = [];
@@ -63,11 +65,19 @@ export class Bowl extends AbstractCastleProp {
             mesh.mesh = this.#snapshotMesh(mesh.mesh);
           }
         }
-      } finally { object.destroy(); }
-      for (const component of contents.findComponents("rigidbody")) { component.entity.removeComponent("rigidbody"); }
-      for (const component of contents.findComponents("collision")) { component.entity.removeComponent("collision"); }
+      } finally {
+        object.destroy();
+      }
+      for (const component of contents.findComponents("rigidbody")) {
+        component.entity.removeComponent("rigidbody");
+      }
+      for (const component of contents.findComponents("collision")) {
+        component.entity.removeComponent("collision");
+      }
       for (const type of ["anim", "animation", "script", "sound", "audiolistener", "camera", "light"]) {
-        for (const component of contents.findComponents(type)) { component.entity.removeComponent(type); }
+        for (const component of contents.findComponents(type)) {
+          component.entity.removeComponent(type);
+        }
       }
       model.addChild(contents);
       if (item.position) {
@@ -97,10 +107,14 @@ export class Bowl extends AbstractCastleProp {
   }
 
   destroy() {
-    for (const item of this.#items) { item.destroy(); }
+    for (const item of this.#items) {
+      item.destroy();
+    }
     this.#items = [];
     super.destroy();
-    for (const mesh of this.#meshes.values()) { mesh.destroy(); }
+    for (const mesh of this.#meshes.values()) {
+      mesh.destroy();
+    }
     this.#meshes.clear();
   }
 
@@ -111,7 +125,9 @@ export class Bowl extends AbstractCastleProp {
    * @returns {import("playcanvas").Mesh}
    */
   #snapshotMesh(source) {
-    if (this.#meshes.has(source)) { return this.#meshes.get(source); }
+    if (this.#meshes.has(source)) {
+      return this.#meshes.get(source);
+    }
     const mesh = new this.#options.pc.Mesh(source.device);
     for (const element of source.vertexBuffer.format.elements) {
       const values = [];
@@ -121,7 +137,9 @@ export class Bowl extends AbstractCastleProp {
     }
     const indices = [];
     source.getIndices(indices);
-    if (indices.length) { mesh.setIndices(indices); }
+    if (indices.length) {
+      mesh.setIndices(indices);
+    }
     mesh.update(source.primitive[0].type);
     this.#meshes.set(source, mesh);
 
@@ -134,7 +152,9 @@ export class Bowl extends AbstractCastleProp {
    * @param {boolean} collision
    */
   prepareModel(model, collision) {
-    if (collision || !this.definition.color) { return; }
+    if (collision || !this.definition.color) {
+      return;
+    }
     for (const render of model.findComponents("render")) {
       for (const mesh of render.meshInstances) {
         const material = this.cloneMaterial(mesh.material);
@@ -150,6 +170,8 @@ export class Bowl extends AbstractCastleProp {
   /**
    * @returns {string}
    */
-  static get modelUrl() { return modelUrl; }
+  static get modelUrl() {
+    return modelUrl;
+  }
 
 }

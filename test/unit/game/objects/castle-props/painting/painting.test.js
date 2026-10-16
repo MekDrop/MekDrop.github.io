@@ -6,18 +6,34 @@ const source = readFileSync(new URL("../../../../../../src/game/objects/castle-p
   .replace(/^import .*;\r?\n/gm, "").replace("export class", "class");
 class Entity {
   children = [];
-  tags = { add() {} };
-  addChild(child) { this.children.push(child); }
-  setLocalPosition(...value) { this.position = value; }
-  setLocalEulerAngles(...value) { this.rotation = value; }
-  setLocalScale(...value) { this.scale = value; }
-  destroy() { this.destroyed = true; }
+  tags = { add: () => {} };
+  addChild(child) {
+    this.children.push(child);
+  }
+  setLocalPosition(...value) {
+    this.position = value;
+  }
+  setLocalEulerAngles(...value) {
+    this.rotation = value;
+  }
+  setLocalScale(...value) {
+    this.scale = value;
+  }
+  destroy() {
+    this.destroyed = true;
+  }
 }
 class IslandRoots {
-  constructor(pc, parent) { this.parent = parent; }
-  addChild(child) { this.parent.addChild(child); }
+  constructor(pc, parent) {
+    this.parent = parent;
+  }
+  addChild(child) {
+    this.parent.addChild(child);
+  }
 }
-const Painting = new Function("paintingUrl", "royalBedroomUrl", "vestibuleUrl", "IslandObjectRoots", "addAuthoredMeshPhysics", `${source}\nreturn Painting;`)("painting.glb", "royal.glb", "vestibule.glb", IslandRoots, (pc, root, graph) => { root.collisionGraph = graph; });
+const Painting = new Function("paintingUrl", "royalBedroomUrl", "vestibuleUrl", "IslandObjectRoots", "addAuthoredMeshPhysics", `${source}\nreturn Painting;`)("painting.glb", "royal.glb", "vestibule.glb", IslandRoots, (pc, root, graph) => {
+  root.collisionGraph = graph;
+});
 
 test("painting uses world placement and compresses depth independently of picture size", () => {
   const model = new Entity();
@@ -55,7 +71,7 @@ test("painting variants retain authored depth, scale, and matching collision geo
     const painting = new Painting({
       pc: { Entity },
       modelLibrary: {
-        instantiate(url) {
+        instantiate: (url) => {
           urls.push(url);
           const model = new Entity(); models.push(model);
 

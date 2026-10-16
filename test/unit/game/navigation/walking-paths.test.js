@@ -97,9 +97,15 @@ it("loading ignores stale route records and leaves authoritative source tiles un
 
 it("rejects diagonal contact, a missing lane, and discontinuous elevations", () => {
   for (const change of [
-    (map) => { map.grid[0][2] = 1; },
-    (map) => { map.heightmap[0][2] = 3; map.heightmap[1][2] = 3; },
-    (map) => { map.grid[0][2] = 1; map.grid[1][3] = 1; },
+    (map) => {
+      map.grid[0][2] = 1;
+    },
+    (map) => {
+      map.heightmap[0][2] = 3; map.heightmap[1][2] = 3;
+    },
+    (map) => {
+      map.grid[0][2] = 1; map.grid[1][3] = 1;
+    },
   ]) {
     const map = fixture();
     change(map);
@@ -119,7 +125,9 @@ it("connects matching ramp edges using tile slope metadata", () => {
       },
     };
     map.heightmap[row][2] = 2.5;
-    for (let col = 3; col < 7; col++) { map.heightmap[row][col] = 3; }
+    for (let col = 3; col < 7; col++) {
+      map.heightmap[row][col] = 3;
+    }
   }
   WalkingPaths.rebuild(map);
   assert.deepEqual(map.paths[0].route.map((point) => point.elevation),
@@ -149,7 +157,9 @@ it("stored maps contain only authoritative tiles, without authored walking paths
   const {readdir, readFile} = await import("node:fs/promises");
   const directory = new URL("../../../../src/game/maps/tests/", import.meta.url);
   for (const file of await readdir(directory, {recursive: true})) {
-    if (!file.endsWith(".json")) { continue; }
+    if (!file.endsWith(".json")) {
+      continue;
+    }
     const map = JSON.parse(await readFile(new URL(file, directory), "utf8"));
     assert.equal(Object.hasOwn(map, "paths"), false, file);
     assert.equal(Object.hasOwn(map, "arrowData"), false, file);

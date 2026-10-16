@@ -23,7 +23,9 @@ export class Fire {
   /**
    * @returns {Record<string, string>}
    */
-  static get textureUrls() { return { castleFireParticle: particleUrl }; }
+  static get textureUrls() {
+    return { castleFireParticle: particleUrl };
+  }
 
   /**
    * Attach normal fire in a prop's local space. Its parent owns its lifetime.
@@ -64,7 +66,9 @@ export class Fire {
     root.setLocalEulerAngles(0, definition.rotation ?? 0, 0);
     const { x: width, y: height, z: depth } = definition.volume;
     // Reject empty or non-finite volumes without allocating a particle system.
-    if (!arePositiveFiniteNumbers(width, height, depth)) { return; }
+    if (!arePositiveFiniteNumbers(width, height, depth)) {
+      return;
+    }
     const size = Math.min(width, depth, height * 0.18);
     const count = Math.min(2048, Math.max(16, Math.ceil(width * depth / (size * size) * 2)));
     const lifetime = 0.42;
@@ -107,15 +111,23 @@ export class Fire {
     root.addChild(emitter);
   }
 
-  get entity() { return this.#entity; }
-  get definition() { return this.#definition; }
+  get entity() {
+    return this.#entity;
+  }
+  get definition() {
+    return this.#definition;
+  }
 
   /**
    * @param {number} near
    * @param {number} far
    * @param {number[]} [offsets]
    */
-  setIslandOffsets(near, far, offsets) { this.#islandRoots.setOffsets(near, far, offsets); }
+  setIslandOffsets(near, far, offsets) {
+    this.#islandRoots.setOffsets(near, far, offsets);
+  }
 
-  destroy() { this.#entity.destroy(); }
+  destroy() {
+    this.#entity.destroy();
+  }
 }

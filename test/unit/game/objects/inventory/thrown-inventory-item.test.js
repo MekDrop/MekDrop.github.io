@@ -85,11 +85,9 @@ function createMaterial() {
   return {
     blendType: null,
     opacity: 1,
-    clone() {
-      return createMaterial();
-    },
-    destroy() {},
-    update() {},
+    clone: () => createMaterial(),
+    destroy: () => {},
+    update: () => {},
   };
 }
 

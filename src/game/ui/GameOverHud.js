@@ -62,7 +62,9 @@ export class GameOverHud {
   }
 
   set visible(visible) {
-    if (this.#entity) this.#entity.enabled = Boolean(visible);
+    if (this.#entity) {
+      this.#entity.enabled = Boolean(visible);
+    }
   }
 
   destroy() {

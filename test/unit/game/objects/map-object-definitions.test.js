@@ -141,7 +141,9 @@ it("reloads cloned maps and preserves existing spawn identity when replacing run
 it("loads every test map from canonical object records without changing the authored source", async () => {
   const directory = new URL("../../../../src/game/maps/tests/", import.meta.url);
   for (const name of await readdir(directory)) {
-    if (!name.endsWith(".json")) { continue; }
+    if (!name.endsWith(".json")) {
+      continue;
+    }
     const source = JSON.parse(await readFile(new URL(name, directory), "utf8"));
     for (const field of ["entries", "riverData", "groundCoverData", "overpassData", "heroSpawn", "islandConnectorData", "castle", "castles", "paths", "arrowData"]) {
       assert.equal(Object.hasOwn(source, field), false, `${name}: ${field}`);

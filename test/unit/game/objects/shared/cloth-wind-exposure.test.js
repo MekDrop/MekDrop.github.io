@@ -12,7 +12,7 @@ it("updates exposure when collision opens, closes, or partly obstructs the upwin
   const app = {
     systems: {
       rigidbody: {
-        raycastFirst(start, end) {
+        raycastFirst: (start, end) => {
           rays.push({
             start: start.clone(),
             end: end.clone(),

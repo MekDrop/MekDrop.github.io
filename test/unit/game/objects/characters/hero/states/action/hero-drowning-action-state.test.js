@@ -39,7 +39,9 @@ for (const flowScale of [1, 1 / 2, 1 / 3]) {
           waypointEpsilon: 0.02,
           submergeDepth: 0.5,
           sinkSpeed: 2,
-          setVelocity: value => { velocity = value; },
+          setVelocity: value => {
+            velocity = value;
+          },
         },
       },
     });

@@ -19,14 +19,14 @@ function createActor() {
     actor: {
       entity: {
         enabled: true,
-        setLocalPosition(...position) {
+        setLocalPosition: (...position) => {
           calls.position = position;
         },
-        setLocalEulerAngles(...rotation) {
+        setLocalEulerAngles: (...rotation) => {
           calls.rotation = rotation;
         },
       },
-      pose(...pose) {
+      pose: (...pose) => {
         calls.pose = pose;
       },
     },

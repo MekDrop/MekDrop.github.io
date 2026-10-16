@@ -24,7 +24,9 @@ export class GrassEdgeMesh {
         [-depth + 0.008, -0.012]]) {
         positions.push(x, y, z);
       }
-      if (segment === 0) continue;
+      if (segment === 0) {
+        continue;
+      }
       for (let ring = 0; ring < 5; ring += 1) {
         const a = (segment - 1) * 5 + ring;
         const b = segment * 5 + ring;

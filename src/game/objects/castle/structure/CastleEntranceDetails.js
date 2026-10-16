@@ -7,7 +7,9 @@ export class CastleEntranceDetails {
   /**
    * @returns {string[]}
    */
-  static get modelUrls() { return [masonryUrl]; }
+  static get modelUrls() {
+    return [masonryUrl];
+  }
 
   /**
    * @param {typeof import("playcanvas")} pc
@@ -44,7 +46,9 @@ export class CastleEntranceDetails {
       const overlapsBuilding = building => Math.min(x + scale[0] / 2, building.maxX) > Math.max(x - scale[0] / 2, building.minX) + 1e-6 &&
         Math.min(z + scale[2] / 2, building.maxZ) > Math.max(z - scale[2] / 2, building.minZ) + 1e-6 &&
         Math.min(y + scale[1] / 2, building.floorY + (building.height ?? floorHeight)) > Math.max(y - scale[1] / 2, building.floorY) + 1e-6;
-      if (residential.buildings.some(overlapsBuilding)) { return; }
+      if (residential.buildings.some(overlapsBuilding)) {
+        return;
+      }
       const stone = models.instantiate(masonryUrl);
       stone.name = name;
       stone.setLocalPosition(origin.x + Math.cos(angle) * x + Math.sin(angle) * z,
@@ -52,12 +56,16 @@ export class CastleEntranceDetails {
       stone.setLocalEulerAngles(0, origin.yaw, 0);
       stone.setLocalScale(...scale);
       for (const render of stone.findComponents("render")) {
-        for (const mesh of render.meshInstances) { mesh.material = stoneMaterial; }
+        for (const mesh of render.meshInstances) {
+          mesh.material = stoneMaterial;
+        }
       }
       parent.addChild(stone);
     };
     for (const building of residential.buildings) {
-      if (building.floorY > origin.y) { continue; }
+      if (building.floorY > origin.y) {
+        continue;
+      }
       CastleEntranceDetails.#addCorner(building, floorHeight, addStone, faceClearance, origin, building.minX, building.minZ);
       CastleEntranceDetails.#addCorner(building, floorHeight, addStone, faceClearance, origin, building.minX, building.maxZ);
       CastleEntranceDetails.#addCorner(building, floorHeight, addStone, faceClearance, origin, building.maxX, building.minZ);

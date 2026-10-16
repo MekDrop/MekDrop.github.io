@@ -197,7 +197,9 @@ export class HeroRespawnEffect {
       item.meshInstance.castShadow = item.castShadow;
       item.meshInstance.receiveShadow = item.receiveShadow;
     }
-    if (this.#outlineRoot) this.#outlineRoot.enabled = false;
+    if (this.#outlineRoot) {
+      this.#outlineRoot.enabled = false;
+    }
   }
 
   destroy() {
@@ -206,7 +208,9 @@ export class HeroRespawnEffect {
     this.#outlineRoot = null;
     this.#contourMaterial?.destroy();
     this.#contourMaterial = null;
-    for (const material of this.#fadeMaterials.values()) material.destroy();
+    for (const material of this.#fadeMaterials.values()) {
+      material.destroy();
+    }
     this.#fadeMaterials.clear();
     this.#solidMeshes = [];
     this.#modelRoot = null;

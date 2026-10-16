@@ -33,7 +33,7 @@ it("replans around solid objects added after route construction", () => {
   const motion = new CastleResidentMotion({
     actor: {
       entity,
-      pose() {},
+      pose: () => {},
     },
     layout,
     blocked: point => occupied(point),
@@ -82,7 +82,7 @@ it("retries an unreachable destination when its obstruction clears", () => {
   const motion = new CastleResidentMotion({
     actor: {
       entity,
-      pose() {},
+      pose: () => {},
     },
     layout,
     blocked: point => closed && point.x > 0.4 && point.x < 0.8,
@@ -93,7 +93,9 @@ it("retries an unreachable destination when its obstruction clears", () => {
   motion.update(0.1);
   assert.ok(entity.getPosition().equals(pc.Vec3.ZERO));
   closed = false;
-  for (let frame = 0; frame < 100 && !motion.arrived; frame++) { motion.update(0.1); }
+  for (let frame = 0; frame < 100 && !motion.arrived; frame++) {
+    motion.update(0.1);
+  }
   assert.equal(motion.arrived, true);
 });
 
@@ -131,7 +133,7 @@ it("walks existing residents through authored castle stairs and home without jum
       entity.setPosition(home.x, home.y, home.z);
       const actor = {
         entity,
-        pose() {},
+        pose: () => {},
       };
       const motion = new CastleResidentMotion({
         actor,
@@ -187,7 +189,7 @@ it("holds position when a doorway blocks the route and resumes the same actor", 
   const motion = new CastleResidentMotion({
     actor: {
       entity,
-      pose() {},
+      pose: () => {},
     },
     layout,
     blocked: () => false,
@@ -198,7 +200,9 @@ it("holds position when a doorway blocks the route and resumes the same actor", 
   assert.ok(entity.getPosition().length() < 0.00001);
   assert.equal(motion.arrived, false);
   open = true;
-  for (let index = 0; index < 100; index++) { motion.update(0.1); }
+  for (let index = 0; index < 100; index++) {
+    motion.update(0.1);
+  }
   assert.equal(motion.arrived, true);
 });
 import { TerraceRoyalActions } from "../../../../../../src/game/objects/castle/rooms/terrace/TerraceRoyalActions.js";
@@ -216,7 +220,7 @@ for (const [kind, Behavior] of [["king", KingTrainingBehavior], ["queen", QueenL
     const actor = {
       entity,
       height: 1.8,
-      pose() {},
+      pose: () => {},
     };
     const stage = new pc.Entity("Terrace");
     stage.setPosition(3, 0, 3);
@@ -244,7 +248,9 @@ for (const [kind, Behavior] of [["king", KingTrainingBehavior], ["queen", QueenL
     };
     class RoyalType {
       static kind = kind;
-      constructor() { assert.fail("a terrace visit must reuse the resident model"); }
+      constructor() {
+        assert.fail("a terrace visit must reuse the resident model");
+      }
     }
     const actions = new TerraceRoyalActions({
       RoyalType,
@@ -260,7 +266,9 @@ for (const [kind, Behavior] of [["king", KingTrainingBehavior], ["queen", QueenL
     const behavior = new Behavior(() => {});
     behavior.canComplete = () => ![PHASE.ROYAL_ENTER, PHASE.ROYAL_EXIT].includes(behavior.stagePhase) || actions.arrived;
     behavior.requested = true;
-    if (behavior.wish) { behavior.fulfillWish(behavior.wish); }
+    if (behavior.wish) {
+      behavior.fulfillWish(behavior.wish);
+    }
     actions.sync(behavior);
     assert.ok(entity.getPosition().equals(pc.Vec3.ZERO), "entering a state cannot teleport the resident");
     behavior.update(100);
@@ -310,7 +318,7 @@ it("replans around an opened leaf instead of forcing an actor through it", () =>
   const motion = new CastleResidentMotion({
     actor: {
       entity,
-      pose() {},
+      pose: () => {},
     },
     layout,
     blocked: (point, avoidDoors) => avoidDoors && occupied(point),
@@ -368,7 +376,7 @@ it("carries terrace equipment out of furnished basement storage and back in both
     const motion = new CastleResidentMotion({
       actor: {
         entity,
-        pose() {},
+        pose: () => {},
       },
       layout,
       blocked,
@@ -379,7 +387,9 @@ it("carries terrace equipment out of furnished basement storage and back in both
     const target = new pc.Vec3(terrace.x + Math.sin(radians) * 0.7, terrace.y, terrace.z + Math.cos(radians) * 0.7);
     for (const destination of [target, motion.home]) {
       motion.moveTo(destination, "carry");
-      for (let frame = 0; frame < 3000 && !motion.arrived; frame++) { motion.update(0.1); }
+      for (let frame = 0; frame < 3000 && !motion.arrived; frame++) {
+        motion.update(0.1);
+      }
       assert.ok(motion.arrived, "storage servant completes the carrying route for seed " + seed);
     }
   }

@@ -45,7 +45,9 @@ export class SkyIslandScenery {
 
     for (let row = 0; row < rows; row += 1) {
       for (let col = 0; col < cols; col += 1) {
-        if (!this.#isIslandCell(grid, col, row)) continue;
+        if (!this.#isIslandCell(grid, col, row)) {
+          continue;
+        }
 
         const edgeDistance = edgeDistances[row][col];
         const ridgeNoise = this.#hash(
@@ -87,7 +89,9 @@ export class SkyIslandScenery {
 
     for (let row = 0; row < rows; row += 1) {
       for (let col = 0; col < cols; col += 1) {
-        if (!this.#isIslandCell(grid, col, row)) continue;
+        if (!this.#isIslandCell(grid, col, row)) {
+          continue;
+        }
         const touchesVoid = [
           [col - 1, row],
           [col + 1, row],
@@ -107,7 +111,9 @@ export class SkyIslandScenery {
             neighborRow >= rows ||
             !this.#isIslandCell(grid, neighborCol, neighborRow),
         );
-        if (!touchesVoid) continue;
+        if (!touchesVoid) {
+          continue;
+        }
         distances[row][col] = 1;
         queue.push([col, row]);
       }

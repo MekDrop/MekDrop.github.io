@@ -238,7 +238,9 @@ export class HeroActionBehavior {
    * @returns {number}
    */
   get animationSpeed() {
-    if (this.bellAction?.pulling) { return 0; }
+    if (this.bellAction?.pulling) {
+      return 0;
+    }
     if (this.collectAction?.positioning || this.inventoryFullAction?.positioning) {
       return this.payload.positioning.animationSpeed ?? 1;
     }
@@ -401,9 +403,13 @@ export class HeroActionBehavior {
    *
    * @returns {import("src/game/objects/ObjectTypes.js").HeroActionPayload|null}
    */
-  get bellAction() { return this.#payloadFor(HERO_ACTION.RINGING_BELL); }
+  get bellAction() {
+    return this.#payloadFor(HERO_ACTION.RINGING_BELL);
+  }
 
-  set bellAction(action) { this.#setAction(HERO_ACTION.RINGING_BELL, action); }
+  set bellAction(action) {
+    this.#setAction(HERO_ACTION.RINGING_BELL, action);
+  }
 
   /**
    * @returns {import("src/game/objects/ObjectTypes.js").HeroActionPayload|null}

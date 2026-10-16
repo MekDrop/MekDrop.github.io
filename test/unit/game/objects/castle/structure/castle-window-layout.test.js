@@ -36,7 +36,9 @@ it('cuts genuine apertures for every castle orientation without editing the sour
         assert.ok(window.position.y - window.floorY >= 0.9 - 1e-8);
         assert.ok(window.position.y - window.floorY <= 1.1 + 1e-8);
         assert.ok(window.position.y >= plan.layout.baseY + 0.9);
-        if (window.role === "hall") assert.ok(window.height <= .75, `${style}/${side} defensive ground-floor casement`);
+        if (window.role === "hall") {
+          assert.ok(window.height <= .75, `${style}/${side} defensive ground-floor casement`);
+        }
         assert.ok(!boxes.some(box => CastleWindowLayout.intersects(CastleWindowLayout.bounds(box), window.cut)), `${style}/${side} blocked aperture`);
       }
       assert.equal(JSON.stringify(plan), original);

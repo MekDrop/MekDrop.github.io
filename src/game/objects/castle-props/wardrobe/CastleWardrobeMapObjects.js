@@ -12,11 +12,15 @@ export class CastleWardrobeMapObjects {
     for (const castle of objects.filter(CastleWardrobeMapObjects.#isCastle)) {
       const layout = new CastleResidentialLayout(castle.buildPlan);
       for (let index = objects.length - 1; index >= 0; index--) {
-        if (objects[index].castleWardrobe && objects[index].sourceCastleId === castle.id) { objects.splice(index, 1); }
+        if (objects[index].castleWardrobe && objects[index].sourceCastleId === castle.id) {
+          objects.splice(index, 1);
+        }
       }
       let index = 0;
       for (const placement of layout.placements) {
-        if (placement.role !== "wardrobe") { continue; }
+        if (placement.role !== "wardrobe") {
+          continue;
+        }
         const position = { ...placement.position };
         objects.push({
           id: `${castle.id}-wardrobe-${index++}`,
@@ -45,5 +49,7 @@ export class CastleWardrobeMapObjects {
   /**
    * @param {import("../../ObjectTypes.js").MapObjectDefinition} definition
    */
-  static #isCastle(definition) { return definition.object === "Castle"; }
+  static #isCastle(definition) {
+    return definition.object === "Castle";
+  }
 }

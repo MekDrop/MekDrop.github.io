@@ -280,7 +280,9 @@ export class GameControls {
    * @type {() => void}
    */
   #handleVisibilityChange = () => {
-    if (document.hidden) this.#clearMovement();
+    if (document.hidden) {
+      this.#clearMovement();
+    }
   };
 
   /**

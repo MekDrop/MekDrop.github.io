@@ -56,10 +56,14 @@ export class LadderInteraction {
    * @returns {boolean}
    */
   interact() {
-    if (!this.canInteract) { return false; }
+    if (!this.canInteract) {
+      return false;
+    }
     this.#ladder.openHatch?.();
     const accepted = this.#hero.teleport(this.#ladder.landing(this.#end === "bottom" ? "top" : "bottom"));
-    if (accepted) { this.#onComplete?.(); }
+    if (accepted) {
+      this.#onComplete?.();
+    }
     return accepted;
   }
 }

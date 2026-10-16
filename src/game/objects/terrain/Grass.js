@@ -22,23 +22,33 @@ export class Grass extends Earth {
   /**
    * @returns {Readonly<Record<string, string>>}
    */
-  static get textureUrls() { return GrassSurfaceMaterials.textureUrls; }
+  static get textureUrls() {
+    return GrassSurfaceMaterials.textureUrls;
+  }
   /**
    * @returns {Array<string>}
    */
-  static get modelUrls() { return GrassCarpet.modelUrls; }
+  static get modelUrls() {
+    return GrassCarpet.modelUrls;
+  }
   /**
    * @param {number} type
    */
-  static surfaceLiftForTile(type) { return type === MAP_TILE_TYPE.GRASS ? GRASS_SURFACE_LIFT : 0; }
+  static surfaceLiftForTile(type) {
+    return type === MAP_TILE_TYPE.GRASS ? GRASS_SURFACE_LIFT : 0;
+  }
   /**
    * @param {Array} args
    */
-  static registerMaterials(...args) { GrassSurfaceMaterials.register(...args); }
+  static registerMaterials(...args) {
+    GrassSurfaceMaterials.register(...args);
+  }
   /**
    * @param {Array} args
    */
-  static configureTexture(...args) { GrassSurfaceMaterials.configureTexture(...args); }
+  static configureTexture(...args) {
+    GrassSurfaceMaterials.configureTexture(...args);
+  }
 
   /**
    * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, modelLibrary: import("src/game/models/GameModelLibrary.js").GameModelLibrary, definition: import("../ObjectTypes.js").MapObjectDefinition, runtime: import("../ObjectTypes.js").MapObjectRuntime}} options

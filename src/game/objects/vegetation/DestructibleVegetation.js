@@ -348,7 +348,9 @@ export class DestructibleVegetation {
     const local = this.#toLocalCoordinates(x, z);
     let deepestCollision = 0;
     for (const footprint of this.#collisionFootprints) {
-      if (footprint.surfaceHeight <= elevation + stepClearance) continue;
+      if (footprint.surfaceHeight <= elevation + stepClearance) {
+        continue;
+      }
       const deltaX = Math.abs(local.x - footprint.x) - footprint.width / 2;
       const deltaZ = Math.abs(local.z - footprint.z) - footprint.depth / 2;
       const signedDistance =

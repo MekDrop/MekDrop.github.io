@@ -31,7 +31,7 @@ delete globalThis.__gameOverSceneTestHud;
 
 function createRoyal(id, calls) {
   return {
-    beginGameOver() {
+    beginGameOver: () => {
       calls.push(`${id}:begin`);
 
       return {
@@ -48,7 +48,7 @@ function createRoyal(id, calls) {
         viewRotation: 0,
       };
     },
-    startGameOverPerformance() {
+    startGameOverPerformance: () => {
       calls.push(`${id}:start`);
     },
   };

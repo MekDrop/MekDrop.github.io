@@ -387,7 +387,9 @@ export class GroundCover {
   /**
    * @returns {import("./FlowerPaper.js").PaperGrassContact[]}
    */
-  get grassSurfaceContacts() { return this.#flowerPaper.grassSurfaceContacts; }
+  get grassSurfaceContacts() {
+    return this.#flowerPaper.grassSurfaceContacts;
+  }
 
   set tool(tool) {
     this.#tool = tool;
@@ -519,11 +521,17 @@ export class GroundCover {
     this.#items = [];
     this.#entity?.destroy();
     this.#entity = null;
-    for (const vertexBuffer of this.#vertexBuffers) vertexBuffer.destroy();
+    for (const vertexBuffer of this.#vertexBuffers) {
+      vertexBuffer.destroy();
+    }
     this.#vertexBuffers = [];
-    for (const material of this.#materials.values()) material.destroy();
+    for (const material of this.#materials.values()) {
+      material.destroy();
+    }
     this.#materials.clear();
-    for (const material of this.#heldMaterials.values()) material.destroy();
+    for (const material of this.#heldMaterials.values()) {
+      material.destroy();
+    }
     this.#heldMaterials.clear();
     this.#collectibles = [];
     this.#islandAttachments = [];
@@ -599,7 +607,9 @@ export class GroundCover {
         continue;
       }
       const definition = GROUND_COVER_VARIANTS[decoration.variant];
-      if (!definition) continue;
+      if (!definition) {
+        continue;
+      }
       const x = decoration.col - (mapData.cols - 1) / 2 + decoration.offsetX;
       const z = decoration.row - (mapData.rows - 1) / 2 + decoration.offsetZ;
       const y =
@@ -748,7 +758,9 @@ export class GroundCover {
           dynamic: true,
         },
       );
-      if (!batch) continue;
+      if (!batch) {
+        continue;
+      }
       this.#vertexBuffers.push(batch.vertexBuffer);
       this.#flowerPhysics.setBatch(variant, batch.vertexBuffer);
       this.#entity.addChild(batch.entity);
@@ -848,7 +860,9 @@ export class GroundCover {
     }
     this.#flowerPhysics.advance(frameTime);
     this.#flowerPaper.advance(frameTime);
-    for (const item of this.#items) item.advance(frameTime);
+    for (const item of this.#items) {
+      item.advance(frameTime);
+    }
   };
 
   /**

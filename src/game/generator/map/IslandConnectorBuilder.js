@@ -67,7 +67,9 @@ export class IslandConnectorBuilder {
 
               return grid[row][col];
             };
-            if (tileAt(first) === TileType.WATER) continue;
+            if (tileAt(first) === TileType.WATER) {
+              continue;
+            }
             let last = first;
             while (last + 1 < innerLimit && tileAt(last + 1) !== TileType.WATER) {
               last += 1;
@@ -83,14 +85,20 @@ export class IslandConnectorBuilder {
               const point = cell(cross);
               const type = tileAt(cross);
               const meta = tileMeta[point.row][point.col];
-              if (type === TileType.GRASS) grassCells.push(point);
-              else if (type === TileType.PATH &&
+              if (type === TileType.GRASS) {
+                grassCells.push(point);
+              } else if (type === TileType.PATH &&
                 meta.shape !== TILE_SHAPE.SLOPE &&
-                !meta.overpassId && !meta.pathDipId && !meta.islandConnector) pathCells.push(point);
-              else valid = false;
+                !meta.overpassId && !meta.pathDipId && !meta.islandConnector) {
+                pathCells.push(point);
+              } else {
+                valid = false;
+              }
             }
             first = last;
-            if (!valid || pathCells.length !== 2 || grassCells.length === 0) continue;
+            if (!valid || pathCells.length !== 2 || grassCells.length === 0) {
+              continue;
+            }
             /**
              * @param {{col: number, row: number}} grass
              */
@@ -99,7 +107,9 @@ export class IslandConnectorBuilder {
               */
               (river) => Math.abs(river.col - col) + Math.abs(river.row - row) <= 5,
             );
-            if (grassCells.some(isNearRiver)) continue;
+            if (grassCells.some(isNearRiver)) {
+              continue;
+            }
             /**
              * @param {{col: number, row: number}} grass
              */
@@ -109,15 +119,23 @@ export class IslandConnectorBuilder {
               (overpass) => Math.abs(overpass.col - col) +
                 Math.abs(overpass.row - row) <= 3,
             );
-            if (grassCells.some(isNearOverpass)) continue;
+            if (grassCells.some(isNearOverpass)) {
+              continue;
+            }
             const [a, b] = pathCells;
-            if (Math.abs(a.col - b.col) + Math.abs(a.row - b.row) !== 1) continue;
+            if (Math.abs(a.col - b.col) + Math.abs(a.row - b.row) !== 1) {
+              continue;
+            }
             const expectedDirections = horizontal
               ? [Direction.EAST, Direction.WEST]
               : [Direction.NORTH, Direction.SOUTH];
             if (!expectedDirections.includes(tileMeta[a.row][a.col].direction) ||
-              tileMeta[a.row][a.col].direction !== tileMeta[b.row][b.col].direction) continue;
-            if (this.#hasConnectorOnStraightRun(grid, tileMeta, pathCells, horizontal)) continue;
+              tileMeta[a.row][a.col].direction !== tileMeta[b.row][b.col].direction) {
+              continue;
+            }
+            if (this.#hasConnectorOnStraightRun(grid, tileMeta, pathCells, horizontal)) {
+              continue;
+            }
             const blocked = new Set([
               ...connectorCells,
               ...[...pathCells, ...grassCells].map(IslandConnectorBuilder.#map),
@@ -155,13 +173,21 @@ export class IslandConnectorBuilder {
             const isBridgeCell = ({ col, row }) => PathSurfaceRules.classifyRenderMode(
               grid, heightmap, tileMeta, col, row,
             ) === "BRIDGE";
-            if (bridgePositions.some(isBridgeCell)) continue;
+            if (bridgePositions.some(isBridgeCell)) {
+              continue;
+            }
             const nearIsland = this.#flood(grid, before, blocked);
             if (nearIsland.size === 0 ||
-              nearIsland.has(`${after.col},${after.row}`)) continue;
+              nearIsland.has(`${after.col},${after.row}`)) {
+              continue;
+            }
             const farIsland = this.#flood(grid, after, blocked);
-            if (farIsland.size === 0) continue;
-            if (this.#isolatesGrass(grid, heightmap, grassCells)) continue;
+            if (farIsland.size === 0) {
+              continue;
+            }
+            if (this.#isolatesGrass(grid, heightmap, grassCells)) {
+              continue;
+            }
             const score = Math.min(nearIsland.size, farIsland.size);
             if (!best || score > best.score) {
               best = {
@@ -177,7 +203,9 @@ export class IslandConnectorBuilder {
           }
         }
       }
-      if (!best) break;
+      if (!best) {
+        break;
+      }
       for (const { col, row } of best.grassCells) {
         grid[row][col] = TileType.WATER;
         heightmap[row][col] = 0;
@@ -197,17 +225,23 @@ export class IslandConnectorBuilder {
         farIsland: [...best.farIsland],
       });
     }
-    if (!connectors.length) return null;
+    if (!connectors.length) {
+      return null;
+    }
     const islands = [];
     const visited = new Set(connectorCells);
     for (let row = 0; row < MAP_ROWS; row += 1) {
       for (let col = 0; col < MAP_COLS; col += 1) {
-        if (grid[row][col] === TileType.WATER || visited.has(`${col},${row}`)) continue;
+        if (grid[row][col] === TileType.WATER || visited.has(`${col},${row}`)) {
+          continue;
+        }
         const cells = this.#flood(grid, {
           col,
           row,
         }, connectorCells);
-        for (const key of cells) visited.add(key);
+        for (const key of cells) {
+          visited.add(key);
+        }
         islands.push([...cells]);
       }
     }
@@ -221,7 +255,9 @@ export class IslandConnectorBuilder {
        * @param {string[]} cells
        */
         (cells) => cells.includes(ownerKey));
-      for (const { col, row } of connector.cells) owner.push(`${col},${row}`);
+      for (const { col, row } of connector.cells) {
+        owner.push(`${col},${row}`);
+      }
     }
 
     return {
@@ -261,12 +297,16 @@ export class IslandConnectorBuilder {
          */
         const isInvalidConnectorCell = ({ col, row }) => grid[row]?.[col] !== TileType.PATH ||
           tileMeta[row][col].direction !== direction;
-        if (cells.some(isInvalidConnectorCell)) break;
+        if (cells.some(isInvalidConnectorCell)) {
+          break;
+        }
         /**
          * @param {{col: number, row: number}} cell
          */
         const isExistingConnector = ({ col, row }) => tileMeta[row][col].islandConnector;
-        if (cells.some(isExistingConnector)) return true;
+        if (cells.some(isExistingConnector)) {
+          return true;
+        }
       }
     }
 
@@ -289,14 +329,18 @@ export class IslandConnectorBuilder {
         const row = cell.row + dr;
         if (col <= 0 || col >= MAP_COLS - 1 || row <= 0 || row >= MAP_ROWS - 1 ||
           grid[row][col] !== TileType.GRASS || heightmap[row][col] <= 1 ||
-          removed.has(`${col},${row}`)) continue;
+          removed.has(`${col},${row}`)) {
+          continue;
+        }
         const related = directions.some(/**
          * @param {number[]} direction
          */
           ([dx, dy]) => grid[row + dy][col + dx] === TileType.GRASS &&
           !removed.has(`${col + dx},${row + dy}`) &&
           heightmap[row + dy][col + dx] >= heightmap[row][col] - 1);
-        if (!related) return true;
+        if (!related) {
+          return true;
+        }
       }
     }
 
@@ -315,7 +359,9 @@ export class IslandConnectorBuilder {
       const { col, row } = queue[index];
       const key = `${col},${row}`;
       if (col < 0 || col >= MAP_COLS || row < 0 || row >= MAP_ROWS ||
-        blocked.has(key) || visited.has(key) || grid[row][col] === TileType.WATER) continue;
+        blocked.has(key) || visited.has(key) || grid[row][col] === TileType.WATER) {
+        continue;
+      }
       visited.add(key);
       queue.push(
         {

@@ -20,7 +20,8 @@ it('places the castle doorway on the final two-lane route endpoint',async()=>{
   const door=plan.input.doors[0],position=plan.input.position;
   assert.equal(origin.x,position.x);
   assert.equal(origin.z,position.z+door.offset+door.width/2);
-  for(const path of map.paths){const end=path.route.at(-1);
+  for(const path of map.paths){
+    const end=path.route.at(-1);
     const x=end.col-(map.cols-1)/2,z=end.row-(map.rows-1)/2;
     assert.ok(Math.abs(x-origin.x)<=.5&&Math.abs(z-origin.z)<1e-6,'route meets the actual doorway, not an unused footprint corner');
   }

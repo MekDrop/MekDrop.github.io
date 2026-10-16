@@ -156,9 +156,11 @@ export class GameCanvasCameraTestDriverPlugin {
   /**
    * @param {boolean} enabled
    */
-  #firstPerson(enabled) { this.#context.renderer().firstPersonCameraEnabled = enabled;
+  #firstPerson(enabled) {
+    this.#context.renderer().firstPersonCameraEnabled = enabled;
 
-    return this.#state(); }
+    return this.#state();
+  }
 
   #state2() {
     return this.#state();

@@ -120,15 +120,23 @@ it("keeps a connected player-width route from the door to desk and shelf approac
     for (let x = 0; x < width; x++) {
       for (let z = 0; z < depth; z++) {
         const px = room.minX + (x + 0.5) * step, pz = room.minZ + (z + 0.5) * step;
-        if (px < room.minX + radius || px > room.maxX - radius || pz < room.minZ + radius || pz > room.maxZ - radius) { continue; }
+        if (px < room.minX + radius || px > room.maxX - radius || pz < room.minZ + radius || pz > room.maxZ - radius) {
+          continue;
+        }
         const blocksFurnitureClearance = item => Math.hypot(Math.max(0, Math.abs(px - item.x) - item.width / 2),
           Math.max(0, Math.abs(pz - item.z) - item.depth / 2)) < radius;
-        if (furniture.some(blocksFurnitureClearance)) { continue; }
+        if (furniture.some(blocksFurnitureClearance)) {
+          continue;
+        }
         const blocksStairClearance = stair => px > stair.minX - radius && px < stair.maxX + radius &&
           pz > stair.minZ - radius && pz < stair.maxZ + radius;
-        if (plan.stairs.some(blocksStairClearance)) { continue; }
+        if (plan.stairs.some(blocksStairClearance)) {
+          continue;
+        }
         visited.add(`${x},${z}`);
-        if (Math.abs(px - door.center) < 0.2 && Math.abs(pz - (door.coordinate - 0.4)) < 0.15) { queue.push([x, z]); }
+        if (Math.abs(px - door.center) < 0.2 && Math.abs(pz - (door.coordinate - 0.4)) < 0.15) {
+          queue.push([x, z]);
+        }
       }
     }
     const reached = new Set(queue.map(point => point.join(",")));
@@ -136,7 +144,9 @@ it("keeps a connected player-width route from the door to desk and shelf approac
       const [x, z] = queue[index];
       for (const [a, b] of [[x - 1, z], [x + 1, z], [x, z - 1], [x, z + 1]]) {
         const key = `${a},${b}`;
-        if (visited.has(key) && !reached.has(key)) { reached.add(key); queue.push([a, b]); }
+        if (visited.has(key) && !reached.has(key)) {
+          reached.add(key); queue.push([a, b]);
+        }
       }
     }
     assert.ok(reached.size > 50, `seed ${seed} door route`);
@@ -188,7 +198,9 @@ it("publishes registered room objects once through the active authored plan", as
     const angle = section.rotation * Math.PI / 180;
     const neighbours = first.filter(item => item !== section && item.object === "Shelf" && item.rotation === section.rotation);
     for (const [flag, sign] of [["joinStart", -1], ["joinEnd", 1]]) {
-      if (!section[flag]) { continue; }
+      if (!section[flag]) {
+        continue;
+      }
       assert.ok(neighbours.some(item => {
         const dx = item.position.x - section.position.x, dz = item.position.z - section.position.z;
 

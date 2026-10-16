@@ -26,7 +26,9 @@ it("keeps a continuous watch aisle and reproduces independently seeded storeys",
       assert.ok(Math.abs(item.x - 1.75) >= item.width / 2 + 0.45);
       assert.ok(Math.abs(item.z - 1.75) >= item.depth / 2 + 0.45);
       for (const other of items) {
-        if (other === item) { continue; }
+        if (other === item) {
+          continue;
+        }
         assert.ok(Math.abs(item.x - other.x) >= (item.width + other.width) / 2 + 0.22 ||
           Math.abs(item.z - other.z) >= (item.depth + other.depth) / 2 + 0.22);
       }

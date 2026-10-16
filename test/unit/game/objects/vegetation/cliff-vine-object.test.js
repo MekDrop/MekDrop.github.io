@@ -4,7 +4,7 @@ import { describe, it } from "node:test";
 import * as pc from "playcanvas";
 
 const hooks = registerHooks({
-  resolve(specifier, context, nextResolve) {
+  resolve: (specifier, context, nextResolve) => {
     if (specifier.endsWith(".glb?url")) {
       return {
         shortCircuit: true,
@@ -54,10 +54,12 @@ describe("cliff vine map objects", () => {
     };
     const uploads = [];
     const modelLibrary = {
-      instantiateMergedBatch(url, matrices) {
+      instantiateMergedBatch: (url, matrices) => {
         const buffer = {
-          setData(values) { uploads.push([...values]); },
-          destroy() {},
+          setData: (values) => {
+            uploads.push([...values]);
+          },
+          destroy: () => {},
         };
         uploads.push([...matrices]);
 
@@ -92,7 +94,9 @@ describe("cliff vine map objects", () => {
     patch.setIslandOffsets(0.5, -1);
     for (let batch = 0; batch < baseline.length; batch++) {
       const moved = uploads[batch + baseline.length];
-      for (let index = 13; index < moved.length; index += 16) assert.ok(Math.abs(moved[index] - baseline[batch][index] - 0.5) < 1e-6);
+      for (let index = 13; index < moved.length; index += 16) {
+        assert.ok(Math.abs(moved[index] - baseline[batch][index] - 0.5) < 1e-6);
+      }
     }
     patch.destroy();
   });

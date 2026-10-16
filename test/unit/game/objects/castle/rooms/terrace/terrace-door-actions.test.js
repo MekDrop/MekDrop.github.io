@@ -13,7 +13,11 @@ const source = readFileSync(new URL("../../../../../../../src/game/objects/castl
   .replace(/^import[^\n]+\r?\n/gm, "");
 const Actions = new Function("CHARACTER_HEIGHT", "PHASE", "INSPECTION", "Door", "terraceDoorModel", "TerraceDoorInspection", "TerraceInspectorWalk",
   `${source.replace("export class", "class")}\nreturn TerraceDoorActions;`)(1.8, PHASE, INSPECTION,
-  class { constructor() { assert.fail("an existing terrace door must not create a stairhead"); } },
+  class {
+    constructor() {
+      assert.fail("an existing terrace door must not create a stairhead");
+    }
+  },
   {}, TerraceDoorInspection, TerraceInspectorWalk);
 
 it("inspects and closes the authored terrace door without adding or destroying castle geometry", async () => {
@@ -50,8 +54,8 @@ it("inspects and closes the authored terrace door without adding or destroying c
   const inspector = {
     entity: new pc.Entity("Inspector"),
     height: 1.8,
-    pose() {},
-    evaluatePose() {},
+    pose: () => {},
+    evaluatePose: () => {},
   };
   inspector.rightHand = new pc.Entity("Hand");
   inspector.entity.addChild(inspector.rightHand);
@@ -63,8 +67,12 @@ it("inspects and closes the authored terrace door without adding or destroying c
     openAmount: 0,
     sequenceOpenAmount: null,
     onOpen: null,
-    update() { assert.fail("the castle retains ownership of its physics update"); },
-    destroy() { assert.fail("the activity must not destroy the castle's door"); },
+    update: () => {
+      assert.fail("the castle retains ownership of its physics update");
+    },
+    destroy: () => {
+      assert.fail("the activity must not destroy the castle's door");
+    },
   };
   const actions = new Actions({
     pc,
@@ -119,8 +127,8 @@ it("walks the existing servant from home, inspects, and returns without visibili
   const inspector = {
     entity: new pc.Entity("Existing servant"),
     height: 1.8,
-    pose() {},
-    evaluatePose() {},
+    pose: () => {},
+    evaluatePose: () => {},
   };
   scene.addChild(inspector.entity);
   const original = inspector.entity;
@@ -176,7 +184,9 @@ it("walks the existing servant from home, inspects, and returns without visibili
     const before = original.getPosition().clone();
     motion.update(0.1);
     actions.update(0.1, PHASE.DORMANT);
-    if (door.sequenceOpenAmount !== null) { door.openAmount = door.sequenceOpenAmount; }
+    if (door.sequenceOpenAmount !== null) {
+      door.openAmount = door.sequenceOpenAmount;
+    }
     assert.equal(original.enabled, true);
     assert.ok(original.getPosition().distance(before) <= 0.120001);
   }

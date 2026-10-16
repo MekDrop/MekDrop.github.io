@@ -41,7 +41,9 @@ export class SurfaceSpatialIndex {
       for (let row = Math.floor((z - radius) / 4); row <= Math.floor((z + radius) / 4); row++) {
         const cell = this.#cells.get(`${col}:${row}`);
         if (cell) {
-          for (const item of cell) items.add(item);
+          for (const item of cell) {
+            items.add(item);
+          }
         }
       }
     }

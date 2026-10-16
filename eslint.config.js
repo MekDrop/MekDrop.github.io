@@ -15,6 +15,12 @@ const oversizedSourceFileExemptions = [
 const baseRestrictedSyntax = [
   {
     selector:
+      "ObjectExpression > Property[method=true][kind='init'][value.generator=false]:not(:has(ThisExpression, Super, Identifier[name='arguments'], MetaProperty))",
+    message:
+      "Use an arrow-function property for object methods that do not need their own this, arguments, super, or new.target.",
+  },
+  {
+    selector:
       "IfStatement > *.test :matches(ArrowFunctionExpression, FunctionExpression).arguments",
     message:
       "Extract inline callbacks from if conditions into named predicates or helpers so the condition stays readable.",
@@ -295,6 +301,8 @@ module.exports = [
     rules: {
       "vue/no-v-text-v-html-on-component": "off",
       "local/super-own-line": "error",
+      curly: ["error", "all"],
+      "@stylistic/brace-style": ["error", "1tbs", { allowSingleLine: false }],
       "@stylistic/padding-line-between-statements": [
         "error",
         {

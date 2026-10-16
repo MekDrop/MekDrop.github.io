@@ -21,10 +21,10 @@ function createContext() {
     output: {},
     scheduler: createScheduler(),
     yieldState: { lastYield: 0 },
-    registerCleanup(callback) {
+    registerCleanup: (callback) => {
       cleanupCallbacks.push(callback);
     },
-    cleanup() {
+    cleanup: () => {
       for (const callback of cleanupCallbacks.splice(0).reverse()) {
         callback();
       }

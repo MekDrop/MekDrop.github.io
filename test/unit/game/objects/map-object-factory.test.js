@@ -7,8 +7,10 @@ import { generateMap } from "../../../../src/game/generator/map/MapGenerator.js"
 
 const root = new URL("../../../../", import.meta.url);
 const hooks = registerHooks({
-  resolve(specifier, context, nextResolve) {
-    if (specifier.startsWith("src/")) { specifier = new URL(specifier, root).href; }
+  resolve: (specifier, context, nextResolve) => {
+    if (specifier.startsWith("src/")) {
+      specifier = new URL(specifier, root).href;
+    }
     if (specifier.includes("?url") || /\.(png|jpg|webp|svg)$/.test(specifier)) {
       return {
         url: `data:text/javascript,export default ${encodeURIComponent(JSON.stringify(specifier))}`,
@@ -42,7 +44,7 @@ test("map objects retain one mutable shared runtime and one contained-object fac
   const runtime = {
     canopy,
     resolveMaterial: value => value,
-    instanceRenderer: { addCubeMatrix() {} },
+    instanceRenderer: { addCubeMatrix: () => {} },
   };
   const options = {
     pc,

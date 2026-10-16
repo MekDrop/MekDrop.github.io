@@ -75,7 +75,9 @@ export class TerraceServiceActions {
   /**
    * @returns {boolean}
    */
-  get arrived() { return this.#servant.arrived; }
+  get arrived() {
+    return this.#servant.arrived;
+  }
 
   /**
    * @returns {import("../../../../ObjectTypes.js").TerraceActivityState}
@@ -93,7 +95,9 @@ export class TerraceServiceActions {
    * @param {import("./RoyalTerraceActivityBehavior.js").RoyalTerraceActivityBehavior} royalBehavior
    */
   sync(servantBehavior, royalBehavior) {
-    if (servantBehavior.reacting) { return; }
+    if (servantBehavior.reacting) {
+      return;
+    }
     this.#servant.sync(servantBehavior);
     this.#service.sync(
       servantBehavior,

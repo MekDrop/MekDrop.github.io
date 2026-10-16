@@ -39,7 +39,9 @@ export class CastleOuterShellBuilder {
             const leisure = plan.rooms.leisure;
             const openTerrace = leisure && leisure.floorY < upperY && x >= leisure.minX && x <= leisure.maxX &&
             z >= leisure.minZ && z <= leisure.maxZ;
-            if (!roomFloor && !openTerrace) { writer.addBlock(u, y, v); }
+            if (!roomFloor && !openTerrace) {
+              writer.addBlock(u, y, v);
+            }
 
           }
         }

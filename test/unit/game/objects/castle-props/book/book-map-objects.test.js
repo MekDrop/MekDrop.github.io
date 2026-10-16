@@ -99,7 +99,9 @@ test("world-space book transforms match the former cabinet hierarchy on both axe
         };
         const bounds = ShelfLayout.bounds(shelf);
         let state = 2166136261;
-        for (const character of "42") { state = Math.imul(state ^ character.charCodeAt(0), 16777619) >>> 0; }
+        for (const character of "42") {
+          state = Math.imul(state ^ character.charCodeAt(0), 16777619) >>> 0;
+        }
         const random = () => {
           state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
 

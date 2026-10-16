@@ -29,7 +29,9 @@ export class WindowModules {
         pane.parent.addChild(copy);
       }
     }
-    for (const node of panes) { node.destroy(); }
+    for (const node of panes) {
+      node.destroy();
+    }
     this.#repeat(visual, /^Fine oak transom /, rows - 1, "y", rows);
     this.#repeat(visual, /^Central oak mullion/, columns - 1, "x", columns);
     WindowModules.#fitJamb(visual, window, 1);
@@ -49,7 +51,9 @@ export class WindowModules {
      * @param {import("playcanvas").GraphNode} node
      */
       (node) => pattern.test(node.name));
-    if (!nodes.length) { return; }
+    if (!nodes.length) {
+      return;
+    }
     const template = nodes[0];
     for (let index = 1; index <= count; index++) {
       const copy = template.clone();
@@ -59,7 +63,9 @@ export class WindowModules {
       copy.setLocalPosition(position);
       template.parent.addChild(copy);
     }
-    for (const node of nodes) { node.destroy(); }
+    for (const node of nodes) {
+      node.destroy();
+    }
   }
 
   /**
@@ -89,7 +95,9 @@ export class WindowModules {
      * @param {import("playcanvas").GraphNode} node
      */
       (node) => node.name.startsWith(`Stone jamb course ${side} `));
-    if (!courses.length) { return; }
+    if (!courses.length) {
+      return;
+    }
     const count = Math.max(courses.length, Math.ceil(window.height / 0.25));
     const template = courses[0];
     for (let index = 0; index < count; index++) {
@@ -101,6 +109,8 @@ export class WindowModules {
       copy.setLocalScale(scale.x, scale.y * courses.length / count, scale.z);
       template.parent.addChild(copy);
     }
-    for (const node of courses) { node.destroy(); }
+    for (const node of courses) {
+      node.destroy();
+    }
   }
 }

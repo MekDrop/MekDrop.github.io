@@ -8,11 +8,9 @@ import { ToggleInventoryAction } from "../../../src/game/actions/ToggleInventory
 test("closes inventory through the shared modal action contract", () => {
   const renderer = {
     inventoryVisible: true,
-    closeInventory() {
-      return true;
-    },
+    closeInventory: () => true,
   };
-  const modal = new ToggleInventoryAction(renderer, { clear() {} });
+  const modal = new ToggleInventoryAction(renderer, { clear: () => {} });
 
   assert.ok(modal instanceof AbstractModalAction);
   assert.equal(new CloseModalAction([modal]).invoke(), true);

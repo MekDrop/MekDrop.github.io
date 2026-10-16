@@ -6,15 +6,19 @@
  */
 export function createCastlePlannedFloorAreas(buildPlan) {
   const plan = buildPlan.metadata.runtime.residential;
-  if (plan.basePlanId) { return plan.walkableAreas.map(/**
+  if (plan.basePlanId) {
+    return plan.walkableAreas.map(/**
    * @param {{id:string,minX:number,maxX:number,minZ:number,maxZ:number,floorY:number}} area
    */
-    (area) => ({ ...area })); }
+      (area) => ({ ...area }));
+  }
   const result = [];
   const shaft = plan.shaft;
   for (const area of plan.walkableAreas) {
     const cut = area.floorY > plan.origin.y ? plan.stair : area.floorY === plan.origin.y ? plan.serviceStair : null;
-    if (!cut || area.id.endsWith("Threshold")) { result.push({ ...area }); continue; }
+    if (!cut || area.id.endsWith("Threshold")) {
+      result.push({ ...area }); continue;
+    }
     for (const [minX, maxX, minZ, maxZ] of [
       [area.minX, Math.min(area.maxX, shaft.minX), area.minZ, area.maxZ],
       [Math.max(area.minX, shaft.maxX), area.maxX, area.minZ, area.maxZ],
@@ -25,13 +29,15 @@ export function createCastlePlannedFloorAreas(buildPlan) {
         const host = plan.rooms[plan.stairHostRoomId];
         const floorMaxZ = area.floorY > plan.origin.y && host && minX >= host.minX && maxX <= host.maxX && maxZ <= shaft.minZ ?
           Math.min(maxZ, host.minZ) : maxZ;
-        if (floorMaxZ > minZ) result.push({
-          ...area,
-          minX,
-          maxX,
-          minZ,
-          maxZ: floorMaxZ,
-        });
+        if (floorMaxZ > minZ) {
+          result.push({
+            ...area,
+            minX,
+            maxX,
+            minZ,
+            maxZ: floorMaxZ,
+          });
+        }
       }
     }
     const x = (shaft.minX + shaft.maxX) / 2;
@@ -80,7 +86,9 @@ export function createCastlePlannedFloorAreas(buildPlan) {
   // A room's finish stops at its inner wall face. Bridge the wall thickness
   // with a continuous structural threshold, including doors onto the terrace.
   for (const doorway of plan.doorways) {
-    if (doorway.floorY <= plan.origin.y) { continue; }
+    if (doorway.floorY <= plan.origin.y) {
+      continue;
+    }
     const acrossX = doorway.axis === "x";
     result.push({
       id: "upperRoomThreshold",
@@ -96,13 +104,17 @@ export function createCastlePlannedFloorAreas(buildPlan) {
   for (const area of result) {
     let pieces = [area];
     for (const existing of unique) {
-      if (existing.floorY !== area.floorY) { continue; }
+      if (existing.floorY !== area.floorY) {
+        continue;
+      }
       pieces = pieces.flatMap(/**
        * @param {{id:string,minX:number,maxX:number,minZ:number,maxZ:number,floorY:number}} piece
        */ (piece) => {
           const left = Math.max(piece.minX, existing.minX), right = Math.min(piece.maxX, existing.maxX);
           const front = Math.max(piece.minZ, existing.minZ), rear = Math.min(piece.maxZ, existing.maxZ);
-          if (right <= left || rear <= front) { return [piece]; }
+          if (right <= left || rear <= front) {
+            return [piece];
+          }
           return [[piece.minX, left, piece.minZ, piece.maxZ], [right, piece.maxX, piece.minZ, piece.maxZ],
             [left, right, piece.minZ, front], [left, right, rear, piece.maxZ]]
             .filter(/**
@@ -126,10 +138,14 @@ export function createCastlePlannedFloorAreas(buildPlan) {
   return unique.flatMap(/**
    * @param {{id:string,minX:number,maxX:number,minZ:number,maxZ:number,floorY:number}} area
    */ (area) => {
-      if (!leisure || area.floorY <= leisure.floorY) { return [area]; }
+      if (!leisure || area.floorY <= leisure.floorY) {
+        return [area];
+      }
       const left = Math.max(area.minX, leisure.minX), right = Math.min(area.maxX, leisure.maxX);
       const front = Math.max(area.minZ, leisure.minZ), rear = Math.min(area.maxZ, leisure.maxZ);
-      if (right <= left || rear <= front) { return [area]; }
+      if (right <= left || rear <= front) {
+        return [area];
+      }
       return [[area.minX, left, area.minZ, area.maxZ], [right, area.maxX, area.minZ, area.maxZ],
         [left, right, area.minZ, front], [left, right, rear, area.maxZ]]
         .filter(/**

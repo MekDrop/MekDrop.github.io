@@ -5,7 +5,7 @@ import * as pc from "playcanvas";
 import { GameMapLoader } from "../../../../../src/game/GameMapLoader.js";
 
 const hooks = registerHooks({
-  resolve(specifier, context, nextResolve) {
+  resolve: (specifier, context, nextResolve) => {
     if (specifier.endsWith(".glb?url")) {
       return {
         shortCircuit: true,
@@ -31,7 +31,7 @@ it("keeps digging out of castle cutouts while preserving outdoor grass", () => {
     pc,
     mapData,
     modelLibrary: {},
-    app: { on() { return { off() {} }; } },
+    app: { on: () => ({ off: () => {} }) },
   });
   field.tool = {};
   const hero = {
@@ -83,14 +83,14 @@ it("reveals the already instantiated chest and spawns its stored contents withou
   let update;
   const models = [];
   const modelLibrary = {
-    instantiate(url) {
+    instantiate: (url) => {
       const entity = new pc.Entity(url);
       // Animation playback normally needs a graphics application; retain real transforms.
       entity.addComponent = () => {
         entity.anim = {
-          addAnimationState() {},
-          update() {},
-          baseLayer: { play() {} },
+          addAnimationState: () => {},
+          update: () => {},
+          baseLayer: { play: () => {} },
         };
       };
       models.push({
@@ -100,16 +100,18 @@ it("reveals the already instantiated chest and spawns its stored contents withou
 
       return entity;
     },
-    getAnimationTracks() { return new Map([["Open", { duration: 1 }], ["open", { duration: 1 }]]); },
+    getAnimationTracks: () => new Map([["Open", { duration: 1 }], ["open", { duration: 1 }]]),
   };
   const field = new BuriedTreasureField({
     pc,
     mapData,
     modelLibrary,
     app: {
-      on(event, callback) { update = callback;
+      on: (event, callback) => {
+        update = callback;
 
-        return { off() {} }; },
+        return { off: () => {} };
+      },
     },
   });
   // Mirror the live application root for hierarchy-enabled checks.
@@ -137,11 +139,15 @@ it("reveals the already instantiated chest and spawns its stored contents withou
   assert.ok(Math.abs(hole.getPosition().y - holeY - 0.2) < 1e-6);
   assert.equal(hole.parent, chest.parent);
   field.dig(target);
-  for (let frame = 0; frame < 25; frame += 1) { update(0.1); }
+  for (let frame = 0; frame < 25; frame += 1) {
+    update(0.1);
+  }
   assert.equal(field.canOpen(target.id), true);
   assert.equal(models.filter(({ url }) => url.includes("treasure-chest")).length, 1);
   field.open(target);
-  for (let frame = 0; frame < 20; frame += 1) { update(0.1); }
+  for (let frame = 0; frame < 20; frame += 1) {
+    update(0.1);
+  }
   assert.deepEqual(models.filter(({ url }) => url.includes("/coin.glb")).map(({ entity }) => entity.name),
     ["gold treasure coin", "silver treasure coin", "copper treasure coin"]);
 });

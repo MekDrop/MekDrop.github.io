@@ -22,10 +22,16 @@ const Playback = new Function("LADDER_TOP_ANIMATIONS", `
 it("restarts during an interrupted blend and safely transitions again", () => {
   const evaluator = {
     clips: [],
-    findClip(name) { return this.clips.find((clip) => clip.name === name) ?? null; },
-    addClip(clip) { this.clips.push(clip); },
-    removeClips() { this.clips = []; },
-    updateClipTrack() {},
+    findClip(name) {
+      return this.clips.find((clip) => clip.name === name) ?? null;
+    },
+    addClip(clip) {
+      this.clips.push(clip);
+    },
+    removeClips() {
+      this.clips = [];
+    },
+    updateClipTrack: () => {},
   };
   const names = ["START", "idle", "walk", "jump"];
   const controller = new AnimController(evaluator, names.map((name) => ({

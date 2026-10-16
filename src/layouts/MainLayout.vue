@@ -355,7 +355,7 @@ export default {
     LanguageSwitcher,
     ShaderDropTitle,
   },
-  setup() {
+  setup: () => {
     const otherLinksStore = useOtherLinksStore();
     const { isLoading: isOtherLinksLoading } = storeToRefs(otherLinksStore);
     const i18n = useI18n();

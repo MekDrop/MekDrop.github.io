@@ -86,7 +86,9 @@ export class SignalBellRope {
   /**
    * @param {(()=>import("playcanvas").Vec3|null)|null} hand
    */
-  set hand(hand) { this.#hand = hand; }
+  set hand(hand) {
+    this.#hand = hand;
+  }
 
   #sync() {
     const hand = this.#hand?.() ?? null;
@@ -108,7 +110,9 @@ export class SignalBellRope {
       points.push(end.add(start).mulScalar(0.5));
     }
     points.push(this.#endpoint(transforms.at(-1), -1));
-    if (this.#grasped && hand) { points[8] = hand.clone(); }
+    if (this.#grasped && hand) {
+      points[8] = hand.clone();
+    }
     for (let index = 0; index < transforms.length; index++) {
       const top = points[index];
       const bottom = points[index + 1];

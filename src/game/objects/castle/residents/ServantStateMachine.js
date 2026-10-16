@@ -24,7 +24,9 @@ export class ServantStateMachine extends NpcStateMachine {
   /**
    * @param {(() => boolean)|null} value
    */
-  set canComplete(value) { this.#canComplete = value; }
+  set canComplete(value) {
+    this.#canComplete = value;
+  }
   /**
    *
     * @type {string}

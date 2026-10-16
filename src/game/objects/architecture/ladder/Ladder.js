@@ -32,7 +32,9 @@ export class Ladder extends AbstractCastleProp {
   /**
    * @returns {string[]}
    */
-  static get modelUrls() { return [modelUrl, hatchUrl, handleUrl]; }
+  static get modelUrls() {
+    return [modelUrl, hatchUrl, handleUrl];
+  }
 
   /**
    * Place the rails ahead of the lower landing when only endpoints are authored.
@@ -73,7 +75,9 @@ export class Ladder extends AbstractCastleProp {
       }
     });
     const hatch = definition.hatch;
-    if (!hatch) { return; }
+    if (!hatch) {
+      return;
+    }
     const angle = (definition.rotation ?? 0) * Math.PI / 180;
     const dx = hatch.position.x - definition.position.x;
     const dz = hatch.position.z - definition.position.z;
@@ -187,7 +191,9 @@ export class Ladder extends AbstractCastleProp {
   // The movable lid must retain its own transform rather than enter a static batch.
   onSceneReady() {}
 
-  destroy() { this.#climbUpdate?.off(); this.#releaseClimber?.(); clearTimeout(this.#closeTimer); super.destroy(); }
+  destroy() {
+    this.#climbUpdate?.off(); this.#releaseClimber?.(); clearTimeout(this.#closeTimer); super.destroy();
+  }
 
   /**
    * @returns {{x:number,z:number}}
@@ -209,7 +215,9 @@ export class Ladder extends AbstractCastleProp {
    */
   get topLandings() {
     const top = this.landing("top");
-    if (!this.definition.hatch) return [top];
+    if (!this.definition.hatch) {
+      return [top];
+    }
     const guide = this.climbGuide(top.y);
     const angle = (this.definition.rotation ?? 0) * Math.PI / 180;
     const offset = this.definition.hatch.width / 2 + 0.2;
@@ -249,12 +257,16 @@ export class Ladder extends AbstractCastleProp {
   /**
    * @returns {string}
    */
-  static get modelUrl() { return modelUrl; }
+  static get modelUrl() {
+    return modelUrl;
+  }
   /**
    * Collide with the authored rails and rungs while retaining the open spaces.
    * @returns {boolean}
    */
-  static get hasAuthoredCollision() { return true; }
+  static get hasAuthoredCollision() {
+    return true;
+  }
 
   /**
    * @param {"bottom"|"top"} end

@@ -5,7 +5,7 @@ import * as pc from "playcanvas";
 import { Door } from "../../../../../../src/game/objects/architecture/door/Door.js";
 
 const hooks = registerHooks({
-  resolve(specifier, context, nextResolve) {
+  resolve: (specifier, context, nextResolve) => {
     if (/terrace-(door|stairhead)\.glb\?url$/.test(specifier)) {
       return {
         url: `data:text/javascript,export default ${JSON.stringify(specifier)}`,
@@ -22,25 +22,27 @@ function fixture() {
   const hinge = new pc.Entity("Terrace door hinge");
   hinge.setLocalPosition(-0.5, 0, 0.31);
   const layer = {
-    play() {},
+    play: () => {},
     activeStateCurrentTime: 0,
   };
   let clicks = 0;
   const door = new Door({
     ...terraceDoorModel,
     pc,
-    onOpen: () => { clicks += 1;
+    onOpen: () => {
+      clicks += 1;
 
-      return true; },
+      return true;
+    },
     modelLibrary: {
-      instantiate(url) {
+      instantiate: (url) => {
         const root = new pc.Entity("Imported model");
         if (url.includes("terrace-door")) {
           root.addChild(hinge);
           root.addComponent = () => {
             root.anim = {
-              addAnimationState() {},
-              update() {},
+              addAnimationState: () => {},
+              update: () => {},
               baseLayer: layer,
             };
           };

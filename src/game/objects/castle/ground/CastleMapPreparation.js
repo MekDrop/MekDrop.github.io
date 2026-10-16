@@ -97,7 +97,9 @@ export class CastleMapPreparation {
           }
           return false;
         }
-        if (definition.object !== "Earth" || definition.tile) return true;
+        if (definition.object !== "Earth" || definition.tile) {
+          return true;
+        }
         return !layouts.some(
           /**
            * @param {CastleResidentialLayout} layout
@@ -124,7 +126,9 @@ export class CastleMapPreparation {
         for (let col = Math.max(0, Math.floor(cut.minX + (mapData.cols - 1) / 2 - 1)); col <= Math.min(mapData.cols - 1, Math.ceil(cut.maxX + (mapData.cols - 1) / 2 + 1)); col += 1) {
           const x = col - (mapData.cols - 1) / 2;
           const z = row - (mapData.rows - 1) / 2;
-          if (x + 1 <= cut.minX || x - 1 >= cut.maxX || z + 1 <= cut.minZ || z - 1 >= cut.maxZ) continue;
+          if (x + 1 <= cut.minX || x - 1 >= cut.maxX || z + 1 <= cut.minZ || z - 1 >= cut.maxZ) {
+            continue;
+          }
           const key = `${col},${row}`;
           const list = cutsByTile.get(key) ?? [];
           list.push(cut);
@@ -151,7 +155,9 @@ export class CastleMapPreparation {
     for (const key of new Set([...cutsByTile.keys(), ...turfTiles])) {
       const terrainCutouts = cutsByTile.get(key) ?? [];
       const [col, row] = key.split(",").map(Number);
-      if (!mapData.tileMeta?.[row]) continue;
+      if (!mapData.tileMeta?.[row]) {
+        continue;
+      }
       const metadata = mapData.tileMeta[row][col] ?? {};
       const turf = turfTiles.has(key);
       const x = col - (mapData.cols - 1) / 2, z = row - (mapData.rows - 1) / 2;
@@ -219,7 +225,9 @@ export class CastleMapPreparation {
   static #buryBasements(mapData, castles, flights) {
     const terrain = new Map();
     for (const record of mapData.objects ?? []) {
-      if (!record.generated || !record.tile || !["Earth", "Grass"].includes(record.object)) continue;
+      if (!record.generated || !record.tile || !["Earth", "Grass"].includes(record.object)) {
+        continue;
+      }
       const key = `${record.tile.col},${record.tile.row}`;
       const records = terrain.get(key) ?? [];
       records.push(record);
@@ -232,8 +240,12 @@ export class CastleMapPreparation {
       const foundationHeight = Math.ceil(Math.max(basement?.ceilingY ?? 0, position.elevation ?? 0) - 0.000001);
       for (let row = 0; row < mapData.rows; row += 1) {
         for (let col = 0; col < mapData.cols; col += 1) {
-          if (![0, 1, 3, 4].includes(mapData.grid?.[row]?.[col])) continue;
-          if (mapData.tileMeta?.[row]?.[col]?.castleWeathered) continue;
+          if (![0, 1, 3, 4].includes(mapData.grid?.[row]?.[col])) {
+            continue;
+          }
+          if (mapData.tileMeta?.[row]?.[col]?.castleWeathered) {
+            continue;
+          }
           const x = col - (mapData.cols - 1) / 2;
           const z = row - (mapData.rows - 1) / 2;
           const inReservation = x + 0.5 > position.x - 1 && x - 0.5 < position.x + position.width + 1 &&
@@ -245,7 +257,9 @@ export class CastleMapPreparation {
            */
           const overlapsSupportApron = (cut) => x + 0.5 > cut.minX - apronWidth && x - 0.5 < cut.maxX + apronWidth &&
             z + 0.5 > cut.minZ - apronWidth && z - 0.5 < cut.maxZ + apronWidth;
-          if (!inReservation && !supportCuts.some(overlapsSupportApron)) continue;
+          if (!inReservation && !supportCuts.some(overlapsSupportApron)) {
+            continue;
+          }
           /**
            * @param {{cells:Array<{col:number,row:number}>}} river
            */
@@ -253,28 +267,36 @@ export class CastleMapPreparation {
            * @param {{col:number,row:number}} cell
            */
             (cell) => cell.col === col && cell.row === row);
-          if (mapData.riverData?.some(containsRiverCell)) continue;
+          if (mapData.riverData?.some(containsRiverCell)) {
+            continue;
+          }
           /**
            *
            * @param {{minX:number,maxX:number,minZ:number,maxZ:number}} flight
            */
           const overlapsStairFlight = (flight) => x + 0.5 > flight.minX && x - 0.5 < flight.maxX &&
             z + 0.5 > flight.minZ && z - 0.5 < flight.maxZ;
-          if (flights.some(overlapsStairFlight)) continue;
+          if (flights.some(overlapsStairFlight)) {
+            continue;
+          }
           const nearWall = supportCuts.some(/**
            * @param {import("./CastleGroundCuts.js").GroundCut} cut
            */
             (cut) => x + 0.5 > cut.minX - 0.4 && x - 0.5 < cut.maxX + 0.4 &&
             z + 0.5 > cut.minZ - 0.4 && z - 0.5 < cut.maxZ + 0.4);
           const target = Math.max(1, foundationHeight - (nearWall || inReservation || edgeWave > 0.7 ? 0 : 1));
-          if (!(mapData.heightmap?.[row]?.[col] < target)) continue;
+          if (!(mapData.heightmap?.[row]?.[col] < target)) {
+            continue;
+          }
           const records = terrain.get(`${col},${row}`) ?? [];
           const previous = records.reduce(
             CastleMapPreparation.#reduceHeight,
             0,
           );
           for (const record of records) {
-            if (record.object !== "Grass") continue;
+            if (record.object !== "Grass") {
+              continue;
+            }
             record.object = "Earth";
             record.geometry.args[0] = "earth";
             record.geometry.args[1] = `earthSide:${col}:${row}:${Math.floor(record.position.y)}`;
@@ -303,13 +325,15 @@ export class CastleMapPreparation {
           }
           mapData.grid[row][col] = mapData.grid[row][col] === 0 ? 1 : mapData.grid[row][col];
           mapData.heightmap[row][col] = target;
-          if (mapData.tileMeta?.[row]) mapData.tileMeta[row][col] = {
-            ...mapData.tileMeta[row][col],
-            baseHeight: target,
-            surfaceType: "GRASS",
-            shape: "FLAT",
-            slope: undefined,
-          };
+          if (mapData.tileMeta?.[row]) {
+            mapData.tileMeta[row][col] = {
+              ...mapData.tileMeta[row][col],
+              baseHeight: target,
+              surfaceType: "GRASS",
+              shape: "FLAT",
+              slope: undefined,
+            };
+          }
         }
       }
     }
@@ -323,7 +347,9 @@ export class CastleMapPreparation {
     const position = plan.input.position;
     const entries = [...(plan.input.doors ?? [])];
     const serviceEntry = plan.metadata.runtime.residential?.serviceEntry;
-    if (serviceEntry) entries.push(serviceEntry);
+    if (serviceEntry) {
+      entries.push(serviceEntry);
+    }
     return entries.map(/**
      * @param {import("../../ObjectTypes.js").CastleDoorDefinition} door
      */ (door) => {

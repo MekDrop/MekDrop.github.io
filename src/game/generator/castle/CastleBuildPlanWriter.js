@@ -326,7 +326,9 @@ export class CastleBuildPlanWriter {
    */
   #isRoomDoorway(u, y, v) {
     const plan = this.#layout.roomPlan;
-    if (plan?.version !== 2) return false;
+    if (plan?.version !== 2) {
+      return false;
+    }
     const opening = this.#layout.openings.find(
       CastleBuildPlanWriter.#findEntry,
     );
@@ -361,7 +363,9 @@ export class CastleBuildPlanWriter {
       const y = this.#layout.baseY + (blockY + 0.5) * CASTLE_BLOCK_SIZE;
       const shaft = plan.shaft;
       if ((plan.stair || plan.serviceStair) && x > shaft.minX && x < shaft.maxX &&
-        z > shaft.minZ && z < shaft.maxZ && y < this.#layout.baseY + plan.rise + 2.25) { return true; }
+        z > shaft.minZ && z < shaft.maxZ && y < this.#layout.baseY + plan.rise + 2.25) {
+        return true;
+      }
       return plan.placedRooms.some(/**
        *
        * @param {import("./rooms/AbstractCastleRoomGenerator.js").PlannedCastleRoom} room

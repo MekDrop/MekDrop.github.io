@@ -25,7 +25,9 @@ export class IslandObjectRoots {
   constructor(pc, parent, mapData) {
     this.#parent = parent;
     const connector = mapData?.islandConnectorData;
-    if (!connector) return;
+    if (!connector) {
+      return;
+    }
     this.#cells = new IslandCellOwnership(mapData).groups;
     this.#roots = this.#cells.map(/**
      *
@@ -33,7 +35,9 @@ export class IslandObjectRoots {
      * @param {number} index
      */
       (cells, index) => new pc.Entity(`Island ${index} props`));
-    for (const root of this.#roots) parent.addChild(root);
+    for (const root of this.#roots) {
+      parent.addChild(root);
+    }
   }
 
   /**

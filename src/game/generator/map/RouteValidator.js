@@ -143,10 +143,16 @@ export class RouteValidator {
       while (queue.length) {
         const current = queue.shift();
         const key = MapGrid.tileKey(current.col, current.row);
-        if (seen.has(key)) { continue; }
-        if (!MapGrid.inBounds(current.col, current.row)) { continue; }
+        if (seen.has(key)) {
+          continue;
+        }
+        if (!MapGrid.inBounds(current.col, current.row)) {
+          continue;
+        }
         const tile = grid[current.row][current.col];
-        if (tile !== TileType.PATH && tile !== TileType.ENTRY) { continue; }
+        if (tile !== TileType.PATH && tile !== TileType.ENTRY) {
+          continue;
+        }
         seen.add(key);
         for (const [dc, dr] of [
           [1, 0],

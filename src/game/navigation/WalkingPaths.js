@@ -78,7 +78,9 @@ export class WalkingPaths {
           for (const upper of [false, true]) {
             const tiles = [surface(col, row, upper), surface(col + 1, row, upper),
               surface(col, row + 1, upper), surface(col + 1, row + 1, upper)];
-            if (!everyTruthy(tiles)) { continue; }
+            if (!everyTruthy(tiles)) {
+              continue;
+            }
             // Surfaces must agree at the center and across both lanes.
             const heights = tiles.map(/**
              *
@@ -87,7 +89,9 @@ export class WalkingPaths {
              */
               (tile, i) => heightAt(tile,
                 i % 2 === 0 ? 0.5 : -0.5, i < 2 ? 0.5 : -0.5));
-            if (Math.max(...heights) - Math.min(...heights) > 0.001) { continue; }
+            if (Math.max(...heights) - Math.min(...heights) > 0.001) {
+              continue;
+            }
             const firstTiles = vertical ? [0, 1] : [0, 2];
             const secondTiles = vertical ? [2, 3] : [1, 3];
             const firstHeights = firstTiles.map(/**
@@ -105,7 +109,9 @@ export class WalkingPaths {
                 vertical ? (i % 2 === 0 ? 0.5 : -0.5) : 0,
                 vertical ? 0 : (i < 2 ? 0.5 : -0.5)));
             if (Math.abs(firstHeights[0] - firstHeights[1]) > 0.001 ||
-              Math.abs(secondHeights[0] - secondHeights[1]) > 0.001) { continue; }
+              Math.abs(secondHeights[0] - secondHeights[1]) > 0.001) {
+              continue;
+            }
             const center = node(col + 0.5, row + 0.5, heights[0]);
             connect(node(col + (vertical ? 0.5 : 0), row + (vertical ? 0 : 0.5), firstHeights[0]), center);
             connect(center, node(col + (vertical ? 0.5 : 1), row + (vertical ? 1 : 0.5), secondHeights[0]));
@@ -192,7 +198,9 @@ export class WalkingPaths {
    * @param {number} dr
    */
   static #heightAt(tile, dc, dr) {
-    if (!tile.slope) { return tile.height; }
+    if (!tile.slope) {
+      return tile.height;
+    }
     const { lowHeight, highHeight, riseDirection } = tile.slope;
     const offset = {
       EAST: dc,

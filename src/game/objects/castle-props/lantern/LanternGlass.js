@@ -10,7 +10,9 @@ export class LanternGlass {
     const materials = [];
     for (const render of lantern.findComponents("render")) {
       for (const instance of render.meshInstances) {
-        if (instance.material.name !== "Warm luminous amber glass") { continue; }
+        if (instance.material.name !== "Warm luminous amber glass") {
+          continue;
+        }
         const material = instance.material.clone();
         material.normalMap = null;
         material.diffuse.set(0.95, 0.72, 0.24);
@@ -27,7 +29,9 @@ export class LanternGlass {
       }
     }
     lantern.once("destroy", () => {
-      for (const material of materials) { material.destroy(); }
+      for (const material of materials) {
+        material.destroy();
+      }
     });
   }
 }

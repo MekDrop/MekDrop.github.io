@@ -128,7 +128,9 @@ export class VoxelVegetation {
 
     for (const vegetation of definitions) {
       const VegetationType = VEGETATION_TYPES[vegetation.variant];
-      if (!VegetationType) continue;
+      if (!VegetationType) {
+        continue;
+      }
 
       const { x, y, z } = vegetation.position;
       const item = new VegetationType({
@@ -244,7 +246,9 @@ export class VoxelVegetation {
           ? (offsetX * facingDirection.x + offsetZ * facingDirection.z) /
             offsetLength
           : 1;
-      if (facingDot < MINIMUM_FACING_DOT) continue;
+      if (facingDot < MINIMUM_FACING_DOT) {
+        continue;
+      }
 
       const distance = item.interactionDistanceFrom(
         position,
@@ -439,7 +443,9 @@ export class VoxelVegetation {
     let highestSurface = null;
     for (const item of this.#surfaceIndex.query(x, z, radius)) {
       const surfaceHeight = item.surfaceHeightAt(x, z, radius);
-      if (!Number.isFinite(surfaceHeight)) continue;
+      if (!Number.isFinite(surfaceHeight)) {
+        continue;
+      }
       highestSurface =
         highestSurface === null
           ? surfaceHeight

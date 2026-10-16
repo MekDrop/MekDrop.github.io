@@ -167,7 +167,9 @@ export class IslandBuilder {
         col < MAP_COLS;
         col++
       ) {
-        if (MapGrid.inBounds(col, row)) { mask[row][col] = false; }
+        if (MapGrid.inBounds(col, row)) {
+          mask[row][col] = false;
+        }
       }
     }
 
@@ -257,7 +259,9 @@ export class IslandBuilder {
   materializeIsland(grid, tileMeta, islandMask) {
     for (let row = 0; row < MAP_ROWS; row++) {
       for (let col = 0; col < MAP_COLS; col++) {
-        if (!islandMask[row][col]) { continue; }
+        if (!islandMask[row][col]) {
+          continue;
+        }
         MapGrid.setTile(grid, tileMeta, col, row, TileType.GRASS, {
           surfaceType: "GRASS",
           baseHeight: 1,

@@ -9,7 +9,9 @@ export class KitchenRoomGenerator extends AbstractCastleRoomGenerator {
   /**
    * @returns {number[]}
    */
-  get levels() { return [-1, 0]; }
+  get levels() {
+    return [-1, 0];
+  }
   /**
    * Keep the service-door aisle clear in the compact kitchen.
    * @param {import("../AbstractCastleRoomGenerator.js").PlannedCastleRoom} room
@@ -44,16 +46,24 @@ export class KitchenRoomGenerator extends AbstractCastleRoomGenerator {
      */
     const available = (x, z, w, d, margin = inset, bounds = room) => {
       if (x - w / 2 < bounds.minX + margin - 0.000001 || x + w / 2 > bounds.maxX - margin + 0.000001 ||
-        z - d / 2 < bounds.minZ + margin - 0.000001 || z + d / 2 > bounds.maxZ - margin + 0.000001) { return false; }
+        z - d / 2 < bounds.minZ + margin - 0.000001 || z + d / 2 > bounds.maxZ - margin + 0.000001) {
+        return false;
+      }
       for (const opening of context.openings ?? []) {
-        if (opening.floorY !== room.floorY) { continue; }
+        if (opening.floorY !== room.floorY) {
+          continue;
+        }
         const normal = opening.axis === "x" ? Math.abs(x - opening.coordinate) - w / 2 : Math.abs(z - opening.coordinate) - d / 2;
         const along = opening.axis === "x" ? Math.abs(z - opening.center) - d / 2 : Math.abs(x - opening.center) - w / 2;
-        if (normal < (opening.kind === "door" ? 0.75 : inset + 0.05) && along < opening.width / 2 + 0.25) { return false; }
+        if (normal < (opening.kind === "door" ? 0.75 : inset + 0.05) && along < opening.width / 2 + 0.25) {
+          return false;
+        }
       }
       for (const stair of context.stairs ?? []) {
         if (room.level >= stair.from && room.level <= stair.to && x + w / 2 > stair.minX && x - w / 2 < stair.maxX &&
-          z + d / 2 > stair.minZ && z - d / 2 < stair.maxZ) { return false; }
+          z + d / 2 > stair.minZ && z - d / 2 < stair.maxZ) {
+          return false;
+        }
       }
 
       return true;
@@ -85,16 +95,22 @@ export class KitchenRoomGenerator extends AbstractCastleRoomGenerator {
         scale: 1,
         y,
       },
-      room, context.openings ?? [])) { return false; }
+      room, context.openings ?? [])) {
+        return false;
+      }
       if (!available(x, z, w, d, wallMounted ? 0 : ["FirewoodStack", "Table"].includes(object) ? 0.015 : inset,
-        wallMounted ? room.wallBounds ?? room : room)) { return false; }
+        wallMounted ? room.wallBounds ?? room : room)) {
+        return false;
+      }
       /**
        * @param {import("../AbstractCastleRoomGenerator.js").RoomItem} item
        */
       const overlapsFloorPlacement = item => (item.y ?? 0) === 0 &&
         Math.abs(item.x - x) < (item.width + w) / 2 + 0.04 &&
         Math.abs(item.z - z) < (item.depth + d) / 2 + 0.04;
-      if (y === 0 && !wallMounted && items.some(overlapsFloorPlacement)) { return false; }
+      if (y === 0 && !wallMounted && items.some(overlapsFloorPlacement)) {
+        return false;
+      }
       items.push({
         role: "kitchenProp",
         object,
@@ -119,7 +135,9 @@ export class KitchenRoomGenerator extends AbstractCastleRoomGenerator {
     };
     // Side entrances face the opposite hearth wall. The preparation bank
     // occupies the end away from the entry, leaving the firebox accessible.
-    if (width < 2 || depth < 2.5) { return items; }
+    if (width < 2 || depth < 2.5) {
+      return items;
+    }
     const sideEntry = (context.openings ?? []).find(/**
      * @param {import("../../CastleBasePlanGenerator.js").CompiledCastleOpening} opening
      * @returns {boolean}
@@ -138,16 +156,22 @@ export class KitchenRoomGenerator extends AbstractCastleRoomGenerator {
     const hearthWidth = 1.47, hearthDepth = 0.88;
     let fireplacePlaced = prop("Fireplace", hearthX, hearthZ, hearthWidth, hearthDepth, 0, hearthRotation);
     for (const fraction of [0, 1, 0.5, 0.25, 0.75]) {
-      if (fireplacePlaced) { break; }
+      if (fireplacePlaced) {
+        break;
+      }
       const walls = room.wallBounds ?? room;
       hearthX = walls.minX + inset + hearthWidth / 2 + fraction * (walls.maxX - walls.minX - 2 * inset - hearthWidth);
       fireplacePlaced = prop("Fireplace", hearthX, hearthZ, hearthWidth, hearthDepth, 0, hearthRotation);
     }
     if (fireplacePlaced) {
-      if (westEntry) { prop("FirewoodStack", hearthX + hearthWidth / 2 + 0.2, hearthZ, 0.269, 0.38); }
+      if (westEntry) {
+        prop("FirewoodStack", hearthX + hearthWidth / 2 + 0.2, hearthZ, 0.269, 0.38);
+      }
       prop("FireplaceCauldron", hearthX, hearthZ + (westEntry ? -0.7 : 0.7), 0.352, 0.33, 0, hearthRotation);
     }
-    if (width < 2.8 || depth < 3) { return items; }
+    if (width < 2.8 || depth < 3) {
+      return items;
+    }
     let tableX = sideEntry ? room.minX + (eastEntry ? 2.3 : 2.2) + random() * (eastEntry ? 0.05 : 0.18) : room.maxX - inset - 0.314;
     let tableZ = sideEntry ? eastEntry ? walls.maxZ - (context.wallThickness ?? 0.25) / 2 - 0.314 - 0.015 : walls.minZ + (context.wallThickness ?? 0.25) / 2 + 0.314 + 0.015 : room.minZ + 1.5 + random() * 0.18;
     let tablePlaced = prop("Table", tableX, tableZ, sideEntry ? 1.25 : 0.628, sideEntry ? 0.628 : 1.25, 0, sideEntry ? 90 : 0, undefined, undefined, {
@@ -157,12 +181,17 @@ export class KitchenRoomGenerator extends AbstractCastleRoomGenerator {
     });
     for (const bank of sideEntry ? [0, 1] : [0]) {
       for (const fraction of [0.2, 0.5, 0.8]) {
-        if (tablePlaced) { break; }
+        if (tablePlaced) {
+          break;
+        }
         if (sideEntry) {
           tableX = room.minX + inset + 0.625 + fraction * (width - 2 * inset - 1.25);
-          if (bank === 1) { tableZ = eastEntry ? walls.minZ + (context.wallThickness ?? 0.25) / 2 + 0.314 + 0.015 : walls.maxZ - (context.wallThickness ?? 0.25) / 2 - 0.314 - 0.015; }
+          if (bank === 1) {
+            tableZ = eastEntry ? walls.minZ + (context.wallThickness ?? 0.25) / 2 + 0.314 + 0.015 : walls.maxZ - (context.wallThickness ?? 0.25) / 2 - 0.314 - 0.015;
+          }
+        } else {
+          tableZ = room.minZ + inset + 0.625 + fraction * (depth - 2 * inset - 1.25);
         }
-        else { tableZ = room.minZ + inset + 0.625 + fraction * (depth - 2 * inset - 1.25); }
         tablePlaced = prop("Table", tableX, tableZ, sideEntry ? 1.25 : 0.628, sideEntry ? 0.628 : 1.25, 0, sideEntry ? 90 : 0, undefined, undefined, {
           width: 0.6271365,
           height: 0.56465894,
@@ -232,7 +261,9 @@ export class KitchenRoomGenerator extends AbstractCastleRoomGenerator {
          */
         const overlapsShelfPlacement = item => (item.y ?? 0) === 0 && Math.abs(item.x - shelf.x) < (item.width + shelfWidth) / 2 + 0.04 &&
           Math.abs(item.z - shelf.z) < (item.depth + shelfDepth) / 2 + 0.04;
-        if (!available(shelf.x, shelf.z, shelfWidth, shelfDepth) || items.some(overlapsShelfPlacement)) { continue; }
+        if (!available(shelf.x, shelf.z, shelfWidth, shelfDepth) || items.some(overlapsShelfPlacement)) {
+          continue;
+        }
         const support = {
           id: room.id + "-kitchen-pantry-shelf",
           role: "storageShelf",

@@ -20,9 +20,15 @@ return class {
   ${source.slice(start, end).replace("#buildPlannedFloors", "build")}
 };`)("wood", "stone", {}, CastleFloorFinish);
 class Entity {
-  constructor(name) { this.name = name; }
-  setLocalPosition(...position) { this.position = position; }
-  setLocalScale(...scale) { this.scale = scale; }
+  constructor(name) {
+    this.name = name;
+  }
+  setLocalPosition(...position) {
+    this.position = position;
+  }
+  setLocalScale(...scale) {
+    this.scale = scale;
+  }
   addComponent() {}
 }
 
@@ -82,11 +88,19 @@ it("keeps authored floor finishes inside room wall reveals and supports all occu
   const library = timber.filter(panel => panel.name === "Castle upper-stair-room wood floor");
   assert.ok(library.some(panel => Math.abs(panel.position[0] - panel.scale[0] / 2 + 1.5) < 1e-6), "Upper hall timber reaches the exterior wall beyond the room reveal");
   assert.ok(library.some(panel => Math.abs(panel.position[2] + panel.scale[2] / 2 - 7.5) < 1e-6), "Upper hall timber covers the rear perimeter strip");
-  for(const floorY of [0,3,6]) assert.ok(layout.walkableAreas.some(area=>area.floorY===floorY));
-  for(const area of layout.walkableAreas) assert.ok(area.maxX>area.minX&&area.maxZ>area.minZ);
-  for(let i=0;i<layout.walkableAreas.length;i++)for(const other of layout.walkableAreas.slice(i+1)){
-    const area=layout.walkableAreas[i];if(area.floorY!==other.floorY)continue;
-    assert.ok(Math.min(area.maxX,other.maxX)-Math.max(area.minX,other.minX)<=1e-6||Math.min(area.maxZ,other.maxZ)-Math.max(area.minZ,other.minZ)<=1e-6,"floor panels have one surface owner");
+  for(const floorY of [0,3,6]) {
+    assert.ok(layout.walkableAreas.some(area=>area.floorY===floorY));
+  }
+  for(const area of layout.walkableAreas) {
+    assert.ok(area.maxX>area.minX&&area.maxZ>area.minZ);
+  }
+  for(let i=0;i<layout.walkableAreas.length;i++){
+    for(const other of layout.walkableAreas.slice(i+1)){
+      const area=layout.walkableAreas[i];if(area.floorY!==other.floorY){
+        continue;
+      }
+      assert.ok(Math.min(area.maxX,other.maxX)-Math.max(area.minX,other.minX)<=1e-6||Math.min(area.maxZ,other.maxZ)-Math.max(area.minZ,other.minZ)<=1e-6,"floor panels have one surface owner");
+    }
   }
 });
 
@@ -120,7 +134,9 @@ it("gives the complete authored throne floor to the audience object at its actua
   });
   for (const panel of builder.children.filter(child => child.url === "wood")) {
     const [x, y, z] = panel.position;
-    if (Math.abs(y - (bounds.floorY - layout.origin.y + 0.001)) > 1e-6) { continue; }
+    if (Math.abs(y - (bounds.floorY - layout.origin.y + 0.001)) > 1e-6) {
+      continue;
+    }
     const [width, , depth] = panel.scale;
     const overlapX = Math.min(x + width / 2, bounds.maxX) - Math.max(x - width / 2, bounds.minX);
     const overlapZ = Math.min(z + depth / 2, bounds.maxZ) - Math.max(z - depth / 2, bounds.minZ);

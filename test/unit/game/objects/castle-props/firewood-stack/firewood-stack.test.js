@@ -4,7 +4,7 @@ import { test } from "node:test";
 import * as pc from "playcanvas";
 
 const hooks = registerHooks({
-  resolve(specifier, context, nextResolve) {
+  resolve: (specifier, context, nextResolve) => {
     if (specifier.endsWith(".glb?url")) {
       return {
         url: `data:text/javascript,export default ${JSON.stringify(specifier)}`,
@@ -33,7 +33,7 @@ function build(overrides = {}) {
   const stack = new FirewoodStack({
     pc,
     modelLibrary: {
-      instantiate() {
+      instantiate: () => {
         const model = new pc.Entity("model", app);
         const log = new pc.Entity("Cut firewood log 1-1", app);
         model.addChild(log);
@@ -73,7 +73,9 @@ test("seed reproduces placement for rendering, collision and reload", () => {
   assert.deepEqual(snapshot(first.models[0]), snapshot(first.models[1]));
   assert.deepEqual(snapshot(first.models[0]), snapshot(second.models[0]));
   assert.notDeepEqual(snapshot(first.models[0]), snapshot(other.models[0]));
-  for (const result of [first, second, other]) { result.stack.destroy(); }
+  for (const result of [first, second, other]) {
+    result.stack.destroy();
+  }
 });
 
 test("all authored log corners stay inside the supplied area", () => {

@@ -139,7 +139,7 @@ describe("grass obstacle field", () => {
     const obstacleMap = createSubject();
     const parameters = new Map();
     obstacleMap.apply({
-      setParameter(name, value) {
+      setParameter: (name, value) => {
         parameters.set(name, value);
       },
     });

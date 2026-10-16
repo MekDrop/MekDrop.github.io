@@ -5,9 +5,15 @@ import { GrassEdgeMesh } from "../../../../../src/game/objects/ground-cover/Gras
 
 it("builds a closed turf volume with finite outward normals", () => {
   class Mesh {
-    setPositions(values) { this.positions = values; }
-    setNormals(values) { this.normals = values; }
-    setIndices(values) { this.indices = values; }
+    setPositions(values) {
+      this.positions = values;
+    }
+    setNormals(values) {
+      this.normals = values;
+    }
+    setIndices(values) {
+      this.indices = values;
+    }
     update() {}
   }
   const mesh = GrassEdgeMesh.create({

@@ -95,7 +95,9 @@ export class Servant {
   }
 
   onSceneReady() {
-    if (!this.#app) return;
+    if (!this.#app) {
+      return;
+    }
     this.#renderBatch ??= new DynamicRenderBatch(this.#app, this.#entity,
       this.#pc.BUFFER_STATIC, true, "characters");
   }
@@ -142,7 +144,9 @@ export class Servant {
          * @param {{role:string,position:{x:number,z:number},scale:{x:number,z:number}}} item
          */
         const leavesStandingClearance = (item) => {
-          if (Math.abs(item.position.y - room.floorY) > 0.1) { return true; }
+          if (Math.abs(item.position.y - room.floorY) > 0.1) {
+            return true;
+          }
           const local = layout.toLocal(item.position.x, item.position.z);
           const [width, depth] = {
             kitchenTable: [0.9, 0.55],
@@ -164,7 +168,9 @@ export class Servant {
         }
       }
     }
-    if (!standing) { return false; }
+    if (!standing) {
+      return false;
+    }
     const point = standing;
     this.#entity.setLocalPosition(point.x, point.y, point.z);
     this.#entity.setLocalEulerAngles(0, layout.yaw, 0);

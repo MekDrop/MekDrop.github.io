@@ -15,7 +15,9 @@ import { SURFACE_ELEVATION_BIAS } from "../../../rendering/terrain/TerrainMateri
  */
 export function createCastleGroundCuts(plan, layout = null) {
   const residential = plan.metadata.runtime.residential;
-  if (!residential) return [];
+  if (!residential) {
+    return [];
+  }
   const { origin } = residential;
   const angle = origin.yaw * Math.PI / 180;
   const c = Math.cos(angle);
@@ -100,7 +102,9 @@ export function createCastleGroundCuts(plan, layout = null) {
     });
   }
   for (const block of plan.metadata.collision?.cameraBlocks ?? []) {
-    if (block.y - block.halfY > origin.y + 1) continue;
+    if (block.y - block.halfY > origin.y + 1) {
+      continue;
+    }
     cuts.push({
       minX: block.x - block.halfX,
       maxX: block.x + block.halfX,
@@ -139,7 +143,9 @@ export function createCastleGroundCuts(plan, layout = null) {
  * @param {Array<GroundCut>} cuts
  */
 export function clipCastleTerrainRecord(definition, cuts) {
-  if (!["Grass", "Earth"].includes(definition.object) || !definition.position) return [definition];
+  if (!["Grass", "Earth"].includes(definition.object) || !definition.position) {
+    return [definition];
+  }
   const args = definition.geometry?.args;
   const box = definition.geometry?.method === "addBoxMatrix";
   const sx = box ? args[6] : 1;
@@ -162,46 +168,62 @@ export function clipCastleTerrainRecord(definition, cuts) {
       const ix = Math.max(piece.minX, cut.minX), ax = Math.min(piece.maxX, cut.maxX);
       const iy = Math.max(piece.minY, cut.minY), ay = Math.min(piece.maxY, cut.maxY);
       const iz = Math.max(piece.minZ, cut.minZ), az = Math.min(piece.maxZ, cut.maxZ);
-      if (ax - ix < 0.000001 || ay - iy < 0.000001 || az - iz < 0.000001) { next.push(piece); continue; }
+      if (ax - ix < 0.000001 || ay - iy < 0.000001 || az - iz < 0.000001) {
+        next.push(piece); continue;
+      }
       changed = true;
-      if (piece.minX < ix) next.push({
-        ...piece,
-        maxX: ix,
-      });
-      if (ax < piece.maxX) next.push({
-        ...piece,
-        minX: ax,
-      });
+      if (piece.minX < ix) {
+        next.push({
+          ...piece,
+          maxX: ix,
+        });
+      }
+      if (ax < piece.maxX) {
+        next.push({
+          ...piece,
+          minX: ax,
+        });
+      }
       const middle = {
         ...piece,
         minX: ix,
         maxX: ax,
       };
-      if (piece.minZ < iz) next.push({
-        ...middle,
-        maxZ: iz,
-      });
-      if (az < piece.maxZ) next.push({
-        ...middle,
-        minZ: az,
-      });
+      if (piece.minZ < iz) {
+        next.push({
+          ...middle,
+          maxZ: iz,
+        });
+      }
+      if (az < piece.maxZ) {
+        next.push({
+          ...middle,
+          minZ: az,
+        });
+      }
       const center = {
         ...middle,
         minZ: iz,
         maxZ: az,
       };
-      if (piece.minY < iy) next.push({
-        ...center,
-        maxY: iy,
-      });
-      if (ay < piece.maxY) next.push({
-        ...center,
-        minY: ay,
-      });
+      if (piece.minY < iy) {
+        next.push({
+          ...center,
+          maxY: iy,
+        });
+      }
+      if (ay < piece.maxY) {
+        next.push({
+          ...center,
+          minY: ay,
+        });
+      }
     }
     pieces = next;
   }
-  if (!changed) return [definition];
+  if (!changed) {
+    return [definition];
+  }
   return pieces.filter(/**
    *
    * @param {GroundCut} piece

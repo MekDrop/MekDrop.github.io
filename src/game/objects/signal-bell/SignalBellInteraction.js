@@ -53,7 +53,9 @@ export class SignalBellInteraction {
    * @returns {boolean}
    */
   interact() {
-    if (!this.canInteract) { return false; }
+    if (!this.canInteract) {
+      return false;
+    }
     const accepted = this.#hero.ringBell({
       ...this.#bell.ringingPose,
       onStart: this.#onStart.bind(this),
@@ -64,7 +66,9 @@ export class SignalBellInteraction {
       onStrike: this.#onStrike.bind(this),
       onEnd: this.#onEnd.bind(this),
     });
-    if (!accepted) { return false; }
+    if (!accepted) {
+      return false;
+    }
     this.#bell.beginRinging();
     this.#onComplete?.();
 

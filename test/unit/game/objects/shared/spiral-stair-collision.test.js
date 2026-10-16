@@ -4,12 +4,18 @@ import { createSpiralStairCollision } from "../../../../../src/game/objects/shar
 
 it("keeps the spiral walking lane gently sloped and its final tread level", () => {
   class Mesh {
-    setPositions(values) { this.positions = values; }
-    setIndices(values) { this.indices = values; }
+    setPositions(values) {
+      this.positions = values;
+    }
+    setIndices(values) {
+      this.indices = values;
+    }
     update() {}
   }
   class MeshInstance {
-    constructor(mesh) { this.mesh = mesh; }
+    constructor(mesh) {
+      this.mesh = mesh;
+    }
   }
   const pc = {
     Mesh,
@@ -32,9 +38,13 @@ it("keeps the spiral walking lane gently sloped and its final tread level", () =
     const ab = b.map((value, axis) => value - a[axis]);
     const ac = c.map((value, axis) => value - a[axis]);
     const normal = [ab[1] * ac[2] - ab[2] * ac[1], ab[2] * ac[0] - ab[0] * ac[2], ab[0] * ac[1] - ab[1] * ac[0]];
-    if (normal[1] <= 0) continue;
+    if (normal[1] <= 0) {
+      continue;
+    }
     const radius = Math.hypot((a[0] + b[0] + c[0]) / 3, (a[2] + b[2] + c[2]) / 3);
-    if (radius < 0.55 || radius > 1) continue;
+    if (radius < 0.55 || radius > 1) {
+      continue;
+    }
     assert.ok(normal[1] / Math.hypot(...normal) > 0.8, "triangulation introduces no steep diagonal ridge in the walking lane");
     laneTriangles++;
   }

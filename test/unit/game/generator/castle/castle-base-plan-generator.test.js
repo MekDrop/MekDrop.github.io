@@ -26,7 +26,9 @@ it("compiles all authored plans with fixed rooms, stairs, roofs, doors and windo
         assert.equal(room.maxZ, (slot.bounds[1] + slot.bounds[3]) * 0.5);
         assert.equal(room.floorY, floor.elevation + 3);
         for (const other of floor.spaces) {
-          if (slot === other) { continue; }
+          if (slot === other) {
+            continue;
+          }
           assert.ok(slot.bounds[0] + slot.bounds[2] <= other.bounds[0] ||
             other.bounds[0] + other.bounds[2] <= slot.bounds[0] ||
             slot.bounds[1] + slot.bounds[3] <= other.bounds[1] ||
@@ -101,9 +103,11 @@ it("mirrors odd seeds around the unchanged entrance, including every structural 
 it("runs a room generator at every assigned slot without changing its bounds", async () => {
   const generator = new ServiceRoomGenerator();
   const calls = [];
-  generator.furnish = (room) => { calls.push({ ...room });
+  generator.furnish = (room) => {
+    calls.push({ ...room });
 
-    return []; };
+    return [];
+  };
   const result = await CastleBasePlanGenerator.generate({
     planId: "castle-03",
     generators: [generator,

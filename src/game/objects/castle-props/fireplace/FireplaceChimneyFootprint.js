@@ -19,7 +19,9 @@ export class FireplaceChimneyFootprint {
     let top = base + (item.chimneyHeight ?? 1.65 * scale);
     for (const room of rooms) {
       if (room.maxX < x - halfX || room.minX > x + halfX ||
-        room.maxZ < z - halfZ || room.minZ > z + halfZ || room.floorY < base) { continue; }
+        room.maxZ < z - halfZ || room.minZ > z + halfZ || room.floorY < base) {
+        continue;
+      }
       top = Math.max(top, room.floorY + (room.height ?? 3) + 0.72);
     }
 

@@ -14,12 +14,16 @@ export class Shelf {
   /**
    * @param {import("../../ObjectTypes.js").GameMapData} mapData
    */
-  static prepareMap(mapData) { ShelfItems.prepareMap(mapData); }
+  static prepareMap(mapData) {
+    ShelfItems.prepareMap(mapData);
+  }
 
   /**
    * @returns {string[]}
    */
-  static get modelUrls() { return [storageUrl, bookcaseUrl, bookUrl]; }
+  static get modelUrls() {
+    return [storageUrl, bookcaseUrl, bookUrl];
+  }
   /**
    * @type {import("playcanvas").Entity}
    */
@@ -78,7 +82,9 @@ export class Shelf {
       };
       const model = models.instantiate(storageUrl);
       if (definition.items) {
-        for (const node of model.find(Shelf.#isStorageContent)) { node.destroy(); }
+        for (const node of model.find(Shelf.#isStorageContent)) {
+          node.destroy();
+        }
       }
       const position = definition.position;
       parent.setLocalPosition(position.x, position.y, position.z);
@@ -161,15 +167,21 @@ export class Shelf {
       const bottom = 0.05 + index * spacing;
       plank.setLocalPosition(0, bottom, 0);
       model.addChild(plank);
-      if (index < count) { levels.push({
-        bottom: bottom + 0.0275,
-        height: spacing - 0.055,
-      }); }
+      if (index < count) {
+        levels.push({
+          bottom: bottom + 0.0275,
+          height: spacing - 0.055,
+        });
+      }
     }
-    for (const plank of planks) { plank.destroy(); }
+    for (const plank of planks) {
+      plank.destroy();
+    }
     for (const node of model.find(Shelf.#findNode3)) {
       const x = node.getLocalPosition().x;
-      if (x < 0 && joinStart) { node.destroy(); continue; }
+      if (x < 0 && joinStart) {
+        node.destroy(); continue;
+      }
       node.setLocalScale(x > 0 && joinEnd ? 0.75 : 1, height / 1.35, 1);
       node.setLocalPosition(x > 0 && joinEnd ? 0.425 : x, height / 2, 0);
     }
@@ -182,12 +194,18 @@ export class Shelf {
     return levels;
   }
 
-  get entity() { return this.#entity; }
-  get definition() { return this.#definition; }
+  get entity() {
+    return this.#entity;
+  }
+  get definition() {
+    return this.#definition;
+  }
   /**
    * @returns {import("playcanvas").Entity[]}
    */
-  get visualRoots() { return [this.#visual]; }
+  get visualRoots() {
+    return [this.#visual];
+  }
   /**
    * @param {number} near
    * @param {number} far
@@ -197,8 +215,12 @@ export class Shelf {
     this.#islandRoots.setOffsets(near, far, offsets);
     this.#collider.rigidbody?.syncEntityToBody();
   }
-  onSceneReady() { this.#collider.rigidbody?.syncEntityToBody(); }
-  destroy() { this.#entity.destroy(); }
+  onSceneReady() {
+    this.#collider.rigidbody?.syncEntityToBody();
+  }
+  destroy() {
+    this.#entity.destroy();
+  }
 
   /**
    *

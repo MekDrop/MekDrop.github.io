@@ -39,7 +39,9 @@ function setup(context) {
   world.setGravity(new Vec3(0, -9.81, 0));
   world.nativeWorld.getSolverInfo().set_m_numIterations(40);
   const rope = new BellRopePhysics(world, new Vec3(0, 1, 0));
-  context.after(() => { globalThis.Ammo = wasmAmmo; rope.destroy(); world.destroy(); });
+  context.after(() => {
+    globalThis.Ammo = wasmAmmo; rope.destroy(); world.destroy();
+  });
 
   return {
     world,
@@ -48,8 +50,12 @@ function setup(context) {
 }
 
 describe("bell rope Ammo constraints", () => {
-  beforeEach(() => { globalThis.Ammo = wasmAmmo; });
-  afterEach(() => { globalThis.Ammo = previousAmmo; });
+  beforeEach(() => {
+    globalThis.Ammo = wasmAmmo;
+  });
+  afterEach(() => {
+    globalThis.Ammo = previousAmmo;
+  });
   it("collides with the game's static geometry", (context) => {
     const { world, rope } = setup(context);
     const shape = world.createShape({
@@ -115,7 +121,9 @@ describe("bell rope Ammo constraints", () => {
         world.step(1 / fps, 4, 1 / 120);
         const tip = rope.transforms.at(-1).position;
         assert.ok(Number.isFinite(tip.y) && tip.distance(anchor) < 0.8);
-        if (frame < fps) { swing = Math.max(swing, Math.abs(tip.z)); }
+        if (frame < fps) {
+          swing = Math.max(swing, Math.abs(tip.z));
+        }
       }
       assert.ok(swing > 0.05, "release retains motion");
       assert.ok(Math.abs(rope.transforms.at(-1).position.z) < 0.05, "gravity and damping settle the free rope");

@@ -68,9 +68,13 @@ it("marks the three open basin outlets without introducing banks between branche
       this.data = options.format === "float" ? new Float32Array(options.width * options.height * 4) : new Uint8Array(options.width * options.height * 4);
       textures.push(this);
     }
-    lock() { return this.data; }
+    lock() {
+      return this.data;
+    }
     unlock() {}
-    destroy() { this.destroyed = true; }
+    destroy() {
+      this.destroyed = true;
+    }
   }
   const map = new RiverFlowMap({
     Texture,

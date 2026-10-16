@@ -64,10 +64,16 @@ test("royal layouts repeat independently and all five concepts have distinct arr
     assert.ok(items.some(item => item.object === "BedsideDrawers"));
     assert.ok(items.some(item => item.object === "CandleStand"));
     assert.ok(items.some(item => item.object === "Rug"));
-    if (variant === 1) { assert.ok(items.some(item => item.object === "Table" && (item.variant ?? item.properties?.variant) === "writingDesk")); }
+    if (variant === 1) {
+      assert.ok(items.some(item => item.object === "Table" && (item.variant ?? item.properties?.variant) === "writingDesk"));
+    }
     assert.ok(!items.some(item => item.object === "Throne"));
-    if (variant === 2) { assert.ok(items.some(item => item.object === "Chair")); }
-    if (variant === 4) { assert.ok(items.some(item => item.object === "WashBasin")); }
+    if (variant === 2) {
+      assert.ok(items.some(item => item.object === "Chair"));
+    }
+    if (variant === 4) {
+      assert.ok(items.some(item => item.object === "WashBasin"));
+    }
     signatures.add(JSON.stringify(items.map(item => [item.object ?? item.role, item.x, item.z, item.rotation])));
   }
   assert.equal(signatures.size, 5);
@@ -99,11 +105,15 @@ test("bedroom props stay inside the room, clear neighbouring door swings and kee
           assert.ok(halfX <= support.width * support.scale / 2);
           assert.ok(halfZ <= support.depth * support.scale / 2);
         }
-        if (item.floorCovering || item.supportId || item.wallAttachment) { continue; }
+        if (item.floorCovering || item.supportId || item.wallAttachment) {
+          continue;
+        }
         assert.ok(!(item.x + halfX > 0.225 && item.x - halfX < 1.525 && item.z - halfZ < 5.125),
           "a neighbour-authored north door retains its full swing");
         for (const other of items) {
-          if (item === other || other.supportId || other.floorCovering || other.wallAttachment) { continue; }
+          if (item === other || other.supportId || other.floorCovering || other.wallAttachment) {
+            continue;
+          }
           assert.ok(Math.abs(item.x - other.x) >= halfX + other.width * other.scale / 2 - 1e-6 ||
             Math.abs(item.z - other.z) >= halfZ + other.depth * other.scale / 2 - 1e-6,
           `${item.object ?? item.role} intersects ${other.object ?? other.role}`);

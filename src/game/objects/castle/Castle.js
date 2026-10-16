@@ -17,7 +17,9 @@ export class Castle extends CastleEntityBuilder {
    * @param {import("playcanvas").Texture} texture
    */
   static configureTexture(pc, name, texture) {
-    if (name === "castleStone") texture.magFilter = pc.FILTER_LINEAR;
+    if (name === "castleStone") {
+      texture.magFilter = pc.FILTER_LINEAR;
+    }
   }
   /**
    * Smooth the fine masonry pattern as the first-person camera moves.
@@ -26,7 +28,9 @@ export class Castle extends CastleEntityBuilder {
    * @param {import("playcanvas").Texture} texture
    */
   static configureTexture(pc, name, texture) {
-    if (name === "castleStone") texture.magFilter = pc.FILTER_LINEAR;
+    if (name === "castleStone") {
+      texture.magFilter = pc.FILTER_LINEAR;
+    }
   }
   /**
    * @param {import("../../GameContracts.js").GameMapData} mapData
@@ -124,7 +128,9 @@ export class Castle extends CastleEntityBuilder {
    */
   regenerateRandomSeed() {
     let seed = Math.floor(Math.random() * 2147483647);
-    if (seed === this.#definition.seed) { seed = (seed + 1) % 2147483647; }
+    if (seed === this.#definition.seed) {
+      seed = (seed + 1) % 2147483647;
+    }
     return this.regenerate(seed);
   }
 
@@ -134,24 +140,32 @@ export class Castle extends CastleEntityBuilder {
    * @returns {Promise<number|null>}
    */
   async regenerate(seed) {
-    if (this.#regenerating || !this.entity) { return null; }
+    if (this.#regenerating || !this.entity) {
+      return null;
+    }
     this.#regenerating = true;
     try {
       const buildPlan = await CastleGenerator.generate({
         ...this.#definition,
         seed,
       });
-      if (!this.entity) { return null; }
+      if (!this.entity) {
+        return null;
+      }
       const sign = this.#runtime.objects.getAll(SCENE_OBJECT_TYPE.MAP_OBJECT)
         .find(this.#findObject.bind(this));
       const previousText = sign?.definition.text;
-      if (sign) { sign.text = `Seed ${seed}`; }
+      if (sign) {
+        sign.text = `Seed ${seed}`;
+      }
       const replaced = this.#runtime.replaceObjectDefinition({
         ...this.#definition,
         seed,
         buildPlan,
       });
-      if (!replaced && sign) { sign.text = previousText; }
+      if (!replaced && sign) {
+        sign.text = previousText;
+      }
       return replaced ? seed : null;
     } catch (error) {
       this.#runtime.onRuntimeError?.(error);

@@ -22,7 +22,9 @@ export class BowlPacking {
       const seen = new Set();
       for (let index = 0; index < positions.length; index += 3) {
         const key = positions.slice(index, index + 3).join(":");
-        if (seen.has(key)) { continue; }
+        if (seen.has(key)) {
+          continue;
+        }
         seen.add(key);
         point.setValue(positions[index], positions[index + 1], positions[index + 2]);
         source.addPoint(point, false);
@@ -30,7 +32,9 @@ export class BowlPacking {
       source.recalcLocalAabb();
       source.setMargin(0);
       hull = new Ammo.btShapeHull(source);
-      if (!hull.buildHull(0)) { return positions; }
+      if (!hull.buildHull(0)) {
+        return positions;
+      }
       const start = Ammo.getPointer(hull.getVertexPointer()) / 4;
       const result = [];
       for (let index = 0; index < hull.numVertices(); index++) {
@@ -40,7 +44,9 @@ export class BowlPacking {
 
       return result;
     } finally {
-      if (hull) { Ammo.destroy(hull); }
+      if (hull) {
+        Ammo.destroy(hull);
+      }
       Ammo.destroy(point);
       Ammo.destroy(source);
     }
@@ -92,7 +98,9 @@ export class BowlPacking {
    * @returns {Array<{position: Vec3, rotation: Quat}>}
    */
   static settle(shell, items) {
-    if (!items.length) { return []; }
+    if (!items.length) {
+      return [];
+    }
     const world = new AmmoPhysicsWorld();
     const bodies = [], shapes = [];
     const poses = [];
@@ -186,8 +194,12 @@ export class BowlPacking {
 
       return poses;
     } finally {
-      for (const body of bodies) { world.removeBody(body); world.destroyBody(body); }
-      for (const shape of shapes) { world.destroyShape(shape); }
+      for (const body of bodies) {
+        world.removeBody(body); world.destroyBody(body);
+      }
+      for (const shape of shapes) {
+        world.destroyShape(shape);
+      }
       world.destroy();
     }
   }

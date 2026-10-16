@@ -42,8 +42,12 @@ function point(body, x) {
 }
 
 describe("anchored flower paper", () => {
-  beforeEach(() => { globalThis.Ammo = wasmAmmo; });
-  afterEach(() => { globalThis.Ammo = previousAmmo; });
+  beforeEach(() => {
+    globalThis.Ammo = wasmAmmo;
+  });
+  afterEach(() => {
+    globalThis.Ammo = previousAmmo;
+  });
   it("folds contacted sections independently, preserves seams, and recovers", () => {
     const simulation = new FlowerPaperSimulation();
     try {
@@ -85,7 +89,9 @@ describe("anchored flower paper", () => {
       assert.ok(bent.y > -0.01, "pressed paper must not sink through its support surface");
       assert.ok(Math.abs(untouched.y - 0.12) < 0.01, "neighboring leaf should not flatten with the contacted leaf");
       feet[0].set(2, 0.32, 0);
-      for (let frame = 0; frame < 600; frame++) { simulation.step(1 / 60, feet, Quat.IDENTITY); }
+      for (let frame = 0; frame < 600; frame++) {
+        simulation.step(1 / 60, feet, Quat.IDENTITY);
+      }
       const recovered = point(sheet.links[1], 0.075);
       assert.ok(recovered.distance(new Vec3(0.3, 0.12, 0)) < 0.015, `tip should recover: ${JSON.stringify(recovered)}`);
       simulation.moveAttachment(sheet, new Vec3(0, 0.72, 0));
@@ -94,6 +100,8 @@ describe("anchored flower paper", () => {
       simulation.remove(sheet); simulation.remove(neighbor);
       simulation.removeSurface(ground);
       simulation.step(1 / 60, feet, Quat.IDENTITY);
-    } finally { simulation.destroy(); }
+    } finally {
+      simulation.destroy();
+    }
   });
 });

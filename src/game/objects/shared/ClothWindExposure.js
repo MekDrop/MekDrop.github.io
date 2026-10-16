@@ -56,19 +56,27 @@ export class ClothWindExposure {
    * @type {(direction: import("../ObjectTypes.js").Point3, elapsed: number) => number}
    */
   sample = (direction, elapsed) => {
-    if (elapsed < this.#nextSample) { return this.#exposure; }
+    if (elapsed < this.#nextSample) {
+      return this.#exposure;
+    }
     this.#nextSample = elapsed + 0.1;
     const physics = this.#app.systems.rigidbody;
-    if (!physics?.raycastFirst) { return 1; }
+    if (!physics?.raycastFirst) {
+      return 1;
+    }
     const length = Math.hypot(direction.x, direction.z);
-    if (length < 0.000001) { return 0; }
+    if (length < 0.000001) {
+      return 0;
+    }
     let clear = 0;
     for (const offset of [-0.3, 0, 0.3]) {
       this.#start.set(this.#width * offset, -this.#height * 0.5, 0.08);
       this.#root.getWorldTransform().transformPoint(this.#start, this.#start);
       this.#end.set(this.#start.x - direction.x / length * 64,
         this.#start.y, this.#start.z - direction.z / length * 64);
-      if (!physics.raycastFirst(this.#start, this.#end)) { clear++; }
+      if (!physics.raycastFirst(this.#start, this.#end)) {
+        clear++;
+      }
     }
     this.#exposure = clear / 3;
 

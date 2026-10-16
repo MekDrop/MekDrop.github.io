@@ -5,7 +5,7 @@ import { test } from "node:test";
 import * as pc from "playcanvas";
 
 const hooks = registerHooks({
-  resolve(specifier, context, nextResolve) {
+  resolve: (specifier, context, nextResolve) => {
     if (specifier.endsWith(".glb?url")) {
       return {
         url: `data:text/javascript,export default ${JSON.stringify(specifier)}`,
@@ -33,9 +33,11 @@ function build(overrides = {}) {
   const rack = new SpearRack({
     pc,
     modelLibrary: {
-      instantiate() {
+      instantiate: () => {
         const model = new pc.Entity("model", app);
-        for (const name of ["Rack rail", "Rack base", "Rack upright", "Rack foot", "Rack crossbeam", "Rack brace", "Rack guide", "Rack socket", "Rack spear"]) { model.addChild(new pc.Entity(name, app)); }
+        for (const name of ["Rack rail", "Rack base", "Rack upright", "Rack foot", "Rack crossbeam", "Rack brace", "Rack guide", "Rack socket", "Rack spear"]) {
+          model.addChild(new pc.Entity(name, app));
+        }
         models.push(model);
 
         return model;
@@ -106,7 +108,9 @@ test("seed reproduces render, collision and reload, varying only spear heights",
   assert.notDeepEqual(snapshot(first.models[0]), snapshot(other.models[0]));
   const frame = model => snapshot({ children: model.children.filter(part => !part.name.startsWith("Rack spear ")) });
   assert.deepEqual(frame(first.models[0]), frame(other.models[0]));
-  for (const result of [first, second, other]) { result.rack.destroy(); }
+  for (const result of [first, second, other]) {
+    result.rack.destroy();
+  }
 });
 
 test("more length adds spears along continuous guide rails", () => {
@@ -151,10 +155,18 @@ const assetBounds = new Map(gltf.nodes.map(node => {
   }];
 }));
 function sourceName(name) {
-  if (name.startsWith("Rack guide rail")) { return "Rack rail"; }
-  if (name.startsWith("Rack end crossbeam")) { return "Rack crossbeam"; }
-  if (name.startsWith("Rack end brace")) { return "Rack brace"; }
-  if (/^Rack (row|perimeter) base/.test(name)) { return "Rack base"; }
+  if (name.startsWith("Rack guide rail")) {
+    return "Rack rail";
+  }
+  if (name.startsWith("Rack end crossbeam")) {
+    return "Rack crossbeam";
+  }
+  if (name.startsWith("Rack end brace")) {
+    return "Rack brace";
+  }
+  if (/^Rack (row|perimeter) base/.test(name)) {
+    return "Rack base";
+  }
   return name.split(" ").slice(0, 2).join(" ");
 }
 

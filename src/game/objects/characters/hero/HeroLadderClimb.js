@@ -104,11 +104,15 @@ export class HeroLadderClimb {
 
     return () => {
       this.#ladders.delete(ladder);
-      if (this.#active === ladder) this.reset();
+      if (this.#active === ladder) {
+        this.reset();
+      }
     };
   }
 
-  reset() { this.#active = null; this.#exitLanding = null; this.#exiting = false; this.#mounting = false; this.#transferPhase = 0; this.#cooldown = 0.4; this.#needsRelease = true; }
+  reset() {
+    this.#active = null; this.#exitLanding = null; this.#exiting = false; this.#mounting = false; this.#transferPhase = 0; this.#cooldown = 0.4; this.#needsRelease = true;
+  }
 
   /**
    * @param {number} deltaTime
@@ -116,11 +120,15 @@ export class HeroLadderClimb {
    */
   update(deltaTime, { position, input, movement, jump, allowed, grounded = false }) {
     this.#cooldown = Math.max(0, this.#cooldown - deltaTime);
-    if (Math.hypot(input.x, input.y) < 0.1) this.#needsRelease = false;
+    if (Math.hypot(input.x, input.y) < 0.1) {
+      this.#needsRelease = false;
+    }
     const lateral = this.#active && movement && Math.abs(movement.x * this.#controlFacing.x + movement.z * this.#controlFacing.z) < 0.25;
     const atTop = this.#active && position.y >= this.#active.landing("top").y - 0.1;
     if (!allowed || jump || (lateral && !atTop)) {
-      if (this.#active) this.reset();
+      if (this.#active) {
+        this.reset();
+      }
       return null;
     }
     if (!this.#active && !this.#needsRelease && this.#cooldown === 0 && movement) {
@@ -144,10 +152,14 @@ export class HeroLadderClimb {
         const towardRoof = movement.x * roofFacing.x + movement.z * roofFacing.z;
         const lower = Math.abs(position.y - bottom.y) < 0.55 && Math.hypot(position.x - bottom.x, position.z - bottom.z) < 0.6 && toward > 0.25;
         const upper = Math.abs(position.y - top.y) < 0.4 && Math.hypot(position.x - top.x, position.z - top.z) < 0.7 && towardRoof > 0.25;
-        if (lower || upper) { this.#active = ladder; this.#exitLanding = upper ? top : null; this.#mounting = upper; this.#transferPhase = upper ? 1 : 0; this.#travelSign = upper ? -1 : 1; this.#lastTravelDirection = this.#travelSign; this.#controlFacing = upper ? roofFacing : facing; break; }
+        if (lower || upper) {
+          this.#active = ladder; this.#exitLanding = upper ? top : null; this.#mounting = upper; this.#transferPhase = upper ? 1 : 0; this.#travelSign = upper ? -1 : 1; this.#lastTravelDirection = this.#travelSign; this.#controlFacing = upper ? roofFacing : facing; break;
+        }
       }
     }
-    if (!this.#active) return null;
+    if (!this.#active) {
+      return null;
+    }
     const ladder = this.#active;
     const bottom = ladder.landing("bottom");
     const landings = ladder.topLandings ?? [ladder.landing("top")];
@@ -164,12 +176,20 @@ export class HeroLadderClimb {
     const top = this.#exitLanding;
     const facing = this.#controlFacing;
     let speed = movement ? (movement.x * facing.x + movement.z * facing.z) * this.#travelSign : 0;
-    if (lateral && atTop && this.#travelSign > 0) speed = 1;
-    if (Math.abs(speed) > 0.1) this.#lastTravelDirection = Math.sign(speed);
+    if (lateral && atTop && this.#travelSign > 0) {
+      speed = 1;
+    }
+    if (Math.abs(speed) > 0.1) {
+      this.#lastTravelDirection = Math.sign(speed);
+    }
     // Finish crossing the roof slab after input release. Pausing is safe only
     // once the whole body is below the opening, or standing on the landing.
-    if (!movement && position.y > top.y - 1.6) speed = this.#lastTravelDirection;
-    if (position.y >= top.y - 0.08 && (speed > 0 || lateral)) this.#exiting = true;
+    if (!movement && position.y > top.y - 1.6) {
+      speed = this.#lastTravelDirection;
+    }
+    if (position.y >= top.y - 0.08 && (speed > 0 || lateral)) {
+      this.#exiting = true;
+    }
     ladder.openHatch();
     const nextHeight = Math.min(top.y, Math.max(bottom.y, position.y + speed * 1.5 * deltaTime));
     const guide = ladder.climbGuide?.(nextHeight) ?? {
@@ -210,7 +230,9 @@ export class HeroLadderClimb {
       // A bounded response stays stable when rendering and Ammo use different
       // timesteps; the contact pose follows the actual capsule position.
       horizontalLimit = 1.4; gain = 8;
-      if (this.#transferPhase === 0 && speed < 0) { this.#mounting = false; this.#exiting = false; }
+      if (this.#transferPhase === 0 && speed < 0) {
+        this.#mounting = false; this.#exiting = false;
+      }
     }
     const landingDistance = Math.hypot(position.x - top.x, position.z - top.z);
     // Contact owns the landing height: masonry and collision margins can put

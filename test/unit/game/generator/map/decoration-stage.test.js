@@ -16,21 +16,33 @@ function createFixture() {
     routing: { layout: {} },
     features: { riverData: [] },
     yieldState: { lastYield: 0 },
-    scheduler: { yieldIfNeeded: async () => { events.push("yield"); } },
+    scheduler: {
+      yieldIfNeeded: async () => {
+        events.push("yield");
+      },
+    },
   };
   const builder = {
-    placeVegetation: () => { events.push("vegetation");
+    placeVegetation: () => {
+      events.push("vegetation");
 
-      return []; },
-    placeStones: () => { events.push("stones");
+      return [];
+    },
+    placeStones: () => {
+      events.push("stones");
 
-      return []; },
-    placeGroundCover: () => { events.push("cover");
+      return [];
+    },
+    placeGroundCover: () => {
+      events.push("cover");
 
-      return []; },
-    placeCliffVines: () => { events.push("vines");
+      return [];
+    },
+    placeCliffVines: () => {
+      events.push("vines");
 
-      return []; },
+      return [];
+    },
   };
 
   return {

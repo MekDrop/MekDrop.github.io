@@ -157,7 +157,9 @@ export class Hero {
   /**
    * @param {import("../../architecture/ladder/Ladder.js").Ladder} ladder
    */
-  registerLadder(ladder) { return this.#ladderClimb.register(ladder); }
+  registerLadder(ladder) {
+    return this.#ladderClimb.register(ladder);
+  }
   /**
    * @type {HeroTerrain}
    */
@@ -1741,8 +1743,12 @@ export class Hero {
    * @returns {boolean}
    */
   get #bellSupported() {
-    if (this.#grounded) { return true; }
-    if (Math.abs(this.#velocity.y) > 0.5) { return false; }
+    if (this.#grounded) {
+      return true;
+    }
+    if (Math.abs(this.#velocity.y) > 0.5) {
+      return false;
+    }
     return this.#physics.surfaceAt(this.#position.x, this.#position.z,
       this.#position.y + 0.05, this.#position.y - 0.12) !== null;
   }
@@ -2085,7 +2091,9 @@ export class Hero {
     }
     if (this.#actionBehavior.exclusive) {
       this.#ladderClimb.reset();
-      if (this.#climbMotion) { this.#physics.gravity = GRAVITY; this.#climbMotion = null; this.#setHeroPartCollidersEnabled(true); }
+      if (this.#climbMotion) {
+        this.#physics.gravity = GRAVITY; this.#climbMotion = null; this.#setHeroPartCollidersEnabled(true);
+      }
       this.#actionBehavior.update(deltaTime);
       this.#applyPosition(previousX, previousY, previousZ);
 
@@ -2124,7 +2132,9 @@ export class Hero {
       0,
       this.#gatewayRepelCooldown - deltaTime,
     );
-    if (this.#grounded) this.#jumpsUsed = 0;
+    if (this.#grounded) {
+      this.#jumpsUsed = 0;
+    }
     this.#jumpBufferRemaining = Math.max(
       0,
       this.#jumpBufferRemaining - deltaTime,
@@ -2777,7 +2787,9 @@ export class Hero {
     let supportOwner = support?.entity;
     let supportZone = false;
     while (supportOwner) {
-      if (supportOwner.tags?.has("capsule-support-zone")) { supportZone = true; break; }
+      if (supportOwner.tags?.has("capsule-support-zone")) {
+        supportZone = true; break;
+      }
       supportOwner = supportOwner.parent;
     }
     let stairSupport = support?.entity?.tags?.has("capsule-support");
@@ -2785,7 +2797,9 @@ export class Hero {
       for (const [dx, dz] of [[HERO_RADIUS, 0], [-HERO_RADIUS, 0], [0, HERO_RADIUS], [0, -HERO_RADIUS]]) {
         const adjacent = this.#physics.surfaceAt(this.#position.x + dx, this.#position.z + dz,
           this.#position.y + STEP_CLEARANCE, this.#position.y - STEP_CLEARANCE - 0.15);
-        if (adjacent?.entity?.tags?.has("capsule-support")) { stairSupport = true; break; }
+        if (adjacent?.entity?.tags?.has("capsule-support")) {
+          stairSupport = true; break;
+        }
       }
     }
     this.#capsuleSupportOnly = Boolean(stairSupport ||
@@ -2798,7 +2812,9 @@ export class Hero {
 
       return;
     }
-    if (previousCapsuleSupport) { this.#setHeroPartCollidersEnabled(true); }
+    if (previousCapsuleSupport) {
+      this.#setHeroPartCollidersEnabled(true);
+    }
     if (this.#grounded || this.#physics.scripted) {
       this.#airborneStallElapsed = 0;
       this.#setHeroPartCollidersEnabled(true);
@@ -3004,14 +3020,18 @@ export class Hero {
 
     for (let row = 0; row < rows; row += 1) {
       for (let col = 0; col < cols; col += 1) {
-        if (this.#mapData.grid[row][col] !== TileType.GRASS) continue;
+        if (this.#mapData.grid[row][col] !== TileType.GRASS) {
+          continue;
+        }
         const behindCastle =
           Number.isFinite(castleRight) &&
           Number.isFinite(castleTop) &&
           col > castleRight &&
           row >= castleTop - 1 &&
           row <= castleBottom + 1;
-        if (behindCastle) continue;
+        if (behindCastle) {
+          continue;
+        }
         const tile = {
           col,
           row,
@@ -3032,7 +3052,9 @@ export class Hero {
           continue;
         }
         grassTiles.push(tile);
-        if (!this.#hasSpawnExit(col, row)) continue;
+        if (!this.#hasSpawnExit(col, row)) {
+          continue;
+        }
         safeGrassTiles.push(tile);
       }
     }
@@ -3604,7 +3626,9 @@ export class Hero {
     );
     this.#modelRoot.addComponent("anim", { activate: true });
     for (const [name, track] of animationTracks) {
-      if (!HERO_ANIMATION_NAMES.includes(name)) continue;
+      if (!HERO_ANIMATION_NAMES.includes(name)) {
+        continue;
+      }
       this.#modelRoot.anim.addAnimationState(
         name,
         track,

@@ -9,7 +9,9 @@ export class Bench extends AbstractCastleProp {
   /**
    * @returns {string[]}
    */
-  static get modelUrls() { return [wallModelUrl, islandModelUrl]; }
+  static get modelUrls() {
+    return [wallModelUrl, islandModelUrl];
+  }
 
   /**
    * Rendering and authored collision always use the same selected asset.

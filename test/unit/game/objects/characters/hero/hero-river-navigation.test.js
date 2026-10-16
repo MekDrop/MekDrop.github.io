@@ -85,7 +85,9 @@ function createRiver(cells, position, deltaTime = 0.1) {
         submergeDepth: 0.68,
         sinkSpeed: 2.8,
         currentSpeed: 1.45,
-        setVelocity: (next) => { velocity = next; },
+        setVelocity: (next) => {
+          velocity = next;
+        },
       },
     },
   };

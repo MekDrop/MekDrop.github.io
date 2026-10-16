@@ -213,7 +213,9 @@ export class AbstractRoyal {
      * @param {boolean} atThrone
      */
       (atThrone) => {
-        if (atThrone) { this.#audienceActor.sit(); }
+        if (atThrone) {
+          this.#audienceActor.sit();
+        }
         onRoyalAtThroneChange(atThrone);
       });
     this.#actions = new TerraceRoyalActions({

@@ -145,8 +145,12 @@ export class RouteDataBuilder {
       second.row2,
       second.elevation,
     );
-    if (!graph.has(firstKey)) { graph.set(firstKey, new Set()); }
-    if (!graph.has(secondKey)) { graph.set(secondKey, new Set()); }
+    if (!graph.has(firstKey)) {
+      graph.set(firstKey, new Set());
+    }
+    if (!graph.has(secondKey)) {
+      graph.set(secondKey, new Set());
+    }
     graph.get(firstKey).add(secondKey);
     graph.get(secondKey).add(firstKey);
   }
@@ -164,7 +168,9 @@ export class RouteDataBuilder {
       const key = queue[queueIndex++];
       const distance = distances.get(key);
       for (const neighbor of graph.get(key) ?? []) {
-        if (distances.has(neighbor)) { continue; }
+        if (distances.has(neighbor)) {
+          continue;
+        }
         distances.set(neighbor, distance + 1);
         queue.push(neighbor);
       }
@@ -293,7 +299,9 @@ export class RouteDataBuilder {
           }
 
           const axis2 = dc === 0 ? row2 : col2;
-          if (!startsTurn && Math.abs(axis2) % 4 !== 0) { continue; }
+          if (!startsTurn && Math.abs(axis2) % 4 !== 0) {
+            continue;
+          }
 
           const elevation = current.elevation ?? PATH_HEIGHT;
           const nextElevation = next.elevation ?? PATH_HEIGHT;

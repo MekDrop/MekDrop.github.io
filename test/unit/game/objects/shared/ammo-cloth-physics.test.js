@@ -26,7 +26,9 @@ describe("AmmoClothPhysics", () => {
       for (let row = 0; row <= 12; row++) {
         for (let column = 0; column <= 8; column++) {
           vertices.push((column / 8 - 0.5) * 0.8, -row / 12 * 0.95, 0);
-          if (row === 0) { pinnedIndices.push(column); }
+          if (row === 0) {
+            pinnedIndices.push(column);
+          }
           if (row < 12 && column < 8) {
             const first = row * 9 + column;
             indices.push(first, first + 9, first + 1, first + 1, first + 9, first + 10);
@@ -43,10 +45,14 @@ describe("AmmoClothPhysics", () => {
         windExposure: () => 0,
         seed: 0.3,
       });
-      for (let frame = 0; frame < 360; frame++) { physics.step(1 / 60); }
+      for (let frame = 0; frame < 360; frame++) {
+        physics.step(1 / 60);
+      }
       physics.writePositions(cloth, positions);
       const settled = positions.slice();
-      for (let frame = 0; frame < 120; frame++) { physics.step(1 / 60); }
+      for (let frame = 0; frame < 120; frame++) {
+        physics.step(1 / 60);
+      }
       physics.writePositions(cloth, positions);
       assert.ok(positions.every((value, index) => Math.abs(value - settled[index]) < 0.000001));
     } finally {
@@ -67,7 +73,9 @@ describe("AmmoClothPhysics", () => {
         seed: 0.3,
         vertexUv: new Float32Array([-1, 0, 1, 0, -1, 1, 1, 1]),
       });
-      for (let frame = 0; frame < 180; frame++) { physics.step(1 / 60); }
+      for (let frame = 0; frame < 180; frame++) {
+        physics.step(1 / 60);
+      }
       physics.writePositions(cloth, positions);
       for (let index = 2; index < positions.length; index += 3) {
         assert.ok(Math.abs(positions[index]) < 0.00001, "ambient wind cannot push sheltered cloth out of plane");
@@ -93,7 +101,9 @@ describe("AmmoClothPhysics", () => {
 
   it("fits thirty active castle cloth collections plus unused flags inside Ammo's fixed heap", () => {
     const unused = Array.from({ length: 24 }, () => new AmmoClothPhysics());
-    for (const physics of unused) physics.step(1 / 60);
+    for (const physics of unused) {
+      physics.step(1 / 60);
+    }
     const active = Array.from({ length: 30 }, () => new AmmoClothPhysics());
     for (const physics of active) {
       const positions = new Float32Array([-0.5, 0, 0, 0.5, 0, 0, -0.5, -1, 0, 0.5, -1, 0]);
@@ -107,7 +117,9 @@ describe("AmmoClothPhysics", () => {
       assert.equal(positions[0], -0.5);
       assert.ok(Number.isFinite(positions[7]));
     }
-    for (const physics of [...active, ...unused]) physics.destroy();
+    for (const physics of [...active, ...unused]) {
+      physics.destroy();
+    }
   });
 
   it("constructs multiple soft bodies without Ammo's array bridge", () => {

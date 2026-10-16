@@ -7,7 +7,7 @@ it("registers the collider with the supplied application without a global app", 
   const app = new EventHandler();
   const components = [];
   app.systems = Object.fromEntries(["collision", "rigidbody"].map((type) => [type, {
-    addComponent(entity, data) {
+    addComponent: (entity, data) => {
       components.push({
         type,
         entity,
@@ -32,22 +32,30 @@ it("shares the hero lookup across servants and invalidates it when the hero is r
   const app = new EventHandler();
   app._enableList = [];
   app.systems = {
-    collision: { addComponent() {} },
-    rigidbody: { addComponent(entity) { entity.rigidbody = { teleport() {} }; } },
+    collision: { addComponent: () => {} },
+    rigidbody: {
+      addComponent: (entity) => {
+        entity.rigidbody = { teleport: () => {} };
+      },
+    },
   };
   app.root = new Entity("Scene", app);
   app.root._enabledInHierarchy = true;
   const original = app.root.findByName.bind(app.root);
   let lookups = 0;
   app.root.findByName = (name) => {
-    if (name === "Hero") { lookups += 1; }
+    if (name === "Hero") {
+      lookups += 1;
+    }
     return original(name);
   };
   const hero = new Entity("Hero", app);
   hero.enabled = false;
   app.root.addChild(hero);
   const actors = [new Entity("First servant", app), new Entity("Second servant", app)];
-  for (const actor of actors) { app.root.addChild(actor); }
+  for (const actor of actors) {
+    app.root.addChild(actor);
+  }
   const clearances = actors.map((actor) => new ServantHeroClearance(actor, app));
   app.fire("prerender");
   app.fire("prerender");
@@ -58,6 +66,8 @@ it("shares the hero lookup across servants and invalidates it when the hero is r
   app.root.addChild(replacement);
   app.fire("prerender");
   assert.equal(lookups, 2);
-  for (const clearance of clearances) { clearance.destroy(); }
+  for (const clearance of clearances) {
+    clearance.destroy();
+  }
   replacement.destroy();
 });

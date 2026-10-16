@@ -103,9 +103,15 @@ export class MapGrid {
     while (queue.length) {
       const { col, row } = queue.shift();
       const key = MapGrid.tileKey(col, row);
-      if (seen.has(key)) { continue; }
-      if (!MapGrid.inBounds(col, row)) { continue; }
-      if (grid[row][col] === TileType.WATER) { continue; }
+      if (seen.has(key)) {
+        continue;
+      }
+      if (!MapGrid.inBounds(col, row)) {
+        continue;
+      }
+      if (grid[row][col] === TileType.WATER) {
+        continue;
+      }
 
       seen.add(key);
       for (const [dc, dr] of [

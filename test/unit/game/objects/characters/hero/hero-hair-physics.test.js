@@ -47,14 +47,14 @@ class FakeEntity {
       this.rigidbody = {
         activated: 0,
         body: {
-          setGravity(gravity) {
+          setGravity: (gravity) => {
             entity.gravity = gravity;
           },
         },
         activate() {
           this.activated += 1;
         },
-        teleport(position, rotation) {
+        teleport: (position, rotation) => {
           entity.setPosition(position);
           entity.setRotation(rotation);
         },

@@ -20,7 +20,9 @@ export class LeisureRoomGenerator extends AbstractCastleRoomGenerator {
    * One outdoor leisure area: a large ground courtyard or an open upper terrace.
    * @returns {number[]}
    */
-  get levels() { return this.#courtyard ? [0] : [1]; }
+  get levels() {
+    return this.#courtyard ? [0] : [1];
+  }
   /**
    * @param {import("../AbstractCastleRoomGenerator.js").PlannedCastleRoom} room
    * @param {{openings?:import("../../CastleBasePlanGenerator.js").CompiledCastleOpening[],stairs?:Array<{minX:number,maxX:number,minZ:number,maxZ:number}>}} [context]
@@ -29,7 +31,9 @@ export class LeisureRoomGenerator extends AbstractCastleRoomGenerator {
   furnish(room, context = {}) {
     // Keep the original pair, but leave the entrance landing free.
     if (this.#courtyard || room.kind === "courtyard" || room.level === 0 ||
-      room.maxX - room.minX < 2 || room.maxZ - room.minZ < 2) { return []; }
+      room.maxX - room.minX < 2 || room.maxZ - room.minZ < 2) {
+      return [];
+    }
     return [room.minX + 0.6, room.maxX - 0.6].map(/**
      * @param {number} x
      */

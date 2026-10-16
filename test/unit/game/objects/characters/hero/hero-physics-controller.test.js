@@ -107,7 +107,7 @@ function createFixture({ maxSubSteps = 4, fixedTimeStep } = {}) {
   const destroyed = [];
   globalThis.Ammo = {
     btVector3: FakeAmmoVector,
-    destroy(value) {
+    destroy: (value) => {
       destroyed.push(value);
     },
   };
@@ -115,7 +115,7 @@ function createFixture({ maxSubSteps = 4, fixedTimeStep } = {}) {
   const rigidbody = {
     fixedTimeStep: 1 / 30,
     maxSubSteps,
-    raycastAll(start, end, options) {
+    raycastAll: (start, end, options) => {
       raycasts.push({
         start,
         end,

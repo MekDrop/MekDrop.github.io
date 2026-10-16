@@ -71,13 +71,18 @@ export class CastleRoomPacker {
       let room = null;
       for (const level of generator.levels) {
         room = this.#placeOnLevel(generator, level);
-        if (room) { break; }
+        if (room) {
+          break;
+        }
       }
       if (room) {
         this.rooms.push(room);
-        if (room.stairHost) { this.stairHostRoomId = room.id; }
+        if (room.stairHost) {
+          this.stairHostRoomId = room.id;
+        }
+      } else {
+        this.skipped.push(generator.id);
       }
-      else { this.skipped.push(generator.id); }
     }
   }
 
@@ -88,7 +93,9 @@ export class CastleRoomPacker {
    */
   extendRooms(generators) {
     for (const room of this.rooms) {
-      if (room.level !== 0 || room.id === "throneRoom" || room.id === "leisure" || room.id.startsWith("tower")) continue;
+      if (room.level !== 0 || room.id === "throneRoom" || room.id === "leisure" || room.id.startsWith("tower")) {
+        continue;
+      }
       const generator = generators.find(/**
        *
        * @param {{id:string}} entry
@@ -105,15 +112,21 @@ export class CastleRoomPacker {
             [key]: room[key] + direction,
           };
           if (candidate.maxX - candidate.minX > (generator.max?.x ?? Infinity) ||
-            candidate.maxZ - candidate.minZ > (generator.max?.y ?? Infinity)) break;
-          if (!room.stairHost && CastleRoomPacker.overlaps(candidate, this.shaft, 0.25)) break;
+            candidate.maxZ - candidate.minZ > (generator.max?.y ?? Infinity)) {
+            break;
+          }
+          if (!room.stairHost && CastleRoomPacker.overlaps(candidate, this.shaft, 0.25)) {
+            break;
+          }
           /**
            * @param {import("./rooms/AbstractCastleRoomGenerator.js").PlannedCastleRoom} other
            */
           const overlapsExpandedRoom = (other) => other !== room && candidate.level < other.level + other.floorSpan &&
             candidate.level + candidate.floorSpan > other.level && CastleRoomPacker.overlaps(candidate, other,
             other.id.startsWith("tower") ? 1.5 : 0.25);
-          if (this.rooms.some(overlapsExpandedRoom)) break;
+          if (this.rooms.some(overlapsExpandedRoom)) {
+            break;
+          }
           room[key] = candidate[key];
         }
       }
@@ -126,20 +139,28 @@ export class CastleRoomPacker {
    * @returns {import("./rooms/AbstractCastleRoomGenerator.js").PlannedCastleRoom|null}
    */
   #placeOnLevel(generator, level) {
-    if ((level !== 0 || generator.floorSpan > 1) && !this.stairHostRoomId) { return null; }
+    if ((level !== 0 || generator.floorSpan > 1) && !this.stairHostRoomId) {
+      return null;
+    }
     const minW = Math.ceil(generator.min.x * 4);
     const minD = Math.ceil(generator.min.y * 4);
     const maxW = Math.floor(Math.min(generator.max?.x ?? Infinity, this.bounds.maxX - this.bounds.minX) * 4);
     const maxD = Math.floor(Math.min(generator.max?.y ?? Infinity, this.bounds.maxZ - this.bounds.minZ) * 4);
     const candidates = [];
     for (let w = minW; w <= maxW; w++) {
-      if (generator.id === "throneRoom" && w % 2 !== 0) { continue; }
-      for (let d = minD; d <= maxD; d++) { candidates.push([w / 4, d / 4]); }
+      if (generator.id === "throneRoom" && w % 2 !== 0) {
+        continue;
+      }
+      for (let d = minD; d <= maxD; d++) {
+        candidates.push([w / 4, d / 4]);
+      }
     }
     this.#random.shuffle(candidates);
     // Smaller first-pass rooms leave space for later requirements. Expansion
     // happens only after all rooms have had a chance to occupy the footprint.
-    if (this.#compact) candidates.sort(CastleRoomPacker.#sortA);
+    if (this.#compact) {
+      candidates.sort(CastleRoomPacker.#sortA);
+    }
     // Prefer a stacked keep: upstairs walls bear on an existing room below.
     const foundation =
       level === 1
@@ -152,7 +173,9 @@ export class CastleRoomPacker {
         )
         : null;
     for (const [width, depth] of candidates) {
-      if (foundation && (width > foundation.maxX - foundation.minX || depth > foundation.maxZ - foundation.minZ)) { continue; }
+      if (foundation && (width > foundation.maxX - foundation.minX || depth > foundation.maxZ - foundation.minZ)) {
+        continue;
+      }
       const towerIndex = generator.id.startsWith("tower") ? Number(generator.id.slice(5)) : 0;
       const towerLeft = towerIndex === 1 || towerIndex === 3;
       const towerBack = towerIndex === 3 || towerIndex === 4;
@@ -194,10 +217,16 @@ export class CastleRoomPacker {
               minZ: Math.min(room.minZ, this.shaft.minZ),
               maxZ: Math.max(room.maxZ, this.shaft.maxZ),
             };
-            if (enlarged.minX < 0 && enlarged.maxX > 0) { continue; }
-            if (this.shaft.maxX <= 0 ? enlarged.maxX > this.shaft.maxX : enlarged.minX < this.shaft.minX) { continue; }
+            if (enlarged.minX < 0 && enlarged.maxX > 0) {
+              continue;
+            }
+            if (this.shaft.maxX <= 0 ? enlarged.maxX > this.shaft.maxX : enlarged.minX < this.shaft.minX) {
+              continue;
+            }
             if (enlarged.maxX - enlarged.minX > (generator.max?.x ?? Infinity) ||
-              enlarged.maxZ - enlarged.minZ > (generator.max?.y ?? Infinity)) { continue; }
+              enlarged.maxZ - enlarged.minZ > (generator.max?.y ?? Infinity)) {
+              continue;
+            }
             room = {
               ...enlarged,
               contentBounds,
@@ -206,20 +235,36 @@ export class CastleRoomPacker {
               height: host ? this.#rise + 2.25 : 2.25,
             };
           }
-          if (room.minX - this.bounds.minX > 0 && room.minX - this.bounds.minX <= 0.5) { room.minX = this.bounds.minX; }
-          if (this.bounds.maxX - room.maxX > 0 && this.bounds.maxX - room.maxX <= 0.5) { room.maxX = this.bounds.maxX; }
-          if (this.bounds.maxZ - room.maxZ > 0 && this.bounds.maxZ - room.maxZ <= 0.5) { room.maxZ = this.bounds.maxZ; }
-          if (room.minX < this.bounds.minX || room.maxX > this.bounds.maxX || room.maxZ > this.bounds.maxZ) { continue; }
+          if (room.minX - this.bounds.minX > 0 && room.minX - this.bounds.minX <= 0.5) {
+            room.minX = this.bounds.minX;
+          }
+          if (this.bounds.maxX - room.maxX > 0 && this.bounds.maxX - room.maxX <= 0.5) {
+            room.maxX = this.bounds.maxX;
+          }
+          if (this.bounds.maxZ - room.maxZ > 0 && this.bounds.maxZ - room.maxZ <= 0.5) {
+            room.maxZ = this.bounds.maxZ;
+          }
+          if (room.minX < this.bounds.minX || room.maxX > this.bounds.maxX || room.maxZ > this.bounds.maxZ) {
+            continue;
+          }
           if (!host && !basementHost && !foundation && generator.id !== "throneRoom" &&
-            room.minX < 1.25 && room.maxX > -1.25) { continue; }
-          if (!host && !basementHost && CastleRoomPacker.overlaps(room, this.shaft, 0.25)) { continue; }
+            room.minX < 1.25 && room.maxX > -1.25) {
+            continue;
+          }
+          if (!host && !basementHost && CastleRoomPacker.overlaps(room, this.shaft, 0.25)) {
+            continue;
+          }
           /**
            *
            * @param {import("./rooms/AbstractCastleRoomGenerator.js").PlannedCastleRoom} placed
            */
           const overlapsPlacedRoom = (placed) => (room.level < placed.level + placed.floorSpan && room.level + room.floorSpan > placed.level) && CastleRoomPacker.overlaps(room, placed, towerIndex ? 1.5 : 0.25);
-          if (this.rooms.some(overlapsPlacedRoom)) { continue; }
-          if (level !== 0 && this.shaft.maxX > 0 && this.shaft.minX < 0) { continue; }
+          if (this.rooms.some(overlapsPlacedRoom)) {
+            continue;
+          }
+          if (level !== 0 && this.shaft.maxX > 0 && this.shaft.minX < 0) {
+            continue;
+          }
           return room;
         }
       }

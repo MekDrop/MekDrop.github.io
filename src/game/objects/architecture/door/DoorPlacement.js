@@ -21,7 +21,9 @@ export class DoorPlacement {
   /**
    * @returns {string[]}
    */
-  static get modelUrls() { return [castleDoorsModelUrl, interiorDoorUrl, roundedEntranceUrl]; }
+  static get modelUrls() {
+    return [castleDoorsModelUrl, interiorDoorUrl, roundedEntranceUrl];
+  }
 
   /**
    *
@@ -95,7 +97,9 @@ export class DoorPlacement {
       archMaterial.getShaderChunks(pc.SHADERLANGUAGE_WGSL).set("diffusePS", entranceMasonryWgsl);
       archMaterial.update();
       for (const render of entity.findComponents("render")) {
-        if (!render.entity.name.startsWith("Entrance masonry")) continue;
+        if (!render.entity.name.startsWith("Entrance masonry")) {
+          continue;
+        }
         const material = render.entity.name.startsWith("Entrance masonry arch") ||
             render.entity.name.startsWith("Entrance masonry course")
           ? archMaterial : stone;

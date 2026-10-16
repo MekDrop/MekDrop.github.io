@@ -11,7 +11,9 @@ export class SpearRack extends AbstractCastleProp {
   /**
    * @returns {string}
    */
-  static get modelUrl() { return modelUrl; }
+  static get modelUrl() {
+    return modelUrl;
+  }
 
   /**
    * Assemble identical authored parts for rendering and collision.
@@ -29,7 +31,9 @@ export class SpearRack extends AbstractCastleProp {
        */
       name => [name, model.findByName(name)?.clone()],
     ));
-    for (const child of [...model.children]) { child.destroy(); }
+    for (const child of [...model.children]) {
+      child.destroy();
+    }
     const rows = Math.max(1, Math.floor((width + 1e-6) / 0.25));
     const bays = Math.max(1, Math.ceil(length / 1.8));
     const spears = Math.max(1, Math.floor((length - 0.16 + 1e-6) / 0.18));
@@ -121,7 +125,9 @@ export class SpearRack extends AbstractCastleProp {
         }
       }
     }
-    for (const template of templates.values()) { template?.destroy(); }
+    for (const template of templates.values()) {
+      template?.destroy();
+    }
   }
 
   /**

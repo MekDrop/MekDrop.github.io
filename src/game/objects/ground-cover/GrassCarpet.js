@@ -128,7 +128,9 @@ export class GrassCarpet {
        * @param {number} index
        */
         (cells, index) => new pc.Entity(`Island ${index} grass`));
-      for (const root of this.#islandRoots) this.#entity.addChild(root);
+      for (const root of this.#islandRoots) {
+        this.#entity.addChild(root);
+      }
     }
 
     this.#material = new pc.StandardMaterial();
@@ -370,7 +372,9 @@ export class GrassCarpet {
     }
     this.#batches = [];
     this.#edgeMesh.decRefCount();
-    if (this.#edgeMesh.refCount < 1) this.#edgeMesh.destroy();
+    if (this.#edgeMesh.refCount < 1) {
+      this.#edgeMesh.destroy();
+    }
     this.#material.destroy();
     this.#variantMap.destroy();
   }

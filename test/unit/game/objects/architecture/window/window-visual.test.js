@@ -5,7 +5,7 @@ import { test } from "node:test";
 import * as pc from "playcanvas";
 
 const hooks = registerHooks({
-  resolve(specifier, context, nextResolve) {
+  resolve: (specifier, context, nextResolve) => {
     if (specifier.endsWith("-window.glb?url")) {
       return {
         url: `data:text/javascript,export default ${JSON.stringify(specifier)}`,
@@ -128,7 +128,7 @@ test("open windows retain the surround and remove glazing and internal dividers"
   const parent = new pc.Entity("Open window", app);
   let visual;
   const models = {
-    instantiate() {
+    instantiate: () => {
       visual = new pc.Entity("Window", app);
       for (const node of gltf.nodes) {
         const entity = new pc.Entity(node.name, app);

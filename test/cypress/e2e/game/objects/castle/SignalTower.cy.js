@@ -8,7 +8,7 @@ describe("Signal tower bell", () => {
     const samples = [];
     cy.viewport(1440, 1000);
     cy.visit("/en-US/map/test_signal-tower?camera-test", {
-      onBeforeLoad(window) {
+      onBeforeLoad: (window) => {
         audioStarts = cy.spy(window.AudioBufferSourceNode.prototype, "start");
         const sample = () => {
           const pose = window.gameMovementTest?.animationPose(["Right white glove", "Right elbow"]);
@@ -47,7 +47,9 @@ describe("Signal tower bell", () => {
     });
     cy.get(".interaction-prompt", { timeout: 10000 }).should("contain.text", "Ring bell");
     cy.get(".background-canvas").click("bottomRight");
-    cy.then(() => { beforeStrike = audioStarts.callCount; });
+    cy.then(() => {
+      beforeStrike = audioStarts.callCount;
+    });
     cy.window().trigger("keydown", {
       code: "KeyE",
       key: "e",
@@ -85,7 +87,9 @@ describe("Signal tower bell", () => {
         expect(Number.isFinite(pose.joints["Right elbow"].y)).to.equal(true);
       }
     });
-    cy.then(() => { beforeStrike = audioStarts.callCount; });
+    cy.then(() => {
+      beforeStrike = audioStarts.callCount;
+    });
     cy.window().trigger("keydown", {
       code: "KeyE",
       key: "e",
@@ -94,10 +98,14 @@ describe("Signal tower bell", () => {
       code: "KeyE",
       key: "e",
     });
-    cy.wrap(null, { timeout: 20000 }).should(() => { expect(audioStarts.callCount).to.equal(beforeStrike + 1); });
+    cy.wrap(null, { timeout: 20000 }).should(() => {
+      expect(audioStarts.callCount).to.equal(beforeStrike + 1);
+    });
     cy.get(".interaction-prompt", { timeout: 20000 }).should("contain.text", "Ring bell");
     // Interrupt before contact: no delayed strike may survive teleporting away.
-    cy.then(() => { beforeStrike = audioStarts.callCount; });
+    cy.then(() => {
+      beforeStrike = audioStarts.callCount;
+    });
     cy.window().trigger("keydown", {
       code: "KeyE",
       key: "e",
@@ -114,7 +122,11 @@ describe("Signal tower bell", () => {
       });
     });
     cy.get("body").should("not.contain.text", "E Ring bell");
-    cy.window().should(window => { expect(window.gameMovementTest.state().action.name).to.equal("exploring"); });
-    cy.then(() => { expect(audioStarts.callCount).to.equal(beforeStrike); });
+    cy.window().should(window => {
+      expect(window.gameMovementTest.state().action.name).to.equal("exploring");
+    });
+    cy.then(() => {
+      expect(audioStarts.callCount).to.equal(beforeStrike);
+    });
   });
 });

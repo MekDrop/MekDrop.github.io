@@ -74,14 +74,18 @@ export class FireplaceChimneySightline {
        * @param {number} index
        */ (bind, index) => {
           const inverse = new pc.Mat4().mul2(root.getWorldTransform(), bind).invert();
-          for (const material of materials.values()) { material.setParameter(`uChimney${index}`, inverse.data); }
+          for (const material of materials.values()) {
+            material.setParameter(`uChimney${index}`, inverse.data);
+          }
         });
     };
     update();
     const handle = app.on("update", update);
     root.once("destroy", () => {
       handle.off();
-      for (const material of materials.values()) { material.destroy(); }
+      for (const material of materials.values()) {
+        material.destroy();
+      }
     });
   }
 

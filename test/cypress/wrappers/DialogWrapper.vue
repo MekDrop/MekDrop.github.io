@@ -14,7 +14,7 @@ export default defineComponent({
       default: () => ({}),
     },
   },
-  setup(props) {
+  setup: (props) => {
     Dialog.create({
       component: props.component,
 

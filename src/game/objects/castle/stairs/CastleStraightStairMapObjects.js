@@ -13,7 +13,9 @@ export class CastleStraightStairMapObjects {
       CastleStraightStairMapObjects.#filterItem,
     );
     for (const castle of [...map.objects]) {
-      if (castle.object !== "Castle" || !castle.buildPlan?.metadata?.runtime?.residential) { continue; }
+      if (castle.object !== "Castle" || !castle.buildPlan?.metadata?.runtime?.residential) {
+        continue;
+      }
       const layout = new CastleResidentialLayout(castle.buildPlan);
       for (const [index, stair] of castleStraightStairAssemblies(layout).entries()) {
         // Match Castle's footprint island rather than the staircase's edge tile.

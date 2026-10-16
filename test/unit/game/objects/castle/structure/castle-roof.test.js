@@ -10,12 +10,24 @@ class Entity extends pc.Entity {
   constructor(name){
     super(name);
   }
-  addChild(child){super.addChild(child);}
-  addComponent(type,options){this.components.set(type,options);}
-  setLocalPosition(...position){super.setLocalPosition(...position);}
-  setLocalEulerAngles(...rotation){super.setLocalEulerAngles(...rotation);}
-  setLocalScale(...scale){super.setLocalScale(...scale);}
-  findComponents(){return this.renders ?? [];}
+  addChild(child){
+    super.addChild(child);
+  }
+  addComponent(type,options){
+    this.components.set(type,options);
+  }
+  setLocalPosition(...position){
+    super.setLocalPosition(...position);
+  }
+  setLocalEulerAngles(...rotation){
+    super.setLocalEulerAngles(...rotation);
+  }
+  setLocalScale(...scale){
+    super.setLocalScale(...scale);
+  }
+  findComponents(){
+    return this.renders ?? [];
+  }
 }
 it("gives every solid authored roof course matching engine collision, including the cap", () => {
   const bytes=readFileSync(new URL("../../../../../../src/game/models/castle/residential/blue-roof.glb",import.meta.url));
@@ -25,7 +37,9 @@ it("gives every solid authored roof course matching engine collision, including 
   root.renders=model.nodes.filter((node)=>node.mesh !== undefined).map((node)=>{
     const entity=new Entity(node.name);
     root.addChild(entity);
-    if (node.translation) entity.setLocalPosition(...node.translation);
+    if (node.translation) {
+      entity.setLocalPosition(...node.translation);
+    }
     const meshInstances=model.meshes[node.mesh].primitives.map((primitive)=>{
       const accessor=model.accessors[primitive.attributes.POSITION];
       const halfExtents=vector(...accessor.max.map((value,index)=>(value-accessor.min[index])/2));
@@ -92,9 +106,11 @@ it("gives every solid authored roof course matching engine collision, including 
   }
   const Ammo=AmmoModule.default ?? AmmoModule;
   const allocated=[];
-  const own=(value)=>{allocated.push(value);
+  const own=(value)=>{
+    allocated.push(value);
 
-    return value;};
+    return value;
+  };
   const config=own(new Ammo.btDefaultCollisionConfiguration());
   const dispatcher=own(new Ammo.btCollisionDispatcher(config));
   const broadphase=own(new Ammo.btDbvtBroadphase());
@@ -131,8 +147,12 @@ it("gives every solid authored roof course matching engine collision, including 
       }
     }
   } finally {
-    for (const body of bodies) world.removeRigidBody(body);
-    for (const value of allocated.reverse()) Ammo.destroy(value);
+    for (const body of bodies) {
+      world.removeRigidBody(body);
+    }
+    for (const value of allocated.reverse()) {
+      Ammo.destroy(value);
+    }
   }
 });
 it("reports nearby Ammo roof support to walking checks and filters unrelated bodies", () => {

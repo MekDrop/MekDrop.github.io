@@ -59,7 +59,7 @@ describe("Game performance", () => {
     let graphicsBackend = "unknown";
 
     cy.visit("/", {
-      onBeforeLoad(win) {
+      onBeforeLoad: (win) => {
         // Measure gameplay with the FPS counter, without route and axis debug overlays.
         win.sessionStorage.setItem("debug", JSON.stringify({
           pathArrows: false,
@@ -156,7 +156,7 @@ describe("Game performance", () => {
 
   it("explains the WebGL fallback and waits for confirmation", () => {
     cy.visit("/", {
-      onBeforeLoad(win) {
+      onBeforeLoad: (win) => {
         Object.defineProperty(win.navigator, "gpu", {
           configurable: true,
           value: undefined,

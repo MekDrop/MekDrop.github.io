@@ -13,12 +13,16 @@ export class LeisureRoomMapObjects {
       LeisureRoomMapObjects.#filterDefinition,
     )) {
       const plan = castle.buildPlan?.metadata?.runtime?.residential;
-      if (!plan?.basePlanId) { continue; }
+      if (!plan?.basePlanId) {
+        continue;
+      }
       const layout = new CastleResidentialLayout(castle.buildPlan);
       const roomOrdinals = new Map();
       const generatedIds = new Set();
       for (const item of plan.furniture) {
-        if (!item.role.startsWith("leisure") || item.object !== "Planter") { continue; }
+        if (!item.role.startsWith("leisure") || item.object !== "Planter") {
+          continue;
+        }
         const index = roomOrdinals.get(item.roomId) ?? 0;
         roomOrdinals.set(item.roomId, index + 1);
         const id = `${castle.id}-leisure-${item.roomId}-${index}`;
@@ -44,13 +48,18 @@ export class LeisureRoomMapObjects {
             row: Math.round(position.z + (mapData.rows - 1) / 2),
           },
         };
-        if (existingIndex >= 0) { objects[existingIndex] = definition; }
-        else { objects.push(definition); }
+        if (existingIndex >= 0) {
+          objects[existingIndex] = definition;
+        } else {
+          objects.push(definition);
+        }
       }
       for (let index = objects.length - 1; index >= 0; index--) {
         const definition = objects[index];
         if (definition.sourceCastleId === castle.id && definition.id.startsWith(`${castle.id}-leisure-`) &&
-          !generatedIds.has(definition.id)) { objects.splice(index, 1); }
+          !generatedIds.has(definition.id)) {
+          objects.splice(index, 1);
+        }
       }
     }
     mapData.objects = objects;

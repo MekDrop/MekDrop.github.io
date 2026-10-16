@@ -9,13 +9,17 @@ export class ClothRoll extends AbstractCastleProp {
   /**
    * @returns {string[]}
    */
-  static get modelUrls() { return [creamUrl, blueUrl]; }
+  static get modelUrls() {
+    return [creamUrl, blueUrl];
+  }
 
   /**
    * @returns {string}
    */
   get modelUrl() {
-    if (this.definition.variant === "cream") { return creamUrl; }
+    if (this.definition.variant === "cream") {
+      return creamUrl;
+    }
     return blueUrl;
   }
 }

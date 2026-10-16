@@ -24,7 +24,9 @@ before(async () => {
   runInNewContext(readFileSync(new URL("ammo.wasm.js", base), "utf8").replace("export default Ammo;", ""), context);
   globalThis.Ammo = await context.module.exports({ wasmBinary: readFileSync(new URL("ammo.wasm.wasm", base)) });
 });
-after(() => { globalThis.Ammo = previousAmmo; });
+after(() => {
+  globalThis.Ammo = previousAmmo;
+});
 
 /**
  * Reads the untransformed mesh primitives of the authored bowl kit.
@@ -88,8 +90,11 @@ test("authored voxel bowls cook compact hulls and keep only the current drop dyn
   const addBody = AmmoPhysicsWorld.prototype.addBody;
   const removeBody = AmmoPhysicsWorld.prototype.removeBody;
   AmmoPhysicsWorld.prototype.addBody = function (body, group, mask) {
-    if (body._type === "dynamic") { dynamic.add(body); }
-    else { supports++; }
+    if (body._type === "dynamic") {
+      dynamic.add(body);
+    } else {
+      supports++;
+    }
     assert.ok(dynamic.size <= 1, "settled items must become static supports");
 
     return addBody.call(this, body, group, mask);
@@ -120,9 +125,13 @@ test("authored voxel bowls cook compact hulls and keep only the current drop dyn
  */
 function box(center, half) {
   const positions = [];
-  for (const x of [-1, 1]) { for (const y of [-1, 1]) { for (const z of [-1, 1]) {
-    positions.push(center[0] + x * half[0], center[1] + y * half[1], center[2] + z * half[2]);
-  } } }
+  for (const x of [-1, 1]) {
+    for (const y of [-1, 1]) {
+      for (const z of [-1, 1]) {
+        positions.push(center[0] + x * half[0], center[1] + y * half[1], center[2] + z * half[2]);
+      }
+    }
+  }
 
   return {
     positions,

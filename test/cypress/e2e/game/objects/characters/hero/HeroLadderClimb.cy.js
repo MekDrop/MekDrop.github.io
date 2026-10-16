@@ -104,7 +104,9 @@ describe("Movement-driven ladder climbing", () => {
     cy.window().then(window => window.gameMovementTest.move(0, 0));
     cy.wait(150);
     let paused;
-    cy.window().then(window => { paused = window.gameMovementTest.state().position.y; });
+    cy.window().then(window => {
+      paused = window.gameMovementTest.state().position.y;
+    });
     cy.wait(300);
     cy.window().then(window => {
       expect(window.gameMovementTest.state().position.y).to.be.closeTo(paused, 0.05);

@@ -13,13 +13,19 @@ export class RoyalBedroomRoomMapObjects {
       RoyalBedroomRoomMapObjects.#filterDefinition,
     )) {
       const plan = castle.buildPlan?.metadata?.runtime?.residential;
-      if (!plan?.furniture) { continue; }
+      if (!plan?.furniture) {
+        continue;
+      }
       const layout = new CastleResidentialLayout(castle.buildPlan);
       for (let index = objects.length - 1; index >= 0; index--) {
-        if (objects[index].royalBedroomFurnishing && objects[index].sourceCastleId === castle.id) { objects.splice(index, 1); }
+        if (objects[index].royalBedroomFurnishing && objects[index].sourceCastleId === castle.id) {
+          objects.splice(index, 1);
+        }
       }
       for (const item of plan.furniture) {
-        if (item.role !== "royalBedroomProp" || !item.object) { continue; }
+        if (item.role !== "royalBedroomProp" || !item.object) {
+          continue;
+        }
         const position = layout.toWorld(item.x, item.z, item.floorY - layout.origin.y + (item.y ?? 0));
         objects.push({
           id: `${castle.id}-${item.id}`,

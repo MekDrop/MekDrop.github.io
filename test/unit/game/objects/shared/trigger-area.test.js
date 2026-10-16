@@ -55,7 +55,7 @@ class FakeEntity {
   constructor() {
     this.render = null;
     this.rigidbody = null;
-    this.tags = { add() {} };
+    this.tags = { add: () => {} };
   }
 
   addComponent(type, options) {
@@ -169,11 +169,11 @@ describe("trigger area grass physics", () => {
     let update = null;
     const objects = { calls: [] };
     const app = {
-      on(event, callback) {
+      on: (event, callback) => {
         assert.equal(event, "update");
         update = callback;
 
-        return { off() {} };
+        return { off: () => {} };
       },
     };
     const field = new TriggerArea({

@@ -77,9 +77,15 @@ export class TerrainBuilder {
   ) {
     for (let row = top; row <= bottom; row++) {
       for (let col = left; col <= right; col++) {
-        if (!MapGrid.inBounds(col, row)) { continue; }
-        if (heightmap[row][col] === WATER_HEIGHT) { continue; }
-        if (!predicate(grid[row][col], col, row)) { continue; }
+        if (!MapGrid.inBounds(col, row)) {
+          continue;
+        }
+        if (heightmap[row][col] === WATER_HEIGHT) {
+          continue;
+        }
+        if (!predicate(grid[row][col], col, row)) {
+          continue;
+        }
         heightmap[row][col] = value;
       }
     }
@@ -92,7 +98,9 @@ export class TerrainBuilder {
   #blendGrassNearPaths(grid, heightmap) {
     for (let row = 1; row < MAP_ROWS - 1; row++) {
       for (let col = 1; col < MAP_COLS - 1; col++) {
-        if (grid[row][col] !== TileType.GRASS) { continue; }
+        if (grid[row][col] !== TileType.GRASS) {
+          continue;
+        }
 
         let touchesPath = false;
         for (const [dc, dr] of [
@@ -184,7 +192,9 @@ export class TerrainBuilder {
     for (let row = 0; row < MAP_ROWS; row++) {
       for (let col = 0; col < MAP_COLS; col++) {
         const tile = grid[row][col];
-        if (tile === TileType.WATER) { continue; }
+        if (tile === TileType.WATER) {
+          continue;
+        }
         if (tile === TileType.PATH || tile === TileType.ENTRY) {
           heightmap[row][col] = PATH_HEIGHT;
           continue;
@@ -313,8 +323,12 @@ export class TerrainBuilder {
       changed = false;
       for (let row = 1; row < MAP_ROWS - 1; row++) {
         for (let col = 1; col < MAP_COLS - 1; col++) {
-          if (grid[row][col] !== TileType.GRASS) { continue; }
-          if (heightmap[row][col] <= 1) { continue; }
+          if (grid[row][col] !== TileType.GRASS) {
+            continue;
+          }
+          if (heightmap[row][col] <= 1) {
+            continue;
+          }
 
           let similarNeighbors = 0;
           for (const [dc, dr] of [

@@ -15,11 +15,15 @@ it("reuses bounds but invalidates them for movement, ancestor scaling and mesh c
       node,
       mesh: { aabb: geometry },
     }],
-    updateBoundingBox: () => { updates++; },
+    updateBoundingBox: () => {
+      updates++;
+    },
   };
   cacheRigidBatchBounds(batch);
   cacheRigidBatchBounds(batch);
-  for (let frame = 0; frame < 120; frame++) batch.updateBoundingBox();
+  for (let frame = 0; frame < 120; frame++) {
+    batch.updateBoundingBox();
+  }
   assert.equal(updates, 1);
   node.setLocalPosition(0, 0, 0);
   batch.updateBoundingBox();

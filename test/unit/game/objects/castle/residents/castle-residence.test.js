@@ -228,7 +228,9 @@ ${residenceSource.replace("export class", "class").replace("export function", "f
     setLocalEulerAngles() {}
     setLocalScale() {}
     addComponent() {}
-    findComponents() { return [{ meshInstances: [] }]; }
+    findComponents() {
+      return [{ meshInstances: [] }];
+    }
   }
   const pc = {
     Entity,
@@ -275,9 +277,11 @@ it("includes the exterior servant entrance stairs in aggregate navigation", () =
     position: { elevation: 2 },
     cameraBlocks: [],
     serviceStairs: {
-      blocksMovementAt: (...args) => { calls.push(args);
+      blocksMovementAt: (...args) => {
+        calls.push(args);
 
-        return true; },
+        return true;
+      },
     },
   });
   assert.equal(builder.blocksMovementAt(1, 2, 0.22, 1.75, 0.32), true);
@@ -293,12 +297,20 @@ it("keeps staircase collider mesh transforms local to their positioned rigid bod
   const Harness = new Function("stairUrl", `${source.slice(source.indexOf("function subtractFloorArea"))}
 return class { ${method} };`)("stair-model");
   class Entity extends pc.Entity {
-    addComponent(type, data) { this.components ??= {}; this.components[type] = data; }
-    findComponents() { return [{ meshInstances: this.meshInstances ?? [] }]; }
+    addComponent(type, data) {
+      this.components ??= {}; this.components[type] = data;
+    }
+    findComponents() {
+      return [{ meshInstances: this.meshInstances ?? [] }];
+    }
   }
   class Mesh {
-    setPositions(positions) { this.positions = positions; }
-    setIndices(indices) { this.indices = indices; }
+    setPositions(positions) {
+      this.positions = positions;
+    }
+    setIndices(indices) {
+      this.indices = indices;
+    }
     update() {}
   }
   const sourceMesh = {
@@ -306,9 +318,11 @@ return class { ${method} };`)("stair-model");
     getPositions: (out) => out.push(0.08, 0.5, 0.62),
     getIndices: (out) => out.push(0, 0, 0),
   };
-  const merged = () => { const entity = new Entity("Collider"); entity.meshInstances = [{ mesh: sourceMesh }];
+  const merged = () => {
+    const entity = new Entity("Collider"); entity.meshInstances = [{ mesh: sourceMesh }];
 
-    return entity; };
+    return entity;
+  };
   const harness = new Harness();
   harness.entity = new Entity("Rooms");
   harness.entity.setLocalPosition(-0.5, 4, 2.375);
@@ -374,9 +388,13 @@ return class { ${method} };`)("stone", "floor");
     harness.entity = { addChild: (entity) => visuals.push(entity) };
     harness.addUpperFloorSupport({
       instantiate: () => ({
-        setLocalScale(...scale) { this.scale = scale; },
-        setLocalPosition(...position) { this.position = position; },
-        findComponents() { return []; },
+        setLocalScale(...scale) {
+          this.scale = scale;
+        },
+        setLocalPosition(...position) {
+          this.position = position;
+        },
+        findComponents: () => [],
       }),
     });
     const threshold = visuals.find((entity) => entity.name === "Castle main entrance threshold");
@@ -434,13 +452,17 @@ it("mounts the entire framed map on continuous masonry away from service doors a
       const mount = findMount(plan, layout, deskSide, shelfBack);
       assert.ok(mount, `${style}/${side} has a supported map location`);
       const mountSide = mount.yaw < 0 ? 1 : -1;
-      if (mountSide === deskSide) assert.ok(Math.abs(mount.z - shelfBack) >= 0.92);
-      for (const across of [-0.356, 0, 0.356]) for (const height of [0.85, 1.176, 1.502]) {
-        const point = layout.toWorld(mount.x + mountSide * 0.115, mount.z + across, height);
-        assert.ok(plan.metadata.collision.cameraBlocks.some((block) =>
-          Math.abs(point.x - block.x) <= block.halfX + 0.000001 &&
+      if (mountSide === deskSide) {
+        assert.ok(Math.abs(mount.z - shelfBack) >= 0.92);
+      }
+      for (const across of [-0.356, 0, 0.356]) {
+        for (const height of [0.85, 1.176, 1.502]) {
+          const point = layout.toWorld(mount.x + mountSide * 0.115, mount.z + across, height);
+          assert.ok(plan.metadata.collision.cameraBlocks.some((block) =>
+            Math.abs(point.x - block.x) <= block.halfX + 0.000001 &&
           Math.abs(point.y - block.y) <= block.halfY + 0.000001 &&
           Math.abs(point.z - block.z) <= block.halfZ + 0.000001), `${style}/${side}: frame has masonry backing`);
+        }
       }
       assert.equal(findMount({ metadata: { collision: { cameraBlocks: [] } } }, layout, deskSide, shelfBack), null,
         "unsupported walls cannot receive a floating frame");

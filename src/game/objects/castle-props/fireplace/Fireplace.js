@@ -58,7 +58,9 @@ export class Fireplace extends AbstractCastleProp {
           instance.material = masonry;
           continue;
         }
-        if (instance.material.name === "Chimney soot-dark stone") { continue; }
+        if (instance.material.name === "Chimney soot-dark stone") {
+          continue;
+        }
         const material = FireSurfaceMaterial.create(pc, app.graphicsDevice, instance.material, {
           position: {
             x: 0,
@@ -87,7 +89,9 @@ export class Fireplace extends AbstractCastleProp {
     }
     const socket = root.findByName("Chimney socket from original fireplace stone");
     for (const render of socket?.findComponents("render") ?? []) {
-      for (const instance of render.meshInstances) { instance.material = masonry; }
+      for (const instance of render.meshInstances) {
+        instance.material = masonry;
+      }
     }
     // Keep full stone courses at their authored proportions. Only the final
     // course is shortened to meet the local roof surface exactly.
@@ -106,7 +110,9 @@ export class Fireplace extends AbstractCastleProp {
       course.setLocalScale(scale, Math.min(courseHeight, stoneTop - bottom) / 0.24, scale);
       for (const render of course.findComponents("render")) {
         for (const instance of render.meshInstances) {
-          if (instance.material.name !== "Chimney soot-dark stone") { instance.material = masonry; }
+          if (instance.material.name !== "Chimney soot-dark stone") {
+            instance.material = masonry;
+          }
         }
       }
       this.#chimney.addChild(course);

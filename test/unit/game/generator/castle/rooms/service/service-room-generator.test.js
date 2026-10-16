@@ -206,7 +206,9 @@ test("authored service props publish once with supported heights and rotated res
     assert.ok(definition);
     assert.equal(definition.position.y, item.floorY + (item.y ?? 0));
     assert.equal(definition.rotation, layout.yaw + 180 + item.rotation);
-    if (item.items) { assert.deepEqual(definition.items, item.items); }
+    if (item.items) {
+      assert.deepEqual(definition.items, item.items);
+    }
   }
   const bed = furniture.find(item => item.role === "royalBed");
   const placement = layout.placements.find(item => item.role === "royalBed");

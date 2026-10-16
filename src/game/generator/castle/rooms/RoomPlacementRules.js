@@ -31,7 +31,9 @@ export class RoomPlacementRules {
     const halfX = item.width * item.scale / 2;
     const halfZ = item.depth * item.scale / 2;
     if (item.x - halfX < bounds.minX + inset - 1e-6 || item.x + halfX > bounds.maxX - inset + 1e-6 ||
-      item.z - halfZ < bounds.minZ + inset - 1e-6 || item.z + halfZ > bounds.maxZ - inset + 1e-6) { return false; }
+      item.z - halfZ < bounds.minZ + inset - 1e-6 || item.z + halfZ > bounds.maxZ - inset + 1e-6) {
+      return false;
+    }
     const bottom = (item.floorY ?? room.floorY) + (item.y ?? item.elevation ?? 0) + roomPropBottom(item) * item.scale;
     const top = bottom + roomPropHeight(item, room.height) * item.scale;
     /**
@@ -39,21 +41,31 @@ export class RoomPlacementRules {
      * @param {import("./AbstractCastleRoomGenerator.js").RoomItem} candidate
      */
     const isItemSupport = candidate => candidate.id === item.supportId;
-    if (item.supportId && !occupied.some(isItemSupport)) { return false; }
+    if (item.supportId && !occupied.some(isItemSupport)) {
+      return false;
+    }
     for (const other of occupied) {
       if (other.object === "Fireplace") {
         const chimney = FireplaceChimneyFootprint.bounds(other, [room]);
         if (bottom < chimney.top - 0.005 && top > chimney.bottom + 0.005 &&
           item.x + halfX > chimney.minX && item.x - halfX < chimney.maxX &&
-          item.z + halfZ > chimney.minZ && item.z - halfZ < chimney.maxZ) { return false; }
+          item.z + halfZ > chimney.minZ && item.z - halfZ < chimney.maxZ) {
+          return false;
+        }
       }
       const otherBottom = (other.floorY ?? room.floorY) + (other.y ?? other.elevation ?? 0) + roomPropBottom(other) * other.scale;
       const otherTop = otherBottom + roomPropHeight(other, room.height) * other.scale;
       // Contact at a supporting surface is allowed; intersecting volumes are not.
-      if (bottom >= otherTop - 0.005 || top <= otherBottom + 0.005) { continue; }
-      if (item.supportId === other.id && item.underSupport) { continue; }
+      if (bottom >= otherTop - 0.005 || top <= otherBottom + 0.005) {
+        continue;
+      }
+      if (item.supportId === other.id && item.underSupport) {
+        continue;
+      }
       if (Math.abs(item.x - other.x) < halfX + other.width * other.scale / 2 - 1e-6 &&
-        Math.abs(item.z - other.z) < halfZ + other.depth * other.scale / 2 - 1e-6) { return false; }
+        Math.abs(item.z - other.z) < halfZ + other.depth * other.scale / 2 - 1e-6) {
+        return false;
+      }
     }
 
     return true;
@@ -76,19 +88,25 @@ export class RoomPlacementRules {
     // Older generators publish supported tabletop details without explicit IDs.
     for (const item of result) {
       if (item.supportId || (item.y ?? item.elevation ?? 0) < 0.05 ||
-        roomPropHeight(item, 1) * item.scale > 0.5) { continue; }
+        roomPropHeight(item, 1) * item.scale > 0.5) {
+        continue;
+      }
       const a = envelope(item);
       const support = result.find(/**
        *
        * @param {import("./AbstractCastleRoomGenerator.js").RoomItem} other
        */
         other => {
-          if (other === item || other.floorY !== item.floorY) { return false; }
+          if (other === item || other.floorY !== item.floorY) {
+            return false;
+          }
           const b = envelope(other);
 
           return Math.abs(a.bottom - b.top) < 0.025 && item.x >= b.minX && item.x <= b.maxX && item.z >= b.minZ && item.z <= b.maxZ;
         });
-      if (support) { item.supportId = support.id; }
+      if (support) {
+        item.supportId = support.id;
+      }
     }
     const placed = [];
     for (const root of result
@@ -102,7 +120,9 @@ export class RoomPlacementRules {
            * @param {import("./AbstractCastleRoomGenerator.js").RoomItem} parent
            */
           const supportsChild = parent => child.supportId === parent.id;
-          if (!group.includes(child) && group.some(supportsChild)) { group.push(child); }
+          if (!group.includes(child) && group.some(supportsChild)) {
+            group.push(child);
+          }
         }
       }
       const room = rooms.find(/**
@@ -115,7 +135,9 @@ export class RoomPlacementRules {
          * @param {import("./AbstractCastleRoomGenerator.js").PlannedCastleRoom} candidate
          */
           candidate => candidate.floorY === root.floorY && root.x >= candidate.minX && root.x <= candidate.maxX && root.z >= candidate.minZ && root.z <= candidate.maxZ);
-      if (!room) { placed.push(...group); continue; }
+      if (!room) {
+        placed.push(...group); continue;
+      }
       // Mount fixtures by their rear surface, independently of the hanging contents.
       const bookshelf = root.object === "Shelf";
       const back = root.wallMountBack ?? (bookshelf ? -0.18 - 0.02501 / root.scale : WALL_MOUNTS[root.object]);
@@ -131,7 +153,9 @@ export class RoomPlacementRules {
         let distance = Infinity;
         for (const wall of walls) {
           if (bounds.top <= wall.y - wall.halfY || bounds.bottom >= wall.y + wall.halfY ||
-            Math.abs(root[tangent] - wall[tangent]) > wall[tangentHalf]) { continue; }
+            Math.abs(root[tangent] - wall[tangent]) > wall[tangentHalf]) {
+            continue;
+          }
           const face = wall[mountAxis] - sign * wall[half];
           const target = face + sign * back * root.scale * (root.stretch?.z ?? 1);
           const delta = target - root[mountAxis];
@@ -142,9 +166,15 @@ export class RoomPlacementRules {
         if (mountWall && distance < 0.8) {
           const target = mountWall[mountAxis] - sign * mountWall[half] + sign * back * root.scale * (root.stretch?.z ?? 1);
           const shift = target - root[mountAxis];
-          for (const item of group) { item[mountAxis] += shift; }
-          if (!bookshelf) { root.wallAttachment = true; }
-        } else { mountAxis = undefined; }
+          for (const item of group) {
+            item[mountAxis] += shift;
+          }
+          if (!bookshelf) {
+            root.wallAttachment = true;
+          }
+        } else {
+          mountAxis = undefined;
+        }
       }
       const obstacles = walls.map(/**
        *
@@ -182,11 +212,15 @@ export class RoomPlacementRules {
           };
         }));
       for (const item of placed) {
-        if (item.object === "Fireplace") { obstacles.push(FireplaceChimneyFootprint.bounds(item, rooms)); }
+        if (item.object === "Fireplace") {
+          obstacles.push(FireplaceChimneyFootprint.bounds(item, rooms));
+        }
       }
       for (const door of openings) {
         // Glazed openings still have collision backing, but cannot support decor.
-        if (!["door", "window"].includes(door.kind) || door.floorY !== root.floorY) { continue; }
+        if (!["door", "window"].includes(door.kind) || door.floorY !== root.floorY) {
+          continue;
+        }
         obstacles.push({
           minX: door.axis === "x" ? door.coordinate - 0.15 : door.center - door.width / 2 - 0.08,
           maxX: door.axis === "x" ? door.coordinate + 0.15 : door.center + door.width / 2 + 0.08,
@@ -212,19 +246,29 @@ export class RoomPlacementRules {
           zs.add(room.minZ - member.minZ); zs.add(room.maxZ - member.maxZ);
         }
         for (const obstacle of obstacles) {
-          if (member.item.floorCovering && !obstacle.masonry && !obstacle.chimney || member.bottom >= obstacle.top - 0.005 || member.top <= obstacle.bottom + 0.005 || member.item.wallAttachment && obstacle.masonry && obstacle.mountingWall) { continue; }
+          if (member.item.floorCovering && !obstacle.masonry && !obstacle.chimney || member.bottom >= obstacle.top - 0.005 || member.top <= obstacle.bottom + 0.005 || member.item.wallAttachment && obstacle.masonry && obstacle.mountingWall) {
+            continue;
+          }
           xs.add(obstacle.maxX - member.minX + 0.00001); xs.add(obstacle.minX - member.maxX - 0.00001);
           zs.add(obstacle.maxZ - member.minZ + 0.00001); zs.add(obstacle.minZ - member.maxZ - 0.00001);
         }
       }
-      if (!bookshelf && mountAxis === "x") { xs.clear(); xs.add(0); }
-      if (!bookshelf && mountAxis === "z") { zs.clear(); zs.add(0); }
+      if (!bookshelf && mountAxis === "x") {
+        xs.clear(); xs.add(0);
+      }
+      if (!bookshelf && mountAxis === "z") {
+        zs.clear(); zs.add(0);
+      }
       const candidates = [];
-      for (const x of xs) { for (const z of zs) { candidates.push({
-        x,
-        z,
-        distance: x * x + z * z,
-      }); } }
+      for (const x of xs) {
+        for (const z of zs) {
+          candidates.push({
+            x,
+            z,
+            distance: x * x + z * z,
+          });
+        }
+      }
       /**
        * Prefer a clear perimeter position for the complete supported group.
        * @param {{x:number,z:number}} candidate
@@ -244,7 +288,9 @@ export class RoomPlacementRules {
           return Math.abs(edge + candidate[wall.axis] - wall.coordinate);
         }));
       if (root.wallAlignment?.length) {
-        for (const candidate of candidates) { candidate.wallDistance = Math.floor(wallDistance(candidate) / 0.04); }
+        for (const candidate of candidates) {
+          candidate.wallDistance = Math.floor(wallDistance(candidate) / 0.04);
+        }
       }
       candidates.sort(/**
        *
@@ -268,22 +314,32 @@ export class RoomPlacementRules {
             ...member.item,
             x: member.item.x + candidate.x,
             z: member.item.z + candidate.z,
-          }, room, openings, walls, root)) { return false; }
+          }, room, openings, walls, root)) {
+            return false;
+          }
           if (root.stairApproach) {
             const { axis, coordinate, side } = root.stairApproach;
             const edge = side === "max" ? (axis === "x" ? maxX : maxZ) : (axis === "x" ? minX : minZ);
-            if (side === "max" ? edge > coordinate : edge < coordinate) { return false; }
+            if (side === "max" ? edge > coordinate : edge < coordinate) {
+              return false;
+            }
           }
-          if (!member.item.wallAttachment && (minX < room.minX - 1e-6 || maxX > room.maxX + 1e-6 || minZ < room.minZ - 1e-6 || maxZ > room.maxZ + 1e-6)) { return false; }
+          if (!member.item.wallAttachment && (minX < room.minX - 1e-6 || maxX > room.maxX + 1e-6 || minZ < room.minZ - 1e-6 || maxZ > room.maxZ + 1e-6)) {
+            return false;
+          }
           if (!bookshelf && mountAxis && mountWall) {
             const tangentMin = mountAxis === "x" ? minZ : minX;
             const tangentMax = mountAxis === "x" ? maxZ : maxX;
             const center = mountAxis === "x" ? mountWall.z : mountWall.x;
             const half = mountAxis === "x" ? mountWall.halfZ : mountWall.halfX;
-            if (tangentMin < center - half - 1e-6 || tangentMax > center + half + 1e-6) { return false; }
+            if (tangentMin < center - half - 1e-6 || tangentMax > center + half + 1e-6) {
+              return false;
+            }
             const roomMin = mountAxis === "x" ? room.minZ : room.minX;
             const roomMax = mountAxis === "x" ? room.maxZ : room.maxX;
-            if (tangentMin < roomMin - 1e-6 || tangentMax > roomMax + 1e-6) { return false; }
+            if (tangentMin < roomMin - 1e-6 || tangentMax > roomMax + 1e-6) {
+              return false;
+            }
           }
           return obstacles.every(/**
          *
@@ -295,7 +351,9 @@ export class RoomPlacementRules {
         });
       const destination = candidates.find(valid);
       if (destination) {
-        for (const item of group) { item.x += destination.x; item.z += destination.z; }
+        for (const item of group) {
+          item.x += destination.x; item.z += destination.z;
+        }
       } else {
         // Never silently erase a furnishing that cannot fit: retain it for diagnostics.
         root.placementIssue = "No clear position in authored room";

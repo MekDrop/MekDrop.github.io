@@ -13,14 +13,24 @@ for (const lives of [1, 2, 3]) {
     let transition;
     const owner = {
       deltaTime: 0,
-      enterState: () => { state.payload = { cell: { elevation: 2 } }; },
-      exitState: () => { state.payload = null; },
+      enterState: () => {
+        state.payload = { cell: { elevation: 2 } };
+      },
+      exitState: () => {
+        state.payload = null;
+      },
       feedback: {
         burning: {
           lives: () => lives,
-          freezeAtHeight: (value) => { height = value; },
-          setHeight: (value) => { height = value; },
-          setModelScale: (...value) => { scale = value; },
+          freezeAtHeight: (value) => {
+            height = value;
+          },
+          setHeight: (value) => {
+            height = value;
+          },
+          setModelScale: (...value) => {
+            scale = value;
+          },
           modelScale: 0.65,
           syncState: () => {},
         },
@@ -32,7 +42,9 @@ for (const lives of [1, 2, 3]) {
           },
         },
       },
-      transition: (...args) => { transition = args; },
+      transition: (...args) => {
+        transition = args;
+      },
     };
     state.enter(owner);
     assert.equal(height, 2.02);

@@ -171,12 +171,16 @@ export class TerraceActor {
   /**
    * @returns {import("../../../shared/NpcStateMachine.js").NpcStateMachine}
    */
-  get behavior() { return this.#doorAvoidance.behavior; }
+  get behavior() {
+    return this.#doorAvoidance.behavior;
+  }
 
   /**
    * @param {import("../../../shared/NpcStateMachine.js").NpcStateMachine} behavior
    */
-  set behavior(behavior) { this.#doorAvoidance.behavior = behavior; }
+  set behavior(behavior) {
+    this.#doorAvoidance.behavior = behavior;
+  }
 
   get model() {
     return this.#model;
@@ -210,11 +214,13 @@ export class TerraceActor {
    * @param {number} [blend=1]
    */
   pose(action, time = 0, blend = 1) {
-    if (!this.#applyingDoorPose) { this.#authoredPose = {
-      action,
-      time,
-      blend,
-    }; }
+    if (!this.#applyingDoorPose) {
+      this.#authoredPose = {
+        action,
+        time,
+        blend,
+      };
+    }
     if (!this.#animationLayer) {
       return;
     }
@@ -276,7 +282,9 @@ export class TerraceActor {
       };
       this.pose(pose.action, pose.time, pose.blend);
       this.evaluatePose();
-    } finally { this.#applyingDoorPose = false; }
+    } finally {
+      this.#applyingDoorPose = false;
+    }
   }
 
   evaluatePose() {

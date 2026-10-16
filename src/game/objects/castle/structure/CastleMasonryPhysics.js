@@ -30,7 +30,9 @@ export function createCastleMasonryVoxels(blocks) {
      * @param {string} value
      */ (value) =>
           `${box[value].toFixed(6)}:${box[dimensions[value]].toFixed(6)}`).join("/");
-      if (!groups.has(key)) { groups.set(key, []); }
+      if (!groups.has(key)) {
+        groups.set(key, []);
+      }
       groups.get(key).push(box);
     }
     boxes = [];
@@ -46,7 +48,9 @@ export function createCastleMasonryVoxels(blocks) {
           const end = box[axis] + box[size] / 2;
           previous[axis] = (start + end) / 2;
           previous[size] = end - start;
-        } else { previous = { ...box }; boxes.push(previous); }
+        } else {
+          previous = { ...box }; boxes.push(previous);
+        }
       }
     }
   }

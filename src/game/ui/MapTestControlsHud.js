@@ -172,7 +172,9 @@ export class MapTestControlsHud extends GamePanelHud {
      * @param {import("playcanvas").Entity} panel
      */
       (panel) => this.#contains(panel, event));
-    if (!inside && this.#pointer === null) { return; }
+    if (!inside && this.#pointer === null) {
+      return;
+    }
     event.preventDefault();
     event.stopImmediatePropagation();
     const index = this.#buttons.findIndex(/**
@@ -185,7 +187,9 @@ export class MapTestControlsHud extends GamePanelHud {
       this.#pressed = index;
       this.#canvas.setPointerCapture(event.pointerId);
     } else if (event.type === INPUT_EVENT_TYPE.POINTER_UP && event.pointerId === this.#pointer) {
-      if (index >= 0 && index === this.#pressed) { this.#controls.execute(this.#buttons[index].button); }
+      if (index >= 0 && index === this.#pressed) {
+        this.#controls.execute(this.#buttons[index].button);
+      }
       this.#pointer = null;
       this.#pressed = -1;
     } else if (event.type === INPUT_EVENT_TYPE.POINTER_CANCEL) {
@@ -197,7 +201,9 @@ export class MapTestControlsHud extends GamePanelHud {
   update() {
     for (const status of this.#statuses) {
       const text = this.#controls.status(status.targetId);
-      if (text === status.previous) { continue; }
+      if (text === status.previous) {
+        continue;
+      }
       status.previous = text;
       const { context, canvas, texture } = status.record;
       context.clearRect(0, 0, 220, 30);

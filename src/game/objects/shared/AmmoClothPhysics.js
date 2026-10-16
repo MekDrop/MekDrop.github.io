@@ -105,7 +105,9 @@ export class AmmoClothPhysics {
    * Bullet reserves large pools per world; empty flag collections need none.
    */
   #initializeWorld() {
-    if (this.#world) return;
+    if (this.#world) {
+      return;
+    }
     const owners = AmmoClothPhysics.#worldOwners.get(this.#ammo);
     if (owners?.size) {
       const owner = owners.values().next().value;
@@ -315,16 +317,22 @@ export class AmmoClothPhysics {
     const owners = AmmoClothPhysics.#worldOwners.get(this.#ammo);
     // One owner advances the shared world; other collections only read their
     // meshes. Apply every collection's forces before that single simulation.
-    if (owners.values().next().value !== this) return;
+    if (owners.values().next().value !== this) {
+      return;
+    }
     const elapsed = Math.max(0, Math.min(0.05, deltaTime));
     for (const owner of owners) {
       owner.#elapsed += elapsed;
       const wind = getAmbientWind(owner.#elapsed);
-      for (const cloth of owner.#cloths) owner.#applyWind(cloth, wind);
+      for (const cloth of owner.#cloths) {
+        owner.#applyWind(cloth, wind);
+      }
     }
     this.#world.stepSimulation(elapsed, MAXIMUM_SUB_STEPS, FIXED_TIME_STEP);
     for (const owner of owners) {
-      for (const cloth of owner.#cloths) owner.#limitStretch(cloth);
+      for (const cloth of owner.#cloths) {
+        owner.#limitStretch(cloth);
+      }
     }
   }
 
@@ -435,7 +443,9 @@ export class AmmoClothPhysics {
     // Sheltered cloth must dissipate prior gust/gesture energy rather than keep
     // ringing with the outdoor flutter damping after the airflow is blocked.
     cloth.body.get_m_cfg().set_kDP(0.08 + (1 - environmentExposure) * 0.42);
-    if (environmentExposure === 0) { return; }
+    if (environmentExposure === 0) {
+      return;
+    }
     let windX = wind.direction.x;
     let windZ = wind.direction.z;
     if (cloth.root && cloth.inverseWorldTransform) {

@@ -24,7 +24,9 @@ export function createSpiralStairCollision(pc, { device, material, innerRadius, 
         positions.push(Math.sin(angle) * radius, y, Math.cos(angle) * radius);
       }
     }
-    if (angleIndex === segments) continue;
+    if (angleIndex === segments) {
+      continue;
+    }
     const v = angleIndex * stride;
     for (let radialIndex = 0; radialIndex < radialSegments; radialIndex++) {
       const a = v + radialIndex, b = a + 1, c = b + stride, d = a + stride;
@@ -57,6 +59,8 @@ export function createSpiralStairCollision(pc, { device, material, innerRadius, 
  * @returns {number}
  */
 export function spiralStairRise(progress, landingProfile = false) {
-  if (!landingProfile) return progress;
+  if (!landingProfile) {
+    return progress;
+  }
   return progress <= 0.5 ? progress * 0.5 : 0.25 + (progress - 0.5) * 1.5;
 }

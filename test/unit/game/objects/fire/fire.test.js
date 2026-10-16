@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 registerHooks({
-  resolve(specifier, context, nextResolve) {
+  resolve: (specifier, context, nextResolve) => {
     if (specifier.endsWith('?url')) {
       return {
         url: `data:text/javascript,export default ${JSON.stringify(specifier)}`,
@@ -17,20 +17,38 @@ const { Fire } = await import('../../../../../src/game/objects/fire/Fire.js');
 
 class Entity {
   children = [];
-  tags = { add() {} };
-  constructor(name) { this.name = name; }
-  addChild(child) { this.children.push(child); }
-  setLocalPosition(...position) { this.position = position; }
+  tags = { add: () => {} };
+  constructor(name) {
+    this.name = name;
+  }
+  addChild(child) {
+    this.children.push(child);
+  }
+  setLocalPosition(...position) {
+    this.position = position;
+  }
   setLocalEulerAngles() {}
-  addComponent(type, options) { this[type] = options; }
-  destroy() { this.destroyed = true; }
+  addComponent(type, options) {
+    this[type] = options;
+  }
+  destroy() {
+    this.destroyed = true;
+  }
 }
-class Curve { constructor(keys) { this.keys = keys; } }
-class Vec3 { constructor(x, y, z) { Object.assign(this, {
-  x,
-  y,
-  z,
-}); } }
+class Curve {
+  constructor(keys) {
+    this.keys = keys;
+  }
+}
+class Vec3 {
+  constructor(x, y, z) {
+    Object.assign(this, {
+      x,
+      y,
+      z,
+    });
+  }
+}
 const pc = {
   Entity,
   Curve,
@@ -105,7 +123,9 @@ test('intensity changes brightness independently of the box and zero disables fl
 test('attached prop fire uses the normal emitter in parent space and is destroyed with its parent', async () => {
   const engine = await import('playcanvas');
   class PropEntity extends engine.Entity {
-    addComponent(type, options) { this[type] = options; }
+    addComponent(type, options) {
+      this[type] = options;
+    }
   }
   const parent = new PropEntity('wick');
   parent.setLocalPosition(2, 3, 4);

@@ -14,14 +14,20 @@ export class KitchenRoomMapObjects {
       KitchenRoomMapObjects.#filterDefinition,
     )) {
       const plan = castle.buildPlan?.metadata?.runtime?.residential;
-      if (!plan?.furniture) { continue; }
+      if (!plan?.furniture) {
+        continue;
+      }
       const layout = new CastleResidentialLayout(castle.buildPlan);
       // Regeneration replaces the kitchen's records even when optional counts change.
       for (let index = objects.length - 1; index >= 0; index--) {
-        if (objects[index].kitchenFurnishing && objects[index].sourceCastleId === castle.id) { objects.splice(index, 1); }
+        if (objects[index].kitchenFurnishing && objects[index].sourceCastleId === castle.id) {
+          objects.splice(index, 1);
+        }
       }
       for (const [index, item] of plan.furniture.entries()) {
-        if (!["kitchenProp", "serviceProp"].includes(item.role) || !item.object) { continue; }
+        if (!["kitchenProp", "serviceProp"].includes(item.role) || !item.object) {
+          continue;
+        }
         const id = `${castle.id}-kitchen-prop-${index}`;
         const position = layout.toWorld(item.x, item.z, item.floorY - layout.origin.y + (item.y ?? 0));
         // Only compiled base plans transform both horizontal coordinates by 180°.

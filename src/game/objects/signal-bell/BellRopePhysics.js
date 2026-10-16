@@ -164,8 +164,12 @@ export class BellRopePhysics {
         const link = this.#links[7];
         this.#gripJoint = this.#join(this.#hand, link.body, 0, -link.length / 2);
       }
-      for (const { body } of this.#links) { body.activate(); }
-    } else { this.release(); }
+      for (const { body } of this.#links) {
+        body.activate();
+      }
+    } else {
+      this.release();
+    }
   }
 
   release() {
@@ -184,12 +188,16 @@ export class BellRopePhysics {
 
   destroy() {
     this.release();
-    for (const joint of this.#joints) { this.#world.destroyJoint(joint); }
+    for (const joint of this.#joints) {
+      this.#world.destroyJoint(joint);
+    }
     for (const body of this.#bodies) {
       this.#world.removeBody(body);
       this.#world.destroyBody(body);
     }
-    for (const shape of this.#shapes) { this.#world.destroyShape(shape); }
+    for (const shape of this.#shapes) {
+      this.#world.destroyShape(shape);
+    }
     this.#joints = [];
     this.#bodies = [];
     this.#shapes = [];

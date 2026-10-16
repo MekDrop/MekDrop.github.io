@@ -83,7 +83,9 @@ export class NpcDoorAvoidance {
    * @param {number} deltaTime
    * @type {(deltaTime: number) => void}
    */
-  #captureTime = (deltaTime) => { this.#deltaTime = deltaTime; };
+  #captureTime = (deltaTime) => {
+    this.#deltaTime = deltaTime;
+  };
   /**
    * @type {() => void}
    */
@@ -127,34 +129,46 @@ export class NpcDoorAvoidance {
   /**
    * @returns {string}
    */
-  get phase() { return this.#phase; }
+  get phase() {
+    return this.#phase;
+  }
 
   /**
    * @returns {NpcStateMachine}
    */
-  get behavior() { return this.#machine; }
+  get behavior() {
+    return this.#machine;
+  }
 
   /**
    * @param {NpcStateMachine} behavior
    */
   set behavior(behavior) {
-    if (behavior === this.#machine) { return; }
+    if (behavior === this.#machine) {
+      return;
+    }
     this.#machine.resumeReaction(this.#reaction);
     this.#machine = behavior;
-    if (this.#home) { this.#machine.interruptReaction(this.#reaction); }
+    if (this.#home) {
+      this.#machine.interruptReaction(this.#reaction);
+    }
   }
 
   /**
    * @type {() => void}
    */
-  #tickReaction = () => { this.#update(this.#deltaTime); };
+  #tickReaction = () => {
+    this.#update(this.#deltaTime);
+  };
 
   /**
    * @param {string} phase
    */
   #transition(phase) {
     this.#phase = phase;
-    if (phase === PHASE.IDLE) { this.#machine.resumeReaction(this.#reaction); }
+    if (phase === PHASE.IDLE) {
+      this.#machine.resumeReaction(this.#reaction);
+    }
     this.#vehicle.velocity.set(0, 0, 0);
     if (phase === PHASE.IDLE || phase === PHASE.WAIT) {
       this.#onPose?.(phase === PHASE.IDLE ? "resume" : "idle", this.#elapsed);
@@ -172,8 +186,12 @@ export class NpcDoorAvoidance {
    */
   static requestClearance(door, inSwing, canMove, recipient = null, operator = null) {
     for (const participant of this.#participants) {
-      if (operator && (participant.#entity === operator || participant.#entity.isDescendantOf(operator))) { continue; }
-      if (recipient && participant.#entity !== recipient) { continue; }
+      if (operator && (participant.#entity === operator || participant.#entity.isDescendantOf(operator))) {
+        continue;
+      }
+      if (recipient && participant.#entity !== recipient) {
+        continue;
+      }
       if (participant.#entity.root !== door.root || !participant.#entity.enabled) {
         continue;
       }
@@ -184,8 +202,12 @@ export class NpcDoorAvoidance {
         participant.#remaining = 0.6;
       }
       const point = participant.#entity.getPosition();
-      if (!inSwing(point)) { continue; }
-      if (!participant.#machine.interruptReaction(participant.#reaction)) { continue; }
+      if (!inSwing(point)) {
+        continue;
+      }
+      if (!participant.#machine.interruptReaction(participant.#reaction)) {
+        continue;
+      }
       participant.#home ??= participant.#entity.getLocalPosition().clone();
       participant.#homeRotation ??= participant.#entity.getLocalRotation().clone();
       participant.#door = door;
@@ -196,7 +218,9 @@ export class NpcDoorAvoidance {
         !inSwing(participant.#target) && canMove(participant.#target)) {
         continue;
       }
-      if (participant.#retryRemaining > 0) { continue; }
+      if (participant.#retryRemaining > 0) {
+        continue;
+      }
       participant.#retryRemaining = 0.25;
       participant.#target = null;
       for (let distance = 0.25; distance <= 3 && !participant.#target; distance += 0.25) {
@@ -204,7 +228,9 @@ export class NpcDoorAvoidance {
           const angle = direction * Math.PI / 8;
           const target = new Vector3(point.x + Math.cos(angle) * distance, point.y,
             point.z + Math.sin(angle) * distance);
-          if (inSwing(target)) { continue; }
+          if (inSwing(target)) {
+            continue;
+          }
           let clear = true;
           for (let step = 1; step <= Math.ceil(distance / 0.05); step++) {
             const fraction = Math.min(1, step * 0.05 / distance);
@@ -214,7 +240,9 @@ export class NpcDoorAvoidance {
               break;
             }
           }
-          if (clear) { participant.#target = target; break; }
+          if (clear) {
+            participant.#target = target; break;
+          }
         }
       }
       participant.#transition(participant.#target ? PHASE.YIELD : PHASE.WAIT);
@@ -229,9 +257,13 @@ export class NpcDoorAvoidance {
    */
   static occupied(door, blocks, operator = null) {
     for (const participant of this.#participants) {
-      if (operator && (participant.#entity === operator || participant.#entity.isDescendantOf(operator))) { continue; }
+      if (operator && (participant.#entity === operator || participant.#entity.isDescendantOf(operator))) {
+        continue;
+      }
       if (participant.#entity.root === door.root && participant.#entity.enabled &&
-        blocks(participant.#entity.getPosition())) { return true; }
+        blocks(participant.#entity.getPosition())) {
+        return true;
+      }
     }
 
     return false;
@@ -242,12 +274,16 @@ export class NpcDoorAvoidance {
    * @type {(deltaTime: number) => void}
    */
   #update = (deltaTime) => {
-    if (!this.#entity.enabled) { return; }
+    if (!this.#entity.enabled) {
+      return;
+    }
     const step = Math.min(0.05, Math.max(0, deltaTime));
     this.#step = step;
     this.#remaining = Math.max(0, this.#remaining - step);
     this.#retryRemaining = Math.max(0, this.#retryRemaining - step);
-    if (!this.#home) { return; }
+    if (!this.#home) {
+      return;
+    }
     if (this.#remaining === 0 && this.phase !== PHASE.RETURN) {
       this.#door = null;
       this.#transition(PHASE.RETURN);
@@ -264,11 +300,15 @@ export class NpcDoorAvoidance {
   };
 
   hold() {
-    if (this.phase === PHASE.WAIT) { this.#onPose?.("idle", this.#elapsed); }
+    if (this.phase === PHASE.WAIT) {
+      this.#onPose?.("idle", this.#elapsed);
+    }
   }
 
   advance() {
-    if (!this.#target) { return; }
+    if (!this.#target) {
+      return;
+    }
     const step = this.#step;
     const position = this.#entity.getPosition();
     this.#vehicle.position.set(position.x, position.y, position.z);
@@ -300,7 +340,9 @@ export class NpcDoorAvoidance {
     if (next.distanceTo(this.#target) < 0.04 &&
       (this.phase === PHASE.RETURN || !this.#hazard?.(next))) {
       if (this.phase === PHASE.RETURN) {
-        if (this.#canMove(this.#target)) { this.#entity.setLocalPosition(this.#home); }
+        if (this.#canMove(this.#target)) {
+          this.#entity.setLocalPosition(this.#home);
+        }
         this.#entity.setLocalRotation(this.#homeRotation);
         this.#home = null;
         this.#homeRotation = null;

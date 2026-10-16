@@ -16,16 +16,20 @@ it("keeps the runner visible without a door-blocking body while solid props reta
      * @param {string} type
      * @param {Record<string, string|number>} data
      */
-    addComponent(type, data) { components.push({
-      type,
-      data,
-    }); }
+    addComponent(type, data) {
+      components.push({
+        type,
+        data,
+      });
+    }
   }
   class SolidProp extends AbstractCastleProp {
     /**
      * @returns {string}
      */
-    static get modelUrl() { return "solid.glb"; }
+    static get modelUrl() {
+      return "solid.glb";
+    }
   }
   const options = {
     pc: {
@@ -108,7 +112,9 @@ it("loads an arbitrary fabric URL on owned materials and releases the asset", as
     }],
   };
   class RugEntity extends pc.Entity {
-    findComponents() { return [render]; }
+    findComponents() {
+      return [render];
+    }
   }
   const geometry = [];
   class MeshInstance {
@@ -116,7 +122,9 @@ it("loads an arbitrary fabric URL on owned materials and releases the asset", as
      * @param {Record<string, number[]>} mesh
      * @param {import("playcanvas").StandardMaterial} material
      */
-    constructor(mesh, material) { this.mesh = mesh; this.material = material; }
+    constructor(mesh, material) {
+      this.mesh = mesh; this.material = material;
+    }
   }
   const model = new pc.Entity("rug model");
   model.findComponents = () => [render];
@@ -125,9 +133,11 @@ it("loads an arbitrary fabric URL on owned materials and releases the asset", as
       ...pc,
       Entity: RugEntity,
       Mesh: {
-        fromGeometry: (device, data) => { geometry.push(data);
+        fromGeometry: (device, data) => {
+          geometry.push(data);
 
-          return data; },
+          return data;
+        },
       },
       MeshInstance,
     },

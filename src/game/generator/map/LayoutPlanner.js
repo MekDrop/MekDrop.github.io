@@ -408,9 +408,13 @@ export class LayoutPlanner {
     const blocked = occupiedBandStarts.concat(trunkTop);
     const candidates = [];
     if (direction > 0) {
-      for (let start = min; start <= max; start++) candidates.push(start);
+      for (let start = min; start <= max; start++) {
+        candidates.push(start);
+      }
     } else {
-      for (let start = max; start >= min; start--) candidates.push(start);
+      for (let start = max; start >= min; start--) {
+        candidates.push(start);
+      }
     }
 
     const safe = [];
@@ -420,8 +424,12 @@ export class LayoutPlanner {
        * @param {number} start
        */
       const isFarFromExistingStart = (start) => Math.abs(candidate - start) >= 4;
-      if (!blocked.every(isFarFromExistingStart)) { continue; }
-      if (!safe.every(isFarFromExistingStart)) { continue; }
+      if (!blocked.every(isFarFromExistingStart)) {
+        continue;
+      }
+      if (!safe.every(isFarFromExistingStart)) {
+        continue;
+      }
       safe.push(candidate);
     }
 

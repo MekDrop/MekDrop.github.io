@@ -17,7 +17,9 @@ export class Overpass {
   /**
    * @returns {string[]}
    */
-  static get modelUrls() { return [OverpassStairs.modelUrl]; }
+  static get modelUrls() {
+    return [OverpassStairs.modelUrl];
+  }
 
   /**
    * @param {import("../ObjectTypes.js").MapObjectOptions} options

@@ -10,7 +10,7 @@ import { MAP_TILE_TYPE } from "../../../../../src/game/enum/MapTileType.js";
 
 // Substitute GPU resources while exercising the actual classes and factory.
 const hooks = registerHooks({
-  resolve(specifier, context, nextResolve) {
+  resolve: (specifier, context, nextResolve) => {
     if (context.parentURL?.endsWith("/terrain/Grass.js") && /Grass(Carpet|Surface)\.js$/.test(specifier)) {
       const name = specifier.includes("Carpet") ? "GrassCarpet" : "GrassSurface";
 
@@ -67,9 +67,11 @@ function fixture() {
       excavateSurface: (...args) => cubes.push(["excavate", ...args]),
     },
     collisionWorld: {
-      grassWeightAt: (...args) => { weightQueries.push(args);
+      grassWeightAt: (...args) => {
+        weightQueries.push(args);
 
-        return 0.4; },
+        return 0.4;
+      },
     },
     getContactProviders: () => contacts,
   };

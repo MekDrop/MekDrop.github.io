@@ -13,21 +13,21 @@ function createSubject(
 ) {
   const parameters = new Map();
   const material = {
-    setParameter(name, value) {
+    setParameter: (name, value) => {
       parameters.set(name, value);
     },
   };
   let update = null;
   let render = null;
   const app = {
-    on(event, callback) {
+    on: (event, callback) => {
       if (event === "update") {
         update = callback;
       } else {
         assert.equal(event, "prerender");
         render = callback;
       }
-      return { off() {} };
+      return { off: () => {} };
     },
   };
   const grass = new GrassSurface({
@@ -41,7 +41,9 @@ function createSubject(
   return {
     grass,
     parameters,
-    update: (deltaTime) => { update(deltaTime); render(); },
+    update: (deltaTime) => {
+      update(deltaTime); render();
+    },
   };
 }
 

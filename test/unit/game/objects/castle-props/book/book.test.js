@@ -22,7 +22,9 @@ test("equal bindings share materials until the last book is removed", () => {
   let destroyed = 0;
   const shared = meshes[0].material;
   const destroy = shared.destroy.bind(shared);
-  shared.destroy = () => { destroyed++; destroy(); };
+  shared.destroy = () => {
+    destroyed++; destroy();
+  };
   models[0].destroy();
   assert.equal(destroyed, 0);
   models[1].destroy();
@@ -39,7 +41,9 @@ test("book state is independent of placement and artwork, with matching visual a
   const { Book } = await import(`data:text/javascript;base64,${Buffer.from(source).toString("base64")}`);
   const components = [];
   class Entity extends pc.Entity {
-    addComponent(type) { components.push(type); }
+    addComponent(type) {
+      components.push(type);
+    }
   }
   const leather = new pc.StandardMaterial();
   leather.name = "Book leather 1";
@@ -88,7 +92,7 @@ test("book state is independent of placement and artwork, with matching visual a
         coverColor: [0.2, 0.38, 0.62],
       },
       modelLibrary: {
-        instantiate(url) {
+        instantiate: (url) => {
           loaded.push(url);
           const model = new pc.Entity("model");
           const render = { meshInstances: [{ material: leather }, { material: parchment }] };
@@ -111,7 +115,9 @@ test("book state is independent of placement and artwork, with matching visual a
     assert.equal(renders[0].meshInstances[1].material, parchment);
     assert.equal(leather.diffuse.toString(), "#ffffff");
     let destroyed = 0;
-    tinted.destroy = () => { destroyed++; };
+    tinted.destroy = () => {
+      destroyed++;
+    };
     book.setIslandOffsets(1, 2);
     book.destroy();
     assert.equal(destroyed, 1);

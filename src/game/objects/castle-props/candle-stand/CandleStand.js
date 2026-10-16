@@ -82,7 +82,9 @@ export class CandleStand extends AbstractCastleProp {
   /**
    * @returns {string}
    */
-  static get modelUrls() { return [singleModelUrl, floorModelUrl, tableModelUrl]; }
+  static get modelUrls() {
+    return [singleModelUrl, floorModelUrl, tableModelUrl];
+  }
 
   /**
    * @returns {string}

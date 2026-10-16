@@ -64,17 +64,31 @@ it("both artwork variants share cloth ownership, picking and pointer gestures", 
   class Cloth {
     entity = new pc.Entity("Banner");
     calls = [];
-    constructor() { Cloth.latest = this; }
-    add(options) { this.calls.push(options); this.entity.addChild(new pc.Entity("Cloth")); }
-    getBannerHit() { return {
-      distance: 0.5,
-      banner: {},
-      point: new pc.Vec3(),
-    }; }
-    beginWindGesture(hit) { this.calls.push(hit); }
-    applyMouseWind(...args) { this.calls.push(args); }
-    endWindGesture() { this.calls.push("end"); }
-    destroy() { this.entity.destroy(); }
+    constructor() {
+      Cloth.latest = this;
+    }
+    add(options) {
+      this.calls.push(options); this.entity.addChild(new pc.Entity("Cloth"));
+    }
+    getBannerHit() {
+      return {
+        distance: 0.5,
+        banner: {},
+        point: new pc.Vec3(),
+      };
+    }
+    beginWindGesture(hit) {
+      this.calls.push(hit);
+    }
+    applyMouseWind(...args) {
+      this.calls.push(args);
+    }
+    endWindGesture() {
+      this.calls.push("end");
+    }
+    destroy() {
+      this.entity.destroy();
+    }
   }
   const NativeBanner = new Function("BannerCloth", "IslandObjectRoots", source + "; return Banner;")(Cloth, IslandObjectRoots);
   for (const variant of [undefined, "cloth"]) {

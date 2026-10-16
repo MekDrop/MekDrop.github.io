@@ -58,19 +58,27 @@ export function createCliffVineLayout(mapData) {
   const fillers = [];
   const riverCells = new Set();
   for (const river of mapData.riverData ?? []) {
-    for (const { col, row } of river.cells) riverCells.add(`${col},${row}`);
+    for (const { col, row } of river.cells) {
+      riverCells.add(`${col},${row}`);
+    }
   }
   for (const first of vines) {
     for (const second of vines) {
       const horizontal = first.direction === "NORTH" || first.direction === "SOUTH";
       if (first.direction !== second.direction ||
-        (horizontal ? first.row !== second.row : first.col !== second.col)) continue;
+        (horizontal ? first.row !== second.row : first.col !== second.col)) {
+        continue;
+      }
       const start = horizontal ? first.col : first.row;
       const end = horizontal ? second.col : second.row;
-      if (end <= start + 1) continue;
+      if (end <= start + 1) {
+        continue;
+      }
       const top = mapData.heightmap?.[first.row]?.[first.col];
       const face = FACE_TRANSFORMS[first.direction];
-      if (!face || mapData.heightmap?.[second.row]?.[second.col] !== top) continue;
+      if (!face || mapData.heightmap?.[second.row]?.[second.col] !== top) {
+        continue;
+      }
       const between = [];
       for (let position = start + 1; position < end; position++) {
         const col = horizontal ? position : first.col;
@@ -80,11 +88,15 @@ export function createCliffVineLayout(mapData) {
         for (let dr = -1; dr <= 1; dr++) {
           for (let dc = -1; dc <= 1; dc++) {
             const type = mapData.grid?.[row + dr]?.[col + dc];
-            if ([MAP_TILE_TYPE.PATH, MAP_TILE_TYPE.ENTRY, MAP_TILE_TYPE.CASTLE_WALL, MAP_TILE_TYPE.CASTLE_TOWER].includes(type)) clear = false;
+            if ([MAP_TILE_TYPE.PATH, MAP_TILE_TYPE.ENTRY, MAP_TILE_TYPE.CASTLE_WALL, MAP_TILE_TYPE.CASTLE_TOWER].includes(type)) {
+              clear = false;
+            }
           }
         }
         const neighbor = mapData.heightmap?.[row + face.normalZ]?.[col + face.normalX];
-        if (!clear || neighbor >= top || riverCells.has(`${col},${row}`) || riverCells.has(`${col + face.normalX},${row + face.normalZ}`)) { between.length = 0; break; }
+        if (!clear || neighbor >= top || riverCells.has(`${col},${row}`) || riverCells.has(`${col + face.normalX},${row + face.normalZ}`)) {
+          between.length = 0; break;
+        }
         between.push({
           ...first,
           col,
@@ -120,7 +132,9 @@ export function createCliffVineLayout(mapData) {
     const faceHeight = topY - footY;
     const random = new GenerationRandom(`${mapData.mapName}:${vine.col}:${vine.row}:${vine.direction}:extension`);
     const extend = faceHeight > 2 || (faceHeight === 2 && random.rng(1, 100) <= 30);
-    if (fillers.includes(vine) && !extend) continue;
+    if (fillers.includes(vine) && !extend) {
+      continue;
+    }
     const bottomY = extend
       ? topY - faceHeight * random.rng(35, 75) / 100
       : Number.isFinite(footY) && faceHeight <= 1.25

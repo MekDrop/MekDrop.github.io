@@ -161,7 +161,9 @@ export class FlowerPaperSimulation {
   /**
    * @param {import("playcanvas").PhysicsBody} body
    */
-  removeSurface(body) { this.#removeBody(body); }
+  removeSurface(body) {
+    this.#removeBody(body);
+  }
 
   /**
    * @param {import("playcanvas").PhysicsBody} body
@@ -211,7 +213,9 @@ export class FlowerPaperSimulation {
   moveAttachment(sheet, position) {
     const previous = new Vec3();
     sheet.anchor.getTransform(previous, new Quat());
-    if (this.#pressed.has(sheet) && previous.distance(position) < 0.1) { return; }
+    if (this.#pressed.has(sheet) && previous.distance(position) < 0.1) {
+      return;
+    }
     if (previous.distance(position) > 0.1) {
       // Island/spawn teleports carry the entire articulated sheet; they are
       // not impacts delivered through the attachment in one fixed timestep.
@@ -259,7 +263,9 @@ export class FlowerPaperSimulation {
    */
   remove(sheet) {
     this.#sheets.delete(sheet); this.#pressed.delete(sheet);
-    for (const joint of sheet.joints) { this.#world.destroyJoint(joint); this.#joints.delete(joint); }
+    for (const joint of sheet.joints) {
+      this.#world.destroyJoint(joint); this.#joints.delete(joint);
+    }
     for (const body of [sheet.anchor, ...sheet.links]) {
       this.#removeBody(body);
     }
@@ -277,14 +283,20 @@ export class FlowerPaperSimulation {
     if (moved) {
       this.#stationaryTime = 0;
       for (const sheet of this.#pressed) {
-        for (const link of sheet.links) { link.nativeBody.forceActivationState(1); link.activate(); }
+        for (const link of sheet.links) {
+          link.nativeBody.forceActivationState(1); link.activate();
+        }
       }
       this.#pressed.clear();
-    } else { this.#stationaryTime += deltaTime; }
+    } else {
+      this.#stationaryTime += deltaTime;
+    }
     if (this.#stationaryTime > 0.75) {
       const inverse = facing.clone().invert();
       for (const sheet of this.#sheets) {
-        if (this.#pressed.has(sheet)) { continue; }
+        if (this.#pressed.has(sheet)) {
+          continue;
+        }
         const loaded = this.poses(sheet).some(/**
          *
          * @param {{position: Vec3}} options
@@ -302,7 +314,9 @@ export class FlowerPaperSimulation {
               return Math.abs(local.x) < 0.095 + sheet.length && Math.abs(local.z) < 0.13 + sheet.length &&
             Math.abs(position.y - (foot.y - 0.3)) < 0.2;
             }));
-        if (!loaded) { continue; }
+        if (!loaded) {
+          continue;
+        }
         // Bullet's disabled simulation state holds settled, loaded paper. The
         // springs resume when the sole moves; free petals continue recovering.
         for (const link of sheet.links) {
@@ -330,14 +344,24 @@ export class FlowerPaperSimulation {
       }
       this.#world.step(fixed, 1, fixed);
     }
-    if (count) { for (let index = 0; index < 2; index++) { this.#previousFeet[index].copy(feet[index]); } }
+    if (count) {
+      for (let index = 0; index < 2; index++) {
+        this.#previousFeet[index].copy(feet[index]);
+      }
+    }
     this.#previousFacing.copy(facing);
   }
 
   destroy() {
-    for (const joint of this.#joints) { this.#world.destroyJoint(joint); }
-    for (const body of this.#bodies) { this.#world.removeBody(body); this.#world.destroyBody(body); }
-    for (const shape of this.#shapes.values()) { this.#world.destroyShape(shape); }
+    for (const joint of this.#joints) {
+      this.#world.destroyJoint(joint);
+    }
+    for (const body of this.#bodies) {
+      this.#world.removeBody(body); this.#world.destroyBody(body);
+    }
+    for (const shape of this.#shapes.values()) {
+      this.#world.destroyShape(shape);
+    }
     this.#world.destroy();
     this.#joints.clear(); this.#bodies.clear(); this.#shapes.clear();
   }

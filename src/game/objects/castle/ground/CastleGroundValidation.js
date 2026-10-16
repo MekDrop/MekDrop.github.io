@@ -17,7 +17,9 @@ export function validateCastleGround(mapData) {
    * @param {import("../../ObjectTypes.js").MapObjectDefinition} object
    */ (object) => ["Earth", "Grass"].includes(object.object) && object.position);
   for (const castle of mapData.objects ?? []) {
-    if (castle.object !== "Castle" || !castle.buildPlan?.metadata) continue;
+    if (castle.object !== "Castle" || !castle.buildPlan?.metadata) {
+      continue;
+    }
     const plan = castle.buildPlan;
     // Original generator plans predate room envelopes. Their masonry collision
     // boxes still provide a useful, independent terrain penetration check.
@@ -44,7 +46,9 @@ export function validateCastleGround(mapData) {
             minZ: block.z - block.halfZ,
             maxZ: block.z + block.halfZ,
           };
-          if (!overlaps(bounds, wall)) continue;
+          if (!overlaps(bounds, wall)) {
+            continue;
+          }
           issues.push({
             castleId: castle.id ?? "Castle",
             seed: String(castle.seed ?? ""),
@@ -74,7 +78,9 @@ export function validateCastleGround(mapData) {
      * @param {number} ceiling
      */
     const addRoom = (area, room, floor, ceiling) => {
-      if (!room) return;
+      if (!room) {
+        return;
+      }
       const corners = [[room.minX, room.minZ], [room.maxX, room.maxZ], [room.minX, room.maxZ], [room.maxX, room.minZ]]
         .map(/**
               * @param {Array<number>} point
@@ -101,23 +107,31 @@ export function validateCastleGround(mapData) {
     };
     addRoom("work", layout.rooms.work, layout.rooms.work.floorY, layout.rooms.work.floorY + 2);
     for (const building of residential.buildings ?? []) {
-      if (building.id === "courtyard" || building.role === "courtyard") continue;
+      if (building.id === "courtyard" || building.role === "courtyard") {
+        continue;
+      }
       addRoom(`building:${building.id ?? building.role}`, building.bounds, layout.origin.y, layout.origin.y + 2);
     }
     for (const area of layout.walkableAreas) {
-      if (area.id === "courtyard" || area.kind === "courtyard") continue;
+      if (area.id === "courtyard" || area.kind === "courtyard") {
+        continue;
+      }
       addRoom(area.id, area, area.floorY, area.floorY + 1);
     }
     // The surrounding bay is occupied too, not just the narrow spiral shaft.
     // These reservations include the ground-floor approach beside the opening.
     for (const name of ["mainStair", "serviceStair"]) {
       const bay = residential.reservations?.[name];
-      if (bay) addRoom(`${name}Bay`, bay, layout.origin.y, layout.origin.y + 2);
+      if (bay) {
+        addRoom(`${name}Bay`, bay, layout.origin.y, layout.origin.y + 2);
+      }
     }
     for (const [name, stair] of [["mainStair", layout.stairs], ["serviceStair", layout.serviceStair], ...layout.authoredStairs.map(/**
      * @param {{id:string}} stair
      */ (stair) => [stair.id, stair])]) {
-      if (!stair) continue;
+      if (!stair) {
+        continue;
+      }
       const { center, radius } = stair;
       areas.push({
         area: name,
@@ -133,10 +147,14 @@ export function validateCastleGround(mapData) {
     }
     for (const name of ["servantBedroom", "storage"]) {
       const room = layout.rooms[name];
-      if (room && residential.basement) { addRoom(name, room, room.floorY, residential.basement.ceilingY); }
+      if (room && residential.basement) {
+        addRoom(name, room, room.floorY, residential.basement.ceilingY);
+      }
     }
     for (const [index, block] of (plan.metadata.collision?.cameraBlocks ?? []).entries()) {
-      if (block.y + block.halfY <= layout.origin.y || block.y - block.halfY > layout.origin.y + 1) continue;
+      if (block.y + block.halfY <= layout.origin.y || block.y - block.halfY > layout.origin.y + 1) {
+        continue;
+      }
       areas.push({
         area: `wall:${index}`,
         bounds: {
@@ -149,7 +167,9 @@ export function validateCastleGround(mapData) {
         },
       });
     }
-    if (!residential.basePlanId && residential.outerBounds) addRoom("castleEnvelope", residential.outerBounds, layout.origin.y, layout.origin.y + 2);
+    if (!residential.basePlanId && residential.outerBounds) {
+      addRoom("castleEnvelope", residential.outerBounds, layout.origin.y, layout.origin.y + 2);
+    }
     const context = {
       castleId: castle.id ?? "Castle",
       seed: String(castle.seed ?? plan.input.seed ?? plan.metadata.seed ?? mapData.seed ?? mapData.mapName ?? ""),
@@ -176,19 +196,21 @@ export function validateCastleGround(mapData) {
         bounds.maxY <= area.bounds.minY + 0.25 && Math.min(bounds.maxX, area.bounds.maxX) - Math.max(bounds.minX, area.bounds.minX) > 0.000001 &&
         Math.min(bounds.maxZ, area.bounds.maxZ) - Math.max(bounds.minZ, area.bounds.minZ) > 0.000001) : null;
       const collision = hit ?? turfFloor;
-      if (collision) issues.push({
-        ...context,
-        area: collision.area,
-        kind: turfFloor ? "grass-floor" : "terrain",
-        certainty: "confirmed",
-        terrainId: object.id,
-        position: {
-          x,
-          y,
-          z,
-        },
-        bounds,
-      });
+      if (collision) {
+        issues.push({
+          ...context,
+          area: collision.area,
+          kind: turfFloor ? "grass-floor" : "terrain",
+          certainty: "confirmed",
+          terrainId: object.id,
+          position: {
+            x,
+            y,
+            z,
+          },
+          bounds,
+        });
+      }
     }
     for (const clump of canopy) {
       // Authored model node/accessor bounds (including their transforms), not

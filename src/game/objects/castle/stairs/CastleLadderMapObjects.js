@@ -14,7 +14,9 @@ export class CastleLadderMapObjects {
     for (const castle of [...map.objects]) {
       const plan = castle.buildPlan?.metadata?.runtime?.residential;
       const access = plan?.roofAccess;
-      if (castle.object !== "Castle" || !access) { continue; }
+      if (castle.object !== "Castle" || !access) {
+        continue;
+      }
       const layout = new CastleResidentialLayout(castle.buildPlan);
       const position = access.position ?? access.bottom;
       const hole = access.hole;

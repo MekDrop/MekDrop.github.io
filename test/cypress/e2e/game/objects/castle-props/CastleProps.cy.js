@@ -40,7 +40,9 @@ describe("Tripo castle props", () => {
             const points = indices.slice(triangle, triangle + 3).map((index) =>
               instance.node.getWorldTransform().transformPoint(new pc.Vec3(...positions.slice(index * 3, index * 3 + 3))));
             const normal = new pc.Vec3().cross(points[1].clone().sub(points[0]), points[2].clone().sub(points[0]));
-            if (normal.length() < 0.000001) continue;
+            if (normal.length() < 0.000001) {
+              continue;
+            }
             normal.normalize().mulScalar(0.05);
             const center = points[0].clone().add(points[1]).add(points[2]).mulScalar(1 / 3);
             hit = app.systems.rigidbody.raycastAll(center.clone().add(normal), center.clone().sub(normal))

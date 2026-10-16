@@ -48,7 +48,9 @@ describe("Castle ladder roof clearance", () => {
     });
     let stopped;
     cy.wait(250);
-    cy.window().then(window => { stopped = window.gameMovementTest.state().position.y; });
+    cy.window().then(window => {
+      stopped = window.gameMovementTest.state().position.y;
+    });
     cy.wait(400);
     cy.window().then(window => expect(window.gameMovementTest.state().position.y).to.be.closeTo(stopped, 0.08));
   });

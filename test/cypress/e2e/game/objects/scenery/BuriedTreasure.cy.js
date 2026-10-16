@@ -68,7 +68,7 @@ describe("Buried treasure", () => {
 
   it("digs up a chest, opens it, and collects medieval coins", () => {
     cy.visit("/map/test_flat", {
-      onBeforeLoad(window) {
+      onBeforeLoad: (window) => {
         let seed = 137;
         window.Math.random = () => {
           seed = (seed * 16807) % 2147483647;

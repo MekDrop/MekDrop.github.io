@@ -17,8 +17,8 @@ it("counts actual strokes, leaves other mouse gestures alone, and releases captu
   const canvas = new EventTarget();
   const captured = new Set();
   canvas.classList = {
-    toggle() {},
-    remove() {},
+    toggle: () => {},
+    remove: () => {},
   };
   canvas.setPointerCapture = (id) => captured.add(id);
   canvas.hasPointerCapture = (id) => captured.has(id);
@@ -26,7 +26,9 @@ it("counts actual strokes, leaves other mouse gestures alone, and releases captu
   let pats = 0;
   const gesture = new HeroPatGesture(canvas, {
     hitTest: (event) => event.clientX >= 0 && event.clientX <= 40,
-    pat: () => { pats += 1; },
+    pat: () => {
+      pats += 1;
+    },
   });
   const send = (type, options = {}) => {
     const event = new Event(type, { cancelable: true });

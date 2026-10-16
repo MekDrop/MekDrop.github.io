@@ -158,10 +158,13 @@ export class PathSurfaceRules {
   static findLaneMateRow(grid, tileMeta, col, row, direction) {
     const candidates = [row - 1, row + 1];
     for (const candidateRow of candidates) {
-      if (!MapGrid.inBounds(col, candidateRow)) { continue; }
+      if (!MapGrid.inBounds(col, candidateRow)) {
+        continue;
+      }
       const candidateTile = grid[candidateRow][col];
-      if (candidateTile !== TileType.PATH && candidateTile !== TileType.ENTRY)
-      { continue; }
+      if (candidateTile !== TileType.PATH && candidateTile !== TileType.ENTRY) {
+        continue;
+      }
       if (tileMeta[candidateRow][col].direction === direction) {
         return candidateRow;
       }
@@ -180,10 +183,13 @@ export class PathSurfaceRules {
   static findLaneMateCol(grid, tileMeta, col, row, direction) {
     const candidates = [col - 1, col + 1];
     for (const candidateCol of candidates) {
-      if (!MapGrid.inBounds(candidateCol, row)) { continue; }
+      if (!MapGrid.inBounds(candidateCol, row)) {
+        continue;
+      }
       const candidateTile = grid[row][candidateCol];
-      if (candidateTile !== TileType.PATH && candidateTile !== TileType.ENTRY)
-      { continue; }
+      if (candidateTile !== TileType.PATH && candidateTile !== TileType.ENTRY) {
+        continue;
+      }
       if (tileMeta[row][candidateCol].direction === direction) {
         return candidateCol;
       }

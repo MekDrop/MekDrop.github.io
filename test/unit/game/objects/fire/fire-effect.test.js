@@ -8,7 +8,9 @@ class EffectEntity extends pc.Entity {
    * @param {string} type
    * @param {Record<string, number>} options
    */
-  addComponent(type, options) { this[type] = options; }
+  addComponent(type, options) {
+    this[type] = options;
+  }
 }
 
 test("shared effect retains flame, sparks, calibrated glow and phase, then releases its listener", () => {

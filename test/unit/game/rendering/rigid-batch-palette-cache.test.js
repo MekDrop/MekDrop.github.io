@@ -11,7 +11,9 @@ it("reuses unchanged GPU palettes and refreshes after ancestor or member motion"
   let uploads = 0;
   const skin = {
     bones: [bone],
-    updateMatrixPalette: () => { uploads++; },
+    updateMatrixPalette: () => {
+      uploads++;
+    },
   };
   const batch = {
     dynamic: true,
@@ -19,7 +21,9 @@ it("reuses unchanged GPU palettes and refreshes after ancestor or member motion"
   };
   cacheRigidBatchPalette(batch);
   cacheRigidBatchPalette(batch);
-  for (let frame = 0; frame < 120; frame++) skin.updateMatrixPalette(root, frame);
+  for (let frame = 0; frame < 120; frame++) {
+    skin.updateMatrixPalette(root, frame);
+  }
   assert.equal(uploads, 1);
   bone.setLocalPosition(0, 0, 0);
   skin.updateMatrixPalette(root, 120);

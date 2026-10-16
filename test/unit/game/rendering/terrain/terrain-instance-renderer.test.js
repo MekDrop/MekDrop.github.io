@@ -6,7 +6,9 @@ import { TerrainInstanceRenderer } from "../../../../../src/game/rendering/terra
 it("shares top and underside batches across side materials while preserving cube transforms", () => {
   let nextMeshId = 0;
   class Entity extends pc.Entity {
-    addComponent(type, options) { this[type] = options; }
+    addComponent(type, options) {
+      this[type] = options;
+    }
   }
   class VertexBuffer {
     constructor(device, format, count, options) {
@@ -15,8 +17,12 @@ it("shares top and underside batches across side materials while preserving cube
     }
   }
   class MeshInstance {
-    constructor(mesh, material) { this.mesh = mesh; this.material = material; }
-    setInstancing(buffer) { this.buffer = buffer; }
+    constructor(mesh, material) {
+      this.mesh = mesh; this.material = material;
+    }
+    setInstancing(buffer) {
+      this.buffer = buffer;
+    }
   }
   const fakePc = {
     ...pc,
@@ -27,7 +33,7 @@ it("shares top and underside batches across side materials while preserving cube
     Mesh: {
       fromGeometry: () => ({
         id: nextMeshId++,
-        incRefCount() {},
+        incRefCount: () => {},
       }),
     },
   };

@@ -21,7 +21,9 @@ async function walkTo(window, target, perspective) {
     const dx = target.x - state.position.x;
     const dz = target.z - state.position.z;
     const tolerance = target.tolerance ?? (perspective ? 0.12 : 0.18);
-    if ((perspective ? Math.hypot(dx, dz) : Math.max(Math.abs(dx), Math.abs(dz))) < tolerance) { reached = true; break; }
+    if ((perspective ? Math.hypot(dx, dz) : Math.max(Math.abs(dx), Math.abs(dz))) < tolerance) {
+      reached = true; break;
+    }
     if (perspective) {
       const camera = window.gameCameraTest.state().firstPersonCamera;
       const length = Math.hypot(camera.direction.x, camera.direction.z);
@@ -64,10 +66,12 @@ describe("Reported castle clearance", () => {
       const plan=await CastleGenerator.generate(castleMap.objects[0]);
       const layout=new CastleResidentialLayout(plan);
       const driver=window.gameMovementTest;
-      for (const tread of layout.stairs.treads) await walkTo(window,{
-        ...tread,
-        speed:0.6,
-      },true);
+      for (const tread of layout.stairs.treads) {
+        await walkTo(window,{
+          ...tread,
+          speed:0.6,
+        },true);
+      }
       const door=plan.metadata.runtime.roomDoors.find((entry) => entry.roomId === "library" && entry.y > layout.origin.y);
       const last=layout.stairs.treads.at(-1);
       await walkTo(window,{

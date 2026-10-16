@@ -243,13 +243,17 @@ export class MapObjectFactory {
    * @param {Array} args
    */
   static registerMaterials(...args) {
-    for (const ObjectClass of new Set(OBJECT_CLASSES.values())) ObjectClass.registerMaterials?.(...args);
+    for (const ObjectClass of new Set(OBJECT_CLASSES.values())) {
+      ObjectClass.registerMaterials?.(...args);
+    }
   }
   /**
    * @param {Array} args
    */
   static configureTexture(...args) {
-    for (const ObjectClass of new Set(OBJECT_CLASSES.values())) ObjectClass.configureTexture?.(...args);
+    for (const ObjectClass of new Set(OBJECT_CLASSES.values())) {
+      ObjectClass.configureTexture?.(...args);
+    }
   }
   /**
    * @param {import("src/game/GameContracts.js").GameMapData} mapData

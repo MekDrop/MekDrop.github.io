@@ -74,7 +74,9 @@ export class CastleWindowLayout {
         this.#roomWindows(gallery, "slit", gallery.floorY + gallery.height);
       }
       for (const room of residential.placedRooms) {
-        if (!residential.rooms.upperGallery && room.level === 1) { this.#roomWindows(room, "room", room.floorY + 2.25); }
+        if (!residential.rooms.upperGallery && room.level === 1) {
+          this.#roomWindows(room, "room", room.floorY + 2.25);
+        }
       }
       this.#towerWindows();
 
@@ -100,7 +102,9 @@ export class CastleWindowLayout {
     this.#towerWindows();
   }
 
-  get windows() { return this.#windows; }
+  get windows() {
+    return this.#windows;
+  }
 
   /**
    * @param {MasonryBox} box
@@ -227,7 +231,9 @@ export class CastleWindowLayout {
           ["Z", maxZ, centerX, 1, 0.25, "slit"],
         ]) {
           const wall = this.#wallAt(axis, face, t + 0.01, sill, 0.75, sign);
-          if (wall) this.#add(axis, wall.face, t, sign, sill, width, 0.75, wall.depth, role, floorY);
+          if (wall) {
+            this.#add(axis, wall.face, t, sign, sill, width, 0.75, wall.depth, role, floorY);
+          }
         }
         continue;
       }
@@ -326,7 +332,9 @@ export class CastleWindowLayout {
    */
   #authoredWindows(plan) {
     for (const opening of plan.metadata.runtime.residential.openings) {
-      if (opening.kind !== "window") { continue; }
+      if (opening.kind !== "window") {
+        continue;
+      }
       const sign = ["WEST", "NORTH"].includes(opening.side) ? -1 : 1;
       const axis = opening.axis;
       const face = opening.coordinate + sign * 0.25;

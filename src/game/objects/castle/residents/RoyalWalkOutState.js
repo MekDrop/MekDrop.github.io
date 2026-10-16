@@ -16,7 +16,9 @@ export class RoyalWalkOutState extends State {
    * @param {{isResumingReaction?: () => boolean, elapsed: number, deltaTime: number, walkDuration: number, walkStartDelay: number, beginWalk: () => void, move: (progress: number) => boolean|null, playAnimation: (animation: string) => void, completeWalk: () => void}} owner
    */
   enter(owner) {
-    if (owner.isResumingReaction?.()) { return; }
+    if (owner.isResumingReaction?.()) {
+      return;
+    }
     owner.elapsed = 0;
     owner.beginWalk();
     owner.playAnimation(ROYAL_ANIMATION.WALK_OUT);

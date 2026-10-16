@@ -11,7 +11,9 @@ export class FirewoodStack extends AbstractCastleProp {
   /**
    * @returns {string}
    */
-  static get modelUrl() { return modelUrl; }
+  static get modelUrl() {
+    return modelUrl;
+  }
 
   /**
    * Reuse the authored log meshes for both visible and collision assemblies.
@@ -22,9 +24,13 @@ export class FirewoodStack extends AbstractCastleProp {
     const { width = 0.269, depth = 0.38, height = 0.2433, firewoodSeed } = this.definition;
     const originals = model.find(FirewoodStack.#findEntity);
     const templates = originals.map(FirewoodStack.#mapEntity);
-    for (const original of originals) { original.destroy(); }
+    for (const original of originals) {
+      original.destroy();
+    }
     if (!templates.length || !arePositiveFiniteNumbers(width, depth, height)) {
-      for (const template of templates) { template.destroy(); }
+      for (const template of templates) {
+        template.destroy();
+      }
 
       return;
     }
@@ -37,7 +43,9 @@ export class FirewoodStack extends AbstractCastleProp {
     const rows = Math.max(1, Math.ceil(depth / 0.38));
     const layers = Math.min(columns, Math.max(1, Math.ceil((height - logHeight) / courseRise) + 1));
     if (columns * rows * layers > 4096) {
-      for (const template of templates) { template.destroy(); }
+      for (const template of templates) {
+        template.destroy();
+      }
 
       return;
     }
@@ -63,7 +71,9 @@ export class FirewoodStack extends AbstractCastleProp {
         }
       }
     }
-    for (const template of templates) { template.destroy(); }
+    for (const template of templates) {
+      template.destroy();
+    }
   }
 
   /**

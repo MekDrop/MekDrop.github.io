@@ -18,7 +18,9 @@ async function walkTo(window, target, perspective) {
     const dx = target.x - state.position.x;
     const dz = target.z - state.position.z;
     const tolerance = target.tolerance ?? (perspective ? 0.12 : 0.18);
-    if ((perspective ? Math.hypot(dx, dz) : Math.max(Math.abs(dx), Math.abs(dz))) < tolerance) { reached = true; break; }
+    if ((perspective ? Math.hypot(dx, dz) : Math.max(Math.abs(dx), Math.abs(dz))) < tolerance) {
+      reached = true; break;
+    }
     if (perspective) {
       const camera = window.gameCameraTest.state().firstPersonCamera;
       const length = Math.hypot(camera.direction.x, camera.direction.z);
@@ -76,7 +78,9 @@ describe("Castle seed preview", () => {
       expect(objects.filter((entry) => entry.object === "Castle")).to.have.length(1);
       expect(window.gameCameraTest.state().firstPersonCamera).not.to.equal(null);
     });
-    cy.window().then((window) => {seed=window.gameMovementTest.mapObjects().find((entry) => entry.object === "Castle").seed;});
+    cy.window().then((window) => {
+      seed=window.gameMovementTest.mapObjects().find((entry) => entry.object === "Castle").seed;
+    });
     cy.wait(1500);
     cy.window().then({timeout:60000},async (window) => {
       expect(window.gameMovementTest.mapObjects().find((entry) => entry.object === "Castle").seed).to.equal(seed);

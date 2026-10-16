@@ -4,10 +4,16 @@ import { it } from "node:test";
 
 class FakeMesh {
   clear() {}
-  setPositions(value) { this.positions = value; }
+  setPositions(value) {
+    this.positions = value;
+  }
   setNormals() {}
-  setUvs(channel, value) { this.uvs = value; }
-  setIndices(value) { this.indices = value; }
+  setUvs(channel, value) {
+    this.uvs = value;
+  }
+  setIndices(value) {
+    this.indices = value;
+  }
   update() {}
   incRefCount() {}
 }
@@ -30,7 +36,9 @@ for (const name of ["BannerCloth", "Flag"]) {
     const modelLibrary = {
       instantiate: () => ({
         findComponents: () => [{ meshInstances: [{ mesh }] }],
-        destroy: () => { destroyed = true; },
+        destroy: () => {
+          destroyed = true;
+        },
       }),
     };
     const Factory = new Function("library", "FakeMesh", `const clothModelUrl = "cloth"; const FLAG_TRAILING_EDGE_HEIGHT_RATIO = 0.2;
@@ -47,7 +55,9 @@ for (const name of ["BannerCloth", "Flag"]) {
       assert.equal(rectangle.pinnedIndices.length, 9);
       const bottom = [];
       for (let index = 0; index < rectangle.positions.length; index += 3) {
-        if (rectangle.positions[index + 1] === -3) { bottom.push(rectangle.positions[index]); }
+        if (rectangle.positions[index + 1] === -3) {
+          bottom.push(rectangle.positions[index]);
+        }
       }
       assert.equal(bottom.length, 9);
       assert.equal(Math.min(...bottom), -1);

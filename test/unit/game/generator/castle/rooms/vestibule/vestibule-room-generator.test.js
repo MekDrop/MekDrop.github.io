@@ -22,7 +22,9 @@ it("furnishes the arrival room while preserving circulation and window approache
           assert.ok(Math.abs(item.x - (room.minX + room.maxX) / 2) >= halfX + 0.6);
         }
         for (const opening of plan.openings.filter(opening => opening.floorY === room.floorY)) {
-          if ((item.y ?? 0) + item.height * item.scale <= 0.05) { continue; }
+          if ((item.y ?? 0) + item.height * item.scale <= 0.05) {
+            continue;
+          }
           if (opening.kind === "window" && (item.y ?? 0) + item.height * item.scale <= opening.bottom - 0.1) {
             continue;
           }
@@ -92,7 +94,9 @@ it("uses both window bays in a long vestibule and keeps tall furniture away from
   for (const opening of openings) {
     for (const item of items.filter(item => Math.abs(item.x - opening.coordinate) < item.width * item.scale / 2 + 0.85 &&
       Math.abs(item.z - opening.center) < item.depth * item.scale / 2 + opening.width / 2 + 0.25)) {
-      if ((item.y ?? 0) + item.height * item.scale <= 0.05) { continue; }
+      if ((item.y ?? 0) + item.height * item.scale <= 0.05) {
+        continue;
+      }
       assert.ok((item.y ?? 0) + item.height * item.scale <= opening.bottom - 0.1, item.object);
     }
   }
@@ -176,7 +180,9 @@ it("chooses either seating or a map table and keeps all door approaches connecte
     assert.ok(islands.every(item => item.y === 0.033));
     const rug = items.find(item => item.object === "Rug");
     assert.ok(rug.width > 2 && rug.depth > 1.5);
-    if (seed < 6) { assert.ok(rug.width >= 4 && rug.depth >= 2.49); }
+    if (seed < 6) {
+      assert.ok(rug.width >= 4 && rug.depth >= 2.49);
+    }
     for (const island of islands) {
       assert.ok(Math.abs(island.x - rug.x) + island.width / 2 <= rug.width / 2);
       assert.ok(Math.abs(island.z - rug.z) + island.depth / 2 <= rug.depth / 2);
@@ -215,7 +221,9 @@ it("chooses either seating or a map table and keeps all door approaches connecte
     for (let index = 0; index < queue.length; index++) {
       const { col, row } = queue[index];
       const key = `${col},${row}`;
-      if (visited.has(key) || !free(col, row)) { continue; }
+      if (visited.has(key) || !free(col, row)) {
+        continue;
+      }
       visited.add(key);
       queue.push({
         col: col + 1,

@@ -79,7 +79,9 @@ it("builds all reference plans in each gate orientation, preserving authored ape
       assert.equal(layout.authoredStairs.length, source.staircases.reduce((sum, shaft) => sum + shaft.to - shaft.from, 0));
       assert.equal(plan.layout.roomPlan.placedRooms.length, source.levels.reduce((sum, floor) => sum + floor.spaces.filter((space) => space.kind === "room").length, 0));
       for (const opening of plan.layout.roomPlan.openings) {
-        if (opening.kind !== "door") { continue; }
+        if (opening.kind !== "door") {
+          continue;
+        }
         const sign = ["NORTH", "WEST"].includes(opening.side) ? -1 : 1;
         const point = layout.toWorld(opening.axis === "x" ? opening.coordinate + sign * 0.125 : opening.center,
           opening.axis === "z" ? opening.coordinate + sign * 0.125 : opening.center, opening.floorY - layout.origin.y + 1);
@@ -94,7 +96,9 @@ it("builds all reference plans in each gate orientation, preserving authored ape
       for (const area of layout.walkableAreas) {
         assert.ok(area.maxX > area.minX && area.maxZ > area.minZ);
         for (const space of plan.layout.roomPlan.spaces) {
-          if (space.kind !== "void" || space.floorY !== area.floorY) { continue; }
+          if (space.kind !== "void" || space.floorY !== area.floorY) {
+            continue;
+          }
           assert.ok(!(area.minX < space.maxX - 1e-6 && area.maxX > space.minX + 1e-6 &&
             area.minZ < space.maxZ - 1e-6 && area.maxZ > space.minZ + 1e-6), `${source.id}: ${area.id} fills void ${space.id}`);
         }

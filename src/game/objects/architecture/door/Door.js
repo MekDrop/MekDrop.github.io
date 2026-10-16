@@ -109,13 +109,17 @@ export class Door {
    */
   #exteriorEntrance = false;
 
-  get exteriorEntrance() { return this.#exteriorEntrance; }
+  get exteriorEntrance() {
+    return this.#exteriorEntrance;
+  }
 
   /**
    * A test override changes the destination, preserving collision-aware movement.
    * @param {number|null} value
    */
-  set testOpenAmount(value) { this.#testOpenAmount = value; }
+  set testOpenAmount(value) {
+    this.#testOpenAmount = value;
+  }
 
   /**
    * @type {(() => boolean)|null}
@@ -130,25 +134,35 @@ export class Door {
   /**
    * @returns {import("playcanvas").Entity|null}
    */
-  get operator() { return this.#operator; }
+  get operator() {
+    return this.#operator;
+  }
 
   /**
    * @param {import("playcanvas").Entity|null} actor
    */
-  set operator(actor) { this.#operator = actor; }
+  set operator(actor) {
+    this.#operator = actor;
+  }
 
-  get openAmount() { return this.#openAmount; }
+  get openAmount() {
+    return this.#openAmount;
+  }
 
   /**
    * The existing collision-aware update still owns the animated leaf.
    * @param {number|null} value
    */
-  set sequenceOpenAmount(value) { this.#sequenceOpenAmount = value; }
+  set sequenceOpenAmount(value) {
+    this.#sequenceOpenAmount = value;
+  }
 
   /**
    * @param {(() => boolean)|null} callback
    */
-  set onOpen(callback) { this.#onOpen = callback; }
+  set onOpen(callback) {
+    this.#onOpen = callback;
+  }
 
   /**
    *
@@ -163,7 +177,9 @@ export class Door {
   /**
    * @param {(point: import("yuka").Vector3) => boolean} query
    */
-  set npcNavigation(query) { this.#canNpcMove = query; }
+  set npcNavigation(query) {
+    this.#canNpcMove = query;
+  }
 
   /**
    * @param {import("yuka").Vector3} point
@@ -218,8 +234,12 @@ export class Door {
     this.#entity = entity;
     this.#ownedMaterials = ownedMaterials;
     this.#animationEntity = animationEntity;
-    if (name) entity.name = name;
-    if (animationEntity !== entity) entity.addChild(animationEntity);
+    if (name) {
+      entity.name = name;
+    }
+    if (animationEntity !== entity) {
+      entity.addChild(animationEntity);
+    }
     this.#applyMaterials(materialBindings, materials);
     this.#center = center;
     this.#inward = inward;
@@ -250,12 +270,16 @@ export class Door {
     });
   }
 
-  get insideHandle() { return this.#insideHandle; }
+  get insideHandle() {
+    return this.#insideHandle;
+  }
 
   /**
    * @returns {import("playcanvas").Quat|null}
    */
-  get hingeRotation() { return this.#hinge?.getRotation() ?? null; }
+  get hingeRotation() {
+    return this.#hinge?.getRotation() ?? null;
+  }
 
   /**
    * Direct pose control is reserved for doors without a physical swing probe.
@@ -344,7 +368,9 @@ export class Door {
    * @param {number} options.z
    */
   updateHeroPosition({ x, y, z }) {
-    if (!this.#automatic) return;
+    if (!this.#automatic) {
+      return;
+    }
     if (this.#upperFloor && (y === undefined || Math.abs(y - this.#center.y) > 0.7)) {
       this.#targetOpen = false;
 
@@ -366,7 +392,9 @@ export class Door {
         // Leave time for a full leaf to swing clear before a running visitor reaches it.
         alignedWithDoor && Math.abs(insideDistance) <= Math.max(OPEN_DISTANCE, this.#width + 1.3);
     }
-    if (this.#targetOpen && !wasOpen) { this.#onOpen?.(); }
+    if (this.#targetOpen && !wasOpen) {
+      this.#onOpen?.();
+    }
   }
 
   /**
@@ -388,7 +416,9 @@ export class Door {
     const destination = this.#openAmount < target
       ? Math.min(target, this.#openAmount + amount)
       : Math.max(target, this.#openAmount - amount);
-    if (destination === this.#openAmount) return;
+    if (destination === this.#openAmount) {
+      return;
+    }
     if (!this.#collision.swing) {
       this.#openAmount = destination;
       this.#syncAnimation();
@@ -433,7 +463,9 @@ export class Door {
    */
   intersectsFootprint(x, z, radius) {
     // Ground navigation must not inherit a bedroom door several metres above it.
-    if (this.#elevated) return false;
+    if (this.#elevated) {
+      return false;
+    }
     return this.#collision.blocksAt(x, this.#center.y + 0.4, z, radius);
   }
 
@@ -450,7 +482,9 @@ export class Door {
   destroy() {
     this.#collision?.destroy();
     this.#entity?.destroy();
-    for (const material of this.#ownedMaterials) material.destroy();
+    for (const material of this.#ownedMaterials) {
+      material.destroy();
+    }
     this.#ownedMaterials = [];
     this.#hinge = null;
     this.#insideHandle = null;
@@ -490,7 +524,9 @@ export class Door {
              * @param {string} prefix
              */
                 (prefix) => name.startsWith(prefix)));
-          if (material && matches) instance.material = material;
+          if (material && matches) {
+            instance.material = material;
+          }
         }
       }
       pending.push(...entity.children);

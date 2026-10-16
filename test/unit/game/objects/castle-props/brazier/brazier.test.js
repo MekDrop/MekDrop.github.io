@@ -4,7 +4,7 @@ import { test } from "node:test";
 import * as pc from "playcanvas";
 
 const hooks = registerHooks({
-  resolve(specifier, context, nextResolve) {
+  resolve: (specifier, context, nextResolve) => {
     if (specifier.endsWith(".glb?url")) {
       return {
         url: `data:text/javascript,export default ${JSON.stringify(specifier)}`,
@@ -34,7 +34,9 @@ class BrazierEntity extends pc.Entity {
    * @param {string} type
    * @param {Record<string, number>} options
    */
-  addComponent(type, options) { this[type] = options; }
+  addComponent(type, options) {
+    this[type] = options;
+  }
 }
 
 test("bowl and tower retain distinct model transforms, contact and effect defaults with owned cleanup", () => {
@@ -57,7 +59,7 @@ test("bowl and tower retain distinct model transforms, contact and effect defaul
         },
       },
       modelLibrary: {
-        instantiate(url) {
+        instantiate: (url) => {
           urls.push(url);
 
           return new BrazierEntity("model");

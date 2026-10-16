@@ -553,7 +553,9 @@ export class CastleResidentialLayout {
      */ (placement) => {
         const lower = placement.position.y;
         const upper = lower + 0.8 * placement.scale.y + 0.25;
-        if (upper < this.#stairs.center.y || lower > this.#stairs.center.y + rise + 1.65) { return true; }
+        if (upper < this.#stairs.center.y || lower > this.#stairs.center.y + rise + 1.65) {
+          return true;
+        }
         const angle = placement.yaw * Math.PI / 180;
         const tangent = {
           x: Math.cos(angle),
@@ -599,7 +601,9 @@ export class CastleResidentialLayout {
     const opening = plan.metadata.runtime.audienceOpening;
     const middle = opening ? (opening.start + opening.end - 1) / 2 : 0;
     for (const tower of plan.structure?.towers ?? []) {
-      if (plan.layout.roomPlan?.version === 2) continue;
+      if (plan.layout.roomPlan?.version === 2) {
+        continue;
+      }
       const centerX = lateralSign * (tower.v + (tower.span - 1) / 2 - middle) * blockSize;
       this.#addTowerButtresses(centerX, tower, blockSize, -1);
       this.#addTowerButtresses(centerX, tower, blockSize, 1);
@@ -671,7 +675,9 @@ export class CastleResidentialLayout {
         yaw: stairYaw,
         treads,
       };
-    } else { this.#stairs = null; }
+    } else {
+      this.#stairs = null;
+    }
     this.#basement = plan.basement ? {
       ...plan.basement,
       access: plan.serviceStair,
@@ -682,42 +688,82 @@ export class CastleResidentialLayout {
       this.#authoredStairs = plan.authoredStairs.map(
         CastleResidentialLayout.#mapStair,
       );
-    } else { this.#planButtresses(buildPlan); }
+    } else {
+      this.#planButtresses(buildPlan);
+    }
   }
 
-  get origin() { return this.#origin; }
-  get yaw() { return this.#yaw; }
-  get rooms() { return this.#rooms; }
+  get origin() {
+    return this.#origin;
+  }
+  get yaw() {
+    return this.#yaw;
+  }
+  get rooms() {
+    return this.#rooms;
+  }
   /**
    * @returns {{minX:number,maxX:number,minZ:number,maxZ:number,floorY:number}}
    */
-  get audienceFloorBounds() { return this.#audienceFloorBounds ?? this.#rooms.work; }
-  get audienceDoorClearance() { return this.#audienceDoorClearance; }
-  get walkableAreas() { return this.#walkableAreas; }
-  get placements() { return this.#placements; }
+  get audienceFloorBounds() {
+    return this.#audienceFloorBounds ?? this.#rooms.work;
+  }
+  get audienceDoorClearance() {
+    return this.#audienceDoorClearance;
+  }
+  get walkableAreas() {
+    return this.#walkableAreas;
+  }
+  get placements() {
+    return this.#placements;
+  }
 
   /**
    * @returns {ResidentialPlacement[]}
    */
-  get standingObstacles() { return this.#standingObstacles ?? this.#placements; }
+  get standingObstacles() {
+    return this.#standingObstacles ?? this.#placements;
+  }
   /**
    * @returns {number}
    */
-  get throneSupportHeight() { return this.#throneSupportHeight; }
-  get throneRearWindow() { return this.#throneRearWindow; }
-  get exteriorWindows() { return this.#exteriorWindows; }
-  get exteriorButtresses() { return this.#exteriorButtresses; }
-  get buttressFootings() { return this.#buttressFootings; }
-  get reservations() { return this.#reservations; }
-  get stairs() { return this.#stairs; }
-  get authoredStairs() { return this.#authoredStairs; }
-  get basement() { return this.#basement; }
-  get serviceDoor() { return this.#serviceDoor; }
+  get throneSupportHeight() {
+    return this.#throneSupportHeight;
+  }
+  get throneRearWindow() {
+    return this.#throneRearWindow;
+  }
+  get exteriorWindows() {
+    return this.#exteriorWindows;
+  }
+  get exteriorButtresses() {
+    return this.#exteriorButtresses;
+  }
+  get buttressFootings() {
+    return this.#buttressFootings;
+  }
+  get reservations() {
+    return this.#reservations;
+  }
+  get stairs() {
+    return this.#stairs;
+  }
+  get authoredStairs() {
+    return this.#authoredStairs;
+  }
+  get basement() {
+    return this.#basement;
+  }
+  get serviceDoor() {
+    return this.#serviceDoor;
+  }
   /**
    * @returns {{center: ResidentialPoint, radius: number, rise: number}}
    */
   get serviceStair() {
-    if (!this.#basement) { return null; }
+    if (!this.#basement) {
+      return null;
+    }
     return {
       center: {
         x: this.#basement.access.x,
@@ -735,7 +781,9 @@ export class CastleResidentialLayout {
    * @returns {ResidentialPlacement[]}
    */
   get basementShell() {
-    if (!this.#basement) { return []; }
+    if (!this.#basement) {
+      return [];
+    }
     const bedroom = this.#rooms.servantBedroom;
     const storage = this.#rooms.storage;
     const width = storage.maxX - bedroom.minX;
@@ -761,7 +809,9 @@ export class CastleResidentialLayout {
   /**
    * @param {import("../rooms/terrace/TerraceActor.js").TerraceActor|null} actor
    */
-  set servant(actor) { this.#servant = actor; }
+  set servant(actor) {
+    this.#servant = actor;
+  }
 
   /**
    * @param {import("../rooms/terrace/TerraceActor.js").TerraceActor|null} actor
@@ -820,16 +870,22 @@ export class CastleResidentialLayout {
     } : null];
     let result = null;
     for (const stair of stairs) {
-      if (!stair) { continue; }
+      if (!stair) {
+        continue;
+      }
       if (stair.straight) {
         const height = castleStraightStairHeight(stair, x, z, currentElevation);
-        if (height !== null && (result === null || Math.abs(height - currentElevation) < Math.abs(result - currentElevation))) { result = height; }
+        if (height !== null && (result === null || Math.abs(height - currentElevation) < Math.abs(result - currentElevation))) {
+          result = height;
+        }
         continue;
       }
       const dx = x - stair.center.x;
       const dz = z - stair.center.z;
       const distance = Math.hypot(dx, dz);
-      if (distance < stair.innerRadius || distance > stair.radius * 0.59 / 0.65 || !Number.isFinite(currentElevation)) { continue; }
+      if (distance < stair.innerRadius || distance > stair.radius * 0.59 / 0.65 || !Number.isFinite(currentElevation)) {
+        continue;
+      }
       let best = null;
       let difference = Number.POSITIVE_INFINITY;
       const totalAngle = stair.turns * Math.PI * 2;
@@ -840,9 +896,13 @@ export class CastleResidentialLayout {
         const step = Math.min(stair.steps, Math.max(1, Math.ceil(angle / stepAngle)));
         const height = stair.center.y + stair.rise * spiralStairRise(step / stair.steps, stair.landingProfile);
         const heightDifference = Math.abs(height - currentElevation);
-        if (heightDifference <= (height > currentElevation ? STEP_CLEARANCE : MAX_SAFE_STEP_DOWN) && heightDifference < difference) { best = height; difference = heightDifference; }
+        if (heightDifference <= (height > currentElevation ? STEP_CLEARANCE : MAX_SAFE_STEP_DOWN) && heightDifference < difference) {
+          best = height; difference = heightDifference;
+        }
       }
-      if (best !== null && (result === null || Math.abs(best - currentElevation) < Math.abs(result - currentElevation))) { result = best; }
+      if (best !== null && (result === null || Math.abs(best - currentElevation) < Math.abs(result - currentElevation))) {
+        result = best;
+      }
     }
 
     return result;
@@ -856,16 +916,24 @@ export class CastleResidentialLayout {
    */
   surfaceHeightAt(x, z, currentElevation, actor = null) {
     const stairHeight = this.stairSurfaceHeightAt(x, z, currentElevation, actor);
-    if (stairHeight !== null) { return stairHeight; }
+    if (stairHeight !== null) {
+      return stairHeight;
+    }
     const local = this.toLocal(x, z);
     for (const area of this.#walkableAreas) {
-      if (area.floorY < this.#origin.y && !this.canEnterBasement(actor)) { continue; }
+      if (area.floorY < this.#origin.y && !this.canEnterBasement(actor)) {
+        continue;
+      }
       // The first authored tread can be 0.3 m high. Its adjoining floor must
       // remain queryable throughout the same step range used by the hero.
-      if (Math.abs(area.floorY - currentElevation) <= STEP_CLEARANCE && local.x >= area.minX && local.x <= area.maxX && local.z >= area.minZ && local.z <= area.maxZ) return area.floorY;
+      if (Math.abs(area.floorY - currentElevation) <= STEP_CLEARANCE && local.x >= area.minX && local.x <= area.maxX && local.z >= area.minZ && local.z <= area.maxZ) {
+        return area.floorY;
+      }
     }
     // Authored floor areas already exclude stair openings.
-    if (this.#authoredStairs.length > 0) { return null; }
+    if (this.#authoredStairs.length > 0) {
+      return null;
+    }
     for (const [name, room] of Object.entries(this.#rooms)) {
       if (
         !room ||
@@ -876,8 +944,12 @@ export class CastleResidentialLayout {
       ) {
         continue;
       }
-      if (["servantBedroom", "storage"].includes(name) && !this.canEnterBasement(actor)) { continue; }
-      if (Math.abs(room.floorY - currentElevation) <= 0.24 && local.x >= room.minX && local.x <= room.maxX && local.z >= room.minZ && local.z <= room.maxZ) { return room.floorY; }
+      if (["servantBedroom", "storage"].includes(name) && !this.canEnterBasement(actor)) {
+        continue;
+      }
+      if (Math.abs(room.floorY - currentElevation) <= 0.24 && local.x >= room.minX && local.x <= room.maxX && local.z >= room.minZ && local.z <= room.maxZ) {
+        return room.floorY;
+      }
     }
 
     return null;
@@ -1124,7 +1196,9 @@ export class CastleResidentialLayout {
       });
     const towerCenter = frontTower ? lateralSign * (frontTower.v + (frontTower.span - 1) / 2 - (opening.start + opening.end - 1) / 2) * blockSize : 0;
     const edge = frontTower ? Math.abs(towerCenter) - frontTower.span * blockSize / 2 : (work.maxX - work.minX) / 2;
-    if (edge - portalHalfWidth < 0.6) { return; }
+    if (edge - portalHalfWidth < 0.6) {
+      return;
+    }
     const lateral = flank * (edge + portalHalfWidth) / 2;
     this.#addExteriorWindow(lateral, (runtime.residential?.facadeDepth ?? 0.75) - 0.14, 1.1, this.#yaw + 180, 0.75);
   }
@@ -1262,20 +1336,26 @@ export const createCastleButtressFootings = (plan, mapData) => {
         const col = Math.floor(placement.position.x + dx + mapData.cols / 2);
         const row = Math.floor(placement.position.z + dz + mapData.rows / 2);
         const height = mapData.heightmap?.[row]?.[col];
-        if (Number.isFinite(height)) heights.push(height);
+        if (Number.isFinite(height)) {
+          heights.push(height);
+        }
       }
     }
-    if (!heights.length) continue;
+    if (!heights.length) {
+      continue;
+    }
     const baseY = Math.min(...heights);
     const topY = placement.position.y;
-    if (topY > baseY + 0.001) footings.push({
-      x: placement.position.x,
-      z: placement.position.z,
-      baseY,
-      topY,
-      width,
-      depth,
-    });
+    if (topY > baseY + 0.001) {
+      footings.push({
+        x: placement.position.x,
+        z: placement.position.z,
+        baseY,
+        topY,
+        width,
+        depth,
+      });
+    }
   }
 
   return footings;

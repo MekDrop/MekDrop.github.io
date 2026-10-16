@@ -37,7 +37,9 @@ export class CliffVine {
   /**
    * @returns {string[]}
    */
-  static get modelUrls() { return [crownUrl, leafUrl, stemUrl]; }
+  static get modelUrls() {
+    return [crownUrl, leafUrl, stemUrl];
+  }
 
   /**
    * @param {import("../ObjectTypes.js").GameMapData} mapData
@@ -131,7 +133,9 @@ export class CliffVine {
         linearVertexColors: true,
         name: `${definition.id} growth`,
       });
-      if (!batch) continue;
+      if (!batch) {
+        continue;
+      }
       if (shade !== undefined) {
         const tint = [[0.68, 0.86, 0.62], [0.88, 0.98, 0.8], [1, 1, 0.95]][shade];
         for (const instance of batch.entity.render?.meshInstances ?? []) {
@@ -156,12 +160,18 @@ export class CliffVine {
     }
   }
 
-  get entity() { return this.#entity; }
-  get definition() { return this.#definition; }
+  get entity() {
+    return this.#entity;
+  }
+  get definition() {
+    return this.#definition;
+  }
   /**
    * @returns {import("playcanvas").Entity[]}
    */
-  get visualRoots() { return []; }
+  get visualRoots() {
+    return [];
+  }
   /**
    * @param {number} near
    * @param {number} far
@@ -174,13 +184,19 @@ export class CliffVine {
     }
     this.#offset = offset;
     for (const batch of this.#batches) {
-      for (let index = 0; index < batch.heights.length; index++) batch.matrices[index * 16 + 13] = batch.heights[index] + offset;
+      for (let index = 0; index < batch.heights.length; index++) {
+        batch.matrices[index * 16 + 13] = batch.heights[index] + offset;
+      }
       batch.buffer.setData(batch.matrices);
     }
   }
   destroy() {
     this.#entity.destroy();
-    for (const batch of this.#batches) batch.buffer.destroy();
-    for (const material of this.#materials) material.destroy();
+    for (const batch of this.#batches) {
+      batch.buffer.destroy();
+    }
+    for (const material of this.#materials) {
+      material.destroy();
+    }
   }
 }

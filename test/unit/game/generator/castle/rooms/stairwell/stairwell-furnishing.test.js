@@ -194,10 +194,16 @@ it("confines crates to supported low-headroom stair pockets and leaves floor voi
         if (!item.supportId) {
           const group = new Set([item.id]);
           for (let level = 0; level < crates.length; level++) {
-            for (const child of crates) { if (group.has(child.supportId)) { group.add(child.id); } }
+            for (const child of crates) {
+              if (group.has(child.supportId)) {
+                group.add(child.id);
+              }
+            }
           }
           for (const child of crates) {
-            if (!group.has(child.id) || child === item) { continue; }
+            if (!group.has(child.id) || child === item) {
+              continue;
+            }
             const angle = child.rotation * Math.PI / 180;
             const hx = child.scale * (child.width * Math.abs(Math.cos(angle)) + child.depth * Math.abs(Math.sin(angle))) / 2;
             const hz = child.scale * (child.width * Math.abs(Math.sin(angle)) + child.depth * Math.abs(Math.cos(angle))) / 2;

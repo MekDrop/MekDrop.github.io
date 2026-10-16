@@ -71,7 +71,7 @@ function createSubject() {
     app: {
       systems: {
         rigidbody: {
-          raycastAll(start, end, options) {
+          raycastAll: (start, end, options) => {
             raycasts.push({
               start,
               end,
@@ -88,7 +88,7 @@ function createSubject() {
   return {
     physics,
     raycasts,
-    setRaycastHits(hits) {
+    setRaycastHits: (hits) => {
       raycastHits = hits;
     },
   };

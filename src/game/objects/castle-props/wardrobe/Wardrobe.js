@@ -21,15 +21,21 @@ export class Wardrobe extends AbstractCastleProp {
   /**
    * @returns {string[]}
    */
-  static get modelUrls() { return [wardrobeUrl]; }
+  static get modelUrls() {
+    return [wardrobeUrl];
+  }
   /**
    * @returns {boolean}
    */
-  static get hasAuthoredCollision() { return false; }
+  static get hasAuthoredCollision() {
+    return false;
+  }
   /**
    * @returns {string}
    */
-  get modelUrl() { return wardrobeUrl; }
+  get modelUrl() {
+    return wardrobeUrl;
+  }
   /**
    * @param {ConstructorParameters<typeof AbstractCastleProp>[0]} options
    */
@@ -72,12 +78,16 @@ export class Wardrobe extends AbstractCastleProp {
    * Legacy navigation and camera queries share the Ammo box envelope; Ammo owns contact.
    * @returns {boolean}
    */
-  get isGroundCollider() { return true; }
+  get isGroundCollider() {
+    return true;
+  }
   /**
    * Wardrobes did not expose a walkable top in the castle navigation contract.
    * @returns {boolean}
    */
-  get physicsSurface() { return false; }
+  get physicsSurface() {
+    return false;
+  }
   /**
    * @param {number} x
    * @param {number} z

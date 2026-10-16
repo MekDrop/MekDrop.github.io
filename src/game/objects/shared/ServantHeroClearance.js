@@ -60,7 +60,9 @@ export class ServantHeroClearance {
    */
   #sync = () => {
     this.#body.enabled = this.#actor.enabled;
-    if (!this.#body.enabled) { return; }
+    if (!this.#body.enabled) {
+      return;
+    }
     const position = this.#actor.getPosition();
     this.#body.rigidbody.teleport(position.x, position.y + CHARACTER_HEIGHT / 2, position.z);
     let hero = ServantHeroClearance.#heroes.get(this.#app);
@@ -72,7 +74,9 @@ export class ServantHeroClearance {
         hero.once("destroy", () => ServantHeroClearance.#heroes.delete(app));
       }
     }
-    if (!hero?.enabled || !hero.rigidbody) { return; }
+    if (!hero?.enabled || !hero.rigidbody) {
+      return;
+    }
     /**
      * @param {import("yuka").Vector3} point
      */
@@ -84,7 +88,9 @@ export class ServantHeroClearance {
       // even if the hero is still close to the servant's previous work position.
       if (Math.hypot(actor.x - current.x, actor.z - current.z) >= RESUME_DISTANCE &&
         Math.hypot(actor.x - current.x - velocity.x * 0.2,
-          actor.z - current.z - velocity.z * 0.2) >= RESUME_DISTANCE) { return false; }
+          actor.z - current.z - velocity.z * 0.2) >= RESUME_DISTANCE) {
+        return false;
+      }
       return Math.abs(point.y - current.y) < CHARACTER_HEIGHT &&
         (Math.hypot(point.x - current.x, point.z - current.z) < 1.1 ||
           Math.hypot(point.x - current.x - velocity.x * 0.2,
@@ -96,7 +102,9 @@ export class ServantHeroClearance {
     const canMove = (point) => {
       const current = hero.getPosition();
       if (Math.abs(point.y - current.y) < CHARACTER_HEIGHT &&
-        Math.hypot(point.x - current.x, point.z - current.z) < 0.75) { return false; }
+        Math.hypot(point.x - current.x, point.z - current.z) < 0.75) {
+        return false;
+      }
       const physics = this.#app.systems.rigidbody;
       /**
        * @param {Entity} entity
@@ -108,11 +116,15 @@ export class ServantHeroClearance {
         const start = new Vec3(point.x, point.y + height, point.z);
         const origin = this.#actor.getPosition();
         if (physics.raycastFirst(new Vec3(origin.x, start.y, origin.z), start,
-          { filterCallback })) { return false; }
+          { filterCallback })) {
+          return false;
+        }
         for (let side = 0; side < 8; side++) {
           const angle = side * Math.PI / 4;
           if (physics.raycastFirst(start, new Vec3(point.x + Math.cos(angle) * RADIUS,
-            start.y, point.z + Math.sin(angle) * RADIUS), { filterCallback })) { return false; }
+            start.y, point.z + Math.sin(angle) * RADIUS), { filterCallback })) {
+            return false;
+          }
         }
       }
       const floor = physics.raycastFirst(new Vec3(point.x, point.y + 0.15, point.z),

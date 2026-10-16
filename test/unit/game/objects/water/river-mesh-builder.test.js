@@ -20,11 +20,13 @@ function surfaceFor(direction, kind = 'WATER') {
   const builder = new RiverMeshBuilder({
     pc: {
       Mesh: FakeMesh,
-      MeshInstance: class { setParameter() {} },
+      MeshInstance: class {
+        setParameter() {}
+      },
       Entity: FakeEntity,
     },
     device: null,
-    entity: { addChild() {} },
+    entity: { addChild: () => {} },
     riverKind: kind,
     mapData: {
       cols: 3,
@@ -50,8 +52,10 @@ function surfaceFor(direction, kind = 'WATER') {
     createSourceProfile: () => null,
     isSpringSource: () => false,
     surfaceCorners: () => null,
-    appendCascade() {},
-    appendTerminal: ({ riverGroup }) => { surface = riverGroup; },
+    appendCascade: () => {},
+    appendTerminal: ({ riverGroup }) => {
+      surface = riverGroup;
+    },
     createMaterial: () => null,
   });
 
@@ -104,14 +108,22 @@ it('keeps the waterfall on the upstream animation clock when the landing slows',
   const children = [];
   let cascadeGroup;
   class Mesh extends FakeMesh {
-    setPositions(positions) { this.positions = positions; }
+    setPositions(positions) {
+      this.positions = positions;
+    }
   }
   class MeshInstance {
-    constructor(mesh) { this.mesh = mesh; this.parameters = new Map(); }
-    setParameter(name, value) { this.parameters.set(name, value); }
+    constructor(mesh) {
+      this.mesh = mesh; this.parameters = new Map();
+    }
+    setParameter(name, value) {
+      this.parameters.set(name, value);
+    }
   }
   class Entity {
-    addComponent(_type, options) { this.meshInstances = options.meshInstances; }
+    addComponent(_type, options) {
+      this.meshInstances = options.meshInstances;
+    }
   }
   const builder = new RiverMeshBuilder({
     pc: {
@@ -169,8 +181,10 @@ it('keeps the waterfall on the upstream animation clock when the landing slows',
     isSpringSource: () => false,
     surfaceCorners: () => null,
     createMaterial: () => null,
-    appendCascade: ({ group }) => { cascadeGroup = group; },
-    appendTerminal() {},
+    appendCascade: ({ group }) => {
+      cascadeGroup = group;
+    },
+    appendTerminal: () => {},
   });
   const instances = children.flatMap(child => child.meshInstances);
   const waterfall = instances.find(instance => instance.mesh.positions === cascadeGroup.positions);

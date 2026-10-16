@@ -12,7 +12,9 @@ export function createCastleStairFlight(position, door, cubeSize = 0.25, mapData
   const approachElevation = Number.isFinite(door.approachElevation) ? door.approachElevation : topY;
   const rise = Math.max(0, topY - approachElevation);
   const riseBlocks = Math.max(0, Math.ceil(rise / cubeSize - 0.000001));
-  if (!riseBlocks) return null;
+  if (!riseBlocks) {
+    return null;
+  }
   // Keep the outer strip before the doorway as grass; widen toward its other side.
   let offset = !mapData && Number.isFinite(door.stairOffset) ? door.stairOffset : Math.floor(door.offset);
   let width = !mapData && Number.isFinite(door.stairWidth) ? door.stairWidth : Math.ceil(door.offset + door.width) - offset;
@@ -27,7 +29,9 @@ export function createCastleStairFlight(position, door, cubeSize = 0.25, mapData
     NORTH: position.z,
     SOUTH: position.z + position.depth,
   }[door.side];
-  if (!Number.isFinite(boundaryEdge)) return null;
+  if (!Number.isFinite(boundaryEdge)) {
+    return null;
+  }
   const outwardSign = door.side === "WEST" || door.side === "NORTH" ? -1 : 1;
   const outerEdge = boundaryEdge + outwardSign * run;
   const edgeMin = Math.min(boundaryEdge, outerEdge);
@@ -37,11 +41,15 @@ export function createCastleStairFlight(position, door, cubeSize = 0.25, mapData
     const originalEnd = originalStart + door.width;
     for (let row = 0; row < mapData.rows; row += 1) {
       for (let col = 0; col < mapData.cols; col += 1) {
-        if (![2, 5].includes(mapData.grid[row]?.[col])) continue;
+        if (![2, 5].includes(mapData.grid[row]?.[col])) {
+          continue;
+        }
         const x = col - (mapData.cols - 1) / 2;
         const z = row - (mapData.rows - 1) / 2;
         const along = vertical ? x : z;
-        if (along + 0.5 <= edgeMin || along - 0.5 >= edgeMax) continue;
+        if (along + 0.5 <= edgeMin || along - 0.5 >= edgeMax) {
+          continue;
+        }
         const across = vertical ? z : x;
         const cellStart = across - 0.5;
         const cellEnd = across + 0.5;

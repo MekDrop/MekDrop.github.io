@@ -4,7 +4,7 @@ import { test } from "node:test";
 import * as pc from "playcanvas";
 
 const hooks = registerHooks({
-  resolve(specifier, context, nextResolve) {
+  resolve: (specifier, context, nextResolve) => {
     if (specifier.endsWith(".glb?url")) {
       return {
         url: `data:text/javascript,export default ${JSON.stringify(specifier)}`,
@@ -48,7 +48,9 @@ const { CandleStand } = await import("../../../../../../src/game/objects/castle-
 hooks.deregister();
 
 class CandleEntity extends pc.Entity {
-  addComponent(type, options) { this[type] = options; }
+  addComponent(type, options) {
+    this[type] = options;
+  }
 }
 globalThis.CandleTestEntity = CandleEntity;
 

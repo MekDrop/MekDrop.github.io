@@ -21,7 +21,9 @@ export class Rug extends AbstractCastleProp {
     super(options);
 
     const { pc, definition } = options;
-    if (!definition.texture) { return; }
+    if (!definition.texture) {
+      return;
+    }
     this.#app = options.app ?? pc.Application.getApplication();
     /**
      * @type {import("playcanvas").StandardMaterial[]}
@@ -88,7 +90,9 @@ export class Rug extends AbstractCastleProp {
    * @param {boolean} collision
    */
   prepareModel(model, collision) {
-    if (this.definition.model) { return; }
+    if (this.definition.model) {
+      return;
+    }
     const { width, depth, scale = 1 } = this.definition;
     const size = model.getLocalScale();
     model.setLocalScale(width === undefined ? size.x : width * scale / 1.2,
@@ -97,7 +101,9 @@ export class Rug extends AbstractCastleProp {
   /**
    * @returns {string[]}
    */
-  static get modelUrls() { return Object.values(rugModels); }
+  static get modelUrls() {
+    return Object.values(rugModels);
+  }
   /**
    * @returns {string}
    */
@@ -108,7 +114,9 @@ export class Rug extends AbstractCastleProp {
    * Cloth relies on the floor for support and must not obstruct door contacts.
    * @returns {boolean}
    */
-  static get hasAuthoredCollision() { return false; }
+  static get hasAuthoredCollision() {
+    return false;
+  }
   destroy() {
     if (this.#textureAsset) {
       this.#textureAsset.off();

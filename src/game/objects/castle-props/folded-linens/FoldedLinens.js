@@ -10,7 +10,9 @@ export class FoldedLinens extends AbstractCastleProp {
   /**
    * @returns {string}
    */
-  static get modelUrl() { return modelUrl; }
+  static get modelUrl() {
+    return modelUrl;
+  }
 
   /**
    * Pack authored linen bundles into a bottom-centered, repeatable local area.
@@ -20,7 +22,9 @@ export class FoldedLinens extends AbstractCastleProp {
   prepareModel(model, collision) {
     const { width = 0.3, depth = 0.22, height = 0.16, linenSeed } = this.definition;
     const original = model.findByName("folded-linens");
-    if (!original) { return; }
+    if (!original) {
+      return;
+    }
     const template = original.clone();
     original.destroy();
     if (!arePositiveFiniteNumbers(width, depth, height)) {

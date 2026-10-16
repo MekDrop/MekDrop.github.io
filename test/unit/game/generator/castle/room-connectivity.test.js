@@ -10,7 +10,9 @@ function checkRoutes(plan) {
   const residential = plan.layout.roomPlan;
   const radius = 0.4, step = 0.125;
   for (const level of [0, 1]) {
-    if (level === 1 && !residential.stair) continue;
+    if (level === 1 && !residential.stair) {
+      continue;
+    }
     const y = layout.origin.y + level * residential.rise;
     const solids = plan.metadata.collision.cameraBlocks.filter((block) =>
       block.y + block.halfY > y + 0.1 && block.y - block.halfY < y + 1.75)
@@ -19,7 +21,9 @@ function checkRoutes(plan) {
         ...layout.toLocal(block.x, block.z),
       }));
     for (const item of residential.furniture) {
-      if (item.floorY !== y) continue;
+      if (item.floorY !== y) {
+        continue;
+      }
       solids.push({
         x: item.x,
         z: item.z,
@@ -37,10 +41,12 @@ function checkRoutes(plan) {
       for (let x = minX; x <= residential.outerBounds.maxX - radius; x += step) {
         const containsWalkablePoint = (area) => area.floorY === y &&
           x >= area.minX && x <= area.maxX && z >= area.minZ && z <= area.maxZ;
-        if (clear(x, z) && layout.walkableAreas.some(containsWalkablePoint)) cells.push({
-          x,
-          z,
-        });
+        if (clear(x, z) && layout.walkableAreas.some(containsWalkablePoint)) {
+          cells.push({
+            x,
+            z,
+          });
+        }
       }
     }
     const landing = layout.walkableAreas.find((area) => area.id === "mainStairLanding");
@@ -59,7 +65,9 @@ function checkRoutes(plan) {
     for (const cell of queue) {
       for (const [dx, dz] of [[step, 0], [-step, 0], [0, step], [0, -step]]) {
         const id = key(cell.x + dx, cell.z + dz), next = lookup.get(id);
-        if (next && !reached.has(id)) { reached.add(id); queue.push(next); }
+        if (next && !reached.has(id)) {
+          reached.add(id); queue.push(next);
+        }
       }
     }
     for (const room of residential.placedRooms.filter((room) => room.level <= level && room.level + room.floorSpan > level)) {
@@ -71,7 +79,9 @@ function checkRoutes(plan) {
       for (const cell of cells) {
         const inRoom = residential.placedRooms.some((room) => room.level <= level && room.level + room.floorSpan > level &&
           cell.x >= room.minX - radius && cell.x <= room.maxX + radius && cell.z >= room.minZ - radius && cell.z <= room.maxZ + radius);
-        if (!inRoom) assert.ok(reached.has(key(cell.x, cell.z)), "every unused terrace cell is reachable from the stair landing" );
+        if (!inRoom) {
+          assert.ok(reached.has(key(cell.x, cell.z)), "every unused terrace cell is reachable from the stair landing" );
+        }
       }
     }
     if (level === 0 && layout.stairs) {
@@ -139,7 +149,9 @@ it("keeps every planned doorway free of masonry from other shell layers", async 
     assert.equal(layout.exteriorButtresses.length, 0);
     for (const door of plan.layout.roomPlan.doorways) {
       for (const block of plan.metadata.collision.cameraBlocks) {
-        if (block.y < door.floorY + 0.25 || block.y > door.floorY + 1.75) continue;
+        if (block.y < door.floorY + 0.25 || block.y > door.floorY + 1.75) {
+          continue;
+        }
         const point = layout.toLocal(block.x, block.z);
         const across = door.axis === "x" ? point.x : point.z;
         const along = door.axis === "x" ? point.z : point.x;
@@ -162,11 +174,15 @@ it("keeps the reported seed's door approaches clear and upper thresholds continu
   const layout=new CastleResidentialLayout(plan);
   for (const door of plan.metadata.runtime.roomDoors) {
     assert.ok(door.height + 0.025 * door.height / 2.3 < 1.875);
-    if (door.y > layout.origin.y) assert.ok(door.width <= 1.25);
+    if (door.y > layout.origin.y) {
+      assert.ok(door.width <= 1.25);
+    }
   }
   for (const door of plan.layout.roomPlan.doorways) {
     for (const item of plan.layout.roomPlan.furniture) {
-      if (item.floorY !== door.floorY) continue;
+      if (item.floorY !== door.floorY) {
+        continue;
+      }
       const normal=Math.abs((door.axis === "x" ? item.x : item.z)-door.coordinate);
       const tangent=Math.abs((door.axis === "x" ? item.z : item.x)-door.center);
       const halfNormal=(door.axis === "x" ? item.width : item.depth)*item.scale/2;
@@ -176,9 +192,11 @@ it("keeps the reported seed's door approaches clear and upper thresholds continu
     if (door.floorY > layout.origin.y) {
       const x=door.axis === "x" ? door.coordinate : door.center;
       const z=door.axis === "z" ? door.coordinate : door.center;
-      for (const delta of [-0.2,0,0.2]) assert.ok(layout.walkableAreas.some((area) => area.floorY===door.floorY &&
+      for (const delta of [-0.2,0,0.2]) {
+        assert.ok(layout.walkableAreas.some((area) => area.floorY===door.floorY &&
         x+(door.axis === "x" ? delta : 0)>=area.minX-1e-8 && x+(door.axis === "x" ? delta : 0)<=area.maxX+1e-8 &&
         z+(door.axis === "z" ? delta : 0)>=area.minZ-1e-8 && z+(door.axis === "z" ? delta : 0)<=area.maxZ+1e-8));
+      }
     }
   }
 });

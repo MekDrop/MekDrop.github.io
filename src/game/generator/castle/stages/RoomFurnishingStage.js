@@ -10,7 +10,9 @@ export class RoomFurnishingStage extends AbstractCastleGenerationStage {
    */
   async run(context) {
     const plan = context.layout.roomPlan;
-    if (!plan) { return; }
+    if (!plan) {
+      return;
+    }
     plan.furniture = [];
     for (const generator of context.planning.roomGenerators) {
       const room = plan.placedRooms.find(/**
@@ -18,16 +20,24 @@ export class RoomFurnishingStage extends AbstractCastleGenerationStage {
        * @param {import("../rooms/AbstractCastleRoomGenerator.js").PlannedCastleRoom} candidate
        */
         (candidate) => candidate.id === generator.id);
-      if (!room) { continue; }
+      if (!room) {
+        continue;
+      }
       for (const item of generator.furnish(room)) {
-        if (!RoomPlacementRules.accepts(item, room, plan.furniture)) { continue; }
+        if (!RoomPlacementRules.accepts(item, room, plan.furniture)) {
+          continue;
+        }
         const halfX = item.width * item.scale / 2;
         const halfZ = item.depth * item.scale / 2;
         if (item.x - halfX < room.minX || item.x + halfX > room.maxX ||
-          item.z - halfZ < room.minZ || item.z + halfZ > room.maxZ) { continue; }
+          item.z - halfZ < room.minZ || item.z + halfZ > room.maxZ) {
+          continue;
+        }
         if ((plan.stair || plan.serviceStair) && room.minX <= plan.shaft.minX && room.maxX >= plan.shaft.maxX &&
           item.x + halfX > plan.shaft.minX - 0.25 && item.x - halfX < plan.shaft.maxX + 0.25 &&
-          item.z + halfZ > plan.shaft.minZ - 0.25 && item.z - halfZ < plan.shaft.maxZ + 0.25) { continue; }
+          item.z + halfZ > plan.shaft.minZ - 0.25 && item.z - halfZ < plan.shaft.maxZ + 0.25) {
+          continue;
+        }
         const blockedEntrance = plan.doorways.some(/**
          * @param {{roomId:string,axis:string,coordinate:number,center:number,width:number,floorY:number}} door
          */
@@ -36,7 +46,9 @@ export class RoomFurnishingStage extends AbstractCastleGenerationStage {
             Math.abs(item.z - door.center) < halfZ + door.width / 2 + 0.45 :
             Math.abs(item.z - door.coordinate) < halfZ + door.width + 0.25 &&
             Math.abs(item.x - door.center) < halfX + door.width / 2 + 0.45));
-        if (blockedEntrance) { continue; }
+        if (blockedEntrance) {
+          continue;
+        }
         plan.furniture.push({
           ...item,
           roomId: room.id,

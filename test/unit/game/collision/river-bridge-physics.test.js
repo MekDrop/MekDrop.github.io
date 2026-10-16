@@ -11,19 +11,31 @@ it("keeps the river open below high bridges while retaining deck collisions", ()
   let mesh;
   const pc = {
     Entity: class {
-      tags = { add() {} };
-      addComponent(type, value) { this[type] = value; }
-      removeComponent(type) { delete this[type]; }
+      tags = { add: () => {} };
+      addComponent(type, value) {
+        this[type] = value;
+      }
+      removeComponent(type) {
+        delete this[type];
+      }
       destroy() {}
     },
     Mesh: class {
-      constructor() { mesh = this; }
-      setPositions(value) { this.positions = value; }
-      setIndices(value) { this.indices = value; }
+      constructor() {
+        mesh = this;
+      }
+      setPositions(value) {
+        this.positions = value;
+      }
+      setIndices(value) {
+        this.indices = value;
+      }
       update() {}
       destroy() {}
     },
-    StandardMaterial: class { update() {} destroy() {} },
+    StandardMaterial: class {
+      update() {} destroy() {}
+    },
     GraphNode: class {},
     MeshInstance: class {},
     Model: class {},

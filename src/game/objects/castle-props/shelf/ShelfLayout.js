@@ -8,7 +8,9 @@ export class ShelfLayout {
   /**
    * @returns {number}
    */
-  static get depth() { return 0.36; }
+  static get depth() {
+    return 0.36;
+  }
 
   /**
    * @param {import("../../ObjectTypes.js").MapObjectDefinition} definition

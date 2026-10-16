@@ -9,7 +9,9 @@ export class Satchel extends AbstractCastleProp {
   /**
    * @returns {string[]}
    */
-  static get modelUrls() { return [brownModelUrl, oliveModelUrl]; }
+  static get modelUrls() {
+    return [brownModelUrl, oliveModelUrl];
+  }
 
   /**
    * Both the visible mesh and its contact shape use the selected artwork.

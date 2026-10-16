@@ -23,7 +23,9 @@ export class ThroneRoomGenerator extends AbstractCastleRoomGenerator {
     const bounds = room.contentBounds ?? room;
     const width = bounds.maxX - bounds.minX;
     const depth = bounds.maxZ - bounds.minZ;
-    if (width < 3.3 || depth < 3.1) { return []; }
+    if (width < 3.3 || depth < 3.1) {
+      return [];
+    }
     let state = 2166136261;
     const sourceSeed = context.seed ?? room.furnishingSeed ?? room.seed ?? 0;
     const numeric = Number(sourceSeed);
@@ -51,18 +53,28 @@ export class ThroneRoomGenerator extends AbstractCastleRoomGenerator {
       const halfX = itemWidth / 2;
       const halfZ = itemDepth / 2;
       if (x - halfX < bounds.minX + 0.125 || x + halfX > bounds.maxX - 0.125 ||
-        z - halfZ < bounds.minZ + 0.125 || z + halfZ > bounds.maxZ - 0.125) { return false; }
+        z - halfZ < bounds.minZ + 0.125 || z + halfZ > bounds.maxZ - 0.125) {
+        return false;
+      }
       for (const door of context.openings ?? []) {
-        if (door.roomId !== room.id || door.kind !== "door") { continue; }
+        if (door.roomId !== room.id || door.kind !== "door") {
+          continue;
+        }
         if (door.axis === "x" ? Math.abs(x - door.coordinate) < halfX + 0.75 &&
           Math.abs(z - door.center) < halfZ + door.width / 2 + 0.25 :
           Math.abs(z - door.coordinate) < halfZ + 0.75 &&
-          Math.abs(x - door.center) < halfX + door.width / 2 + 0.25) { return false; }
+          Math.abs(x - door.center) < halfX + door.width / 2 + 0.25) {
+          return false;
+        }
       }
       for (const stair of context.stairs ?? []) {
-        if (room.level < stair.from || room.level > stair.to) { continue; }
+        if (room.level < stair.from || room.level > stair.to) {
+          continue;
+        }
         if (x + halfX > stair.minX && x - halfX < stair.maxX &&
-          z + halfZ > stair.minZ && z - halfZ < stair.maxZ) { return false; }
+          z + halfZ > stair.minZ && z - halfZ < stair.maxZ) {
+          return false;
+        }
       }
 
       return true;
@@ -122,7 +134,9 @@ export class ThroneRoomGenerator extends AbstractCastleRoomGenerator {
     // Keep the emblem above the throne and the rear wall's window lintel.
     add(variant === "warCouncil" ? "WarCouncilShield" : "RoyalCrest", center,
       bounds.minZ + 0.2, variant === "warCouncil" ? 0.7 : 1, 0.1, 2.15);
-    if (variant !== "warCouncil") { items.at(-1).scale = 0.7; }
+    if (variant !== "warCouncil") {
+      items.at(-1).scale = 0.7;
+    }
     const candleForward = bounds.minZ + 0.55 + random() * 0.14;
     this.#addCandleStand(
       center,
@@ -151,14 +165,18 @@ export class ThroneRoomGenerator extends AbstractCastleRoomGenerator {
       const side = doors.some(ThroneRoomGenerator.#someDoor) ? -1 : 1;
       const x = center + side * (width / 2 - 0.52);
       const z = bounds.maxZ - 0.95 - random() * 0.12;
-      if (!fits(x, z, 0.628, 1.25)) { return items; }
+      if (!fits(x, z, 0.628, 1.25)) {
+        return items;
+      }
       if (variant === "royalCourt") {
         add("Lectern", x, z, 0.45, 0.45, 0.05, side > 0 ? 90 : -90);
         items.at(-1).type = "court";
       } else if (variant === "scholarKing") {
         add("Table", x, z, 0.9, 0.55, 0.05, 90, { variant: "writingDesk" });
         add("Book", x, z + 0.1, 0.36, 0.227, 0.7, 90, {isOpen: true});
-        if (random() > 0.3) { add("DeskGlobe", x, z - 0.305, 0.24, 0.285, 0.7); }
+        if (random() > 0.3) {
+          add("DeskGlobe", x, z - 0.305, 0.24, 0.285, 0.7);
+        }
         const shelfX = center - side * (width / 2 - 0.35);
         const shelfZ = bounds.minZ + 1.55;
         if (fits(shelfX, shelfZ, 0.36, 0.85)) {
@@ -177,7 +195,9 @@ export class ThroneRoomGenerator extends AbstractCastleRoomGenerator {
         });
         const rackX = center - side * (width / 2 - 0.45);
         const rackZ = bounds.minZ + 1.55;
-        if (fits(rackX, rackZ, 0.5, 0.25)) { add("SpearRack", rackX, rackZ, 0.5, 0.25); }
+        if (fits(rackX, rackZ, 0.5, 0.25)) {
+          add("SpearRack", rackX, rackZ, 0.5, 0.25);
+        }
       }
       // Larger rooms put a clerk at the work surface; compact rooms seat visitors
       // against the front wall, outside both the inward door swing and the runner.

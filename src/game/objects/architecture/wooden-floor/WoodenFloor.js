@@ -28,7 +28,9 @@ export class WoodenFloor {
   /**
    * @returns {string[]}
    */
-  static get modelUrls() { return [floorUrl]; }
+  static get modelUrls() {
+    return [floorUrl];
+  }
 
   /**
    * Returns the shared bottom-anchored, one-metre-square, 0.06-metre-thick panel.
@@ -41,15 +43,21 @@ export class WoodenFloor {
   static createPanel(models, thinFinish = false, width = 1, depth = 1) {
     const panel = models.instantiate(floorUrl);
     for (const render of panel.findComponents("render")) {
-      if (!render.entity?.name.startsWith("Oak plank")) { continue; }
+      if (!render.entity?.name.startsWith("Oak plank")) {
+        continue;
+      }
       const mesh = render.meshInstances[0]?.mesh;
-      if (!mesh?.getPositions) { continue; }
+      if (!mesh?.getPositions) {
+        continue;
+      }
       const vertices = [];
       mesh.getPositions(vertices);
       const topY = mesh.aabb.center.y + mesh.aabb.halfExtents.y;
       let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
       for (let index = 0; index < vertices.length; index += 3) {
-        if (vertices[index + 1] < topY - 1e-5) { continue; }
+        if (vertices[index + 1] < topY - 1e-5) {
+          continue;
+        }
         minX = Math.min(minX, vertices[index]); maxX = Math.max(maxX, vertices[index]);
         minZ = Math.min(minZ, vertices[index + 2]); maxZ = Math.max(maxZ, vertices[index + 2]);
       }
@@ -108,17 +116,27 @@ export class WoodenFloor {
     });
   }
 
-  get entity() { return this.#entity; }
-  get definition() { return this.#definition; }
+  get entity() {
+    return this.#entity;
+  }
+  get definition() {
+    return this.#definition;
+  }
   /**
    * @returns {import("playcanvas").Entity[]}
    */
-  get visualRoots() { return [this.#visual]; }
+  get visualRoots() {
+    return [this.#visual];
+  }
   /**
    * @param {number} near
    * @param {number} far
    * @param {number[]} [offsets]
    */
-  setIslandOffsets(near, far, offsets = [near, far]) { this.#islandRoots.setOffsets(near, far, offsets); }
-  destroy() { this.#entity.destroy(); }
+  setIslandOffsets(near, far, offsets = [near, far]) {
+    this.#islandRoots.setOffsets(near, far, offsets);
+  }
+  destroy() {
+    this.#entity.destroy();
+  }
 }

@@ -75,7 +75,9 @@ export class CastleResidentMotion {
   /**
    * @returns {import("playcanvas").Vec3}
    */
-  get home() { return this.#home; }
+  get home() {
+    return this.#home;
+  }
   /**
    * @returns {boolean}
    */
@@ -98,7 +100,9 @@ export class CastleResidentMotion {
    */
   moveTo(target, action = "walk") {
     this.#walkAction = action;
-    if (this.#target?.distance(target) < 0.01) { return; }
+    if (this.#target?.distance(target) < 0.01) {
+      return;
+    }
     this.#target = target.clone();
     this.#route = this.#find(this.#actor.entity.getPosition(), target);
   }
@@ -112,9 +116,13 @@ export class CastleResidentMotion {
       this.#route = this.#find(this.#actor.entity.getPosition(), this.#target);
       this.#retry = 0.5;
     }
-    if (!this.#route?.length) { return; }
+    if (!this.#route?.length) {
+      return;
+    }
     this.#clear(this.#actor.entity.getPosition(), this.#actor.entity);
-    if (this.#actor.behavior?.reacting) { return; }
+    if (this.#actor.behavior?.reacting) {
+      return;
+    }
     this.#time += deltaTime;
     let remaining = this.#vehicle.maxSpeed * Math.min(deltaTime, 0.1);
     const entity = this.#actor.entity;
@@ -128,7 +136,9 @@ export class CastleResidentMotion {
       if (!this.#clear(candidate, entity) || !this.#collisionFree(position, candidate, true)) {
         if (this.#retry === 0) {
           const detour = this.#find(position, this.#target, true);
-          if (detour) { this.#route = detour; }
+          if (detour) {
+            this.#route = detour;
+          }
           this.#retry = 0.5;
         }
         break;
@@ -140,12 +150,16 @@ export class CastleResidentMotion {
         entity.setEulerAngles(0, Math.atan2(direction.x, direction.z) * 180 / Math.PI, 0);
       }
       remaining -= step;
-      if (distance <= step + 0.00001) { this.#route.shift(); }
+      if (distance <= step + 0.00001) {
+        this.#route.shift();
+      }
     }
     const moved = position.distance(entity.getPosition()) > 0.00001;
     entity.setPosition(position);
     this.#actor.pose(moved || this.#walkAction === "carry" ? this.#walkAction : "idle", this.#time);
-    if (!this.#route.length) { this.#clear(null, entity); }
+    if (!this.#route.length) {
+      this.#clear(null, entity);
+    }
   }
 
   /**
@@ -168,9 +182,13 @@ export class CastleResidentMotion {
       for (let ix = Math.ceil(area.minX * 8); ix <= Math.floor(area.maxX * 8); ix++) {
         for (let iz = Math.ceil(area.minZ * 8); iz <= Math.floor(area.maxZ * 8); iz++) {
           const key = `${ix}:${iz}:${area.floorY}`;
-          if (lookup.has(key)) { continue; }
+          if (lookup.has(key)) {
+            continue;
+          }
           const point = this.#point(ix / 8, iz / 8, area.floorY);
-          if (this.#blocked(point)) { continue; }
+          if (this.#blocked(point)) {
+            continue;
+          }
           const node = {
             point,
             links: [],
@@ -186,7 +204,9 @@ export class CastleResidentMotion {
     for (const node of this.#nodes) {
       for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
         const neighbor = lookup.get(`${node.ix + dx}:${node.iz + dz}:${node.y}`);
-        if (neighbor && this.#segment(node.point, neighbor.point)) { node.links.push(neighbor); }
+        if (neighbor && this.#segment(node.point, neighbor.point)) {
+          node.links.push(neighbor);
+        }
       }
     }
     for (const stair of [...this.#layout.authoredStairs, this.#layout.stairs].filter(Boolean)) {
@@ -254,7 +274,9 @@ export class CastleResidentMotion {
     for (let step = 0; step <= steps; step++) {
       const point = start.clone().lerp(start, end, step / Math.max(1, steps));
       const local = this.#layout.toLocal(point.x, point.z);
-      if (!this.#floor(local.x, local.z, end.y) || this.#blocked(point, avoidDoors)) { return false; }
+      if (!this.#floor(local.x, local.z, end.y) || this.#blocked(point, avoidDoors)) {
+        return false;
+      }
     }
 
     return true;
@@ -271,7 +293,9 @@ export class CastleResidentMotion {
   #collisionFree(start, end, avoidDoors = false) {
     const steps = Math.max(1, Math.ceil(start.distance(end) / 0.05));
     for (let step = 0; step <= steps; step++) {
-      if (this.#blocked(start.clone().lerp(start, end, step / steps), avoidDoors)) { return false; }
+      if (this.#blocked(start.clone().lerp(start, end, step / steps), avoidDoors)) {
+        return false;
+      }
     }
 
     return true;
@@ -293,27 +317,39 @@ export class CastleResidentMotion {
     };
     const goalNeighbors = new Set();
     for (const node of this.#nodes) {
-      if (Math.abs(node.point.y - start.y) < 0.5 && node.point.distance(start) < 0.9 && this.#segment(start, node.point, avoidDoors)) { source.links.push(node); }
-      if (Math.abs(node.point.y - target.y) < 0.5 && node.point.distance(target) < 0.9 && this.#segment(node.point, target, avoidDoors)) { goalNeighbors.add(node); }
+      if (Math.abs(node.point.y - start.y) < 0.5 && node.point.distance(start) < 0.9 && this.#segment(start, node.point, avoidDoors)) {
+        source.links.push(node);
+      }
+      if (Math.abs(node.point.y - target.y) < 0.5 && node.point.distance(target) < 0.9 && this.#segment(node.point, target, avoidDoors)) {
+        goalNeighbors.add(node);
+      }
     }
     const costs = new Map([[source, 0]]), previous = new Map(), open = new Set([source]);
     while (open.size) {
       let current = null, score = Infinity;
       for (const node of open) {
         const value = costs.get(node) + node.point.distance(target);
-        if (value < score) { current = node; score = value; }
+        if (value < score) {
+          current = node; score = value;
+        }
       }
       if (current === goal) {
         const route = [];
-        for (let node = goal; node !== source; node = previous.get(node)) { route.unshift(node.point); }
+        for (let node = goal; node !== source; node = previous.get(node)) {
+          route.unshift(node.point);
+        }
 
         return route;
       }
       open.delete(current);
       for (const neighbor of [...current.links, ...(goalNeighbors.has(current) ? [goal] : [])]) {
-        if (!this.#collisionFree(current.point, neighbor.point, avoidDoors)) { continue; }
+        if (!this.#collisionFree(current.point, neighbor.point, avoidDoors)) {
+          continue;
+        }
         const cost = costs.get(current) + current.point.distance(neighbor.point);
-        if (cost >= (costs.get(neighbor) ?? Infinity)) { continue; }
+        if (cost >= (costs.get(neighbor) ?? Infinity)) {
+          continue;
+        }
         costs.set(neighbor, cost); previous.set(neighbor, current); open.add(neighbor);
       }
     }

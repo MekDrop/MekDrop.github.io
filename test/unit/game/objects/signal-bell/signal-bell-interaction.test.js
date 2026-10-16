@@ -13,10 +13,16 @@ it("starts a hand action only within reach and reserves the bell through release
       z: 3,
     },
     canRing: true,
-    beginRinging() { this.canRing = false; },
-    startPull() {},
-    strike() { rings++; },
-    endRinging() { this.canRing = true; },
+    beginRinging() {
+      this.canRing = false;
+    },
+    startPull: () => {},
+    strike: () => {
+      rings++;
+    },
+    endRinging() {
+      this.canRing = true;
+    },
   };
   const hero = {
     position: {
@@ -26,11 +32,15 @@ it("starts a hand action only within reach and reserves the bell through release
     },
     isIncapacitated: false,
     isUsingTool: false,
-    ringBell(action) { this.action = action;
+    ringBell(action) {
+      this.action = action;
 
-      return true; },
+      return true;
+    },
   };
-  const interaction = new SignalBellInteraction(bell, hero, () => { completions++; });
+  const interaction = new SignalBellInteraction(bell, hero, () => {
+    completions++;
+  });
   assert.equal(interaction.interact(), false, "cannot ring from the room below");
   hero.position.y = 12;
   hero.position.x = 4;

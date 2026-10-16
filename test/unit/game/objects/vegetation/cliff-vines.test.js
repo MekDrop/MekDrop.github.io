@@ -75,8 +75,9 @@ describe("generated cliff vines", () => {
       if (face.bottomY !== 2.4) {
         extended++;
         assert.ok(face.bottomY >= 1.5 && face.bottomY <= 2.3);
+      } else {
+        assert.equal(face.bottomY, 2.4);
       }
-      else assert.equal(face.bottomY, 2.4);
     }
     assert.ok(extended > 250 && extended < 350);
     map.heightmap[2][1] = 0;

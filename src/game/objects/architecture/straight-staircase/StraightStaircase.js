@@ -16,7 +16,9 @@ export class StraightStaircase {
   /**
    * @returns {string[]}
    */
-  static get modelUrls() { return [stairModuleUrl, masonryBlockUrl, stoneUrl]; }
+  static get modelUrls() {
+    return [stairModuleUrl, masonryBlockUrl, stoneUrl];
+  }
   /**
    * @type {import("playcanvas").Entity}
    */
@@ -101,20 +103,30 @@ export class StraightStaircase {
     this.#build(pc, modelLibrary, definition);
   }
 
-  get entity() { return this.#entity; }
-  get definition() { return this.#definition; }
+  get entity() {
+    return this.#entity;
+  }
+  get definition() {
+    return this.#definition;
+  }
   /**
    * @returns {import("playcanvas").Entity[]}
    */
-  get visualRoots() { return [this.#visual]; }
+  get visualRoots() {
+    return [this.#visual];
+  }
   /**
    * @returns {boolean}
    */
-  get isGroundCollider() { return true; }
+  get isGroundCollider() {
+    return true;
+  }
   /**
    * @returns {boolean}
    */
-  get physicsSurface() { return false; }
+  get physicsSurface() {
+    return false;
+  }
   /**
    * @param {number} near
    * @param {number} far
@@ -122,7 +134,9 @@ export class StraightStaircase {
    */
   setIslandOffsets(near, far, offsets = [near,far]) {
     this.#islandRoots.setOffsets(near,far,offsets);
-    for (const body of this.#visual.findComponents("rigidbody")) { body.syncEntityToBody(); }
+    for (const body of this.#visual.findComponents("rigidbody")) {
+      body.syncEntityToBody();
+    }
   }
 
   /**
@@ -141,9 +155,13 @@ export class StraightStaircase {
     const base = this.#visual.getPosition().y;
     let height = null;
     for (const surface of castleStraightStairSurfaces(this.#definition)) {
-      if (point.x < surface.minX || point.x > surface.maxX || point.z < surface.minZ || point.z > surface.maxZ) { continue; }
+      if (point.x < surface.minX || point.x > surface.maxX || point.z < surface.minZ || point.z > surface.maxZ) {
+        continue;
+      }
       const top = base + castleStraightStairSurfaceHeight(surface, point.z);
-      if (top <= maximumHeight+1e-6) { height = height === null ? top : Math.max(height,top); }
+      if (top <= maximumHeight+1e-6) {
+        height = height === null ? top : Math.max(height,top);
+      }
     }
 
     return height;
@@ -177,9 +195,15 @@ export class StraightStaircase {
     this.#renderBatch = null;
     this.#update?.off();
     this.#entity.destroy();
-    for (const graph of this.#stairPhysicsGraphs) { graph.destroy(); }
-    for (const instance of this.#stairSupportInstances) { instance.destroy(); }
-    for (const material of this.#stairMaterials.values()) { material.destroy(); }
+    for (const graph of this.#stairPhysicsGraphs) {
+      graph.destroy();
+    }
+    for (const instance of this.#stairSupportInstances) {
+      instance.destroy();
+    }
+    for (const material of this.#stairMaterials.values()) {
+      material.destroy();
+    }
     this.#stairPhysicsGraphs = [];
     this.#stairSupportInstances = [];
     this.#stairMaterials.clear();
@@ -230,7 +254,9 @@ export class StraightStaircase {
           const material = this.#stairMaterials.get((step + column * 3) % 8 === 0 ? "castleStoneDark" : "castleStoneMid");
           if (material) {
             for (const render of tread.findComponents("render")) {
-              for (const instance of render.meshInstances) { instance.material = material; }
+              for (const instance of render.meshInstances) {
+                instance.material = material;
+              }
             }
           }
           root.addChild(tread);
@@ -287,7 +313,9 @@ export class StraightStaircase {
   #buildStairDivider(pc, models, root, stair) {
     const wall = castleStraightStairWalls(stair)[0];
     const length = wall.depth;
-    if (length <= 0) { return; }
+    if (length <= 0) {
+      return;
+    }
     const nextFlight = stair.continuesAbove;
     // Lower segments meet at floor height; the final segment ends at
     // the same 75 cm guard height as the top-floor half wall.
@@ -322,7 +350,9 @@ export class StraightStaircase {
       friction: 0.6,
       restitution: 0,
     });
-    if (!nextFlight) { this.#buildStairOpeningGuard(pc, models, root, stair); }
+    if (!nextFlight) {
+      this.#buildStairOpeningGuard(pc, models, root, stair);
+    }
   }
 
   /**

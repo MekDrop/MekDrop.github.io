@@ -19,19 +19,22 @@ const options={
   }],
   seed:"castle-specific",
 };
-function mapWith(buildPlan,terrain){return {
-  cols:1,
-  rows:1,
-  grid:[[0]],
-  heightmap:[[0]],
-  tileMeta:[[{}]],
-  objects:[{
-    id:"castle-one",
-    object:"Castle",
-    buildPlan,
-  },terrain],
-};}
-function terrainAt(layout,area,object="Earth",y=3.25){const point=layout.toWorld((area.minX+area.maxX)/2,(area.minZ+area.maxZ)/2,0);
+function mapWith(buildPlan,terrain){
+  return {
+    cols:1,
+    rows:1,
+    grid:[[0]],
+    heightmap:[[0]],
+    tileMeta:[[{}]],
+    objects:[{
+      id:"castle-one",
+      object:"Castle",
+      buildPlan,
+    },terrain],
+  };
+}
+function terrainAt(layout,area,object="Earth",y=3.25){
+  const point=layout.toWorld((area.minX+area.maxX)/2,(area.minZ+area.maxZ)/2,0);
 
   return {
     id:"test-terrain",
@@ -45,27 +48,31 @@ function terrainAt(layout,area,object="Earth",y=3.25){const point=layout.toWorld
       method:"addBoxMatrix",
       args:["earth","earth",point.x,y,point.z,0,0.1,0.5,0.1],
     },
-  };}
+  };
+}
 it("detects terrain in every authored ground room and permits Earth beneath its floor",async()=>{
-  for(const side of ["NORTH","SOUTH","WEST","EAST"]){const cross=["WEST","EAST"].includes(side);const plan=await CastleGenerator.generate({
-    ...options,
-    position:{
-      ...options.position,
-      width:cross?16:28,
-      depth:cross?28:16,
-    },
-    doors:[{
-      side,
-      offset:13,
-      width:2,
-    }],
-  });const layout=new CastleResidentialLayout(plan);
-  for(const room of plan.layout.roomPlan.placedRooms.filter(r=>r.floorY===3)){
-    const earth=terrainAt(layout,room);const map=mapWith(plan,earth);
-    assert.ok(validateCastleGround(map).some(issue=>issue.terrainId===earth.id&&issue.certainty==="confirmed"),room.id);
-    earth.position.y=2.75;
-    if (!room.id.includes("stair")) { assert.equal(validateCastleGround(map).length,0,room.id); }
-  }
+  for(const side of ["NORTH","SOUTH","WEST","EAST"]){
+    const cross=["WEST","EAST"].includes(side);const plan=await CastleGenerator.generate({
+      ...options,
+      position:{
+        ...options.position,
+        width:cross?16:28,
+        depth:cross?28:16,
+      },
+      doors:[{
+        side,
+        offset:13,
+        width:2,
+      }],
+    });const layout=new CastleResidentialLayout(plan);
+    for(const room of plan.layout.roomPlan.placedRooms.filter(r=>r.floorY===3)){
+      const earth=terrainAt(layout,room);const map=mapWith(plan,earth);
+      assert.ok(validateCastleGround(map).some(issue=>issue.terrainId===earth.id&&issue.certainty==="confirmed"),room.id);
+      earth.position.y=2.75;
+      if (!room.id.includes("stair")) {
+        assert.equal(validateCastleGround(map).length,0,room.id);
+      }
+    }
   }
 });
 it("rejects turf touching occupied room floors while allowing an open courtyard",async()=>{
@@ -83,14 +90,15 @@ it("rejects turf touching occupied room floors while allowing an open courtyard"
 });
 it("detects penetrations in authored stair shafts",async()=>{
   const plan=await CastleGenerator.generate(options);const layout=new CastleResidentialLayout(plan);
-  for(const stair of layout.authoredStairs){const terrain={
-    id:stair.id,
-    object:"Earth",
-    position:{
-      ...stair.center,
-      y:stair.center.y+0.5,
-    },
-  };
-  assert.ok(validateCastleGround(mapWith(plan,terrain)).some(issue=>issue.terrainId===stair.id));
+  for(const stair of layout.authoredStairs){
+    const terrain={
+      id:stair.id,
+      object:"Earth",
+      position:{
+        ...stair.center,
+        y:stair.center.y+0.5,
+      },
+    };
+    assert.ok(validateCastleGround(mapWith(plan,terrain)).some(issue=>issue.terrainId===stair.id));
   }
 });

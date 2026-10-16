@@ -44,7 +44,9 @@ export class IslandCellOwnership {
       (connector.cells ?? []).map(IslandCellOwnership.#mapCell),
     );
     for (const command of mapData.renderCommands ?? []) {
-      if (command.method !== "addSpan") continue;
+      if (command.method !== "addSpan") {
+        continue;
+      }
       const span = command.args[0];
       const keys = span.cells.map(IslandCellOwnership.#mapCell2);
       // Prefer the connector's near-island owner, even if the render span starts
@@ -57,9 +59,13 @@ export class IslandCellOwnership {
        * @param {Set<string>} cells
        */
         (cells) => cells.has(anchor));
-      if (owner < 0) continue;
+      if (owner < 0) {
+        continue;
+      }
       for (const key of keys) {
-        for (const cells of this.#groups) cells.delete(key);
+        for (const cells of this.#groups) {
+          cells.delete(key);
+        }
         this.#groups[owner].add(key);
       }
     }

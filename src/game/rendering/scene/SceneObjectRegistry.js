@@ -46,7 +46,9 @@ export class SceneObjectRegistry {
    * Changes when membership changes, including replacement at the same size.
    * @returns {number}
    */
-  get revision() { return this.#revision; }
+  get revision() {
+    return this.#revision;
+  }
   /**
    *
    * @type {Map}

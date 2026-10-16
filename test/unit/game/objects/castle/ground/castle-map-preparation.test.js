@@ -20,7 +20,9 @@ it("terraces exposed mirrored castle lawns while preserving roads and repeat pre
       if ([TileType.PATH, TileType.ENTRY].includes(map.grid[row][col])) {
         assert.equal(map.heightmap[row][col], before[row][col]);
       }
-      if (!map.tileMeta[row][col].castleWeathered) continue;
+      if (!map.tileMeta[row][col].castleWeathered) {
+        continue;
+      }
       terraces.push([col, row]);
       assert.equal(map.heightmap[row][col], before[row][col] - 1);
       assert.ok(map.objects.some(record => record.object === "Grass" &&

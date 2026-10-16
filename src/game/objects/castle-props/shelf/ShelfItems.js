@@ -57,9 +57,13 @@ export class ShelfItems {
   /**
    * @param {import("../../ObjectTypes.js").MapObjectDefinition} item
    */
-  static #isRetained(item) { return !item.shelfItem; }
+  static #isRetained(item) {
+    return !item.shelfItem;
+  }
   /**
    * @param {import("../../ObjectTypes.js").MapObjectDefinition} item
    */
-  static #isShelf(item) { return item.object === "Shelf" && Array.isArray(item.items); }
+  static #isShelf(item) {
+    return item.object === "Shelf" && Array.isArray(item.items);
+  }
 }

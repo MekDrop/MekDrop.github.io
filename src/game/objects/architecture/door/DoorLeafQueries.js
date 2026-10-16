@@ -42,12 +42,16 @@ export class DoorLeafQueries {
    * @returns {number|null}
    */
   raycast(rayStart, rayEnd) {
-    if (!this.#hinge) return null;
+    if (!this.#hinge) {
+      return null;
+    }
     const inverse = this.#hinge.getWorldTransform().clone().invert();
     const start = inverse.transformPoint(rayStart, new this.#pc.Vec3());
     const end = inverse.transformPoint(rayEnd, new this.#pc.Vec3());
     const dz = end.z - start.z;
-    if (Math.abs(dz) < 0.000001) return null;
+    if (Math.abs(dz) < 0.000001) {
+      return null;
+    }
     const distance = -start.z / dz;
     const x = start.x + (end.x - start.x) * distance;
     const y = start.y + (end.y - start.y) * distance;
@@ -64,7 +68,9 @@ export class DoorLeafQueries {
    * @returns {boolean}
    */
   blocksAt(x, y, z, radius = 0) {
-    if (!this.#hinge) return false;
+    if (!this.#hinge) {
+      return false;
+    }
     const inverse = this.#hinge.getWorldTransform().clone().invert();
     const point = inverse.transformPoint(new this.#pc.Vec3(x, y, z), new this.#pc.Vec3());
 
@@ -73,5 +79,7 @@ export class DoorLeafQueries {
       Math.abs(point.z) <= this.#depth + radius;
   }
 
-  destroy() { this.#hinge = null; }
+  destroy() {
+    this.#hinge = null;
+  }
 }

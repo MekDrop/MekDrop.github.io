@@ -331,7 +331,9 @@ export class GroundCollisionWorld {
     for (const collider of colliders) {
       const sample = authoredOnly ? collider.physicsSurfaceHeightAt ?? collider.surfaceHeightAt : collider.surfaceHeightAt;
       const height = sample?.call(collider, x, z, radius, maximumHeight);
-      if (!Number.isFinite(height)) continue;
+      if (!Number.isFinite(height)) {
+        continue;
+      }
       highestSurface =
         highestSurface === null ? height : Math.max(highestSurface, height);
     }

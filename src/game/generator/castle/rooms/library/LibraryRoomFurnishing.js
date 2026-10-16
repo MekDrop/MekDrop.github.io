@@ -64,7 +64,9 @@ export class LibraryRoomFurnishing {
       for (const along of this.#positions(yaw)) {
         const group = this.#point(yaw, along, 0.85);
         const width = yaw % 180 ? 1.7 : 1.05, depth = yaw % 180 ? 1.05 : 1.7;
-        if (!this.#clear(group, width, depth, 1.1)) { continue; }
+        if (!this.#clear(group, width, depth, 1.1)) {
+          continue;
+        }
         // Keep a 1 cm gap to the actual wall, like the neighbouring bookcases.
         desk = this.#item("Table", this.#point(yaw, along, 0.285, true), 0.9, 0.55, yaw, 0, { variant: "writingDesk" });
         // Both imported chairs face -X (their tall backs sit on +X).
@@ -72,7 +74,9 @@ export class LibraryRoomFurnishing {
         this.#reserve(group, width, depth);
         break;
       }
-      if (desk) { break; }
+      if (desk) {
+        break;
+      }
     }
     if (desk) {
       const angle = desk.rotation * Math.PI / 180;
@@ -88,8 +92,12 @@ export class LibraryRoomFurnishing {
       // Measured desktop top .650. Replace baked details so reflection cannot
       // put the globe through the original asymmetrically placed ink pot.
       this.#items.push(this.#item("Book", top(0.01, 0.02), 0.36, 0.227, desk.rotation, 0.650, {isOpen: true}));
-      if (this.#random() < 0.85) { this.#items.push(this.#item("DeskGlobe", top(-0.305, -0.07), 0.24, 0.285, desk.rotation, 0.650)); }
-      if (this.#random() < 0.8) { this.#items.push(this.#item("CandleStand", top(0.29, 0.115), 0.141, 0.192, desk.rotation, 0.650, {variant: "table"})); }
+      if (this.#random() < 0.85) {
+        this.#items.push(this.#item("DeskGlobe", top(-0.305, -0.07), 0.24, 0.285, desk.rotation, 0.650));
+      }
+      if (this.#random() < 0.8) {
+        this.#items.push(this.#item("CandleStand", top(0.29, 0.115), 0.141, 0.192, desk.rotation, 0.650, {variant: "table"}));
+      }
     }
     this.#shelves(sides, 1);
     // Use every remaining safe wall slot rather than stopping at a random
@@ -100,7 +108,9 @@ export class LibraryRoomFurnishing {
         for (const along of this.#positions(yaw)) {
           const original = this.#point(yaw, along, 0.26);
           const width = yaw % 180 ? 0.488 : 0.517, depth = yaw % 180 ? 0.517 : 0.488;
-          if (!this.#clear(original, width, depth, 0.4)) { continue; }
+          if (!this.#clear(original, width, depth, 0.4)) {
+            continue;
+          }
           const bounds = this.#room.wallBounds ?? this.#room.contentBounds ?? this.#room;
           const stair = (this.#room.stairs ?? []).find(
             this.#findShaft.bind(this),
@@ -128,10 +138,14 @@ export class LibraryRoomFurnishing {
     // the table, chair, bookcase aisle and door approach.
     this.#occupied = [];
     for (const item of this.#items) {
-      if (item.y === 0) { this.#reserve(item, item.width + 0.06, item.depth + 0.06); }
+      if (item.y === 0) {
+        this.#reserve(item, item.width + 0.06, item.depth + 0.06);
+      }
     }
     for (const table of this.#items) {
-      if (table.object !== "Table" || table.properties?.variant !== "writingDesk") { continue; }
+      if (table.object !== "Table" || table.properties?.variant !== "writingDesk") {
+        continue;
+      }
       const angle = table.rotation * Math.PI / 180;
       for (const forward of [0, 0.35, 0.6]) {
         for (const offset of [-0.58, 0.58, -0.72, 0.72]) {
@@ -139,7 +153,9 @@ export class LibraryRoomFurnishing {
             x: table.x + offset * Math.cos(angle) + forward * Math.sin(angle),
             z: table.z - offset * Math.sin(angle) + forward * Math.cos(angle),
           };
-          if (!this.#clear(point, 0.173, 0.173, 0.8)) { continue; }
+          if (!this.#clear(point, 0.173, 0.173, 0.8)) {
+            continue;
+          }
           this.#items.push(this.#item("CandleStand", point, 0.173, 0.173, table.rotation, undefined, {variant: "single"}));
 
           return;
@@ -150,7 +166,9 @@ export class LibraryRoomFurnishing {
   /**
    * @returns {import("../AbstractCastleRoomGenerator.js").RoomItem[]}
    */
-  get items() { return this.#items; }
+  get items() {
+    return this.#items;
+  }
   /**
    * @param {number[]} sides
    * @param {number} wanted
@@ -167,12 +185,19 @@ export class LibraryRoomFurnishing {
         const shelfPoint = this.#point(yaw, along, 0.18 - this.#inset);
         const wall = this.#room.wallBounds ?? this.#room;
         const roomBounds = this.#room.contentBounds ?? this.#room;
-        if (yaw === 90) { shelfPoint.x += wall.minX - roomBounds.minX; }
-        else if (yaw === 270) { shelfPoint.x += wall.maxX - roomBounds.maxX; }
-        else if (yaw === 0) { shelfPoint.z += wall.minZ - roomBounds.minZ; }
-        else { shelfPoint.z += wall.maxZ - roomBounds.maxZ; }
+        if (yaw === 90) {
+          shelfPoint.x += wall.minX - roomBounds.minX;
+        } else if (yaw === 270) {
+          shelfPoint.x += wall.maxX - roomBounds.maxX;
+        } else if (yaw === 0) {
+          shelfPoint.z += wall.minZ - roomBounds.minZ;
+        } else {
+          shelfPoint.z += wall.maxZ - roomBounds.maxZ;
+        }
         const height = Math.min(2.5, this.#room.height - 0.35);
-        if (!this.#clear(access, width, depth, height, 0, true, shelfPoint)) { continue; }
+        if (!this.#clear(access, width, depth, height, 0, true, shelfPoint)) {
+          continue;
+        }
         this.#items.push({
           ...this.#item("Shelf", shelfPoint, length, 0.36, yaw),
           height,
@@ -206,9 +231,13 @@ export class LibraryRoomFurnishing {
           maxZ: access.z + depth / 2,
           alongX: width < depth,
         });
-        if (++count >= wanted) { break; }
+        if (++count >= wanted) {
+          break;
+        }
       }
-      if (count >= wanted) { break; }
+      if (count >= wanted) {
+        break;
+      }
     }
   }
   /**
@@ -221,10 +250,14 @@ export class LibraryRoomFurnishing {
     const max = yaw % 180 ? bounds.maxZ : bounds.maxX;
     const values = [];
     const half = yaw === 90 ? 0.395 : 0.425;
-    for (let along = min + half + 0.01; along <= max - half - 0.01; along += half * 2 + 0.001) { values.push(along); }
+    for (let along = min + half + 0.01; along <= max - half - 0.01; along += half * 2 + 0.001) {
+      values.push(along);
+    }
     // A desk can leave a usable gap between the regular module positions.
     // Check those gaps too, after the adjoining row has been placed.
-    for (let along = min + half + 0.01; along <= max - half - 0.01; along += 0.1) { values.push(along); }
+    for (let along = min + half + 0.01; along <= max - half - 0.01; along += 0.1) {
+      values.push(along);
+    }
 
     return values;
   }
@@ -245,7 +278,9 @@ export class LibraryRoomFurnishing {
     const min = yaw % 180 ? bounds.minZ : bounds.minX;
     const max = yaw % 180 ? bounds.maxZ : bounds.maxX;
     const values = [];
-    for (let along = min + this.#inset + 0.6; along < max - this.#inset - 0.6; along += 0.45) { values.push(along); }
+    for (let along = min + this.#inset + 0.6; along < max - this.#inset - 0.6; along += 0.45) {
+      values.push(along);
+    }
     const start = Math.floor(this.#random() * Math.max(1, values.length));
 
     return values.slice(start).concat(values.slice(0, start));
@@ -260,18 +295,24 @@ export class LibraryRoomFurnishing {
   #point(yaw, along, inward, wallAligned = false) {
     const bounds = (wallAligned ? this.#room.wallBounds : undefined) ?? this.#room.contentBounds ?? this.#room;
     const inset = wallAligned ? 0 : this.#inset;
-    if (yaw === 0) { return {
-      x: along,
-      z: bounds.minZ + inset + inward,
-    }; }
-    if (yaw === 180) { return {
-      x: along,
-      z: bounds.maxZ - inset - inward,
-    }; }
-    if (yaw === 90) { return {
-      x: bounds.minX + inset + inward,
-      z: along,
-    }; }
+    if (yaw === 0) {
+      return {
+        x: along,
+        z: bounds.minZ + inset + inward,
+      };
+    }
+    if (yaw === 180) {
+      return {
+        x: along,
+        z: bounds.maxZ - inset - inward,
+      };
+    }
+    if (yaw === 90) {
+      return {
+        x: bounds.minX + inset + inward,
+        z: along,
+      };
+    }
     return {
       x: bounds.maxX - inset - inward,
       z: along,
@@ -337,13 +378,17 @@ export class LibraryRoomFurnishing {
       maxZ: z + depth / 2,
     };
     if (box.minX < bounds.minX + inset - 1e-6 || box.maxX > bounds.maxX - inset + 1e-6 ||
-        box.minZ < bounds.minZ + inset - 1e-6 || box.maxZ > bounds.maxZ - inset + 1e-6) { return false; }
+        box.minZ < bounds.minZ + inset - 1e-6 || box.maxZ > bounds.maxZ - inset + 1e-6) {
+      return false;
+    }
     const aisles = sharedShelfAisle ? this.#shelfAisles.filter(/**
      * @param {StudyBounds & {alongX:boolean}} aisle
      */
       aisle => aisle.alongX !== (width < depth)) : this.#shelfAisles;
     for (const other of this.#occupied.concat(aisles)) {
-      if (box.maxX > other.minX && box.minX < other.maxX && box.maxZ > other.minZ && box.minZ < other.maxZ) { return false; }
+      if (box.maxX > other.minX && box.minX < other.maxX && box.maxZ > other.minZ && box.minZ < other.maxZ) {
+        return false;
+      }
     }
     for (const opening of room.openings ?? []) {
       // A reading aisle can share the doorway approach when the cabinet
@@ -353,21 +398,29 @@ export class LibraryRoomFurnishing {
         const shelfWidth = width > depth ? 0.36 : 0.85;
         const shelfDepth = width > depth ? 0.85 : 0.36;
         const halfShelf = opening.axis === "x" ? shelfDepth / 2 : shelfWidth / 2;
-        if (Math.abs(along - opening.center) >= opening.width / 2 + halfShelf) { continue; }
+        if (Math.abs(along - opening.center) >= opening.width / 2 + halfShelf) {
+          continue;
+        }
       }
-      if (opening.kind === "window" && (height + y <= opening.bottom || y >= opening.bottom + opening.height)) { continue; }
+      if (opening.kind === "window" && (height + y <= opening.bottom || y >= opening.bottom + opening.height)) {
+        continue;
+      }
       const half = Math.max(opening.width, opening.kind === "door" ? 0.75 : 0) / 2 + 0.35;
       const approach = opening.kind === "door" ? Math.max(1.1, opening.width + 0.35) : this.#inset + 0.1;
       if (opening.axis === "x" ? Math.abs(x - opening.coordinate) < width / 2 + approach &&
           Math.abs(z - opening.center) < depth / 2 + half : Math.abs(z - opening.coordinate) < depth / 2 + approach &&
-          Math.abs(x - opening.center) < width / 2 + half) { return false; }
+          Math.abs(x - opening.center) < width / 2 + half) {
+        return false;
+      }
     }
     for (const stair of room.stairs ?? []) {
       // The low corner stool can occupy the wall strip outside the shaft;
       // taller furniture still reserves the wider staircase approach.
       const clearance = cornerProp ? 0 : 0.4;
       if (box.maxX > stair.minX - clearance && box.minX < stair.maxX + clearance &&
-          box.maxZ > stair.minZ - clearance && box.minZ < stair.maxZ + clearance) { return false; }
+          box.maxZ > stair.minZ - clearance && box.minZ < stair.maxZ + clearance) {
+        return false;
+      }
     }
 
     return true;

@@ -23,15 +23,21 @@ export class Table extends AbstractCastleProp {
   /**
    * @returns {string[]}
    */
-  static get modelUrls() { return [modelUrl, deskUrl]; }
+  static get modelUrls() {
+    return [modelUrl, deskUrl];
+  }
   /**
    * @returns {boolean}
    */
-  get hasAuthoredCollision() { return !this.definition.castleTable; }
+  get hasAuthoredCollision() {
+    return !this.definition.castleTable;
+  }
   /**
    * @returns {string}
    */
-  get modelUrl() { return this.definition.variant === "writingDesk" ? deskUrl : modelUrl; }
+  get modelUrl() {
+    return this.definition.variant === "writingDesk" ? deskUrl : modelUrl;
+  }
   /**
    * @param {{pc:typeof import("playcanvas"),app:import("playcanvas").Application,modelLibrary:import("../../../models/GameModelLibrary.js").GameModelLibrary,definition:import("../../ObjectTypes.js").MapObjectDefinition,runtime?:import("../../ObjectTypes.js").MapObjectRuntime}} options
    */
@@ -42,7 +48,9 @@ export class Table extends AbstractCastleProp {
       definition,
     });
 
-    if (!definition.castleTable) { return; }
+    if (!definition.castleTable) {
+      return;
+    }
     const { pc } = options;
     this.#pc = pc;
     const scale = definition.scale ?? 1;
@@ -115,12 +123,16 @@ export class Table extends AbstractCastleProp {
    * Legacy navigation and camera queries share the Ammo box envelope; Ammo owns contact.
    * @returns {boolean}
    */
-  get isGroundCollider() { return !!this.definition.castleTable; }
+  get isGroundCollider() {
+    return !!this.definition.castleTable;
+  }
   /**
    * Castle tables did not expose a walkable top in the castle navigation contract.
    * @returns {boolean}
    */
-  get physicsSurface() { return false; }
+  get physicsSurface() {
+    return false;
+  }
   /**
    * @param {number} x
    * @param {number} z
@@ -128,7 +140,9 @@ export class Table extends AbstractCastleProp {
    * @param {number} elevation
    */
   blocksMovementAt(x, z, radius, elevation) {
-    if (!this.#collider) { return false; }
+    if (!this.#collider) {
+      return false;
+    }
     const point = this.#localPoint(x, elevation, z);
 
     return point.y + 0.02 < this.#size.height && point.y + 0.8 > 0 &&
@@ -142,7 +156,9 @@ export class Table extends AbstractCastleProp {
    * @param {number} radius
    */
   blocksCameraAt(x, y, z, radius) {
-    if (!this.#collider) { return false; }
+    if (!this.#collider) {
+      return false;
+    }
     const point = this.#localPoint(x, y, z);
 
     return Math.hypot(Math.max(Math.abs(point.x) - this.#size.width / 2, 0),

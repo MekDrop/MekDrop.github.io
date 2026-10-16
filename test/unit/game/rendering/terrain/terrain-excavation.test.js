@@ -5,10 +5,12 @@ import { TerrainInstanceRenderer } from "../../../../../src/game/rendering/terra
 
 let nextMeshId = 0;
 class Mesh {
-  static fromGeometry(device, geometry) { return Object.assign(new Mesh(), {
-    geometry,
-    id: nextMeshId++,
-  }); }
+  static fromGeometry(device, geometry) {
+    return Object.assign(new Mesh(), {
+      geometry,
+      id: nextMeshId++,
+    });
+  }
   incRefCount() {} decRefCount() {} destroy() {}
   setPositions() {} setNormals() {} setUvs() {} setIndices() {} update() {}
 }
@@ -23,7 +25,7 @@ it("closes bridge decks below the walking surface with downward-facing geometry"
       Mesh,
       VertexBuffer,
       MeshInstance,
-      VertexFormat: { getDefaultInstancingFormat() {} },
+      VertexFormat: { getDefaultInstancingFormat: () => {} },
     },
     app: { graphicsDevice: {} },
     root,
@@ -47,15 +49,25 @@ it("closes bridge decks below the walking surface with downward-facing geometry"
   renderer.destroy();
 });
 class Entity extends pc.Entity {
-  addComponent(type, options) { this.render = options; }
+  addComponent(type, options) {
+    this.render = options;
+  }
 }
 class VertexBuffer {
-  constructor(device, format, count, options) { this.data = options.data; }
-  lock() { return this.data; } unlock() {} destroy() {}
+  constructor(device, format, count, options) {
+    this.data = options.data;
+  }
+  lock() {
+    return this.data;
+  } unlock() {} destroy() {}
 }
 class MeshInstance {
-  constructor(mesh, material) { this.mesh = mesh; this.material = material; }
-  setInstancing(buffer) { this.buffer = buffer; }
+  constructor(mesh, material) {
+    this.mesh = mesh; this.material = material;
+  }
+  setInstancing(buffer) {
+    this.buffer = buffer;
+  }
 }
 
 it("opens and restores a single grass top without moving its walls or neighboring cube", () => {
@@ -67,7 +79,7 @@ it("opens and restores a single grass top without moving its walls or neighborin
       Mesh,
       VertexBuffer,
       MeshInstance,
-      VertexFormat: { getDefaultInstancingFormat() {} },
+      VertexFormat: { getDefaultInstancingFormat: () => {} },
     },
     app: { graphicsDevice: {} },
     root,
@@ -81,7 +93,9 @@ it("opens and restores a single grass top without moving its walls or neighborin
       },
     },
   });
-  for (const x of [-0.5, 0.5]) { renderer.addCubeMatrix("grass-0", "earth", x, 1.5, 0, "full", "earth", 0.004); }
+  for (const x of [-0.5, 0.5]) {
+    renderer.addCubeMatrix("grass-0", "earth", x, 1.5, 0, "full", "earth", 0.004);
+  }
   renderer.build();
   const batch = root.children[0].children[0];
   const [walls, underlay, top] = batch.render.meshInstances;

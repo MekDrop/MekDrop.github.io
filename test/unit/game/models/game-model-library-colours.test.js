@@ -18,11 +18,17 @@ const Library = new Function(`return class {
  */
 function bakedColours(linearVertexColors, translationY = 0) {
   class Mesh {
-    setPositions(value) { this.positions = value; } setNormals() {} setUvs() {} setIndices() {}
-    setColors32(value) { this.colors = value; }
+    setPositions(value) {
+      this.positions = value;
+    } setNormals() {} setUvs() {} setIndices() {}
+    setColors32(value) {
+      this.colors = value;
+    }
     update() {} incRefCount() {}
   }
-  class Material { update() {} }
+  class Material {
+    update() {}
+  }
   const pc = {
     Color,
     Mat4,
@@ -39,18 +45,24 @@ function bakedColours(linearVertexColors, translationY = 0) {
       base: 0,
       count: 3,
     }],
-    getPositions(out) { out.push(0, 0, 0, 1, 0, 0, 0, 1, 0);
+    getPositions: (out) => {
+      out.push(0, 0, 0, 1, 0, 0, 0, 1, 0);
 
-      return 3; },
-    getNormals(out) { out.push(0, 0, 1, 0, 0, 1, 0, 0, 1); },
-    getUvs(_channel, out) { out.push(0, 0, 1, 0, 0, 1); },
-    getIndices() {},
+      return 3;
+    },
+    getNormals: (out) => {
+      out.push(0, 0, 1, 0, 0, 1, 0, 0, 1);
+    },
+    getUvs: (_channel, out) => {
+      out.push(0, 0, 1, 0, 0, 1);
+    },
+    getIndices: () => {},
   };
   const diffuse = new Color(17 / 255, 23 / 255, 25 / 255).gamma();
   const root = {
     children: [],
     getWorldTransform: () => transform,
-    destroy() {},
+    destroy: () => {},
     render: {
       meshInstances: [{
         mesh,

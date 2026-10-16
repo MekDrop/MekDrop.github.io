@@ -29,7 +29,9 @@ export class Window {
   /**
    * @returns {string[]}
    */
-  static get modelUrls() { return [hallUrl, roomUrl, slitUrl]; }
+  static get modelUrls() {
+    return [hallUrl, roomUrl, slitUrl];
+  }
   /**
    * @param {{pc: typeof import("playcanvas"), modelLibrary: import("../../../models/GameModelLibrary.js").GameModelLibrary, definition: import("../../ObjectTypes.js").MapObjectDefinition, runtime?: import("../../ObjectTypes.js").MapObjectRuntime}} options
    */
@@ -119,19 +121,29 @@ export class Window {
       parent.addChild(glow);
     }
   }
-  get entity() { return this.#entity; }
-  get definition() { return this.#definition; }
+  get entity() {
+    return this.#entity;
+  }
+  get definition() {
+    return this.#definition;
+  }
   /**
    * @returns {import("playcanvas").Entity[]}
    */
-  get visualRoots() { return [this.#visual]; }
+  get visualRoots() {
+    return [this.#visual];
+  }
   /**
    * @param {number} near
    * @param {number} far
    * @param {number[]} [offsets]
    */
-  setIslandOffsets(near, far, offsets = [near, far]) { this.#islandRoots.setOffsets(near, far, offsets); }
-  destroy() { this.#entity.destroy(); }
+  setIslandOffsets(near, far, offsets = [near, far]) {
+    this.#islandRoots.setOffsets(near, far, offsets);
+  }
+  destroy() {
+    this.#entity.destroy();
+  }
 
   /**
    * @param {import("playcanvas").GraphNode} node

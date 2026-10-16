@@ -17,10 +17,14 @@ it("varies occupied hooks, garment count and separate colors while remaining sta
     const variation = VestibuleCloakRail.variation(seed);
     assert.deepEqual(VestibuleCloakRail.variation(seed), variation);
     assert.equal(new Set(variation.map(item => item.hookX)).size, variation.length);
-    if (variation.length === 2) { assert.ok(Math.abs(variation[0].hookX - variation[1].hookX) >= 0.66); assert.notDeepEqual(variation[0].color, variation[1].color); }
+    if (variation.length === 2) {
+      assert.ok(Math.abs(variation[0].hookX - variation[1].hookX) >= 0.66); assert.notDeepEqual(variation[0].color, variation[1].color);
+    }
     profiles.add(JSON.stringify(variation));
     counts.add(variation.length);
-    for (const item of variation) { colors.add(JSON.stringify(item.color)); }
+    for (const item of variation) {
+      colors.add(JSON.stringify(item.color));
+    }
   }
   assert.deepEqual([...counts].sort(), [1, 2]);
   assert.ok(profiles.size > 20);
@@ -69,7 +73,9 @@ it("moves matching render and collision garments and clones cloth materials with
   for (const name of ["Cloak A", "Cloak B"]) {
     const render = graphs[0].findByName(name), collision = graphs[1].findByName(name);
     assert.equal(Boolean(render), Boolean(collision));
-    if (!render) { continue; }
+    if (!render) {
+      continue;
+    }
     assert.deepEqual(render.getLocalPosition(), collision.getLocalPosition());
     assert.notEqual(render.testMesh.material, shared);
     assert.equal(render.testMesh.material.diffuseTint, true);

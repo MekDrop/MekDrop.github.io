@@ -6,7 +6,7 @@ import { CastleLanternMapObjects } from "../../../../../../src/game/objects/cast
 import { CastleGenerator } from "../../../../../../src/game/generator/castle/CastleGenerator.js";
 
 const hooks = registerHooks({
-  resolve(specifier, context, nextResolve) {
+  resolve: (specifier, context, nextResolve) => {
     if (specifier.endsWith("/LanternFire.js")) {
       return {
         url: "data:text/javascript,export class LanternFire { static add() {} }",
@@ -71,7 +71,9 @@ test("attached tower exterior trim never projects into the castle interior", asy
 
 test("entrance lanterns flank the fixed doorway on every facing and mirrored seed", async () => {
   class LightEntity extends pc.Entity {
-    addComponent(type, options) { this.light = options; }
+    addComponent(type, options) {
+      this.light = options;
+    }
   }
   for (const side of ["NORTH", "SOUTH", "EAST", "WEST"]) {
     for (const seed of [0, 1]) {
@@ -132,7 +134,9 @@ test("entrance lanterns flank the fixed doorway on every facing and mirrored see
         const x = dx * Math.cos(angle) - dz * Math.sin(angle);
         const z = dx * Math.sin(angle) + dz * Math.cos(angle);
         for (const building of plan.metadata.runtime.residential.buildings) {
-          if (building.floorY > origin.y) { continue; }
+          if (building.floorY > origin.y) {
+            continue;
+          }
           const overlapX = Math.min(x + scale.x / 2, building.maxX) - Math.max(x - scale.x / 2, building.minX);
           const overlapZ = Math.min(z + scale.z / 2, building.maxZ) - Math.max(z - scale.z / 2, building.minZ);
           assert.ok(overlapX <= -0.003 || overlapZ <= -0.003,

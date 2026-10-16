@@ -62,7 +62,9 @@ export class RoyalGameOverBehaviorBase {
   /**
    * @returns {NpcStateMachine}
    */
-  get stateMachine() { return this.#stateMachine; }
+  get stateMachine() {
+    return this.#stateMachine;
+  }
 
   /**
    * @returns {import("src/game/objects/ObjectTypes.js").Point3}

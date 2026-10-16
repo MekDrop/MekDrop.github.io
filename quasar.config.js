@@ -248,9 +248,7 @@ module.exports = configure(function (ctx) {
     ssg: {
       concurrency: 10,
       interval: 0,
-      routes() {
-        return getRoutes();
-      },
+      routes: () => getRoutes(),
       // Disable SVG icon auto-import since we use font-based icons
       autoImportSvgIcons: false,
       includeStaticRoutes: false,

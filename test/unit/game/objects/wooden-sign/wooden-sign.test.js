@@ -4,7 +4,7 @@ import { test } from "node:test";
 import { Entity } from "playcanvas";
 
 const hooks = registerHooks({
-  resolve(specifier, context, nextResolve) {
+  resolve: (specifier, context, nextResolve) => {
     if (specifier.endsWith("arrow-signpost.glb?url")) {
       return {
         url: 'data:text/javascript,export default "sign.glb"',
@@ -25,17 +25,23 @@ test("sign collision excludes lettering and preserves independent scale and faci
       actualBoundingBoxAscent: 10,
       actualBoundingBoxDescent: 0,
     }),
-    save() {},
-    translate() {},
-    rotate() {},
-    fillText() {},
-    restore() {},
+    save: () => {},
+    translate: () => {},
+    rotate: () => {},
+    fillText: () => {},
+    restore: () => {},
   };
   globalThis.document = { createElement: () => ({ getContext: () => context }) };
   class TestEntity extends Entity {
-    addComponent(type, options) { this[type] = options; }
-    destroy() { this.c = {}; super.destroy(); }
-    destroy() { this.c = {}; super.destroy(); }
+    addComponent(type, options) {
+      this[type] = options;
+    }
+    destroy() {
+      this.c = {}; super.destroy();
+    }
+    destroy() {
+      this.c = {}; super.destroy();
+    }
   }
   class Resource {
     setSource() {}
@@ -44,7 +50,7 @@ test("sign collision excludes lettering and preserves independent scale and faci
   }
   const graphs = [];
   const modelLibrary = {
-    instantiate() {
+    instantiate: () => {
       const graph = new TestEntity("Sign");
       const wood = new TestEntity("Sign wood");
       const inscription = new TestEntity("Sign inscription");

@@ -6,7 +6,7 @@ import { Entity, Vec3 } from "playcanvas";
 
 // Node does not load Vite's model URL imports.
 const hooks = registerHooks({
-  load(url, context, nextLoad) {
+  load: (url, context, nextLoad) => {
     if (url.endsWith(".glb?url")) {
       return {
         format: "module",

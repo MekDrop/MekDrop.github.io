@@ -28,10 +28,12 @@ export class HeroBellRingingActionState extends HeroRuntimeActionState {
        * @param {import("src/game/objects/ObjectTypes.js").HeroActionPayload} options.payload
        */
       movement: ({ payload }) => {
-        if (payload.pulling) { return {
-          x: 0,
-          z: 0,
-        }; }
+        if (payload.pulling) {
+          return {
+            x: 0,
+            z: 0,
+          };
+        }
         const direction = this.#direction(payload);
         const speed = Math.min(0.8, Math.hypot(direction.x, direction.z) * 5);
         const length = Math.hypot(direction.x, direction.z) || 1;
@@ -86,7 +88,9 @@ export class HeroBellRingingActionState extends HeroRuntimeActionState {
       } else {
         action.stalledElapsed = (action.stalledElapsed ?? 0) + owner.deltaTime;
       }
-      if (action.stalledElapsed > 1.5 || action.approachElapsed > 8) { owner.finish(); }
+      if (action.stalledElapsed > 1.5 || action.approachElapsed > 8) {
+        owner.finish();
+      }
       return;
     }
     action.elapsed += owner.deltaTime;
@@ -96,7 +100,9 @@ export class HeroBellRingingActionState extends HeroRuntimeActionState {
       action.struck = true;
       action.onStrike();
     }
-    if (action.elapsed >= 2.2) { owner.finish(); }
+    if (action.elapsed >= 2.2) {
+      owner.finish();
+    }
   }
 
   /**

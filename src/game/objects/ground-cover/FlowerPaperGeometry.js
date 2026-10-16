@@ -27,7 +27,9 @@ export function splitPaperGeometry(positions, normals, indices, length) {
         const a = vertices[edge], b = vertices[(edge + 1) % 3];
         const insideA = section ? a[0] >= fold : a[0] <= fold;
         const insideB = section ? b[0] >= fold : b[0] <= fold;
-        if (insideA) { polygon.push(a); }
+        if (insideA) {
+          polygon.push(a);
+        }
         if (insideA !== insideB) {
           const fraction = (fold - a[0]) / (b[0] - a[0]);
           polygon.push(a.map(
@@ -45,7 +47,9 @@ export function splitPaperGeometry(positions, normals, indices, length) {
         result.normals.push(...vertex.slice(3));
         result.sections.push(section);
       }
-      for (let vertex = 1; vertex < polygon.length - 1; vertex++) { result.indices.push(base, base + vertex, base + vertex + 1); }
+      for (let vertex = 1; vertex < polygon.length - 1; vertex++) {
+        result.indices.push(base, base + vertex, base + vertex + 1);
+      }
     }
   }
 

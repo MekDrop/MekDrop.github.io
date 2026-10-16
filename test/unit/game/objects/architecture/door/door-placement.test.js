@@ -14,7 +14,9 @@ const Placement = new Function("interiorDoorUrl", "castleDoorsModelUrl", "CASTLE
   OPEN: "open",
   OPEN_WIDE: "wide",
 }, createDoorCollision);
-function Door(options) { return new SharedDoor(Placement.create(options)); }
+function Door(options) {
+  return new SharedDoor(Placement.create(options));
+}
 
 it("registers the entrance arch surface as an obstacle without filling its opening", () => {
   let margin;
@@ -22,23 +24,33 @@ it("registers the entrance arch surface as an obstacle without filling its openi
     components = new Map();
     addComponent(type, data) {
       this.components.set(type, data);
-      if (type === "collision") this.collision = {
-        shape: {
-          getNumChildShapes() { return 1; },
-          getChildShape() { return { setMargin(value) { margin = value; } }; },
-        },
-      };
+      if (type === "collision") {
+        this.collision = {
+          shape: {
+            getNumChildShapes: () => 1,
+            getChildShape: () => ({
+              setMargin: (value) => {
+                margin = value;
+              },
+            }),
+          },
+        };
+      }
     }
   }
   const mesh = { curvedSurface: true };
   let released = false;
   class MeshInstance {
-    constructor(sourceMesh, material, node) { Object.assign(this, {
-      mesh: sourceMesh,
-      material,
-      node,
-    }); }
-    destroy() { released = true; }
+    constructor(sourceMesh, material, node) {
+      Object.assign(this, {
+        mesh: sourceMesh,
+        material,
+        node,
+      });
+    }
+    destroy() {
+      released = true;
+    }
   }
   const entrance = new Entity("Entrance");
   const arch = new Entity("Entrance masonry interior reveal bridge spandrel 0");
@@ -63,7 +75,11 @@ it("registers the entrance arch surface as an obstacle without filling its openi
   assert.equal(margin, 0.001, "mesh padding stays below the authored hinge clearance");
   assert.deepEqual(collider.getLocalPosition().toArray(), [0, 0, 0]);
   let framePosition;
-  collider.rigidbody = { syncEntityToBody() { framePosition = collider.getPosition().clone(); } };
+  collider.rigidbody = {
+    syncEntityToBody: () => {
+      framePosition = collider.getPosition().clone();
+    },
+  };
   entrance.setPosition(4, 2, -6);
   collision.syncFrameBodies();
   assert.deepEqual(framePosition.toArray(), [4, 2, -6], "frame follows the attached castle world pose");
@@ -75,13 +91,19 @@ it("registers the entrance arch surface as an obstacle without filling its openi
 it("uses curved entrance planks for physics while keeping picking at their authored offset", () => {
   class Entity extends pc.Entity {
     components = new Map();
-    addComponent(type, data) { this.components.set(type, data); }
+    addComponent(type, data) {
+      this.components.set(type, data);
+    }
   }
   const entrance = new Entity("Entrance");
   const leaf = new Entity("Entrance oak plank 0");
   const helper = new Entity("Entrance collision door plank 0");
   entrance.addChild(leaf); entrance.addChild(helper);
-  const mesh = { getPositions(out) { out.push(-.9, 0, -.025, -.1, 2, .025); } };
+  const mesh = {
+    getPositions: (out) => {
+      out.push(-.9, 0, -.025, -.1, 2, .025);
+    },
+  };
   const hidden = {
     entity: helper,
     enabled: true,
@@ -107,8 +129,12 @@ it("uses curved entrance planks for physics while keeping picking at their autho
   let loadedMargin;
   leaf.children[0].collision = {
     shape: {
-      getNumChildShapes() { return 1; },
-      getChildShape() { return { setMargin(value) { loadedMargin = value; } }; },
+      getNumChildShapes: () => 1,
+      getChildShape: () => ({
+        setMargin: (value) => {
+          loadedMargin = value;
+        },
+      }),
     },
   };
   collision.syncFrameBodies();
@@ -126,17 +152,21 @@ it("uses curved entrance planks for physics while keeping picking at their autho
 function upperDoor(floorY = 3, side = "NORTH", main = false, placement = null) {
   class Entity extends pc.Entity {
     addComponent(type) {
-      if (type === "anim") this.anim = {
-        baseLayer: layer,
-        addAnimationState() {},
-        update() {},
-      };
+      if (type === "anim") {
+        this.anim = {
+          baseLayer: layer,
+          addAnimationState: () => {},
+          update: () => {},
+        };
+      }
     }
   }
   const entity = new Entity("doors");
   const left = new Entity(main ? "Left hinge" : "Right interior door hinge"), right = new Entity("Right hinge");
   left.setLocalPosition(-1, 0, 0); right.setLocalPosition(1, 0, 0);
-  entity.addChild(left); if (main) entity.addChild(right);
+  entity.addChild(left); if (main) {
+    entity.addChild(right);
+  }
   const renders = (main ? [left, right] : [left]).map((hinge, index) => {
     const plank = new Entity("Castle door plank"); hinge.addChild(plank);
     const x = index === 0 ? [0, main ? 1 : 2] : [-1, 0];
@@ -145,7 +175,7 @@ function upperDoor(floorY = 3, side = "NORTH", main = false, placement = null) {
       entity: plank,
       meshInstances: [{
         mesh: {
-          getPositions(out) {
+          getPositions: (out) => {
             out.push(x[0], 0, -.05, x[1], 2.275, .05);
           },
         },
@@ -155,7 +185,9 @@ function upperDoor(floorY = 3, side = "NORTH", main = false, placement = null) {
   entity.findComponents = () => renders;
   let wide = false;
   const layer = {
-    play(name) { wide = name === "wide"; },
+    play: (name) => {
+      wide = name === "wide";
+    },
     set activeStateCurrentTime(time) {
       left.setLocalEulerAngles(0, (main ? wide ? 179 : 105 : wide ? -179 : -90) * time, 0);
       right.setLocalEulerAngles(0, (wide ? -179 : -105) * time, 0);
@@ -388,7 +420,7 @@ it("stops an interior swing at a real Ammo wall and resumes when it is removed",
     collider.rigidbody = {
       system: { dynamicsWorld: world },
       body: nativeBody,
-      syncEntityToBody() {},
+      syncEntityToBody: () => {},
     };
     resources.push(nativeBody, shape, extents);
   }
@@ -438,9 +470,15 @@ it("stops an interior swing at a real Ammo wall and resumes when it is removed",
     world.removeCollisionObject(floor);
     world.removeCollisionObject(wall);
     door.destroy();
-    for (const collider of colliders) world.removeCollisionObject(collider.rigidbody.body);
-    for (const resource of resources) Ammo.destroy(resource);
-    for (const resource of [world, solver, broadphase, dispatcher, configuration]) Ammo.destroy(resource);
+    for (const collider of colliders) {
+      world.removeCollisionObject(collider.rigidbody.body);
+    }
+    for (const resource of resources) {
+      Ammo.destroy(resource);
+    }
+    for (const resource of [world, solver, broadphase, dispatcher, configuration]) {
+      Ammo.destroy(resource);
+    }
     globalThis.Ammo = previousAmmo;
   }
 });
@@ -485,7 +523,9 @@ it("holds a swinging door until a visible NPC clears its leaf", () => {
     door.update(1);
     assert.notDeepEqual(entity.children[0].getLocalRotation(), held,
       "door resumes once the NPC is clear");
-  } finally { behavior.destroy(); door.destroy(); }
+  } finally {
+    behavior.destroy(); door.destroy();
+  }
 });
 
 it("mirrors the interior hinge and animated leaf while keeping collision and picking aligned", () => {
@@ -526,9 +566,11 @@ it("mirrors the interior hinge and animated leaf while keeping collision and pic
 it("lets terrace choreography request a swing without bypassing hero clearance", () => {
   const { door } = upperDoor();
   let openings = 0;
-  door.onOpen = () => { openings++;
+  door.onOpen = () => {
+    openings++;
 
-    return true; };
+    return true;
+  };
   assert.equal(door.handlePointerDown(), true);
   assert.equal(openings, 1);
   door.sequenceOpenAmount = 1;

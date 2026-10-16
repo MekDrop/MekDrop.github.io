@@ -33,7 +33,9 @@ describe("island connector generation", () => {
     }
     const groups = new IslandCellOwnership(map).groups;
     for (const { method, args } of map.renderCommands) {
-      if (method !== "addSpan") continue;
+      if (method !== "addSpan") {
+        continue;
+      }
       const owners = args[0].cells.map(({ col, row }) => groups.findIndex((cells) => cells.has(`${col},${row}`)));
       assert.ok(owners[0] >= 0);
       assert.equal(new Set(owners).size, 1, "deck tiles and continuous rails must move as one span");
@@ -51,7 +53,9 @@ describe("island connector generation", () => {
     for (const connector of data.connectors) {
       assert.equal(connector.cells.length, 2);
       assert.ok(connector.removedCells.length + connector.cells.length <= 7);
-      for (const { col, row } of connector.removedCells) assert.equal(map.grid[row][col], 0);
+      for (const { col, row } of connector.removedCells) {
+        assert.equal(map.grid[row][col], 0);
+      }
       const owners = connector.cells.map(({ col, row }) => groups.findIndex((cells) => cells.has(`${col},${row}`)));
       assert.ok(owners[0] >= 0);
       assert.equal(owners[0], owners[1]);

@@ -23,7 +23,9 @@ export class Planter extends AbstractCastleProp {
       // block a distinct sub-grid offset so overlapping faces cannot coincide.
       const offsetX = random.rng(-4, 4) / 100 + index * 0.001;
       const offsetZ = random.rng(-4, 4) / 100 + index * 0.001;
-      if (!node) { continue; }
+      if (!node) {
+        continue;
+      }
       const position = node.getLocalPosition().clone();
       node.setLocalPosition(
         position.x * mirror * Math.cos(angle) - position.z * Math.sin(angle) + offsetX,
@@ -36,5 +38,7 @@ export class Planter extends AbstractCastleProp {
   /**
    * @returns {string}
    */
-  static get modelUrl() { return modelUrl; }
+  static get modelUrl() {
+    return modelUrl;
+  }
 }

@@ -14,7 +14,9 @@ export class Book extends AbstractCastleProp {
   /**
    * @returns {string[]}
    */
-  static get modelUrls() { return [closedUrl, openUrl, classicOpenUrl, uprightClosedUrl]; }
+  static get modelUrls() {
+    return [closedUrl, openUrl, classicOpenUrl, uprightClosedUrl];
+  }
   /**
    * @returns {string}
    */
@@ -28,7 +30,9 @@ export class Book extends AbstractCastleProp {
    * Shelf contents share the cabinet's collision rather than hundreds of bodies.
    * @returns {boolean}
    */
-  get hasAuthoredCollision() { return !this.definition.sourceShelfId; }
+  get hasAuthoredCollision() {
+    return !this.definition.sourceShelfId;
+  }
   /**
    * @param {import("playcanvas").Entity} model
    * @param {boolean} collision
@@ -41,5 +45,7 @@ export class Book extends AbstractCastleProp {
   /**
    * @param {import("../../ObjectTypes.js").GameMapData} mapData
    */
-  static prepareMap(mapData) { BookMapObjects.prepareMap(mapData); }
+  static prepareMap(mapData) {
+    BookMapObjects.prepareMap(mapData);
+  }
 }

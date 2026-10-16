@@ -47,10 +47,14 @@ it("steps clear, waits while the door is active, and returns after it closes", (
       app.fire("update", 1 / 60); app.fire("prerender");
     }
     assert.deepEqual(npc.getPosition(), waiting);
-    for (let frame = 0; frame < 240; frame++) { app.fire("update", 1 / 60); app.fire("prerender"); }
+    for (let frame = 0; frame < 240; frame++) {
+      app.fire("update", 1 / 60); app.fire("prerender");
+    }
     assert.equal(behavior.phase, PHASE.IDLE);
     assert.ok(npc.getPosition().length() < 0.04);
-  } finally { behavior.destroy(); }
+  } finally {
+    behavior.destroy();
+  }
 });
 
 it("waits without teleporting when furniture blocks every escape route", () => {
@@ -62,7 +66,9 @@ it("waits without teleporting when furniture blocks every escape route", () => {
     }
     assert.equal(behavior.phase, PHASE.WAIT);
     assert.equal(npc.getPosition().length(), 0);
-  } finally { behavior.destroy(); }
+  } finally {
+    behavior.destroy();
+  }
 });
 
 it("hero clearance interrupts only the requested servant", () => {
@@ -123,7 +129,9 @@ it("resumes the servant's interrupted work while hero checks continue after movi
     assert.ok(npc.getPosition().length() < .04);
     role.update(.25);
     assert.equal(role.elapsed, 1);
-  } finally { behavior.destroy(); }
+  } finally {
+    behavior.destroy();
+  }
 });
 
 it("avoids thin obstacles along the route and rechecks each movement step", () => {
@@ -142,7 +150,9 @@ it("avoids thin obstacles along the route and rechecks each movement step", () =
     app.fire("update", 1 / 60); app.fire("prerender");
     assert.deepEqual(npc.getPosition(), before);
     assert.equal(behavior.phase, PHASE.WAIT);
-  } finally { behavior.destroy(); }
+  } finally {
+    behavior.destroy();
+  }
 });
 
 it("excludes hidden NPCs, other scenes, and destroyed participants", () => {
@@ -158,7 +168,9 @@ it("excludes hidden NPCs, other scenes, and destroyed participants", () => {
     assert.equal(NpcDoorAvoidance.occupied(first.door, () => true), true);
     first.behavior.destroy();
     assert.equal(NpcDoorAvoidance.occupied(first.door, () => true), false);
-  } finally { first.behavior.destroy(); second.behavior.destroy(); }
+  } finally {
+    first.behavior.destroy(); second.behavior.destroy();
+  }
 });
 
 it("interrupts the royal's actual state and resumes its progress without replaying entry actions", () => {
@@ -201,7 +213,9 @@ it("interrupts the royal's actual state and resumes its progress without replayi
     }, before, "task lifecycle actions are not replayed");
     role.update(.2);
     assert.ok(Math.abs(role.elapsed - elapsed - .2) < .00001);
-  } finally { behavior.destroy(); }
+  } finally {
+    behavior.destroy();
+  }
 });
 
 it("preserves an already interrupted servant task and its timer", () => {
@@ -239,7 +253,9 @@ it("preserves an already interrupted servant task and its timer", () => {
     role.update(.75);
     assert.equal(role.phase, "work");
     assert.equal(role.elapsed, .75, "earlier interruption still resumes correctly");
-  } finally { behavior.destroy(); }
+  } finally {
+    behavior.destroy();
+  }
 });
 
 it("reverts a walking royal without restarting the walk", () => {
@@ -249,9 +265,11 @@ it("reverts a walking royal without restarting the walk", () => {
     walkDuration: 2,
     walkStartDelay: 0,
     beginWalk: () => starts++,
-    move: (value) => { progress.push(value);
+    move: (value) => {
+      progress.push(value);
 
-      return true; },
+      return true;
+    },
     playAnimation: () => {},
   });
   role.start();
@@ -286,7 +304,9 @@ it("an explicit new task cancels the reaction instead of reviving the old task",
     assert.equal(role.elapsed, 0);
     assert.equal(role.reacting, false);
     assert.equal(behavior.phase, PHASE.IDLE);
-  } finally { behavior.destroy(); }
+  } finally {
+    behavior.destroy();
+  }
 });
 
 it("returns to its previous state at the safe sidestep if the old spot stays blocked", () => {
@@ -306,7 +326,9 @@ it("returns to its previous state at the safe sidestep if the old spot stays blo
     assert.equal(behavior.behavior.currentState, original);
     assert.equal(behavior.phase, PHASE.IDLE);
     assert.ok(npc.getPosition().x > .9, "never returns into the blocked spot");
-  } finally { behavior.destroy(); }
+  } finally {
+    behavior.destroy();
+  }
 });
 
 it("keeps the door operator at the handle while bystanders still yield", () => {

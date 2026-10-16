@@ -6,11 +6,15 @@ function setup() {
   const destination = { stream: { getTracks: () => [track] } };
   const track = {
     stopped: false,
-    stop() { this.stopped = true; },
+    stop() {
+      this.stopped = true;
+    },
   };
   const node = () => ({
     targets: new Set(),
-    connect(target) { this.targets.add(target); },
+    connect(target) {
+      this.targets.add(target);
+    },
     disconnect(target) {
       if (target) {
         assert.ok(this.targets.delete(target), "disconnect only a connected output");
@@ -22,14 +26,14 @@ function setup() {
   const silence = {
     ...node(),
     offset: { value: 1 },
-    start() {},
-    stop() {},
+    start: () => {},
+    stop: () => {},
   };
   const context = {
     createMediaStreamDestination: () => destination,
     createConstantSource: () => silence,
     createGain: node,
-    async resume() {},
+    resume: async () => {},
   };
   const slot = { instances: [] };
   const app = {
@@ -38,9 +42,15 @@ function setup() {
   };
   const instance = (external = null) => ({
     nodes: [external, external],
-    getExternalNodes() { return this.nodes; },
-    setExternalNodes(first, last) { this.nodes = [first, last]; },
-    clearExternalNodes() { this.nodes = [null, null]; },
+    getExternalNodes() {
+      return this.nodes;
+    },
+    setExternalNodes(first, last) {
+      this.nodes = [first, last];
+    },
+    clearExternalNodes() {
+      this.nodes = [null, null];
+    },
   });
 
   return {

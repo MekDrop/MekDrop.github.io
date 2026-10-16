@@ -155,7 +155,9 @@ export class HeroPhysicsController {
     const start = new this.#pc.Vec3(body.x, body.y + this.#height / 2, body.z);
     const dx = anchor.x - start.x, dy = anchor.y - start.y, dz = anchor.z - start.z;
     const distance = Math.hypot(dx, dy, dz);
-    if (distance < 0.000001) { return { ...anchor }; }
+    if (distance < 0.000001) {
+      return { ...anchor };
+    }
     // Probe past the eyes so the near plane also stays clear of a nearby face.
     const scale = (distance + CAMERA_WALL_CLEARANCE) / distance;
     const end = new this.#pc.Vec3(start.x + dx * scale, start.y + dy * scale, start.z + dz * scale);
@@ -167,7 +169,9 @@ export class HeroPhysicsController {
       filterCallback: this.#filterCallback.bind(this),
     });
     const hit = hits[0];
-    if (!hit) { return { ...anchor }; }
+    if (!hit) {
+      return { ...anchor };
+    }
     const travel = Math.max(0, Math.min(distance,
       Math.hypot(hit.point.x - start.x, hit.point.y - start.y, hit.point.z - start.z) - CAMERA_WALL_CLEARANCE));
     const fraction = travel / distance;
@@ -367,7 +371,9 @@ export class HeroPhysicsController {
    */
   #filterCallback(entity) {
     for (let node = entity; node; node = node.parent) {
-      if (node === this.#entity) { return false; }
+      if (node === this.#entity) {
+        return false;
+      }
     }
 
     return true;

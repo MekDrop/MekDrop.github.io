@@ -164,7 +164,7 @@ test("shows only the hovered mesh as untextured wireframe while Alt is held", as
   fakeWindow.dispatch("keydown", {
     code: "AltLeft",
     key: "Alt",
-    preventDefault() {},
+    preventDefault: () => {},
   });
   fakeWindow.flushAnimationFrames();
   await Promise.resolve();
@@ -177,7 +177,7 @@ test("shows only the hovered mesh as untextured wireframe while Alt is held", as
   fakeWindow.dispatch("keyup", {
     code: "AltLeft",
     key: "Alt",
-    preventDefault() {},
+    preventDefault: () => {},
   });
   assert.equal(meshInstance.renderStyle, 0);
   assert.equal(meshInstance.material, originalMaterial);
@@ -199,9 +199,7 @@ test("temporarily enables developer-only picking for cloth and roof meshes", asy
     pc,
     app: {
       root: {
-        findComponents() {
-          return [{ meshInstances: [meshInstance] }];
-        },
+        findComponents: () => [{ meshInstances: [meshInstance] }],
       },
       scene: {},
     },
@@ -295,7 +293,7 @@ test("restores the mesh and ignores Alt input after disconnecting", async () => 
   fakeWindow.dispatch("keydown", {
     code: "AltLeft",
     key: "Alt",
-    preventDefault() {},
+    preventDefault: () => {},
   });
   fakeWindow.flushAnimationFrames();
   await Promise.resolve();
@@ -344,7 +342,7 @@ test("prints object coordinates on an Alt+primary mouse click", async () => {
     clientX: 120,
     clientY: 140,
     pointerType: "mouse",
-    preventDefault() {
+    preventDefault: () => {
       prevented = true;
     },
   });

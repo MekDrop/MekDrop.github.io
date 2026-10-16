@@ -160,7 +160,9 @@ export class VestibuleWindowFurnishing {
         }];
       for (const item of candidates) {
         const obstacles = item.floorCovering ? [] : [...occupied, ...items];
-        if (safe(item) && RoomPlacementRules.accepts(item, room, obstacles, wallThickness)) { items.push(item); }
+        if (safe(item) && RoomPlacementRules.accepts(item, room, obstacles, wallThickness)) {
+          items.push(item);
+        }
       }
     }
 

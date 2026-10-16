@@ -17,7 +17,9 @@ export class WashBasin extends AbstractCastleProp {
   /**
    * @returns {string}
    */
-  static get modelUrl() { return modelUrl; }
+  static get modelUrl() {
+    return modelUrl;
+  }
 
   /**
    * @param {import("../../ObjectTypes.js").MapObjectOptions} options
@@ -36,7 +38,9 @@ export class WashBasin extends AbstractCastleProp {
       const angle = index / segments * Math.PI * 2;
       positions.push(Math.cos(angle) * 0.218, 0, Math.sin(angle) * 0.218);
       normals.push(0, 1, 0);
-      if (index < segments) { indices.push(0, index + 2, index + 1); }
+      if (index < segments) {
+        indices.push(0, index + 2, index + 1);
+      }
     }
     this.#waterMesh = new pc.Mesh(app.graphicsDevice);
     this.#waterMesh.setPositions(positions);

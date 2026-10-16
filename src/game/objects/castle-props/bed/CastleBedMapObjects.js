@@ -12,11 +12,15 @@ export class CastleBedMapObjects {
     for (const castle of objects.filter(CastleBedMapObjects.#isCastle)) {
       const layout = new CastleResidentialLayout(castle.buildPlan);
       for (let index = objects.length - 1; index >= 0; index--) {
-        if (objects[index].castleBed && objects[index].sourceCastleId === castle.id) { objects.splice(index, 1); }
+        if (objects[index].castleBed && objects[index].sourceCastleId === castle.id) {
+          objects.splice(index, 1);
+        }
       }
       let index = 0;
       for (const placement of layout.placements) {
-        if (!["royalBed", "servantBed"].includes(placement.role)) { continue; }
+        if (!["royalBed", "servantBed"].includes(placement.role)) {
+          continue;
+        }
         const position = { ...placement.position };
         objects.push({
           id: `${castle.id}-bed-${index++}`,
@@ -46,5 +50,7 @@ export class CastleBedMapObjects {
   /**
    * @param {import("../../ObjectTypes.js").MapObjectDefinition} definition
    */
-  static #isCastle(definition) { return definition.object === "Castle"; }
+  static #isCastle(definition) {
+    return definition.object === "Castle";
+  }
 }

@@ -47,7 +47,9 @@ export class SignalBell extends AbstractCastleProp {
   /**
    * @returns {string}
    */
-  static get modelUrl() { return modelUrl; }
+  static get modelUrl() {
+    return modelUrl;
+  }
 
   /**
    * Keep collision on the stationary frame while the bowl swings above it.
@@ -99,17 +101,23 @@ export class SignalBell extends AbstractCastleProp {
   /**
    * @returns {import("playcanvas").Vec3}
    */
-  get position() { return this.visualRoots[0].getPosition(); }
+  get position() {
+    return this.visualRoots[0].getPosition();
+  }
 
   /**
    * @returns {boolean}
    */
-  get canRing() { return !this.#ringing; }
+  get canRing() {
+    return !this.#ringing;
+  }
 
   /**
    * @returns {string}
    */
-  get testStatus() { return `Bell: ${this.#ringCount} rings${this.canRing ? " · ready" : " · ringing"}`; }
+  get testStatus() {
+    return `Bell: ${this.#ringCount} rings${this.canRing ? " · ready" : " · ringing"}`;
+  }
 
   /**
    * Reserve the bell during the approach and unlock audio in the E gesture.
@@ -165,7 +173,9 @@ export class SignalBell extends AbstractCastleProp {
     this.#ringing = false;
     this.#pullingHero = null;
     this.#rope?.release();
-    if (this.#model.anim) { this.setPullTime(0); }
+    if (this.#model.anim) {
+      this.setPullTime(0);
+    }
   }
 
   /**

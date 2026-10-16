@@ -8,7 +8,7 @@ import { castleStraightStairSurfaces, castleStraightStairTreads, castleStraightS
 
 // Keep Vite asset imports as URLs and read the actual masonry shader sources.
 const hooks = registerHooks({
-  load(url, context, nextLoad) {
+  load: (url, context, nextLoad) => {
     if (url.endsWith(".glb?url") || url.endsWith("?raw")) {
       const source = url.endsWith("?raw") ? readFileSync(new URL(url.slice(0, -4)), "utf8") : url;
 
@@ -42,13 +42,15 @@ it("matches every transformed tread query to Ammo, preserves openings and remove
   const mesh = pc.Mesh.fromGeometry(device,new pc.BoxGeometry());
   // Substitute model assets only; hierarchy, mesh support, components and Ammo are real.
   const modelLibrary = {
-    instantiate() {
+    instantiate: () => {
       const entity = new pc.Entity();
       entity.addComponent("render",{meshInstances:[new pc.MeshInstance(mesh,material,entity)]});
 
       return entity;
     },
-    instantiateMerged() { return this.instantiate(); },
+    instantiateMerged() {
+      return this.instantiate();
+    },
   };
   try {
     for (const rotation of [0,90,180,270]) {

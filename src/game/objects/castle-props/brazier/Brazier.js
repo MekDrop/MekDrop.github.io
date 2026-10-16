@@ -19,22 +19,30 @@ export class Brazier extends AbstractCastleProp {
   /**
    * @returns {string[]}
    */
-  static get modelUrls() { return [bowlUrl, towerUrl]; }
+  static get modelUrls() {
+    return [bowlUrl, towerUrl];
+  }
   /**
    * The shallow castle bowl previously had no contact; towers retain mesh contact.
    * @returns {boolean}
    */
-  get hasAuthoredCollision() { return this.definition.variant === "tower"; }
+  get hasAuthoredCollision() {
+    return this.definition.variant === "tower";
+  }
   /**
    * @returns {string}
    */
-  get modelUrl() { return this.definition.variant === "tower" ? towerUrl : bowlUrl; }
+  get modelUrl() {
+    return this.definition.variant === "tower" ? towerUrl : bowlUrl;
+  }
   /**
    * @param {import("playcanvas").Entity} model
    * @param {boolean} collision
    */
   prepareModel(model, collision) {
-    if (this.definition.variant === "tower") { return; }
+    if (this.definition.variant === "tower") {
+      return;
+    }
     const scale = this.definition.scale ?? 0.25;
     model.setLocalScale(scale * 1.5, scale * 0.24, scale * 1.5);
   }
@@ -62,7 +70,9 @@ export class Brazier extends AbstractCastleProp {
       }
     }
     // Tower artwork was unlit; lighting it is an explicit placement choice.
-    if (tower && !definition.flame) { return; }
+    if (tower && !definition.flame) {
+      return;
+    }
     const app = options.app ?? pc.Application.getApplication();
     this.#fire = new FireEffect({
       pc,

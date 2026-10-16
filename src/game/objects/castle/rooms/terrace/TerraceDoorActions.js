@@ -124,10 +124,14 @@ export class TerraceDoorActions {
     }
     this.#inspector = inspector;
     this.#inspector.behavior = this.#inspection;
-    if (!motion) { this.#inspector.entity.name = "Terrace door inspecting servant"; }
+    if (!motion) {
+      this.#inspector.entity.name = "Terrace door inspecting servant";
+    }
     const actorScale = CHARACTER_HEIGHT / this.#inspector.height;
     this.#inspector.entity.setLocalScale(actorScale, actorScale, actorScale);
-    if (!this.#motion) { this.#inspector.entity.enabled = false; }
+    if (!this.#motion) {
+      this.#inspector.entity.enabled = false;
+    }
   }
 
   /**
@@ -172,15 +176,20 @@ export class TerraceDoorActions {
       PHASE.SERVANT_RETURN,
       PHASE.SERVANT_LEAVE,
     ].includes(participantPhase);
-    if (this.#motion) { this.#syncResidentInspector(); }
+    if (this.#motion) {
+      this.#syncResidentInspector();
+    }
     this.#inspection.update(
       !this.#ownsDoor && this.#inspection.phase === INSPECTION.CLOSE &&
         this.#inspection.progress >= 0.95 && this.#door.openAmount > 0.02 ? 0 : deltaTime,
       ![PHASE.DORMANT, PHASE.ACTIVITY].includes(participantPhase),
     );
     if (!this.#ownsDoor) {
-      if (this.#inspection.inspecting) { this.#door.operator = this.#inspector.entity; }
-      else if (!traffic) { this.#door.operator = null; }
+      if (this.#inspection.inspecting) {
+        this.#door.operator = this.#inspector.entity;
+      } else if (!traffic) {
+        this.#door.operator = null;
+      }
       this.#door.sequenceOpenAmount = this.#inspection.phase === INSPECTION.CLOSE
         ? 1 - ease(this.#inspection.progress)
         : traffic || this.#inspection.doorOpen ? 1 : null;
@@ -219,7 +228,9 @@ export class TerraceDoorActions {
 
   stop() {
     this.#inspection.reset();
-    if (!this.#motion) { this.#inspector.entity.enabled = false; }
+    if (!this.#motion) {
+      this.#inspector.entity.enabled = false;
+    }
     if (this.#ownsDoor) {
       this.#door.update(1, false);
     } else {
@@ -230,7 +241,9 @@ export class TerraceDoorActions {
 
   destroy() {
     this.#inspection.reset();
-    if (!this.#motion) { this.#inspector.entity.enabled = false; }
+    if (!this.#motion) {
+      this.#inspector.entity.enabled = false;
+    }
     this.#inspector = null;
     if (this.#ownsDoor) {
       this.#door.destroy();
@@ -242,10 +255,14 @@ export class TerraceDoorActions {
   }
 
   #syncInspector() {
-    if (this.#motion) { this.#syncResidentInspector();
+    if (this.#motion) {
+      this.#syncResidentInspector();
 
-      return; }
-    if (this.#inspection.reacting) { return; }
+      return;
+    }
+    if (this.#inspection.reacting) {
+      return;
+    }
     const phase = this.#inspection.phase;
     const progress = this.#inspection.progress;
     const turn = ease(Math.min(1, progress * 2));
@@ -313,7 +330,9 @@ export class TerraceDoorActions {
   }
 
   #syncResidentInspector() {
-    if (!this.#inspection.inspecting || this.#inspection.reacting) { return; }
+    if (!this.#inspection.inspecting || this.#inspection.reacting) {
+      return;
+    }
     this.#inspector.behavior = this.#inspection;
     const phase = this.#inspection.phase;
     const moving = [INSPECTION.NOTICE, INSPECTION.WALK_OUT, INSPECTION.RETURN, INSPECTION.LEAVE].includes(phase);
@@ -323,7 +342,9 @@ export class TerraceDoorActions {
         phase === INSPECTION.WALK_OUT ? 1.6 * scale : -0.7);
       this.#motion.moveTo(phase === INSPECTION.LEAVE ? this.#motion.home
         : this.#root.getWorldTransform().transformPoint(point, point));
-      if (this.#motion.arrived) { this.#inspector.pose("idle", this.#inspection.elapsed); }
+      if (this.#motion.arrived) {
+        this.#inspector.pose("idle", this.#inspection.elapsed);
+      }
       return;
     }
     const progress = this.#inspection.progress;

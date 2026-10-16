@@ -31,28 +31,42 @@ function packCollisionCells(voxels) {
     (cell) => `${cell.x}:${cell.y}:${cell.z}`));
   const boxes = [];
   for (const { x, y, z } of voxels) {
-    if (!cells.has(`${x}:${y}:${z}`)) continue;
+    if (!cells.has(`${x}:${y}:${z}`)) {
+      continue;
+    }
     let width = 1, height = 1, depth = 1;
-    while (cells.has(`${x + width}:${y}:${z}`)) width++;
+    while (cells.has(`${x + width}:${y}:${z}`)) {
+      width++;
+    }
     let complete = true;
     while (complete) {
       for (let dx = 0; dx < width; dx++) {
-        if (!cells.has(`${x + dx}:${y}:${z + depth}`)) { complete = false; break; }
+        if (!cells.has(`${x + dx}:${y}:${z + depth}`)) {
+          complete = false; break;
+        }
       }
-      if (complete) depth++;
+      if (complete) {
+        depth++;
+      }
     }
     complete = true;
     while (complete) {
       for (let dx = 0; dx < width && complete; dx++) {
         for (let dz = 0; dz < depth; dz++) {
-          if (!cells.has(`${x + dx}:${y + height}:${z + dz}`)) { complete = false; break; }
+          if (!cells.has(`${x + dx}:${y + height}:${z + dz}`)) {
+            complete = false; break;
+          }
         }
       }
-      if (complete) height++;
+      if (complete) {
+        height++;
+      }
     }
     for (let dx = 0; dx < width; dx++) {
       for (let dy = 0; dy < height; dy++) {
-        for (let dz = 0; dz < depth; dz++) cells.delete(`${x + dx}:${y + dy}:${z + dz}`);
+        for (let dz = 0; dz < depth; dz++) {
+          cells.delete(`${x + dx}:${y + dy}:${z + dz}`);
+        }
       }
     }
     boxes.push({

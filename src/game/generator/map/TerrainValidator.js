@@ -92,8 +92,12 @@ export class TerrainValidator {
 
     for (let row = 1; row < MAP_ROWS - 1; row++) {
       for (let col = 1; col < MAP_COLS - 1; col++) {
-        if (grid[row][col] !== TileType.GRASS) { continue; }
-        if (heightmap[row][col] <= 1) { continue; }
+        if (grid[row][col] !== TileType.GRASS) {
+          continue;
+        }
+        if (heightmap[row][col] <= 1) {
+          continue;
+        }
 
         let relatedNeighbors = 0;
         for (const [dc, dr] of [
@@ -102,7 +106,9 @@ export class TerrainValidator {
           [0, 1],
           [0, -1],
         ]) {
-          if (grid[row + dr][col + dc] !== TileType.GRASS) { continue; }
+          if (grid[row + dr][col + dc] !== TileType.GRASS) {
+            continue;
+          }
           if (heightmap[row + dr][col + dc] >= heightmap[row][col] - 1) {
             relatedNeighbors++;
           }

@@ -16,9 +16,13 @@ export function createDoorCollision(pc, door) {
    */
   const configureMargin = (entity, hull = false) => {
     const shape = entity.collision?.shape;
-    if (!shape?.getNumChildShapes) return;
+    if (!shape?.getNumChildShapes) {
+      return;
+    }
     const key = globalThis.Ammo?.getPointer?.(shape) ?? shape;
-    if (configuredShapes.has(key)) return;
+    if (configuredShapes.has(key)) {
+      return;
+    }
     for (let index = 0; index < shape.getNumChildShapes(); index++) {
       const child = shape.getChildShape(index);
       child.setMargin(0.001);
@@ -64,12 +68,18 @@ export function createDoorCollision(pc, door) {
     if (render.entity.name.startsWith("Entrance collision door plank")) {
       // Authored curved-leaf columns supply collision without visible helper cubes.
       render.enabled = false;
-      if (authoredLeaves) continue;
+      if (authoredLeaves) {
+        continue;
+      }
     }
     const curvedLeaf = authoredLeaves && render.entity.name.startsWith("Entrance oak plank");
-    if (!render.entity.name.includes("door plank") && !curvedLeaf) continue;
+    if (!render.entity.name.includes("door plank") && !curvedLeaf) {
+      continue;
+    }
     const positions = [];
-    for (const instance of render.meshInstances) instance.mesh.getPositions(positions);
+    for (const instance of render.meshInstances) {
+      instance.mesh.getPositions(positions);
+    }
     const min = [Infinity, Infinity, Infinity], max = [-Infinity, -Infinity, -Infinity];
     for (let index = 0; index < positions.length; index++) {
       const axis = index % 3;
@@ -89,7 +99,9 @@ export function createDoorCollision(pc, door) {
      * @param {number} axis
      */
       (value, axis) => (value + min[axis]) / 2);
-    if (!curvedLeaf) part.setLocalPosition(...center);
+    if (!curvedLeaf) {
+      part.setLocalPosition(...center);
+    }
     render.entity.addChild(part);
     // PlayCanvas box half-extents are physics-world dimensions; entity scale
     // affects the mesh and picking transform but does not scale the Ammo box.
@@ -125,17 +137,19 @@ export function createDoorCollision(pc, door) {
 
   return {
     swing,
-    syncFrameBodies() {
+    syncFrameBodies: () => {
       // The castle attaches this door after construction; use its final world pose.
       for (const { collider } of frameBodies) {
         configureMargin(collider);
         collider.rigidbody?.syncEntityToBody?.();
       }
       if (authoredLeaves) {
-        for (const { entity } of parts) configureMargin(entity, true);
+        for (const { entity } of parts) {
+          configureMargin(entity, true);
+        }
       }
     },
-    destroy() {
+    destroy: () => {
       swing.destroy();
       for (const { collider, model } of frameBodies) {
         collider.destroy();
@@ -148,7 +162,7 @@ export function createDoorCollision(pc, door) {
      * @param {import("playcanvas").Vec3} end
      * @returns {number|null}
      */
-    raycast(start, end) {
+    raycast: (start, end) => {
       let closest = null;
       const localStart = new pc.Vec3(), localEnd = new pc.Vec3();
       for (const { entity, half, center } of parts) {
@@ -163,16 +177,22 @@ export function createDoorCollision(pc, door) {
         for (let axis = 0; axis < 3; axis++) {
           const direction = destination[axis] - origin[axis];
           if (Math.abs(direction) < .000001) {
-            if (Math.abs(origin[axis]) > half[axis]) { far = -1; break; }
+            if (Math.abs(origin[axis]) > half[axis]) {
+              far = -1; break;
+            }
             continue;
           }
           const first = (-half[axis] - origin[axis]) / direction;
           const second = (half[axis] - origin[axis]) / direction;
           near = Math.max(near, Math.min(first, second));
           far = Math.min(far, Math.max(first, second));
-          if (near > far) break;
+          if (near > far) {
+            break;
+          }
         }
-        if (near <= far && (closest === null || near < closest)) closest = near;
+        if (near <= far && (closest === null || near < closest)) {
+          closest = near;
+        }
       }
 
       return closest;
@@ -183,7 +203,7 @@ export function createDoorCollision(pc, door) {
      * @param {number} z
      * @param {number} radius
      */
-    blocksAt(x, y, z, radius) {
+    blocksAt: (x, y, z, radius) => {
       return parts.some(/**
        *
        * @param {{entity: import("playcanvas").Entity, half: number[], center: number[]}} options

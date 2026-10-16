@@ -59,14 +59,18 @@ it('keeps landing slabs above the walking lane out of hero headroom',async()=>{
     seed:0,
   });
   const layout=new CastleResidentialLayout(plan);
-  for(const stair of layout.authoredStairs) for(let step=1;step<stair.steps;step++) {
-    const angle=Math.PI/2-stair.yaw*Math.PI/180-step/stair.steps*stair.turns*Math.PI*2;
-    const point=layout.toLocal(stair.center.x+Math.cos(angle)*stair.radius*.375/.65,stair.center.z+Math.sin(angle)*stair.radius*.375/.65);
-    const footY=stair.center.y+stair.rise*(step+1)/stair.steps;
-    for(const area of layout.walkableAreas) {
-      if(area.floorY<=footY+.32||area.floorY-.25>=footY+HERO_COLLISION_HEIGHT)continue;
-      const distance=Math.hypot(Math.max(area.minX-point.x,point.x-area.maxX,0),Math.max(area.minZ-point.z,point.z-area.maxZ,0));
-      assert.ok(distance>=MOVEMENT_COLLISION_RADIUS,stair.id+' step '+step+' ceiling '+area.id);
+  for(const stair of layout.authoredStairs) {
+    for(let step=1;step<stair.steps;step++) {
+      const angle=Math.PI/2-stair.yaw*Math.PI/180-step/stair.steps*stair.turns*Math.PI*2;
+      const point=layout.toLocal(stair.center.x+Math.cos(angle)*stair.radius*.375/.65,stair.center.z+Math.sin(angle)*stair.radius*.375/.65);
+      const footY=stair.center.y+stair.rise*(step+1)/stair.steps;
+      for(const area of layout.walkableAreas) {
+        if(area.floorY<=footY+.32||area.floorY-.25>=footY+HERO_COLLISION_HEIGHT){
+          continue;
+        }
+        const distance=Math.hypot(Math.max(area.minX-point.x,point.x-area.maxX,0),Math.max(area.minZ-point.z,point.z-area.maxZ,0));
+        assert.ok(distance>=MOVEMENT_COLLISION_RADIUS,stair.id+' step '+step+' ceiling '+area.id);
+      }
     }
   }
 });
@@ -117,12 +121,14 @@ it('keeps the kitchen entry aisle clear of generated furniture',async()=>{
   const door=roomPlan.doorways.find(d=>d.roomId==='kitchen');
   const kitchen=roomPlan.placedRooms.find(r=>r.id==='kitchen');
   const inward=Math.sign((door.axis==='x'?(kitchen.minX+kitchen.maxX):(kitchen.minZ+kitchen.maxZ))/2-door.coordinate);
-  for(const distance of [0,.3,.6,.9])for(const lateral of [-.2,0,.2]) {
-    const x=door.axis==='x'?door.coordinate+inward*distance:door.center+lateral;
-    const z=door.axis==='z'?door.coordinate+inward*distance:door.center+lateral;
-    for(const item of roomPlan.furniture.filter(i=>i.roomId==='kitchen')) {
-      const separation=Math.hypot(Math.max(Math.abs(x-item.x)-item.width*item.scale/2,0),Math.max(Math.abs(z-item.z)-item.depth*item.scale/2,0));
-      assert.ok(separation>=MOVEMENT_COLLISION_RADIUS,item.role+' obstructs the kitchen door');
+  for(const distance of [0,.3,.6,.9]){
+    for(const lateral of [-.2,0,.2]) {
+      const x=door.axis==='x'?door.coordinate+inward*distance:door.center+lateral;
+      const z=door.axis==='z'?door.coordinate+inward*distance:door.center+lateral;
+      for(const item of roomPlan.furniture.filter(i=>i.roomId==='kitchen')) {
+        const separation=Math.hypot(Math.max(Math.abs(x-item.x)-item.width*item.scale/2,0),Math.max(Math.abs(z-item.z)-item.depth*item.scale/2,0));
+        assert.ok(separation>=MOVEMENT_COLLISION_RADIUS,item.role+' obstructs the kitchen door');
+      }
     }
   }
   assert.ok(!roomPlan.furniture.some(i=>i.roomId==='kitchen'&&i.role==='servantBed'));

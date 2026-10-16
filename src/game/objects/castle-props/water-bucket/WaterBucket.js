@@ -23,7 +23,9 @@ export class WaterBucket extends AbstractCastleProp {
     const { pc } = options;
     const requested = options.definition.fillLevel ?? 0.65;
     const fill = Number.isFinite(requested) ? Math.min(1, Math.max(0, requested)) : 0.65;
-    if (fill === 0) { return; }
+    if (fill === 0) {
+      return;
+    }
     // Authored cavity: bottom Y=0.03, safe brim Y=0.21; radius tapers outward.
     const radius = 0.105 + fill * 0.012;
     const positions = [0, 0, 0];
@@ -33,7 +35,9 @@ export class WaterBucket extends AbstractCastleProp {
       const angle = index * Math.PI * 2 / 48;
       positions.push(Math.cos(angle) * radius, 0, -Math.sin(angle) * radius);
       normals.push(0, 1, 0);
-      if (index > 0) { indices.push(0, index, index + 1); }
+      if (index > 0) {
+        indices.push(0, index, index + 1);
+      }
     }
     this.#waterMesh = new pc.Mesh(pc.Application.getApplication().graphicsDevice);
     this.#waterMesh.setPositions(positions);
@@ -64,5 +68,7 @@ export class WaterBucket extends AbstractCastleProp {
   /**
    * @returns {string}
    */
-  static get modelUrl() { return modelUrl; }
+  static get modelUrl() {
+    return modelUrl;
+  }
 }

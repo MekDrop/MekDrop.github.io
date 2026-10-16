@@ -204,9 +204,12 @@ export class PathTopology {
         if (
           !MapGrid.isRouteTile(grid[row][col]) ||
           !MapGrid.isRouteTile(grid[row + 1][col])
-        )
-        { continue; }
-        if (row > 0 && MapGrid.isRouteTile(grid[row - 1][col])) { continue; }
+        ) {
+          continue;
+        }
+        if (row > 0 && MapGrid.isRouteTile(grid[row - 1][col])) {
+          continue;
+        }
         horizontalBands.push(row);
       }
 
@@ -214,14 +217,18 @@ export class PathTopology {
         for (let j = i + 1; j < horizontalBands.length; j++) {
           const topStart = horizontalBands[i];
           const bottomStart = horizontalBands[j];
-          if (bottomStart - topStart >= 4) { continue; }
+          if (bottomStart - topStart >= 4) {
+            continue;
+          }
           const topInMerge =
             PathTopology.#isWithinMergeZone(layout, col, topStart) ||
             PathTopology.#isWithinMergeZone(layout, col, topStart + 1);
           const bottomInMerge =
             PathTopology.#isWithinMergeZone(layout, col, bottomStart) ||
             PathTopology.#isWithinMergeZone(layout, col, bottomStart + 1);
-          if (topInMerge && bottomInMerge) { continue; }
+          if (topInMerge && bottomInMerge) {
+            continue;
+          }
           return true;
         }
       }
@@ -233,9 +240,12 @@ export class PathTopology {
         if (
           !MapGrid.isRouteTile(grid[row][col]) ||
           !MapGrid.isRouteTile(grid[row][col + 1])
-        )
-        { continue; }
-        if (col > 0 && MapGrid.isRouteTile(grid[row][col - 1])) { continue; }
+        ) {
+          continue;
+        }
+        if (col > 0 && MapGrid.isRouteTile(grid[row][col - 1])) {
+          continue;
+        }
         verticalBands.push(col);
       }
 
@@ -243,14 +253,18 @@ export class PathTopology {
         for (let j = i + 1; j < verticalBands.length; j++) {
           const leftStart = verticalBands[i];
           const rightStart = verticalBands[j];
-          if (rightStart - leftStart >= 4) { continue; }
+          if (rightStart - leftStart >= 4) {
+            continue;
+          }
           const leftInMerge =
             PathTopology.#isWithinMergeZone(layout, leftStart, row) ||
             PathTopology.#isWithinMergeZone(layout, leftStart + 1, row);
           const rightInMerge =
             PathTopology.#isWithinMergeZone(layout, rightStart, row) ||
             PathTopology.#isWithinMergeZone(layout, rightStart + 1, row);
-          if (leftInMerge && rightInMerge) { continue; }
+          if (leftInMerge && rightInMerge) {
+            continue;
+          }
           return true;
         }
       }

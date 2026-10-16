@@ -140,7 +140,9 @@ export class FlowerPhysics {
     return this.#feet.map(FlowerPhysics.#mapFoot);
   }
 
-  get footDirection() { return this.#contactDirection; }
+  get footDirection() {
+    return this.#contactDirection;
+  }
 
   /**
    * @param {ReturnType<FlowerPhysics["addFlower"]>} flower
@@ -372,7 +374,9 @@ export class FlowerPhysics {
    */
   #configureTipBody(entity) {
     const body = entity.rigidbody.body;
-    if (!body) { return; }
+    if (!body) {
+      return;
+    }
     body.setSleepingThresholds(0.001, 0.001);
     // PlayCanvas reapplies world gravity each frame. Bullet's per-body flag
     // preserves the supported tip's override so it can recover after contact.
@@ -442,7 +446,9 @@ export class FlowerPhysics {
       this.#workerBusy = false;
       for (let index = 0; index < this.#flowers.length; index++) {
         const flower = this.#flowers[index];
-        if (flower.hidden) { continue; }
+        if (flower.hidden) {
+          continue;
+        }
         const offset = index * 7;
         this.#visualPosition.set(transforms[offset],
           transforms[offset + 1] + flower.offset - this.#submittedOffsets[index], transforms[offset + 2]);
@@ -474,7 +480,9 @@ export class FlowerPhysics {
     this.#workerReady = false;
     this.#workerBusy = false;
     for (const flower of this.#flowers) {
-      if (flower.hidden) { continue; }
+      if (flower.hidden) {
+        continue;
+      }
       flower.anchor.rigidbody.syncEntityToBody();
       flower.body.rigidbody.teleport(flower.body.getPosition(), this.#hiddenRotation);
     }

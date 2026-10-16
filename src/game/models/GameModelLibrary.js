@@ -59,7 +59,9 @@ export class GameModelLibrary {
    */
   instantiate(url) {
     const asset = this.#assets.get(url);
-    if (!asset?.resource) throw new GameModelUnavailableError({ url });
+    if (!asset?.resource) {
+      throw new GameModelUnavailableError({ url });
+    }
 
     const entity = asset.resource.instantiateRenderEntity({
       castShadows: true,
@@ -175,7 +177,9 @@ export class GameModelLibrary {
    */
   getAnimationTracks(url, requiredNames = []) {
     const asset = this.#assets.get(url);
-    if (!asset?.resource) throw new GameModelUnavailableError({ url });
+    if (!asset?.resource) {
+      throw new GameModelUnavailableError({ url });
+    }
 
     const tracks = new Map(
       (asset.resource.animations ?? []).map(GameModelLibrary.#map),
@@ -195,7 +199,9 @@ export class GameModelLibrary {
   destroy() {
     for (const { mesh, material } of this.#mergedModels.values()) {
       mesh.decRefCount();
-      if (mesh.refCount < 1) mesh.destroy();
+      if (mesh.refCount < 1) {
+        mesh.destroy();
+      }
       material.destroy();
     }
     this.#mergedModels.clear();
@@ -253,7 +259,9 @@ export class GameModelLibrary {
    */
   #mergedModelFor(url, linearVertexColors = false) {
     const asset = this.#assets.get(url);
-    if (!asset?.resource) throw new GameModelUnavailableError({ url });
+    if (!asset?.resource) {
+      throw new GameModelUnavailableError({ url });
+    }
 
     const cacheKey = `${url}:${linearVertexColors}`;
     let mergedModel = this.#mergedModels.get(cacheKey);
@@ -324,7 +332,9 @@ export class GameModelLibrary {
         const color = (meshInstance.material?.diffuse ?? pc.Color.WHITE).clone();
         // glTF diffuse is stored as sRGB in StandardMaterial, while vertex
         // colours multiply the linear albedo directly in the engine shader.
-        if (linearVertexColors) color.linear();
+        if (linearVertexColors) {
+          color.linear();
+        }
         const alpha = meshInstance.material?.opacity ?? 1;
 
         for (let vertex = 0; vertex < vertexCount; vertex += 1) {

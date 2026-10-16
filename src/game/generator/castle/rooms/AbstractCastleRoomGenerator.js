@@ -38,12 +38,16 @@ export class AbstractCastleRoomGenerator {
   /**
    * @returns {number[]} Floor preference, with ground first.
    */
-  get levels() { return [0, 1]; }
+  get levels() {
+    return [0, 1];
+  }
 
   /**
    * @returns {number} Number of storeys occupied by this room.
    */
-  get floorSpan() { return 1; }
+  get floorSpan() {
+    return 1;
+  }
 
   /**
    * @param {PlannedCastleRoom} room

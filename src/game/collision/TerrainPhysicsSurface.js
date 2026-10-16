@@ -520,7 +520,9 @@ export class TerrainPhysicsSurface {
   #addTerrainQuad(positions, indices, cuts, a, b, c, d) {
     for (const polygon of subtractTerrainCutouts([a, b, c, d], cuts)) {
       const start = positions.length / 3;
-      for (const point of polygon) positions.push(...point);
+      for (const point of polygon) {
+        positions.push(...point);
+      }
       for (let index = 1; index + 1 < polygon.length; index++) {
         indices.push(start, start + index + 1, start + index);
       }

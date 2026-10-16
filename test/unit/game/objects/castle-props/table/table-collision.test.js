@@ -24,7 +24,9 @@ class PropBase {
   /**
    * @param {number} near
    */
-  setIslandOffsets(near) { this.entity.setLocalPosition(10, 3 + near, 20); }
+  setIslandOffsets(near) {
+    this.entity.setLocalPosition(10, 3 + near, 20);
+  }
   onSceneReady() {}
 }
 
@@ -37,7 +39,9 @@ function createCollider({ parent, voxels, friction }) {
   collider.friction = friction;
   collider.syncCount = 0;
   collider.rigidbody = {
-    syncEntityToBody() { collider.syncCount++; },
+    syncEntityToBody: () => {
+      collider.syncCount++;
+    },
   };
   parent.addChild(collider);
 

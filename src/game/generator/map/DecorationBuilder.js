@@ -97,7 +97,9 @@ export class DecorationBuilder {
         continue;
       }
       centers.push(candidate);
-      if (centers.length === centerCount) { break; }
+      if (centers.length === centerCount) {
+        break;
+      }
     }
 
     const selected = [];

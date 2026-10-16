@@ -13,16 +13,22 @@ export class LibraryRoomMapObjects {
       LibraryRoomMapObjects.#filterDefinition,
     )) {
       const plan = castle.buildPlan?.metadata?.runtime?.residential;
-      if (!plan?.basePlanId) { continue; }
+      if (!plan?.basePlanId) {
+        continue;
+      }
       const layout = new CastleResidentialLayout(castle.buildPlan);
       const prefix = `${castle.id}-library-`;
       // Repeated preparation replaces generated records rather than duplicating them.
       for (let index = objects.length - 1; index >= 0; index--) {
-        if (objects[index].libraryFurnishing && objects[index].sourceCastleId === castle.id) { objects.splice(index, 1); }
+        if (objects[index].libraryFurnishing && objects[index].sourceCastleId === castle.id) {
+          objects.splice(index, 1);
+        }
       }
       const counts = new Map();
       for (const item of plan.furniture) {
-        if (item.role !== "libraryProp") { continue; }
+        if (item.role !== "libraryProp") {
+          continue;
+        }
         const roomKey = `${item.roomId}:${item.floorY - layout.origin.y}`;
         const index = counts.get(roomKey) ?? 0;
         counts.set(roomKey, index + 1);
@@ -48,15 +54,20 @@ export class LibraryRoomMapObjects {
           const length = item.rotation % 180 ? item.depth : item.width;
           const localAngle = item.rotation * Math.PI / 180;
           for (const neighbour of plan.furniture) {
-            if (neighbour === item || neighbour.object !== "Shelf" || neighbour.roomId !== item.roomId || neighbour.floorY !== item.floorY || neighbour.rotation !== item.rotation) { continue; }
+            if (neighbour === item || neighbour.object !== "Shelf" || neighbour.roomId !== item.roomId || neighbour.floorY !== item.floorY || neighbour.rotation !== item.rotation) {
+              continue;
+            }
             const dx = neighbour.x - item.x, dz = neighbour.z - item.z;
             // Model orientation includes the castle's 180-degree correction.
             const along = -dx * Math.cos(localAngle) + dz * Math.sin(localAngle);
             const across = dx * Math.sin(localAngle) + dz * Math.cos(localAngle);
             const otherLength = neighbour.rotation % 180 ? neighbour.depth : neighbour.width;
             if (Math.abs(across) < 0.01 && Math.abs(Math.abs(along) - (length + otherLength) / 2) < 0.01) {
-              if (along < 0) { definition.joinStart = true; }
-              else { definition.joinEnd = true; }
+              if (along < 0) {
+                definition.joinStart = true;
+              } else {
+                definition.joinEnd = true;
+              }
             }
           }
           definition.from = {
@@ -70,8 +81,11 @@ export class LibraryRoomMapObjects {
             z: position.z - Math.sin(angle) * length / 2,
           };
           // Exact cardinal coordinates keep the shelf range unambiguous.
-          if (Math.abs(Math.cos(angle)) < 0.5) { definition.from.x = definition.to.x = position.x; }
-          else { definition.from.z = definition.to.z = position.z; }
+          if (Math.abs(Math.cos(angle)) < 0.5) {
+            definition.from.x = definition.to.x = position.x;
+          } else {
+            definition.from.z = definition.to.z = position.z;
+          }
           definition.facing = Math.abs(Math.cos(angle)) > 0.5 ? Math.cos(angle) > 0 ? 1 : -1 : Math.sin(angle) > 0 ? 1 : -1;
           definition.height = item.height;
           definition.seed = `${castle.buildPlan.input.seed ?? 0}:${roomKey}:${index}`;

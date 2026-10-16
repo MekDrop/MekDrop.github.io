@@ -112,7 +112,9 @@ export class TerrainInstanceRenderer {
        * @param {number} index
        */
         (cells, index) => new pc.Entity(`Island ${index} terrain`));
-      for (const islandRoot of this.#islandRoots) root.addChild(islandRoot);
+      for (const islandRoot of this.#islandRoots) {
+        root.addChild(islandRoot);
+      }
     }
     /**
      *
@@ -316,13 +318,17 @@ export class TerrainInstanceRenderer {
    */
   excavateSurface(position, radius) {
     const record = this.#surfaceInstances.get(`${position.x},${position.y.toFixed(4)},${position.z}`);
-    if (!record) { return; }
+    if (!record) {
+      return;
+    }
     const storage = record.buffer.lock();
     const data = storage instanceof Float32Array ? storage : new Float32Array(storage);
     data[record.index * 16 + 13] = radius > 0 ? -10000 : record.y;
     record.buffer.unlock();
     if (radius <= 0) {
-      if (record.entity) { record.entity.enabled = false; }
+      if (record.entity) {
+        record.entity.enabled = false;
+      }
       return;
     }
     if (!record.entity) {
@@ -354,7 +360,9 @@ export class TerrainInstanceRenderer {
     }
     this.#vertexBuffers = [];
     this.#batches.clear();
-    for (const islandRoot of this.#islandRoots ?? []) islandRoot.destroy();
+    for (const islandRoot of this.#islandRoots ?? []) {
+      islandRoot.destroy();
+    }
     this.#islandRoots = null;
     this.#destroyMesh(this.#meshes.sides);
     this.#destroyMesh(this.#meshes.wallSides);

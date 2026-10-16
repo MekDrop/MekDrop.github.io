@@ -32,11 +32,17 @@ export class NpcStateMachine extends StateMachine {
   /**
    * @returns {boolean}
    */
-  get reacting() { return this.currentState instanceof NpcDoorReactionState; }
+  get reacting() {
+    return this.currentState instanceof NpcDoorReactionState;
+  }
 
-  get reactionTransition() { return this.#reactionTransition; }
+  get reactionTransition() {
+    return this.#reactionTransition;
+  }
 
-  get resumingReaction() { return this.#resumingReaction; }
+  get resumingReaction() {
+    return this.#resumingReaction;
+  }
 
   /**
    * @returns {import("yuka").State|null}
@@ -52,7 +58,9 @@ export class NpcStateMachine extends StateMachine {
    * @returns {boolean}
    */
   interruptReaction(state) {
-    if (this.reacting) { return this.currentState === state; }
+    if (this.reacting) {
+      return this.currentState === state;
+    }
     this.add(state.constructor.name, state);
     state.suspendedState = this.currentState;
     this.#savedPrevious = this.previousState;
@@ -60,7 +68,9 @@ export class NpcStateMachine extends StateMachine {
     try {
       // Yuka records currentState in previousState before entering the reaction.
       super.changeTo(state.constructor.name);
-    } finally { this.#reactionTransition = false; }
+    } finally {
+      this.#reactionTransition = false;
+    }
 
     return true;
   }
@@ -70,13 +80,17 @@ export class NpcStateMachine extends StateMachine {
    * @returns {boolean}
    */
   resumeReaction(state) {
-    if (this.currentState !== state) { return false; }
+    if (this.currentState !== state) {
+      return false;
+    }
     this.#resumingReaction = true;
     try {
       super.revert();
       // Preserve any previous task transition or nested interruption as well.
       this.previousState = this.#savedPrevious;
-    } finally { this.#resumingReaction = false; }
+    } finally {
+      this.#resumingReaction = false;
+    }
     this.#savedPrevious = null;
     state.suspendedState = null;
 
@@ -103,7 +117,9 @@ export class NpcStateMachine extends StateMachine {
 
   update() {
     // Reaction movement runs at prerender, after authored scene placement.
-    if (this.reacting) { return this; }
+    if (this.reacting) {
+      return this;
+    }
     return super.update();
   }
 }

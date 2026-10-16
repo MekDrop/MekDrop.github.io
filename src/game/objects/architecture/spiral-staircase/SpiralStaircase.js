@@ -16,7 +16,9 @@ export class SpiralStaircase {
   /**
    * @returns {Array<string>}
    */
-  static get modelUrls() { return [treadUrl, columnUrl]; }
+  static get modelUrls() {
+    return [treadUrl, columnUrl];
+  }
   /**
    * @type {import("playcanvas").Entity}
    */
@@ -88,7 +90,9 @@ export class SpiralStaircase {
       // Leave the lower radial entrance clear instead of fencing off the first tread.
       if (entrance) {
         for (const render of visual.findComponents("render")) {
-          if (render.entity.name.includes("iron")) { render.enabled = false; }
+          if (render.entity.name.includes("iron")) {
+            render.enabled = false;
+          }
         }
       }
       root.addChild(visual);
@@ -207,26 +211,38 @@ export class SpiralStaircase {
     });
   }
 
-  get entity() { return this.#entity; }
-  get definition() { return this.#definition; }
+  get entity() {
+    return this.#entity;
+  }
+  get definition() {
+    return this.#definition;
+  }
   /**
    * @returns {Array<import("playcanvas").Entity>}
    */
-  get visualRoots() { return [this.#visual]; }
+  get visualRoots() {
+    return [this.#visual];
+  }
   /**
    * @returns {boolean}
    */
-  get isGroundCollider() { return true; }
+  get isGroundCollider() {
+    return true;
+  }
   /**
    * @returns {boolean}
    */
-  get physicsSurface() { return false; }
+  get physicsSurface() {
+    return false;
+  }
   /**
    * @param {number} near
    * @param {number} far
    * @param {number[]} [offsets]
    */
-  setIslandOffsets(near, far, offsets = [near, far]) { this.#islandRoots.setOffsets(near, far, offsets); }
+  setIslandOffsets(near, far, offsets = [near, far]) {
+    this.#islandRoots.setOffsets(near, far, offsets);
+  }
 
   /**
    * Uses Ammo to select the tread below a height limit across stacked turns.
@@ -238,16 +254,24 @@ export class SpiralStaircase {
    */
   surfaceHeightAt(x, z, radius = 0, maximumHeight = Infinity) {
     const origin = this.#visual.getPosition();
-    if (Math.hypot(x - origin.x, z - origin.z) > 1.8 + radius) { return null; }
+    if (Math.hypot(x - origin.x, z - origin.z) > 1.8 + radius) {
+      return null;
+    }
     const top = Math.min(maximumHeight, this.#definition.Z2 + origin.y + HANDRAIL_TOP_HEIGHT);
     const from = new this.#pc.Vec3(x, top + 0.001, z);
     const to = new this.#pc.Vec3(x, this.#definition.Z1 + origin.y - 0.2, z);
-    if (from.y <= to.y) { return null; }
+    if (from.y <= to.y) {
+      return null;
+    }
     let height = null;
     for (const hit of this.#app.systems.rigidbody.raycastAll(from, to)) {
       let entity = hit.entity;
-      while (entity && entity !== this.#visual) { entity = entity.parent; }
-      if (entity !== this.#visual || hit.normal.y < 0.5 || hit.point.y > top) { continue; }
+      while (entity && entity !== this.#visual) {
+        entity = entity.parent;
+      }
+      if (entity !== this.#visual || hit.normal.y < 0.5 || hit.point.y > top) {
+        continue;
+      }
       height = height === null ? hit.point.y : Math.max(height, hit.point.y);
     }
 
@@ -256,13 +280,21 @@ export class SpiralStaircase {
 
   destroy() {
     this.#entity.destroy();
-    for (const buffer of this.#columnBuffers) buffer.destroy();
+    for (const buffer of this.#columnBuffers) {
+      buffer.destroy();
+    }
     this.#columnBuffers = [];
-    for (const material of this.#columnMaterials) material.destroy();
+    for (const material of this.#columnMaterials) {
+      material.destroy();
+    }
     this.#columnMaterials = [];
-    for (const graph of this.#collisionGraphs) { graph.destroy(); }
+    for (const graph of this.#collisionGraphs) {
+      graph.destroy();
+    }
     this.#collisionGraphs = [];
-    for (const instance of this.#supportInstances) instance.destroy();
+    for (const instance of this.#supportInstances) {
+      instance.destroy();
+    }
     this.#supportInstances = [];
   }
 }

@@ -23,7 +23,9 @@ export class VestibuleRoomGenerator extends AbstractCastleRoomGenerator {
     const wall = room.minX;
     const low = room.minZ + inset + 0.12;
     const high = room.maxZ - inset - 0.12;
-    if (room.maxX - room.minX < 2 || high - low < 1.5) { return items; }
+    if (room.maxX - room.minX < 2 || high - low < 1.5) {
+      return items;
+    }
     /**
      * @param {import("../AbstractCastleRoomGenerator.js").RoomItem} item
      * @returns {boolean}
@@ -32,7 +34,9 @@ export class VestibuleRoomGenerator extends AbstractCastleRoomGenerator {
       const halfX = item.width * item.scale / 2;
       const halfZ = item.depth * item.scale / 2;
       if (item.x - halfX < room.minX || item.x + halfX > room.maxX ||
-        item.z - halfZ < room.minZ || item.z + halfZ > room.maxZ) { return false; }
+        item.z - halfZ < room.minZ || item.z + halfZ > room.maxZ) {
+        return false;
+      }
       /**
        * @param {import("../../CastleBasePlanGenerator.js").CompiledCastleOpening} opening
        */
@@ -42,7 +46,9 @@ export class VestibuleRoomGenerator extends AbstractCastleRoomGenerator {
           Math.abs(item.z - opening.center) < halfZ + opening.width / 2 + 0.25 :
           Math.abs(item.z - opening.coordinate) < halfZ + 0.85 &&
           Math.abs(item.x - opening.center) < halfX + opening.width / 2 + 0.25);
-      if ((context.openings ?? []).some(blocksOpening)) { return false; }
+      if ((context.openings ?? []).some(blocksOpening)) {
+        return false;
+      }
       return !(context.stairs ?? []).some(/**
        * @param {{from:number,to:number,minX:number,maxX:number,minZ:number,maxZ:number}} stair
        */ stair => room.level >= stair.from && room.level <= stair.to &&
@@ -64,7 +70,9 @@ export class VestibuleRoomGenerator extends AbstractCastleRoomGenerator {
         rotation: 90,
         y: 0.002,
       };
-      if (!safe(bench)) { continue; }
+      if (!safe(bench)) {
+        continue;
+      }
       items.push(bench);
       this.#addCloakRail(wall, z, safe, items, -0.35);
       this.#addCloakRail(wall, z, safe, items, 0.35);
@@ -81,7 +89,9 @@ export class VestibuleRoomGenerator extends AbstractCastleRoomGenerator {
         rotation: 90,
         y: 0.002,
       };
-      if (safe(boots)) { items.push(boots); }
+      if (safe(boots)) {
+        items.push(boots);
+      }
       const stand = {
         role: "vestibuleProp",
         object: "VestibuleStickStand",
@@ -94,7 +104,9 @@ export class VestibuleRoomGenerator extends AbstractCastleRoomGenerator {
         rotation: 90,
         y: 0.002,
       };
-      if (safe(stand)) { items.push(stand); }
+      if (safe(stand)) {
+        items.push(stand);
+      }
       break;
     }
     // Low benches use the empty window bays without covering their glass.
@@ -126,7 +138,9 @@ export class VestibuleRoomGenerator extends AbstractCastleRoomGenerator {
        */ item => (item.y ?? 0) < 0.9 && Math.abs(item.x - bench.x) <
         (item.width * item.scale + bench.width * bench.scale) / 2 + 0.05 &&
         Math.abs(item.z - bench.z) < (item.depth * item.scale + bench.depth * bench.scale) / 2 + 0.12);
-      if (!free) { continue; }
+      if (!free) {
+        continue;
+      }
       items.push(bench);
       const planter = {
         role: "vestibuleProp",
@@ -189,7 +203,9 @@ export class VestibuleRoomGenerator extends AbstractCastleRoomGenerator {
           rotation: 270,
           y: 1.15,
         };
-        if (!safe(chest) || !safe(painting)) { continue; }
+        if (!safe(chest) || !safe(painting)) {
+          continue;
+        }
         items.push(chest, painting);
         items.push({
           role: "vestibuleProp",
@@ -223,7 +239,9 @@ export class VestibuleRoomGenerator extends AbstractCastleRoomGenerator {
            */
           const overlapsArmor = item => Math.abs(item.x - armor.x) < (item.width * item.scale + armor.width) / 2 + 0.05 &&
             Math.abs(item.z - armor.z) < (item.depth * item.scale + armor.depth) / 2 + 0.08;
-          if (!safe(armor) || items.some(overlapsArmor)) { continue; }
+          if (!safe(armor) || items.some(overlapsArmor)) {
+            continue;
+          }
           items.push(armor);
           break;
         }
@@ -263,7 +281,9 @@ export class VestibuleRoomGenerator extends AbstractCastleRoomGenerator {
       const overlapsLantern = item => (item.y ?? 0) + item.height * item.scale > lantern.y - 0.1 &&
           Math.abs(item.x - lantern.x) < 0.7 &&
           Math.abs(item.z - z) < item.depth * item.scale / 2 + 0.3;
-      if (!safe(lantern) || items.some(overlapsLantern)) { continue; }
+      if (!safe(lantern) || items.some(overlapsLantern)) {
+        continue;
+      }
       items.push(lantern);
       break;
     }
@@ -285,13 +305,17 @@ export class VestibuleRoomGenerator extends AbstractCastleRoomGenerator {
         rotation: 0,
         y: 2.35,
       };
-      if (safe(banner)) { items.push(banner); }
+      if (safe(banner)) {
+        items.push(banner);
+      }
     }
     const wallFurniture = VestibuleWallFurnishing.furnish(room, items, safe, context.wallThickness ?? 0.25);
     const islands = VestibuleIslandFurnishing.furnish(room, [...items.slice(arrivalCornerCount), ...wallFurniture],
       safe, context.wallThickness ?? 0.25);
     // A central arrival layout replaces the old perimeter seating corner.
-    if (islands.length) { items.splice(0, arrivalCornerCount); }
+    if (islands.length) {
+      items.splice(0, arrivalCornerCount);
+    }
     items.push(...wallFurniture, ...islands);
     // Larger rooms use a broad rug to anchor the freestanding furniture group.
     if (islands.length) {
@@ -346,7 +370,9 @@ export class VestibuleRoomGenerator extends AbstractCastleRoomGenerator {
       rotation: 0,
       y: 0.002,
     };
-    if (safe(rug)) { items.push(rug); }
+    if (safe(rug)) {
+      items.push(rug);
+    }
     return items;
   }
 
@@ -370,6 +396,8 @@ export class VestibuleRoomGenerator extends AbstractCastleRoomGenerator {
       rotation: 90,
       y: 1.28,
     };
-    if (safe(rail)) { items.push(rail); }
+    if (safe(rail)) {
+      items.push(rail);
+    }
   }
 }

@@ -43,7 +43,9 @@ it("keeps ground and upstairs leisure areas free of roofs, ceilings, and higher 
       const overlaps = (bounds) => bounds.maxX > room.minX + 0.01 && bounds.minX < room.maxX - 0.01 &&
         bounds.maxZ > room.minZ + 0.01 && bounds.minZ < room.maxZ - 0.01;
       for (const roof of build.geometry.decorations.roofs) {
-        if (roof.y <= room.floorY) continue;
+        if (roof.y <= room.floorY) {
+          continue;
+        }
         const center = layout.toLocal(roof.x, roof.z);
         assert.ok(build.layout.roomPlan.placedRooms.some((covered) => covered.id !== "leisure" &&
           center.x >= covered.minX && center.x <= covered.maxX && center.z >= covered.minZ && center.z <= covered.maxZ),
@@ -63,7 +65,9 @@ it("keeps ground and upstairs leisure areas free of roofs, ceilings, and higher 
         assert.equal(overlaps(area), false, `${side}: leisure has no upper slab`);
       }
       for (const block of build.metadata.collision.cameraBlocks) {
-        if (block.y <= room.floorY + 1.5) continue;
+        if (block.y <= room.floorY + 1.5) {
+          continue;
+        }
         const p = layout.toLocal(block.x, block.z);
         assert.equal(p.x > room.minX + 0.2 && p.x < room.maxX - 0.2 && p.z > room.minZ + 0.2 && p.z < room.maxZ - 0.2,
           false, `${side}: leisure has no masonry ceiling`);

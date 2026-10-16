@@ -185,7 +185,9 @@ describe("Castle door swing physics", () => {
             const swept = door.blocksCameraAt(x, 20.6, z, .5);
             layer.activeStateCurrentTime = 0;
             door.entity.anim.update(0);
-            if (!closed && swept) { standing = new pc.Vec3(x, 20, z); }
+            if (!closed && swept) {
+              standing = new pc.Vec3(x, 20, z);
+            }
           }
         }
         expect(standing, "free standing point in the door swing").to.exist;
@@ -212,9 +214,13 @@ describe("Castle door swing physics", () => {
           }
           expect(actor.behavior.currentState, "reaction returns to its previous Yuka state")
             .to.equal(originalState);
-        } finally { actor.destroy(); }
+        } finally {
+          actor.destroy();
+        }
       } finally {
-        if (wall.parent) wall.destroy();
+        if (wall.parent) {
+          wall.destroy();
+        }
         door.destroy();
       }
     });

@@ -15,7 +15,9 @@ export class CastleRoof {
   /**
    * @returns {string}
    */
-  static get modelUrl() { return roofUrl; }
+  static get modelUrl() {
+    return roofUrl;
+  }
   /**
    * @type {import("playcanvas").Entity}
    */
@@ -45,7 +47,9 @@ export class CastleRoof {
     }
     this.#masonryMaterial.update();
   }
-  get entity() { return this.#entity; }
+  get entity() {
+    return this.#entity;
+  }
   /**
    * @param {{x: number, y: number, z: number, yaw?: number, width?: number, depth?: number, height?: number}} options
    */
@@ -69,7 +73,9 @@ export class CastleRoof {
     roof.addComponent("collision", { type: "compound" });
     for (const render of roof.findComponents("render")) {
       if (!render.entity.name.startsWith("Hipped roof course") && render.entity.name !== "Roof cap" &&
-        !render.entity.name.startsWith("Dormer stone body") && !render.entity.name.startsWith("Dormer blue roof course")) { continue; }
+        !render.entity.name.startsWith("Dormer stone body") && !render.entity.name.startsWith("Dormer blue roof course")) {
+        continue;
+      }
       // GLB splits each course into material sections. The first section alone
       // leaves the other tile colours and gable masonry without collision.
       const bounds = render.meshInstances[0].mesh.aabb.clone();
@@ -112,7 +118,9 @@ export class CastleRoof {
       },
     );
     for (const hit of hits) {
-      if (hit.normal.y >= 0.35) { return hit.point.y; }
+      if (hit.normal.y >= 0.35) {
+        return hit.point.y;
+      }
     }
 
     return null;
@@ -128,7 +136,9 @@ export class CastleRoof {
    */
   #filterCallback(entity) {
     for (let node = entity; node; node = node.parent) {
-      if (node === this.#entity) { return true; }
+      if (node === this.#entity) {
+        return true;
+      }
     }
 
     return false;

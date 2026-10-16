@@ -10,7 +10,9 @@ export class SpareTimberBundle extends AbstractCastleProp {
   /**
    * @returns {string}
    */
-  static get modelUrl() { return modelUrl; }
+  static get modelUrl() {
+    return modelUrl;
+  }
 
   /**
    * Pack authored upright boards into a bottom-centered area for both meshes.
@@ -21,7 +23,9 @@ export class SpareTimberBundle extends AbstractCastleProp {
     const { width = 0.08, depth = 0.127, height = 0.72, timberSeed } = this.definition;
     const originals = model.find(SpareTimberBundle.#findEntity);
     const templates = originals.map(SpareTimberBundle.#mapEntity);
-    for (const original of originals) { original.destroy(); }
+    for (const original of originals) {
+      original.destroy();
+    }
     const columns = Math.max(1, Math.floor(width / 0.08));
     const rows = Math.max(1, Math.ceil(depth / 0.046));
     if (templates.length && arePositiveFiniteNumbers(width, depth, height) && columns * rows <= 4096) {
@@ -58,7 +62,9 @@ export class SpareTimberBundle extends AbstractCastleProp {
         }
       }
     }
-    for (const template of templates) { template.entity.destroy(); }
+    for (const template of templates) {
+      template.entity.destroy();
+    }
   }
 
   /**

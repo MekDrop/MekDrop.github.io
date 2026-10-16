@@ -54,8 +54,11 @@ describe("Recorded ladder exit contact review", () => {
           });
           const latest = samples[samples.length - 1];
           sawTransfer ||= latest.clip?.startsWith("ClimbTop");
-          if (latest.elapsed > 9000 || (sawTransfer && !latest.clip?.startsWith("ClimbTop") && latest.elapsed > 400)) resolve(samples);
-          else window.requestAnimationFrame(sample);
+          if (latest.elapsed > 9000 || (sawTransfer && !latest.clip?.startsWith("ClimbTop") && latest.elapsed > 400)) {
+            resolve(samples);
+          } else {
+            window.requestAnimationFrame(sample);
+          }
         }
         window.requestAnimationFrame(sample);
       })).then(samples => {

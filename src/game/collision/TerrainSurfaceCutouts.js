@@ -34,9 +34,13 @@ export function subtractTerrainCutouts(polygon, cuts) {
       let inside = piece;
       for (const [axis, value, greater] of planes) {
         const outside = clipHalfSpace(inside, axis, value, !greater);
-        if (hasSurfaceArea(outside)) retained.push(outside);
+        if (hasSurfaceArea(outside)) {
+          retained.push(outside);
+        }
         inside = clipHalfSpace(inside, axis, value, greater);
-        if (!hasSurfaceArea(inside)) break;
+        if (!hasSurfaceArea(inside)) {
+          break;
+        }
       }
     }
     pieces = retained;
@@ -58,7 +62,9 @@ function clipHalfSpace(polygon, axis, value, greater) {
     const a = polygon[index], b = polygon[(index + 1) % polygon.length];
     const aInside = greater ? a[axis] >= value : a[axis] <= value;
     const bInside = greater ? b[axis] >= value : b[axis] <= value;
-    if (aInside) result.push(a);
+    if (aInside) {
+      result.push(a);
+    }
     if (aInside !== bInside) {
       const progress = (value - a[axis]) / (b[axis] - a[axis]);
       result.push(a.map(
@@ -79,7 +85,9 @@ function clipHalfSpace(polygon, axis, value, greater) {
  * @returns {boolean}
  */
 function hasSurfaceArea(polygon) {
-  if (polygon.length < 3) { return false; }
+  if (polygon.length < 3) {
+    return false;
+  }
   const normal = [0, 0, 0];
   for (let index = 0; index < polygon.length; index++) {
     const a = polygon[index], b = polygon[(index + 1) % polygon.length];

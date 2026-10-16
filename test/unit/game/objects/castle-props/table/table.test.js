@@ -4,7 +4,7 @@ import { test } from "node:test";
 import * as pc from "playcanvas";
 
 const hooks = registerHooks({
-  resolve(specifier, context, nextResolve) {
+  resolve: (specifier, context, nextResolve) => {
     if (specifier.endsWith(".glb?url")) {
       return {
         url: `data:text/javascript,export default ${JSON.stringify(specifier)}`,
@@ -52,7 +52,9 @@ test("writing desks use their own model and matching dimensions without baked de
   assert.equal(definition.height, 0.65);
   assert.equal(definition.depth, 0.55);
   const model = new pc.Entity();
-  for (const name of ["Parchment", "Ink pot", "Timber"]) { model.addChild(new pc.Entity(name)); }
+  for (const name of ["Parchment", "Ink pot", "Timber"]) {
+    model.addChild(new pc.Entity(name));
+  }
   Table.prototype.prepareModel.call({ definition }, model, false);
   assert.deepEqual(model.getLocalScale().toArray(), [1, 1, 1]);
   assert.equal(model.findByName("Parchment"), null);
@@ -70,7 +72,9 @@ test("desk contents remain on castle desks at the original model scale", () => {
     deskContents: true,
   });
   const model = new pc.Entity();
-  for (const name of ["Parchment", "Ink pot", "Timber"]) { model.addChild(new pc.Entity(name)); }
+  for (const name of ["Parchment", "Ink pot", "Timber"]) {
+    model.addChild(new pc.Entity(name));
+  }
   Table.prototype.prepareModel.call({ definition }, model, false);
   assert.deepEqual(model.getLocalScale().toArray(), [1, 1, 1]);
   assert.ok(model.findByName("Parchment"));

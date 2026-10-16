@@ -64,7 +64,9 @@ export class FlowerPaper {
     this.#entity = new pc.Entity("Anchored flower paper");
   }
 
-  get entity() { return this.#entity; }
+  get entity() {
+    return this.#entity;
+  }
 
   /**
    * @returns {PaperGrassContact[]}
@@ -81,9 +83,13 @@ export class FlowerPaper {
   get state() {
     const state = [];
     for (const item of this.#flowers) {
-      if (!item.active) { continue; }
+      if (!item.active) {
+        continue;
+      }
       for (const part of item.parts) {
-        if (!part.sheet) { continue; }
+        if (!part.sheet) {
+          continue;
+        }
         const anchor = new this.#pc.Vec3();
         part.sheet.anchor.getTransform(anchor, new this.#pc.Quat());
         const links = [];
@@ -109,19 +115,23 @@ export class FlowerPaper {
    * @param {ReturnType<import("./FlowerPhysics.js").FlowerPhysics["addFlower"]>} flower
    * @param {string} url
    */
-  add(flower, url) { this.#flowers.push({
-    flower,
-    url,
-    active: false,
-    parts: [],
-    entity: null,
-    mesh: null,
-  }); }
+  add(flower, url) {
+    this.#flowers.push({
+      flower,
+      url,
+      active: false,
+      parts: [],
+      entity: null,
+      mesh: null,
+    });
+  }
 
   /**
    * @param {{x: number, y: number, z: number}} position
    */
-  updateHero(position) { this.#hero = { ...position }; }
+  updateHero(position) {
+    this.#hero = { ...position };
+  }
 
   /**
    * @param {PaperFlowerState} item
@@ -143,7 +153,11 @@ export class FlowerPaper {
       for (const instance of node.render?.meshInstances ?? []) {
         const positions = [], normals = [], indices = [];
         instance.mesh.getPositions(positions); instance.mesh.getNormals(normals); instance.mesh.getIndices(indices);
-        if (!indices.length) { for (let index = 0; index < positions.length / 3; index++) { indices.push(index); } }
+        if (!indices.length) {
+          for (let index = 0; index < positions.length / 3; index++) {
+            indices.push(index);
+          }
+        }
         const model = instance.node.getWorldTransform();
         const normalMatrix = new pc.Mat4().copy(model).invert().transpose();
         for (let index = 0; index < positions.length; index += 3) {
@@ -161,15 +175,21 @@ export class FlowerPaper {
           }, sheet = null, attachment = null;
         if (flexible) {
           const center = new pc.Vec3();
-          for (let index = 0; index < positions.length; index += 3) { center.add(new pc.Vec3(...positions.slice(index, index + 3))); }
+          for (let index = 0; index < positions.length; index += 3) {
+            center.add(new pc.Vec3(...positions.slice(index, index + 3)));
+          }
           center.mulScalar(3 / positions.length);
           let stem = pc.Vec3.ZERO, nearest = Infinity;
           for (const candidate of stemPoints) {
             const distance = Math.hypot(center.x - candidate.x, center.z - candidate.z);
-            if (distance < nearest) { nearest = distance; stem = candidate; }
+            if (distance < nearest) {
+              nearest = distance; stem = candidate;
+            }
           }
           const direction = new pc.Vec3(center.x - stem.x, 0, center.z - stem.z).normalize();
-          if (direction.lengthSq() < 0.5) { direction.set(1, 0, 0); }
+          if (direction.lengthSq() < 0.5) {
+            direction.set(1, 0, 0);
+          }
           let minimum = Infinity, maximum = -Infinity, width = 0;
           for (let index = 0; index < positions.length; index += 3) {
             const along = positions[index] * direction.x + positions[index + 2] * direction.z;
@@ -202,8 +222,12 @@ export class FlowerPaper {
           });
         }
         const color = instance.material.diffuse ?? pc.Color.WHITE;
-        for (let vertex = 0; vertex < geometry.positions.length / 3; vertex++) { colors.push(Math.round(color.r * 255), Math.round(color.g * 255), Math.round(color.b * 255), 255); }
-        for (const index of geometry.indices) { combinedIndices.push(vertexOffset + index); }
+        for (let vertex = 0; vertex < geometry.positions.length / 3; vertex++) {
+          colors.push(Math.round(color.r * 255), Math.round(color.g * 255), Math.round(color.b * 255), 255);
+        }
+        for (const index of geometry.indices) {
+          combinedIndices.push(vertexOffset + index);
+        }
         parts.push({
           name: node.name,
           geometry,
@@ -243,7 +267,11 @@ export class FlowerPaper {
    * @param {PaperFlowerState} item
    */
   #deactivate(item) {
-    for (const part of item.parts) { if (part.sheet) { this.#simulation.remove(part.sheet); } }
+    for (const part of item.parts) {
+      if (part.sheet) {
+        this.#simulation.remove(part.sheet);
+      }
+    }
     this.#simulation.removeSurface(item.surface);
     item.entity.destroy(); item.mesh.destroy(); item.parts = []; item.active = false;
     item.flower.paperActive = false;
@@ -270,20 +298,36 @@ export class FlowerPaper {
       .slice(0, MAX_ACTIVE_FLOWERS);
     const desired = new Set(candidates.map(FlowerPaper.#map));
     for (const item of this.#flowers) {
-      if (item.active && !desired.has(item)) { this.#deactivate(item); }
-      if (!item.active && desired.has(item)) { this.#activate(item); }
-      if (!item.active) { continue; }
+      if (item.active && !desired.has(item)) {
+        this.#deactivate(item);
+      }
+      if (!item.active && desired.has(item)) {
+        this.#activate(item);
+      }
+      if (!item.active) {
+        continue;
+      }
       const root = item.flower.anchor.getPosition();
       this.#simulation.moveSurface(item.surface, root);
       const matrix = this.#stem.paperStemMatrix(item.flower);
-      for (const part of item.parts) { if (part.sheet) { this.#simulation.moveAttachment(part.sheet, matrix.transformPoint(part.attachment)); } }
+      for (const part of item.parts) {
+        if (part.sheet) {
+          this.#simulation.moveAttachment(part.sheet, matrix.transformPoint(part.attachment));
+        }
+      }
     }
-    if (!this.#simulation) { return; }
+    if (!this.#simulation) {
+      return;
+    }
     const feet = this.#stem.footPositions;
     const direction = this.#stem.footDirection;
     const facing = new pc.Quat().setFromEulerAngles(0, Math.atan2(direction[0], direction[1]) * 180 / Math.PI, 0);
     this.#simulation.step(deltaTime, feet, facing);
-    for (const item of this.#flowers) { if (item.active) { this.#writeMesh(item, feet, direction); } }
+    for (const item of this.#flowers) {
+      if (item.active) {
+        this.#writeMesh(item, feet, direction);
+      }
+    }
     this.#stem.updateMatrices();
   }
 
@@ -354,7 +398,11 @@ export class FlowerPaper {
   }
 
   destroy() {
-    for (const item of this.#flowers) { if (item.active) { this.#deactivate(item); } }
+    for (const item of this.#flowers) {
+      if (item.active) {
+        this.#deactivate(item);
+      }
+    }
     this.#simulation?.destroy(); this.#entity.destroy(); this.#flowers = [];
   }
 

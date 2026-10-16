@@ -40,7 +40,9 @@ export class CastleRoomShellBuilder {
     const sign = ["WEST", "SOUTH"].includes(context.layout.primarySide) ? -1 : 1;
     for (const room of rooms) {
       // Upstairs leisure flows into the unused terrace without internal fences.
-      if (room.id === "leisure" && room.level === 1) { continue; }
+      if (room.id === "leisure" && room.level === 1) {
+        continue;
+      }
       const bottom = Math.round((room.floorY - plan.origin.y) * 4);
       const height = room.id === "leisure" ? 3 : Math.round((room.height ?? 2.25) * 4);
       const top = bottom + height;
@@ -53,7 +55,9 @@ export class CastleRoomShellBuilder {
           const x = sign * (v - middle) / 4;
           const inside = x >= room.minX - 0.126 && x <= room.maxX + 0.126 &&
             z >= room.minZ - 0.126 && z <= room.maxZ + 0.126;
-          if (!inside) { continue; }
+          if (!inside) {
+            continue;
+          }
           const wall = x < room.minX || x > room.maxX || z < room.minZ || z > room.maxZ;
           // The covered hall's doorway keeps a full-height backing wall;
           // the other terrace edges are low parapets.
@@ -66,19 +70,29 @@ export class CastleRoomShellBuilder {
             const boundary = u < 2 ? "FRONT" : u >= context.layout.castleDepth - 2 ? "BACK" :
               v < 2 ? "LEFT" : v >= context.layout.facadeSpan - 2 ? "RIGHT" : null;
             const horizontal = boundary === "FRONT" || boundary === "BACK" ? v : u;
-            if (boundary && y >= 0 && context.planning.writer.openingAt(boundary, horizontal, y) && y < 8) { continue; }
+            if (boundary && y >= 0 && context.planning.writer.openingAt(boundary, horizontal, y) && y < 8) {
+              continue;
+            }
             const elevation = plan.origin.y + y / 4;
-            if ((room.id === "leisure" || room.id === "upperGallery") && !wall) { continue; }
+            if ((room.id === "leisure" || room.id === "upperGallery") && !wall) {
+              continue;
+            }
             if (y === top && leisure && elevation > leisure.floorY + 1 &&
-              x >= leisure.minX && x <= leisure.maxX && z >= leisure.minZ && z <= leisure.maxZ) { continue; }
+              x >= leisure.minX && x <= leisure.maxX && z >= leisure.minZ && z <= leisure.maxZ) {
+              continue;
+            }
             const openDoor = doorways.some(/**
              * @param {{axis:string,coordinate:number,center:number,width:number,floorY:number}} doorway
              */ (doorway) => Math.abs((doorway.axis === "x" ? x : z) - doorway.coordinate) < 0.01 &&
               Math.abs((doorway.axis === "x" ? z : x) - doorway.center) < doorway.width / 2 &&
               elevation >= doorway.floorY && elevation < doorway.floorY + 2);
-            if ((y < columnTop && !wall) || (openDoor && room.id !== "basementEnvelope")) { continue; }
+            if ((y < columnTop && !wall) || (openDoor && room.id !== "basementEnvelope")) {
+              continue;
+            }
             if (y === top && room.level < 0 && (plan.stair || plan.serviceStair) && x > plan.shaft.minX && x < plan.shaft.maxX &&
-              z > plan.shaft.minZ && z < plan.shaft.maxZ) { continue; }
+              z > plan.shaft.minZ && z < plan.shaft.maxZ) {
+              continue;
+            }
             const corner = wall && (x < room.minX + 0.25 || x > room.maxX - 0.25) &&
               (z < room.minZ + 0.25 || z > room.maxZ - 0.25);
             const dressedStone = room.id !== "leisure" && room.id !== "upperGallery" && wall &&
@@ -108,7 +122,9 @@ export class CastleRoomShellBuilder {
           }
         }
         for (const [minX, maxX, minZ, maxZ] of roofs) {
-          if (maxX <= minX || maxZ <= minZ) { continue; }
+          if (maxX <= minX || maxZ <= minZ) {
+            continue;
+          }
           const u = (minZ + maxZ) * 2 - 0.5;
           const v = middle + sign * (minX + maxX) * 2;
           context.planning.writer.addRoof(u, top + 1, v,

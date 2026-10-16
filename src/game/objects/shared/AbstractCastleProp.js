@@ -11,7 +11,9 @@ export class AbstractCastleProp {
    * Decorative floor coverings rely on the castle floor for physical support.
    * @returns {boolean}
    */
-  static get hasAuthoredCollision() { return true; }
+  static get hasAuthoredCollision() {
+    return true;
+  }
   /**
    * @type {import("playcanvas").Entity}
    */
@@ -98,20 +100,28 @@ export class AbstractCastleProp {
       model.findByName(name)?.destroy();
       this.#collisionGraph?.findByName(name)?.destroy();
     }
-    if (this.#collisionGraph) { addAuthoredMeshPhysics(pc, this.#visual, this.#collisionGraph); }
+    if (this.#collisionGraph) {
+      addAuthoredMeshPhysics(pc, this.#visual, this.#collisionGraph);
+    }
   }
 
   /**
    * @returns {boolean}
    */
-  get hasAuthoredCollision() { return this.constructor.hasAuthoredCollision; }
+  get hasAuthoredCollision() {
+    return this.constructor.hasAuthoredCollision;
+  }
 
-  get entity() { return this.#entity; }
+  get entity() {
+    return this.#entity;
+  }
   /**
    * Instance-selected model used by both rendering and collision.
    * @returns {string}
    */
-  get modelUrl() { return this.constructor.modelUrl; }
+  get modelUrl() {
+    return this.constructor.modelUrl;
+  }
   /**
    * Apply instance-specific authored part placement before creating its collider.
    * @param {import("playcanvas").Entity} model
@@ -129,11 +139,15 @@ export class AbstractCastleProp {
 
     return clone;
   }
-  get definition() { return this.#definition; }
+  get definition() {
+    return this.#definition;
+  }
   /**
    * @returns {import("playcanvas").Entity[]}
    */
-  get visualRoots() { return [this.#visual]; }
+  get visualRoots() {
+    return [this.#visual];
+  }
   /**
    * @param {number} near
    * @param {number} far
@@ -157,6 +171,8 @@ export class AbstractCastleProp {
     this.#renderBatch = null;
     this.#entity.destroy();
     this.#collisionGraph?.destroy();
-    for (const material of this.#instanceMaterials) { material.destroy(); }
+    for (const material of this.#instanceMaterials) {
+      material.destroy();
+    }
   }
 }

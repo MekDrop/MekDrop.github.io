@@ -12,7 +12,9 @@ export class CastleSignalTowerMapObjects {
       CastleSignalTowerMapObjects.#filterItem,
     );
     for (const castle of [...map.objects]) {
-      if (castle.object !== "Castle") { continue; }
+      if (castle.object !== "Castle") {
+        continue;
+      }
       const station = CastleSignalTowerLayout.describe(castle.buildPlan);
       if (!station) {
         continue;

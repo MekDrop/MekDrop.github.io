@@ -356,7 +356,9 @@ export class CubeCloudField {
       zoom,
     };
     this.#setViewRotation(rotation);
-    for (const cluster of this.#clusters) this.#positionCluster(cluster);
+    for (const cluster of this.#clusters) {
+      this.#positionCluster(cluster);
+    }
   }
 
   set floatingOffset(value) {
@@ -365,7 +367,9 @@ export class CubeCloudField {
       y: value.y,
       z: value.z,
     };
-    for (const cluster of this.#clusters) this.#positionCluster(cluster);
+    for (const cluster of this.#clusters) {
+      this.#positionCluster(cluster);
+    }
   }
 
   /**
@@ -387,13 +391,19 @@ export class CubeCloudField {
   destroy() {
     this.#entity?.destroy();
     this.#entity = null;
-    for (const buffer of this.#vertexBuffers) buffer.destroy();
+    for (const buffer of this.#vertexBuffers) {
+      buffer.destroy();
+    }
     this.#vertexBuffers = [];
-    for (const material of this.#materials) material.destroy();
+    for (const material of this.#materials) {
+      material.destroy();
+    }
     this.#materials = [];
     if (this.#mesh) {
       this.#mesh.decRefCount();
-      if (this.#mesh.refCount < 1) this.#mesh.destroy();
+      if (this.#mesh.refCount < 1) {
+        this.#mesh.destroy();
+      }
       this.#mesh = null;
     }
     this.#clusters = [];
@@ -694,7 +704,9 @@ export class CubeCloudField {
             );
           }, Number.POSITIVE_INFINITY);
 
-        if (nearestDistance <= bestDistance) continue;
+        if (nearestDistance <= bestDistance) {
+          continue;
+        }
         bestCandidate = candidate;
         bestDistance = nearestDistance;
       }

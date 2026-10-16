@@ -145,10 +145,18 @@ export class FlowerPhysicsSimulation {
   }
 
   destroy() {
-    for (const joint of this.#joints) { this.#world.destroyJoint(joint); }
-    for (const body of this.#activeBodies) { this.#world.removeBody(body); }
-    for (const body of this.#bodies) { this.#world.destroyBody(body); }
-    for (const shape of this.#shapes) { this.#world.destroyShape(shape); }
+    for (const joint of this.#joints) {
+      this.#world.destroyJoint(joint);
+    }
+    for (const body of this.#activeBodies) {
+      this.#world.removeBody(body);
+    }
+    for (const body of this.#bodies) {
+      this.#world.destroyBody(body);
+    }
+    for (const shape of this.#shapes) {
+      this.#world.destroyShape(shape);
+    }
     this.#world.destroy();
     this.#joints.clear();
     this.#bodies.clear();
@@ -200,7 +208,9 @@ export class FlowerPhysicsSimulation {
         this.#activeBodies.delete(flower.anchor);
         flower.hidden = true;
       }
-      if (flower.hidden) { continue; }
+      if (flower.hidden) {
+        continue;
+      }
       const delta = offsets[index] - flower.offset;
       if (delta !== 0) {
         flower.body.getTransform(this.#position, this.#rotation);
@@ -229,7 +239,9 @@ export class FlowerPhysicsSimulation {
         // nearest box face eject the canopy upward through the boot.
         const footPosition = this.#position.clone();
         for (const flower of this.#flowers) {
-          if (flower.hidden) { continue; }
+          if (flower.hidden) {
+            continue;
+          }
           flower.body.getTransform(this.#position, this.#rotation);
           const dx = Math.max(0, Math.abs(this.#position.x - footPosition.x) - 0.17);
           const dz = Math.max(0, Math.abs(this.#position.z - footPosition.z) - 0.17);
@@ -256,7 +268,9 @@ export class FlowerPhysicsSimulation {
     const transforms = new Float32Array(this.#flowers.length * 7);
     for (let index = 0; index < this.#flowers.length; index++) {
       const flower = this.#flowers[index];
-      if (flower.hidden) { continue; }
+      if (flower.hidden) {
+        continue;
+      }
       flower.body.getTransform(this.#position, this.#rotation);
       // Preserve the tip's compression as well as lateral displacement.
       this.#bendDirection.set(this.#position.x - flower.position.x,

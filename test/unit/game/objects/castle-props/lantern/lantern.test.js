@@ -4,7 +4,7 @@ import { test } from "node:test";
 import * as pc from "playcanvas";
 
 const hooks = registerHooks({
-  resolve(specifier, context, nextResolve) {
+  resolve: (specifier, context, nextResolve) => {
     if (specifier.endsWith(".glb?url")) {
       return {
         url: `data:text/javascript,export default ${JSON.stringify(specifier)}`,
@@ -56,9 +56,11 @@ test("type selects the same asset for the visual and authored collision", () => 
         Entity: LanternEntity,
       },
       modelLibrary: {
-        instantiate: url => { urls.push(url);
+        instantiate: url => {
+          urls.push(url);
 
-          return new LanternEntity("model"); },
+          return new LanternEntity("model");
+        },
       },
       definition: {
         id: type,
@@ -81,7 +83,9 @@ test("type selects the same asset for the visual and authored collision", () => 
 class LanternEntity extends pc.Entity {
   addComponent(type, options) {
     this[type] = options;
-    if (type === "rigidbody") { this.rigidbody.syncEntityToBody = () => {}; }
+    if (type === "rigidbody") {
+      this.rigidbody.syncEntityToBody = () => {};
+    }
   }
 }
 

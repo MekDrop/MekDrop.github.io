@@ -223,7 +223,9 @@ export class HeroVisibilityController {
         if (this.#rotationShouldBePreserved()) {
           return;
         }
-        if (!candidateIsVisible) continue;
+        if (!candidateIsVisible) {
+          continue;
+        }
         this.#setRotation(rotation);
 
         return;
@@ -231,7 +233,9 @@ export class HeroVisibilityController {
     } finally {
       if (generation === this.#generation) {
         this.#inProgress = false;
-        if (this.#checkPending) this.schedule();
+        if (this.#checkPending) {
+          this.schedule();
+        }
       }
     }
   }

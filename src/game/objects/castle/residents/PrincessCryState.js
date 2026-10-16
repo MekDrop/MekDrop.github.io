@@ -16,7 +16,9 @@ export class PrincessCryState extends State {
    * @param {{isResumingReaction?: () => boolean, playAnimation: (animation: string, blendDuration?: number) => void}} owner
    */
   enter(owner) {
-    if (owner.isResumingReaction?.()) { return; }
+    if (owner.isResumingReaction?.()) {
+      return;
+    }
     owner.playAnimation(ROYAL_ANIMATION.CRY, 0.18);
   }
 }

@@ -68,7 +68,9 @@ export class MapTestControls {
 
       return true;
     } catch (error) {
-      if (!this.#onRuntimeError) { throw error; }
+      if (!this.#onRuntimeError) {
+        throw error;
+      }
       this.#onRuntimeError(error);
 
       return false;

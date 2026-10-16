@@ -3,7 +3,7 @@ import { registerHooks } from "node:module";
 import { it } from "node:test";
 
 const hooks = registerHooks({
-  resolve(specifier, context, nextResolve) {
+  resolve: (specifier, context, nextResolve) => {
     if (specifier.endsWith("patting-hand.glb?url")) {
       return {
         url: "data:text/javascript,export default %22patting-hand.glb%22",
@@ -142,7 +142,9 @@ it("plays one camera-facing double pat at the clicked scalp position, then hides
     },
     getPatPosition: () => patPosition,
     getViewRotation: () => viewRotation,
-    onContact: () => { contacts += 1; },
+    onContact: () => {
+      contacts += 1;
+    },
   });
 
   assert.equal(hand.entity.enabled, false);

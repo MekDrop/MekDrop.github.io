@@ -69,7 +69,9 @@ export class BuildMetadataStage extends AbstractCastleGenerationStage {
           width: room.maxZ - room.minZ,
           depth: room.maxX - room.minX,
         };
-      } else { terrace = null; }
+      } else {
+        terrace = null;
+      }
     }
     // Keep circulation open. Private rooms get one door; roof entrances close out the weather.
     const roomDoors =

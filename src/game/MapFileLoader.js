@@ -29,7 +29,9 @@ export class MapFileLoader {
     const mapData = JSON.parse(JSON.stringify(storedMap));
     MapObjectDefinitions.prepare(mapData);
     for (const definition of mapData.objects ?? []) {
-      if (definition.object !== "Castle") continue;
+      if (definition.object !== "Castle") {
+        continue;
+      }
       definition.buildPlan = await CastleGenerator.generate({
         position: definition.position ?? definition.buildPlan?.input?.position,
         doors: definition.doors ?? definition.buildPlan?.input?.doors,

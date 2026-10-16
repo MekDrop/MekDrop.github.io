@@ -23,9 +23,11 @@ describe("Terrace stairhead door", () => {
         ...terraceDoorModel,
         pc,
         modelLibrary: library,
-        onOpen: () => { clicks++;
+        onOpen: () => {
+          clicks++;
 
-          return true; },
+          return true;
+        },
       });
       door.entity.setLocalPosition(100, 20, 100);
       app.root.addChild(door.entity);

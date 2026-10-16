@@ -284,7 +284,9 @@ export class PlayCanvasRenderer {
   /**
    * @returns {GroundCover|null}
    */
-  get #groundCover() { return this.#sceneObjects.getFirstByClass(GroundCover.name); }
+  get #groundCover() {
+    return this.#sceneObjects.getFirstByClass(GroundCover.name);
+  }
   /**
    *
    * @type {null}
@@ -313,7 +315,9 @@ export class PlayCanvasRenderer {
   /**
    * @returns {Overpass|null}
    */
-  get #pathOverpassCollider() { return this.#sceneObjects.getFirstByClass(Overpass.name); }
+  get #pathOverpassCollider() {
+    return this.#sceneObjects.getFirstByClass(Overpass.name);
+  }
   /**
    *
    * @type {GameModelLibrary|null}
@@ -1469,7 +1473,9 @@ export class PlayCanvasRenderer {
     this.#inventoryScene = null;
     this.#scene?.destroy();
     this.#scene = null;
-    for (const material of this.#materials.values()) material.destroy();
+    for (const material of this.#materials.values()) {
+      material.destroy();
+    }
     this.#materials.clear();
     for (const asset of this.#textureAssets.values()) {
       asset.unload();
@@ -1696,7 +1702,9 @@ export class PlayCanvasRenderer {
     this.#terrainRenderer.buildPhysicsSurface(this.#collisionWorld);
     this.#buildHero();
     this.#connectHeroTools();
-    for (const object of this.#sceneObjects) object.onSceneReady?.();
+    for (const object of this.#sceneObjects) {
+      object.onSceneReady?.();
+    }
     this.#updateInteractionTarget();
 
     this.#captureCameraVisualBounds();
@@ -1712,7 +1720,9 @@ export class PlayCanvasRenderer {
       return false;
     }
     const map = replacement.replace(definition, this.#mapData.objects, this.hero.position);
-    if (!map) { return false; }
+    if (!map) {
+      return false;
+    }
     const viewport = { ...this.viewport };
     const camera = this.firstPersonCameraState;
     this.render(map);
@@ -2052,7 +2062,9 @@ export class PlayCanvasRenderer {
    * @param {number} deltaTime
    */
   #updateIslandConnectorMotion(deltaTime) {
-    if (!this.#islandConnectorMotion) return;
+    if (!this.#islandConnectorMotion) {
+      return;
+    }
     const firstPerson = this.#camera?.firstPersonEnabled;
     // First-person islands stay at zero offset. Reapplying that transform to
     // every object dirties the hierarchy and rewrites flower instance buffers.
@@ -2262,7 +2274,9 @@ export class PlayCanvasRenderer {
 
     for (let row = 0; row < rows; row += 1) {
       for (let col = 0; col < cols; col += 1) {
-        if (grid[row][col] === TileType.WATER) continue;
+        if (grid[row][col] === TileType.WATER) {
+          continue;
+        }
         const x = col - (cols - 1) / 2;
         const z = row - (rows - 1) / 2;
         const projection = x * rightX + z * rightZ;
@@ -2566,7 +2580,9 @@ export class PlayCanvasRenderer {
       if (this.#groundCover) {
         this.#groundCover.zoom = this.#camera.zoom;
       }
-      for (const object of this.#sceneObjects.getAll(SCENE_OBJECT_TYPE.MAP_OBJECT)) object.onCameraChanged?.();
+      for (const object of this.#sceneObjects.getAll(SCENE_OBJECT_TYPE.MAP_OBJECT)) {
+        object.onCameraChanged?.();
+      }
       this.#cloudField?.setCameraState({
         rotation: this.#camera.rotation,
         panX: this.#camera.panX,
@@ -3021,7 +3037,9 @@ export class PlayCanvasRenderer {
     this.#mapRoot = null;
     this.#bridgeRailingKit = null;
     this.#collisionWorld.clear();
-    for (const buffer of this.#vertexBuffers) buffer.destroy();
+    for (const buffer of this.#vertexBuffers) {
+      buffer.destroy();
+    }
     this.#vertexBuffers = [];
   }
 
@@ -3120,7 +3138,9 @@ export class PlayCanvasRenderer {
   /**
    * @param {boolean} enabled
    */
-  #setFirstPerson(enabled) { this.firstPersonCameraEnabled = enabled; }
+  #setFirstPerson(enabled) {
+    this.firstPersonCameraEnabled = enabled;
+  }
 
   /**
    * @param {import("./objects/ObjectTypes.js").MapObjectDefinition} definition
@@ -3151,7 +3171,9 @@ export class PlayCanvasRenderer {
   /**
    * @param {(value: string) => string} value
    */
-  #setMaterialResolver(value) { this.#terrainRenderer.resolveMaterial = value; }
+  #setMaterialResolver(value) {
+    this.#terrainRenderer.resolveMaterial = value;
+  }
 
   #getContactProviders() {
     return [this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO), this.#inventoryScene, this.#groundCover];
@@ -3162,7 +3184,9 @@ export class PlayCanvasRenderer {
    */
   #onObjectRemoved(removedObject) {
     this.#buriedTreasure?.removeMapObject(removedObject);
-    for (const object of this.#sceneObjects.getAll(SCENE_OBJECT_TYPE.MAP_OBJECT)) object.onObjectRemoved?.(removedObject);
+    for (const object of this.#sceneObjects.getAll(SCENE_OBJECT_TYPE.MAP_OBJECT)) {
+      object.onObjectRemoved?.(removedObject);
+    }
   }
 
   /**

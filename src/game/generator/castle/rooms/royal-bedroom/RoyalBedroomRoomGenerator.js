@@ -13,7 +13,9 @@ export class RoyalBedroomRoomGenerator extends AbstractCastleRoomGenerator {
   /**
    * @returns {number[]}
    */
-  get levels() { return [-1, 1, 0]; }
+  get levels() {
+    return [-1, 1, 0];
+  }
 
   /**
    * @returns {string[]}
@@ -34,7 +36,9 @@ export class RoyalBedroomRoomGenerator extends AbstractCastleRoomGenerator {
      * @param {import("../../CastleBasePlanGenerator.js").CompiledCastleOpening} opening
      */
       opening => {
-        if (opening.floorY !== room.floorY) { return false; }
+        if (opening.floorY !== room.floorY) {
+          return false;
+        }
         const crosswise = opening.axis === "x";
         const low = crosswise ? room.minX : room.minZ;
         const high = crosswise ? room.maxX : room.maxZ;

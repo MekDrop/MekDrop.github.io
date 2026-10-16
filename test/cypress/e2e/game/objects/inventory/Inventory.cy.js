@@ -100,7 +100,7 @@ function dragInventoryItem(fromSlot, target) {
 describe("Collectible inventory", () => {
   beforeEach(() => {
     cy.visit("/map/test_inventory", {
-      onBeforeLoad(window) {
+      onBeforeLoad: (window) => {
         window.sessionStorage.removeItem("hero-configuration");
       },
     });
@@ -111,7 +111,7 @@ describe("Collectible inventory", () => {
 
   it("restores an open inventory on the normal game route", () => {
     cy.visit("/", {
-      onBeforeLoad(window) {
+      onBeforeLoad: (window) => {
         window.sessionStorage.removeItem("hero-configuration");
       },
     });

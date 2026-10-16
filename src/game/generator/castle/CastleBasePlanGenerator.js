@@ -127,7 +127,9 @@ export class CastleBasePlanGenerator {
       for (const authored of floor.spaces) {
         let floorSpan = 1;
         for (const upper of plan.levels) {
-          if (upper.index !== floor.index + floorSpan) { continue; }
+          if (upper.index !== floor.index + floorSpan) {
+            continue;
+          }
           for (const voidSpace of upper.spaces) {
             /**
              * @param {number} value
@@ -135,7 +137,9 @@ export class CastleBasePlanGenerator {
              */
             const matchesAuthoredBound = (value, index) => value === authored.bounds[index];
             if (voidSpace.kind === "void" && authored.kind === "room" &&
-              voidSpace.bounds.every(matchesAuthoredBound)) { floorSpan++; break; }
+              voidSpace.bounds.every(matchesAuthoredBound)) {
+              floorSpan++; break;
+            }
           }
         }
         const room = {
@@ -162,10 +166,14 @@ export class CastleBasePlanGenerator {
           maxZ: room.maxZ,
         };
         for (const building of plan.buildings ?? []) {
-          if (floor.elevation < building.elevation || floor.elevation + room.height > building.elevation + building.height) { continue; }
+          if (floor.elevation < building.elevation || floor.elevation + room.height > building.elevation + building.height) {
+            continue;
+          }
           const envelope = this.#bounds(building.bounds, scale);
           for (const edge of ["minX", "maxX", "minZ", "maxZ"]) {
-            if (Math.abs(room[edge] - envelope[edge]) <= plan.wallThickness * scale * 1.1) { room.wallBounds[edge] = envelope[edge]; }
+            if (Math.abs(room[edge] - envelope[edge]) <= plan.wallThickness * scale * 1.1) {
+              room.wallBounds[edge] = envelope[edge];
+            }
           }
         }
         for (const opening of authored.openings) {
@@ -192,7 +200,9 @@ export class CastleBasePlanGenerator {
     }
     // Furnishing must see doors authored by neighboring rooms, including later spaces.
     for (const room of spaces) {
-      if (!room.generator || room.furnish === false) { continue; }
+      if (!room.generator || room.furnish === false) {
+        continue;
+      }
       const generator = registry.get(room.generator);
       if (!generator) {
         throw new CastleBasePlanInvalidError(plan.id, `generator:${room.generator}`);
@@ -213,7 +223,9 @@ export class CastleBasePlanGenerator {
         const bounds = item.wallAttachment || item.role === "libraryProp" || item.role === "servantBed" || ["Fireplace", "HangingFryingPan"].includes(item.object) ? room.wallBounds : room;
         const wallInset = item.wallInset ?? 0;
         if (item.x - halfX < bounds.minX - wallInset - 1e-6 || item.x + halfX > bounds.maxX + wallInset + 1e-6 ||
-          item.z - halfZ < bounds.minZ - wallInset - 1e-6 || item.z + halfZ > bounds.maxZ + wallInset + 1e-6) { continue; }
+          item.z - halfZ < bounds.minZ - wallInset - 1e-6 || item.z + halfZ > bounds.maxZ + wallInset + 1e-6) {
+          continue;
+        }
         const blocksDoor = openings.some(/**
          *
          * @param {CompiledCastleOpening} opening
@@ -234,11 +246,13 @@ export class CastleBasePlanGenerator {
           (stair) => room.level >= stair.from && room.level <= stair.to &&
           item.x + halfX > stair.bounds[0] * scale && item.x - halfX < (stair.bounds[0] + stair.bounds[2]) * scale &&
           item.z + halfZ > stair.bounds[1] * scale && item.z - halfZ < (stair.bounds[1] + stair.bounds[3]) * scale);
-        if (!blocksDoor && !blocksStair) { furniture.push({
-          ...item,
-          roomId: room.id,
-          floorY: room.floorY,
-        }); }
+        if (!blocksDoor && !blocksStair) {
+          furniture.push({
+            ...item,
+            roomId: room.id,
+            floorY: room.floorY,
+          });
+        }
       }
     }
     const entranceRoom = spaces.find(/**
@@ -334,9 +348,13 @@ export class CastleBasePlanGenerator {
     };
     const stairwell = new StairwellRoomGenerator("authored-stairwell");
     for (const room of spaces) {
-      if (room.kind !== "room" || room.furnish === false) { continue; }
+      if (room.kind !== "room" || room.furnish === false) {
+        continue;
+      }
       if (roofAccess && room.floorY === roofAccess.bottom.y && roofAccess.position.x >= room.minX &&
-          roofAccess.position.x <= room.maxX && roofAccess.position.z >= room.minZ && roofAccess.position.z <= room.maxZ) { continue; }
+          roofAccess.position.x <= room.maxX && roofAccess.position.z >= room.minZ && roofAccess.position.z <= room.maxZ) {
+        continue;
+      }
       const stairs = result.stairs.filter(/**
        * @param {{from:number,to:number,minX:number,maxX:number,minZ:number,maxZ:number}} stair
        */ stair => room.level >= stair.from && room.level <= stair.to &&
@@ -435,8 +453,12 @@ export class CastleBasePlanGenerator {
     /**
      * @param {string} field
      */
-    const fail = (field) => { throw new CastleBasePlanInvalidError(plan.id, field); };
-    if (plan.version !== 1 || !Number.isFinite(plan.floorHeight) || plan.floorHeight <= 0) { fail("version/floorHeight"); }
+    const fail = (field) => {
+      throw new CastleBasePlanInvalidError(plan.id, field);
+    };
+    if (plan.version !== 1 || !Number.isFinite(plan.floorHeight) || plan.floorHeight <= 0) {
+      fail("version/floorHeight");
+    }
     /**
      * @param {number[]} bounds
      */
@@ -445,27 +467,39 @@ export class CastleBasePlanGenerator {
       bounds[0] + bounds[2] <= plan.coordinates.width && bounds[1] + bounds[3] <= plan.coordinates.depth;
     const floors = new Set();
     for (const floor of plan.levels) {
-      if (floors.has(floor.index) || floor.elevation !== floor.index * plan.floorHeight) { fail("levels"); }
+      if (floors.has(floor.index) || floor.elevation !== floor.index * plan.floorHeight) {
+        fail("levels");
+      }
       floors.add(floor.index);
       const ids = new Set();
       for (const space of floor.spaces) {
-        if (ids.has(space.id) || !boundsValid(space.bounds)) { fail(`space:${space.id}`); }
+        if (ids.has(space.id) || !boundsValid(space.bounds)) {
+          fail(`space:${space.id}`);
+        }
         ids.add(space.id);
         for (const opening of space.openings) {
           const length = ["NORTH", "SOUTH"].includes(opening.side) ? space.bounds[2] : space.bounds[3];
           if (!["NORTH", "SOUTH", "EAST", "WEST"].includes(opening.side) || !["door", "window"].includes(opening.kind) ||
             !everyFiniteNumber([opening.offset, opening.width, opening.bottom, opening.height]) ||
             opening.offset < 0 || opening.width <= 0 || opening.offset + opening.width > length ||
-            opening.bottom < 0 || opening.height <= 0 || opening.bottom + opening.height > plan.floorHeight) { fail(`opening:${space.id}`); }
+            opening.bottom < 0 || opening.height <= 0 || opening.bottom + opening.height > plan.floorHeight) {
+            fail(`opening:${space.id}`);
+          }
         }
       }
     }
     for (const stair of plan.staircases) {
-      if (stair.entrySide !== undefined && !["NORTH", "EAST", "SOUTH", "WEST"].includes(stair.entrySide)) { fail(`stair:${stair.id}:entrySide`); }
-      if (!boundsValid(stair.bounds) || !floors.has(stair.from) || !floors.has(stair.to) || stair.from >= stair.to) { fail(`stair:${stair.id}`); }
+      if (stair.entrySide !== undefined && !["NORTH", "EAST", "SOUTH", "WEST"].includes(stair.entrySide)) {
+        fail(`stair:${stair.id}:entrySide`);
+      }
+      if (!boundsValid(stair.bounds) || !floors.has(stair.from) || !floors.has(stair.to) || stair.from >= stair.to) {
+        fail(`stair:${stair.id}`);
+      }
     }
     for (const roof of plan.roofs) {
-      if (!boundsValid(roof.bounds) || !Number.isFinite(roof.elevation)) { fail(`roof:${roof.id}`); }
+      if (!boundsValid(roof.bounds) || !Number.isFinite(roof.elevation)) {
+        fail(`roof:${roof.id}`);
+      }
     }
     const entrance = plan.levels.find(/**
      *
@@ -483,6 +517,8 @@ export class CastleBasePlanGenerator {
     const matchesEntranceOpening = (opening) =>
       opening.kind === "door" && opening.side === plan.entrance.side && opening.offset === plan.entrance.offset &&
       opening.width === plan.entrance.width;
-    if (!entrance || !boundsValid(plan.entrance.bridge) || !entrance.openings.some(matchesEntranceOpening)) { fail("entrance"); }
+    if (!entrance || !boundsValid(plan.entrance.bridge) || !entrance.openings.some(matchesEntranceOpening)) {
+      fail("entrance");
+    }
   }
 }

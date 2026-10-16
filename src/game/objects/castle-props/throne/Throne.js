@@ -13,7 +13,9 @@ export class Throne extends AbstractCastleProp {
   static prepareMap(mapData) {
     const objects = mapData.objects ??= [];
     for (const castle of [...objects]) {
-      if (castle.object !== "Castle" || !castle.buildPlan?.metadata?.runtime?.residential) { continue; }
+      if (castle.object !== "Castle" || !castle.buildPlan?.metadata?.runtime?.residential) {
+        continue;
+      }
       const layout = new CastleResidentialLayout(castle.buildPlan);
       const room = layout.audienceFloorBounds ?? layout.rooms.work;
       const zone = layout.reservations.find(Throne.#findReservation);
@@ -36,15 +38,20 @@ export class Throne extends AbstractCastleProp {
          */
         item => item.id === id,
       );
-      if (existing >= 0) { objects[existing] = definition; }
-      else { objects.push(definition); }
+      if (existing >= 0) {
+        objects[existing] = definition;
+      } else {
+        objects.push(definition);
+      }
     }
   }
 
   /**
    * @returns {string}
    */
-  static get modelUrl() { return modelUrl; }
+  static get modelUrl() {
+    return modelUrl;
+  }
 
   /**
    * @param {{role: string}} reservation

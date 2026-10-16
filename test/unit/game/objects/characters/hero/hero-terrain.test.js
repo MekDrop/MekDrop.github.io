@@ -131,7 +131,9 @@ it("honors river source covers, their cell bounds and their support height", () 
 
 it("walks through excavated path cells while retaining soil outside the cut", () => {
   const data = map();
-  for (const row of data.heightmap) row.fill(0);
+  for (const row of data.heightmap) {
+    row.fill(0);
+  }
   data.grid[1][2] = TileType.PATH;
   data.heightmap[1][2] = 2;
   const cut = {

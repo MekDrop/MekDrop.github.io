@@ -11,7 +11,9 @@ const source = readFileSync(new URL("../../../../../../src/game/objects/architec
   .replace(/^import[^;]+;\r?\n/gm, "");
 const WoodenFloor = new Function("IslandObjectRoots", "addGeneratedVoxelPhysics", "InvalidWoodenFloorAreaError", "everyFiniteNumber",
   `const floorUrl = "wood"; ${source.replace("export class", "class")} return WoodenFloor;`)(
-  IslandObjectRoots, (options) => { support = options.voxels[0]; }, InvalidWoodenFloorAreaError, everyFiniteNumber);
+  IslandObjectRoots, (options) => {
+    support = options.voxels[0];
+  }, InvalidWoodenFloorAreaError, everyFiniteNumber);
 
 it("fills reversed rectangle corners with timber ending at the requested walking height", () => {
   const definition = {
@@ -119,10 +121,12 @@ it("keeps plank top seams equally narrow when a room stretches the floor panel",
       const top = vertices.filter((value, index) => index % 3 === 1).reduce((a, b) => Math.max(a, b));
       const points = [];
       for (let index = 0; index < vertices.length; index += 3) {
-        if (vertices[index + 1] >= top - 1e-5) { points.push({
-          x: vertices[index],
-          z: vertices[index + 2],
-        }); }
+        if (vertices[index + 1] >= top - 1e-5) {
+          points.push({
+            x: vertices[index],
+            z: vertices[index + 2],
+          });
+        }
       }
       node.topPoints = points;
       renders.push({

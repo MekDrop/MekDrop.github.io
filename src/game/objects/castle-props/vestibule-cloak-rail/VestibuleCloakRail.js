@@ -49,7 +49,9 @@ export class VestibuleCloakRail extends AbstractCastleProp {
   /**
    * @returns {string}
    */
-  static get modelUrl() { return modelUrl; }
+  static get modelUrl() {
+    return modelUrl;
+  }
 
   /**
    * @param {VestibuleCloakRail} rail
@@ -60,13 +62,17 @@ export class VestibuleCloakRail extends AbstractCastleProp {
    */
   static #prepareCloak(rail, model, variation, collision, name) {
     const node = model.findByName(name);
-    if (!node) { return; }
+    if (!node) {
+      return;
+    }
     const item = variation.find(/**
      * @param {{name:string}} cloak
      */ cloak => cloak.name === name);
-    if (!item) { node.destroy();
+    if (!item) {
+      node.destroy();
 
-      return; }
+      return;
+    }
     const position = node.getLocalPosition().clone();
     position.x += item.hookX - item.authoredX;
     // Adult-sized garments: enlarge around the authored loop.
@@ -79,7 +85,9 @@ export class VestibuleCloakRail extends AbstractCastleProp {
     position.z += 0.012;
     node.setLocalScale(scale.x * garmentScale, scale.y * garmentScale, scale.z);
     node.setLocalPosition(position);
-    if (collision) { return; }
+    if (collision) {
+      return;
+    }
     for (const render of node.findComponents("render")) {
       for (const mesh of render.meshInstances) {
         const material = rail.cloneMaterial(mesh.material);

@@ -8,7 +8,7 @@ class Entity {
     this[type] = {
       ...options,
       scale: 2,
-      syncDrawOrder() {},
+      syncDrawOrder: () => {},
     };
   }
   addChild(child) {

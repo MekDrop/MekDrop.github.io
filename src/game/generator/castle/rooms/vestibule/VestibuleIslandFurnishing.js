@@ -14,7 +14,9 @@ export class VestibuleIslandFurnishing {
     const length = alongX ? room.maxX - room.minX : room.maxZ - room.minZ;
     const breadth = alongX ? room.maxZ - room.minZ : room.maxX - room.minX;
     // Narrow corridors retain their existing unobstructed arrival runner.
-    if (breadth < 3.3 || length < 4) { return []; }
+    if (breadth < 3.3 || length < 4) {
+      return [];
+    }
     const centerX = (room.minX + room.maxX) / 2;
     const centerZ = (room.minZ + room.maxZ) / 2;
     const clearance = 0.7;

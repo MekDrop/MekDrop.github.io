@@ -10,9 +10,9 @@ function createEntity() {
     addChild(child) {
       this.children.push(child);
     },
-    setLocalPosition() {},
-    setLocalEulerAngles() {},
-    destroy() {},
+    setLocalPosition: () => {},
+    setLocalEulerAngles: () => {},
+    destroy: () => {},
   };
 }
 

@@ -31,10 +31,10 @@ function cameraFixture() {
       z: 0,
     },
     entity: {
-      setPosition(position) {
+      setPosition: (position) => {
         transforms.position = position;
       },
-      lookAt(x, y, z) {
+      lookAt: (x, y, z) => {
         transforms.target = {
           x,
           y,
@@ -256,13 +256,13 @@ describe("first-person camera", () => {
       cameraPointerMove: () => true,
     };
     const element = {
-      requestPointerLock() {
+      requestPointerLock: () => {
         requested += 1;
       },
     };
     globalThis.document = {
       pointerLockElement: null,
-      exitPointerLock() {
+      exitPointerLock: () => {
         exited += 1;
       },
     };
@@ -270,7 +270,11 @@ describe("first-person camera", () => {
       const pointer = new CameraPointerAction(
         renderer,
         element,
-        { invoke: () => { patted += 1; } },
+        {
+          invoke: () => {
+            patted += 1;
+          },
+        },
         DEFAULT_CONTROLS.cameraPointer,
       );
       assert.equal(pointer.press({ button: 0 }), true);
@@ -290,7 +294,7 @@ describe("first-person camera", () => {
       const cameraRenderer = { firstPersonCameraEnabled: false };
       const action = new FirstPersonCameraAction(
         cameraRenderer,
-        { clear() {} },
+        { clear: () => {} },
         cameraPointer,
       );
       action.invoke();

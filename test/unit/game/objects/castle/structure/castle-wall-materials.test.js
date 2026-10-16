@@ -49,7 +49,7 @@ it("stone blocks remain opaque from both sides with depth testing and writing en
     },
     app: {
       graphicsDevice,
-      on: () => ({ off() {} }),
+      on: () => ({ off: () => {} }),
     },
     buildPlan: {
       input: {

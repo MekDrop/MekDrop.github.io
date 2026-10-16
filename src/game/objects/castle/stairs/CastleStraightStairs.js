@@ -70,9 +70,13 @@ export function castleStraightStairHeight(stair, x, z, elevation) {
   const localZ = dx * Math.sin(angle) + dz * Math.cos(angle);
   let best = null;
   for (const surface of castleStraightStairSurfaces(stair)) {
-    if (localX < surface.minX - 1e-6 || localX > surface.maxX + 1e-6 || localZ < surface.minZ - 1e-6 || localZ > surface.maxZ + 1e-6) { continue; }
+    if (localX < surface.minX - 1e-6 || localX > surface.maxX + 1e-6 || localZ < surface.minZ - 1e-6 || localZ > surface.maxZ + 1e-6) {
+      continue;
+    }
     const height = stair.center.y + castleStraightStairSurfaceHeight(surface, localZ);
-    if (Math.abs(height - elevation) <= 0.32 && (best === null || Math.abs(height - elevation) < Math.abs(best - elevation))) { best = height; }
+    if (Math.abs(height - elevation) <= 0.32 && (best === null || Math.abs(height - elevation) < Math.abs(best - elevation))) {
+      best = height;
+    }
   }
 
   return best;
@@ -111,7 +115,9 @@ export function castleStraightStairTreads(surface) {
  */
 export function castleStraightStairSurfaceHeight(surface,z) {
   let progress = Math.max(0,Math.min(1,(z-surface.minZ)/(surface.maxZ-surface.minZ)));
-  if (surface.reverse) { progress = 1-progress; }
+  if (surface.reverse) {
+    progress = 1-progress;
+  }
   const count = castleStraightStairStepCount(surface);
   const index = Math.min(count - 1, Math.floor(progress * count + 1e-6));
 

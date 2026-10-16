@@ -139,12 +139,14 @@ it("keeps the walking state while a resident returns through the castle", () => 
   const behavior = new KingGameOverBehavior({
     walkDuration: 3.2,
     walkStartDelay: 0.2,
-    beginWalk() {},
+    beginWalk: () => {},
     move: () => arrived ? true : null,
-    playAnimation() {},
+    playAnimation: () => {},
   });
   behavior.start();
-  for (let frame = 0; frame < 100; frame++) { behavior.update(0.1); }
+  for (let frame = 0; frame < 100; frame++) {
+    behavior.update(0.1);
+  }
   assert.equal(behavior.phase, ROYAL_GAME_OVER_PHASE.WALK_OUT);
   arrived = true;
   behavior.update(1);

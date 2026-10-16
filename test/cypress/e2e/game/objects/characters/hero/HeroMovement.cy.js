@@ -202,7 +202,9 @@ describe("Hero movement on a predefined terrain map", { testIsolation: false }, 
     let usedJumpAnimation = false;
     let usedWalkAnimation = false;
     let target;
-    cy.window().then((window) => { target = window; });
+    cy.window().then((window) => {
+      target = window;
+    });
     expectState((state) => {
       expect(state.grounded).to.equal(true);
     });

@@ -18,7 +18,9 @@ export class RoomPlanningStage extends AbstractCastleGenerationStage {
    * @param {import("../CastleGenerationContext.js").CastleGenerationContext} context
    */
   async run(context) {
-    if (context.layout.empty) { return; }
+    if (context.layout.empty) {
+      return;
+    }
     const { position, doors, seed } = context.input;
     const { facadeSpan, castleDepth, baseY, primarySide, style } = context.layout;
     const door = doors[0];
@@ -93,7 +95,9 @@ export class RoomPlanningStage extends AbstractCastleGenerationStage {
           return value + (room ? 2 ** (generators.length - index) * 1000 +
           (room.level === 0 ? 100 : 0) : 0);
         }, 0);
-      if (score > bestScore) { packer = candidate; bestScore = score; }
+      if (score > bestScore) {
+        packer = candidate; bestScore = score;
+      }
       await context.scheduler.yieldIfNeeded(context.yieldState);
     }
     if (
@@ -120,17 +124,23 @@ export class RoomPlanningStage extends AbstractCastleGenerationStage {
     }
     packer.extendRooms(generators);
     for (const room of packer.rooms) {
-      if (room.level === 0 && room.floorSpan === 1 && room.id !== "leisure") room.height = rise - 0.25;
+      if (room.level === 0 && room.floorSpan === 1 && room.id !== "leisure") {
+        room.height = rise - 0.25;
+      }
     }
     const throne = packer.rooms.find(RoomPlanningStage.#findRoom);
-    if (!throne) { throw new CastlePlacementError(); }
+    if (!throne) {
+      throw new CastlePlacementError();
+    }
     const hasUpper = packer.rooms.some(RoomPlanningStage.#someRoom);
     const hasBasement = packer.rooms.some(RoomPlanningStage.#someRoom2);
     const hostRoom = packer.rooms.find(/**
      * @param {import("../rooms/AbstractCastleRoomGenerator.js").PlannedCastleRoom} room
      */
       (room) => room.id === packer.stairHostRoomId);
-    if (hostRoom && !hasUpper) { hostRoom.floorSpan = 1; hostRoom.height = rise - 0.25; }
+    if (hostRoom && !hasUpper) {
+      hostRoom.floorSpan = 1; hostRoom.height = rise - 0.25;
+    }
     const shaft = packer.shaft;
     const centerX = (shaft.minX + shaft.maxX) / 2;
     const centerZ = (shaft.minZ + shaft.maxZ) / 2;
@@ -224,16 +234,20 @@ export class RoomPlanningStage extends AbstractCastleGenerationStage {
         floorY: baseY,
       });
     }
-    if (hasUpper) { walkableAreas.push({
-      id: "upperHall",
-      ...outerBounds,
-      floorY: baseY + rise,
-    }); }
-    if (hasBasement) { walkableAreas.push({
-      id: "basementHall",
-      ...outerBounds,
-      floorY: baseY - 2.5,
-    }); }
+    if (hasUpper) {
+      walkableAreas.push({
+        id: "upperHall",
+        ...outerBounds,
+        floorY: baseY + rise,
+      });
+    }
+    if (hasBasement) {
+      walkableAreas.push({
+        id: "basementHall",
+        ...outerBounds,
+        floorY: baseY - 2.5,
+      });
+    }
     const basement = hasBasement ? {
       ...toWorld((outerBounds.minX + outerBounds.maxX) / 2,
         (outerBounds.minZ + outerBounds.maxZ) / 2),

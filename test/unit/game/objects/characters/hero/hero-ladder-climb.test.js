@@ -21,7 +21,9 @@ function fixture(topLandings) {
       x: -1,
       z: 0,
     },
-    openHatch() { opened++; },
+    openHatch: () => {
+      opened++;
+    },
   });
   const options = {
     position: { ...bottom },
@@ -51,12 +53,16 @@ function advance(f, seconds, roofHeight = f.top.y) {
   for (let time = 0; time < seconds; time += 1 / 120) {
     const position = f.options.position;
     const nearRoof = Math.hypot(position.x - f.top.x, position.z - f.top.z) < 0.1;
-    if (nearRoof && position.y >= f.top.y - 0.08) position.y = roofHeight;
+    if (nearRoof && position.y >= f.top.y - 0.08) {
+      position.y = roofHeight;
+    }
     motion = f.controller.update(1 / 120, {
       ...f.options,
       grounded: nearRoof && position.y >= roofHeight - 0.001,
     });
-    if (!motion) return null;
+    if (!motion) {
+      return null;
+    }
     position.x += motion.velocity.x / 120;position.y += motion.velocity.y / 120;position.z += motion.velocity.z / 120;
   }
 

@@ -22,15 +22,21 @@ export class Bed extends AbstractCastleProp {
   /**
    * @returns {string[]}
    */
-  static get modelUrls() { return [royalUrl, servantUrl]; }
+  static get modelUrls() {
+    return [royalUrl, servantUrl];
+  }
   /**
    * @returns {boolean}
    */
-  static get hasAuthoredCollision() { return false; }
+  static get hasAuthoredCollision() {
+    return false;
+  }
   /**
    * @returns {string}
    */
-  get modelUrl() { return this.definition.variant === "servant" ? servantUrl : royalUrl; }
+  get modelUrl() {
+    return this.definition.variant === "servant" ? servantUrl : royalUrl;
+  }
   /**
    * @param {ConstructorParameters<typeof AbstractCastleProp>[0]} options
    */
@@ -74,12 +80,16 @@ export class Bed extends AbstractCastleProp {
    * Legacy navigation and camera queries share the Ammo box envelope; Ammo owns contact.
    * @returns {boolean}
    */
-  get isGroundCollider() { return true; }
+  get isGroundCollider() {
+    return true;
+  }
   /**
    * Beds did not expose a walkable top in the castle navigation contract.
    * @returns {boolean}
    */
-  get physicsSurface() { return false; }
+  get physicsSurface() {
+    return false;
+  }
   /**
    * @param {number} x
    * @param {number} z

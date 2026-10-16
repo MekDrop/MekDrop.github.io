@@ -70,7 +70,9 @@ export class Lantern extends AbstractCastleProp {
       range: 2.4,
       modelSpace: true,
     } : null);
-    if (!settings) { return; }
+    if (!settings) {
+      return;
+    }
     const parent = settings.modelSpace ? model : root;
     if (settings.flicker) {
       const fire = new FireEffect({
@@ -105,7 +107,9 @@ export class Lantern extends AbstractCastleProp {
   /**
    * @returns {string}
    */
-  static get modelUrls() { return [modelUrl, wallModelUrl, tableModelUrl]; }
+  static get modelUrls() {
+    return [modelUrl, wallModelUrl, tableModelUrl];
+  }
   /**
    * @returns {string}
    */

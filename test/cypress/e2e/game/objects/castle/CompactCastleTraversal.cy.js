@@ -28,12 +28,16 @@ async function walkTo(window, target) {
   const start = Date.now();
   while (Date.now() - start < 15000) {
     const alert = window.document.querySelector('[data-global-exception]');
-    if (alert) { expect(false, alert.textContent).to.equal(true); }
+    if (alert) {
+      expect(false, alert.textContent).to.equal(true);
+    }
     const state = driver.state();
     const dx = target.x - state.position.x, dz = target.z - state.position.z;
-    if (Math.hypot(dx,dz) < (target.tolerance ?? .12)) { driver.move(0,0);
+    if (Math.hypot(dx,dz) < (target.tolerance ?? .12)) {
+      driver.move(0,0);
 
-      return; }
+      return;
+    }
     const camera = window.gameCameraTest.state().firstPersonCamera;
     const distance=Math.hypot(dx,dz), speed=Math.min(.45,distance*.8), forwardLength=Math.hypot(camera.direction.x,camera.direction.z);
     driver.move((camera.right.x*dx+camera.right.z*dz)/distance*speed,
@@ -60,7 +64,9 @@ describe('Compact authored castle traversal', () => {
     cy.get('.background-canvas[data-game-ready="true"]',{timeout:45000}).should('be.visible');
     cy.window().its('gameMovementTest').should('exist');
     cy.window().then({timeout:300000},async window => {
-      for(const type of ['mousemove','pointermove']) window.addEventListener(type,event=>event.stopImmediatePropagation(),true);
+      for(const type of ['mousemove','pointermove']) {
+        window.addEventListener(type,event=>event.stopImmediatePropagation(),true);
+      }
       window.dispatchEvent(new KeyboardEvent('keydown',{code:'ScrollLock'}));
       window.dispatchEvent(new KeyboardEvent('keyup',{code:'ScrollLock'}));
       const plan=await CastleGenerator.generate(castleMap.objects.find(o=>o.object==='Castle'));
@@ -315,7 +321,9 @@ describe('Compact authored castle traversal', () => {
     cy.viewport(1280,900);
     cy.visit('/en/map/test_castle-seeds?camera-test');
     cy.get('.background-canvas[data-game-ready="true"]',{timeout:45000}).should('be.visible');
-    cy.window().then(window=>{window.gameCameraTest.setZoom(2);window.gameCameraTest.panBy(330,40);});
+    cy.window().then(window=>{
+      window.gameCameraTest.setZoom(2);window.gameCameraTest.panBy(330,40);
+    });
     for(const rotation of [0,1,2,3]) {
       cy.window().then(window=>{
         window.dispatchEvent(new KeyboardEvent('keydown',{code:'KeyQ'}));

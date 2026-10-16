@@ -471,7 +471,9 @@ export class CastleAudienceRoom {
     this.#throne = null;
     this.#entity?.destroy();
     this.#entity = null;
-    for (const material of this.#materials.values()) material.destroy();
+    for (const material of this.#materials.values()) {
+      material.destroy();
+    }
     this.#materials.clear();
     this.#obstacles = [];
     this.#floorSurfaces = [];
@@ -605,7 +607,9 @@ export class CastleAudienceRoom {
         iron: "castleIron",
       }[name];
       const shared = sharedName ? this.#sharedMaterials.get(sharedName) : null;
-      if (shared) continue;
+      if (shared) {
+        continue;
+      }
 
       const material = new this.#pc.StandardMaterial();
       material.name = `Audience room ${name}`;
@@ -694,7 +698,9 @@ export class CastleAudienceRoom {
     // The authored box uses a cube UV atlas: its top occupies U .625–.875, V .5–.75 after glTF V flipping.
     carpetMaterial.diffuseMapTiling = new this.#pc.Vec2(4, 4);
     carpetMaterial.diffuseMapOffset = new this.#pc.Vec2(-2.5, -2);
-    if (texture) { texture.addressU = texture.addressV = this.#pc.ADDRESS_CLAMP_TO_EDGE; }
+    if (texture) {
+      texture.addressU = texture.addressV = this.#pc.ADDRESS_CLAMP_TO_EDGE;
+    }
     carpetMaterial.update();
     const carpetThickness = this.#residentialLayout ? 0.018 : 0.06;
     const carpetY = this.#residentialLayout ? floorTop + 0.001 + carpetThickness / 2 : 0.055;
@@ -780,7 +786,9 @@ export class CastleAudienceRoom {
   #buildColumns(throneForward) {
     // Room-first castles supply their supports through the structural shell.
     // Extra audience columns must not occupy reserved furniture or walking space.
-    if (this.#residentialLayout) { return; }
+    if (this.#residentialLayout) {
+      return;
+    }
     const lateral = Math.max(1.35, this.#roomWidth / 2 - 0.76);
     const rows = [Math.min(1.72, throneForward * 0.38), throneForward * 0.72];
     this.#buildColumn(lateral, rows[0], -1);
@@ -971,7 +979,9 @@ export class CastleAudienceRoom {
    * @param {number} forward
    */
   #buildBench(throneForward, side, lateral, forward) {
-    if (forward >= throneForward - 0.65) { return; }
+    if (forward >= throneForward - 0.65) {
+      return;
+    }
     this.#boxAt(
       "Court visitor bench",
       "woodLight",

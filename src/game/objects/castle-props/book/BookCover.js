@@ -18,16 +18,22 @@ export class BookCover {
      */
       source => {
         let colors = this.#materials.get(source);
-        if (!colors) { colors = new Map(); this.#materials.set(source, colors); }
+        if (!colors) {
+          colors = new Map(); this.#materials.set(source, colors);
+        }
         const key = color.join(",");
         let entry = colors.get(key);
-        if (!entry) { entry = {
-          material: source.clone(),
-          users: 0,
-        }; colors.set(key, entry); }
+        if (!entry) {
+          entry = {
+            material: source.clone(),
+            users: 0,
+          }; colors.set(key, entry);
+        }
         entry.users++;
         model.once("destroy", () => {
-          if (--entry.users === 0) { entry.material.destroy(); colors.delete(key); }
+          if (--entry.users === 0) {
+            entry.material.destroy(); colors.delete(key);
+          }
         });
 
         return entry.material;
@@ -40,10 +46,14 @@ export class BookCover {
    * @param {(material: import("playcanvas").StandardMaterial) => import("playcanvas").StandardMaterial} clone
    */
   static tint(model, color, clone) {
-    if (!color) { return; }
+    if (!color) {
+      return;
+    }
     for (const render of model.findComponents("render")) {
       for (const mesh of render.meshInstances) {
-        if (!/^(Book leather(?: \d+)?|Claret binding)$/.test(mesh.material.name)) { continue; }
+        if (!/^(Book leather(?: \d+)?|Claret binding)$/.test(mesh.material.name)) {
+          continue;
+        }
         const material = clone(mesh.material);
         material.diffuseTint = true;
         material.diffuse.set(...color);
