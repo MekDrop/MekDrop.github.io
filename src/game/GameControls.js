@@ -3,6 +3,32 @@ import { DEFAULT_CONTROLS } from "src/game/config/controls.js";
 import { CameraDrag } from "src/game/controls/CameraDrag.js";
 import { INPUT_EVENT_TYPE } from "src/game/enum/InputEventType.js";
 
+/**
+ * Actions supplied by GameCanvas, including the optional development camera toggle.
+ *
+ * @typedef {object} ControlActions
+ * @property {import("./actions/ZoomAction.js").ZoomAction} zoomIn
+ * @property {import("./actions/ZoomAction.js").ZoomAction} zoomOut
+ * @property {import("./actions/MoveCameraAction.js").MoveCameraAction} moveCamera
+ * @property {import("./actions/CameraPointerAction.js").CameraPointerAction} cameraPointer
+ * @property {import("./actions/RegenerateMapAction.js").RegenerateMapAction} regenerateMap
+ * @property {import("./actions/RestartGameAction.js").RestartGameAction} restartGame
+ * @property {import("./actions/HeroMovementAction.js").HeroMovementAction} heroMovement
+ * @property {import("./actions/HeroMovementAction.js").HeroMovementAction} run
+ * @property {import("./actions/HeroDirectionAction.js").HeroDirectionAction} moveUp
+ * @property {import("./actions/HeroDirectionAction.js").HeroDirectionAction} moveDown
+ * @property {import("./actions/HeroDirectionAction.js").HeroDirectionAction} moveLeft
+ * @property {import("./actions/HeroDirectionAction.js").HeroDirectionAction} moveRight
+ * @property {import("./actions/HeroJumpAction.js").HeroJumpAction} jump
+ * @property {import("./actions/InteractionAction.js").InteractionAction} interact
+ * @property {import("./actions/ToggleInventoryAction.js").ToggleInventoryAction} toggleInventory
+ * @property {import("./actions/RotateViewAction.js").RotateViewAction} rotateView
+ * @property {import("./actions/RotateViewAction.js").RotateViewAction} rotateAnticlockwise
+ * @property {import("./actions/ToggleArrowsAction.js").ToggleArrowsAction} toggleArrows
+ * @property {import("src/actions/CloseModalAction.js").CloseModalAction} closeModal
+ * @property {import("./actions/FirstPersonCameraAction.js").FirstPersonCameraAction} [toggleFirstPersonCamera]
+ */
+
 export class GameControls {
   /**
    *
@@ -11,12 +37,12 @@ export class GameControls {
   #element;
   /**
    *
-   * @type {Array}
+   * @type {typeof DEFAULT_CONTROLS}
    */
   #bindings = DEFAULT_CONTROLS;
   /**
    *
-   * @type {Array}
+   * @type {ControlActions}
    */
   #actions;
   /**
@@ -26,39 +52,39 @@ export class GameControls {
   #cameraDrag;
   /**
    *
-   * @type {null}
+   * @type {number|null}
    */
   #inventoryPointerId = null;
   /**
    *
-   * @type {Array}
+   * @type {import("src/game/GameContracts.js").KeyboardBinding[]}
    */
   #keydownConsumeBindings;
   /**
    *
-   * @type {Map}
+   * @type {Map<import("src/game/GameContracts.js").KeyboardBinding, import("src/game/GameContracts.js").KeyboardAction>}
    */
   #keydownActions;
   /**
    *
-   * @type {Map}
+   * @type {Map<import("src/game/GameContracts.js").KeyboardBinding, import("src/game/GameContracts.js").KeyboardAction>}
    */
   #keyupActions;
 
   /**
-   * @type {Array<{action: import("src/game/GameContracts.js").GameActionContract}>}
+   * @type {Array<{action: import("src/game/GameContracts.js").DoubleClickAction}>}
    */
   #doubleClickActions;
 
   /**
    *
    * @param {HTMLElement} element
-   * @param {Array} actions
-   * @param {{keydownActions?: Array, keyupActions?: Array, keydownConsumeBindings?: Array, doubleClickActions?: Array}} options
-   * @param {Array} options.keydownActions
-   * @param {Array} options.keyupActions
-   * @param {Array} options.keydownConsumeBindings
-   * @param {Array} options.doubleClickActions
+   * @param {ControlActions} actions
+   * @param {import("src/game/GameContracts.js").ControlKeyboardOptions} [options]
+   * @param {import("src/game/GameContracts.js").KeyboardActionBinding[]} [options.keydownActions]
+   * @param {import("src/game/GameContracts.js").KeyboardActionBinding[]} [options.keyupActions]
+   * @param {import("src/game/GameContracts.js").KeyboardBinding[]} [options.keydownConsumeBindings]
+   * @param {Array<{action: import("src/game/GameContracts.js").DoubleClickAction}>} [options.doubleClickActions]
    */
   constructor(
     element,
@@ -70,26 +96,10 @@ export class GameControls {
       doubleClickActions = [],
     } = {},
   ) {
-    /**
-     *
-     * @type {HTMLElement}
-     */
     this.#element = element;
-    /**
-     *
-     * @type {Array}
-     */
     this.#actions = actions;
     this.#doubleClickActions = doubleClickActions;
-    /**
-     *
-     * @type {CameraDrag}
-     */
     this.#cameraDrag = new CameraDrag(element, actions, this.#config());
-    /**
-     *
-     * @type {Array}
-     */
     this.#keydownConsumeBindings = keydownConsumeBindings;
     const keydownActionNames = [
       "regenerateMap",
@@ -110,18 +120,10 @@ export class GameControls {
     if (this.#actions.toggleFirstPersonCamera) {
       keydownActionNames.push("toggleFirstPersonCamera");
     }
-    /**
-     *
-     * @type {Map}
-     */
     this.#keydownActions = new Map([
       ...this.#entriesFor(keydownActionNames),
       ...keydownActions.map(GameControls.#map),
     ]);
-    /**
-     *
-     * @type {Map}
-     */
     this.#keyupActions = new Map([
       ...this.#entriesFor([
         "regenerateMap",
@@ -141,7 +143,8 @@ export class GameControls {
 
   /**
    *
-   * @param {string[]} names
+   * @param {Array<keyof typeof DEFAULT_CONTROLS & keyof ControlActions>} names
+   * @returns {Array<[import("src/game/GameContracts.js").KeyboardBinding, import("src/game/GameContracts.js").KeyboardAction]>}
    */
   #entriesFor(names) {
     return names.map(this.#mapName.bind(this));
@@ -232,8 +235,8 @@ export class GameControls {
 
   /**
    *
-   * @param {Event} event
-   * @type {(event: Event) => void}
+   * @param {KeyboardEvent} event
+   * @type {(event: KeyboardEvent) => void}
    */
   #handleKeydown = (event) => {
     if (this.#isEditable(event.target)) {
@@ -264,8 +267,8 @@ export class GameControls {
 
   /**
    *
-   * @param {Event} event
-   * @type {(event: Event) => void}
+   * @param {KeyboardEvent} event
+   * @type {(event: KeyboardEvent) => void}
    */
   #handleKeyup = (event) => {
     if (this.#isEditable(event.target)) {
@@ -295,8 +298,8 @@ export class GameControls {
 
   /**
    *
-   * @param {Event} event
-   * @type {(event: Event) => void}
+   * @param {MouseEvent} event
+   * @type {(event: MouseEvent) => void}
    */
   #handleDoubleClick = (event) => {
     if (event.defaultPrevented) {
@@ -335,8 +338,8 @@ export class GameControls {
 
   /**
    *
-   * @param {Event} event
-   * @type {(event: Event) => void}
+   * @param {PointerEvent} event
+   * @type {(event: PointerEvent) => void}
    */
   #handlePointerDown = (event) => {
     if (event.defaultPrevented) {
@@ -370,8 +373,8 @@ export class GameControls {
 
   /**
    *
-   * @param {Event} event
-   * @type {(event: Event) => void}
+   * @param {MouseEvent} event
+   * @type {(event: MouseEvent) => void}
    */
   #handleCameraPointerMove = (event) => {
     this.#actions.cameraPointer?.move(event);
@@ -379,8 +382,8 @@ export class GameControls {
 
   /**
    *
-   * @param {Event} event
-   * @type {(event: Event) => void}
+   * @param {PointerEvent} event
+   * @type {(event: PointerEvent) => void}
    */
   #handlePointerMove = (event) => {
     if (this.#actions.toggleInventory?.visible) {
@@ -397,8 +400,8 @@ export class GameControls {
 
   /**
    *
-   * @param {Event} event
-   * @type {(event: Event) => void}
+   * @param {PointerEvent} event
+   * @type {(event: PointerEvent) => void}
    */
   #handlePointerUp = (event) => {
     if (event.pointerId === this.#inventoryPointerId) {
@@ -432,8 +435,8 @@ export class GameControls {
 
   /**
    *
-   * @param {Event} event
-   * @param {Array} actions
+   * @param {KeyboardEvent} event
+   * @param {Map<import("src/game/GameContracts.js").KeyboardBinding, import("src/game/GameContracts.js").KeyboardAction>} actions
    */
   #invokeKeyboardAction(event, actions) {
     for (const [binding, action] of actions) {
@@ -462,8 +465,8 @@ export class GameControls {
 
   /**
    *
-   * @param {Event} event
-   * @param {string|{value: string, modifiers?: string[]}} binding
+   * @param {KeyboardEvent} event
+   * @param {import("src/game/GameContracts.js").KeyboardBinding} binding
    */
   #matchesKey(event, binding) {
     if (!binding?.keys?.length) {
@@ -496,20 +499,20 @@ export class GameControls {
 
   /**
    *
-   * @param {Event} event
-   * @param {Array} bindings
+   * @param {KeyboardEvent} event
+   * @param {import("src/game/GameContracts.js").KeyboardBinding[]} bindings
    */
   #matchesAnyKey(event, bindings) {
     return bindings.some(/**
      *
-     * @param {string|{value: string, modifiers?: string[]}} binding
+     * @param {import("src/game/GameContracts.js").KeyboardBinding} binding
      */
       (binding) => this.#matchesKey(event, binding));
   }
 
   /**
    *
-   * @param {Event} event
+   * @param {KeyboardEvent} event
    */
   #eventModifierKey(event) {
     if (["Alt", "AltLeft", "AltRight"].includes(event.code)) {
@@ -529,7 +532,7 @@ export class GameControls {
 
   /**
    *
-   * @param {EventTarget|pc.Entity} target
+   * @param {EventTarget|null} target
    */
   #isEditable(target) {
     return (
@@ -541,9 +544,10 @@ export class GameControls {
 
   /**
    *
-   * @param {{action: import("src/game/GameContracts.js").GameActionContract}} options
-   * @param {string|{value: string, modifiers?: string[]}} options.binding
-   * @param {import("src/game/GameContracts.js").GameActionContract} options.action
+   * @param {import("src/game/GameContracts.js").KeyboardActionBinding} options
+   * @param {import("src/game/GameContracts.js").KeyboardBinding} options.binding
+   * @param {import("src/game/GameContracts.js").KeyboardAction} options.action
+   * @returns {[import("src/game/GameContracts.js").KeyboardBinding, import("src/game/GameContracts.js").KeyboardAction]}
    */
   static #map({ binding, action }) {
     return [binding, action];
@@ -551,9 +555,10 @@ export class GameControls {
 
   /**
    *
-   * @param {{action: import("src/game/GameContracts.js").GameActionContract}} options
-   * @param {string|{value: string, modifiers?: string[]}} options.binding
-   * @param {import("src/game/GameContracts.js").GameActionContract} options.action
+   * @param {import("src/game/GameContracts.js").KeyboardActionBinding} options
+   * @param {import("src/game/GameContracts.js").KeyboardBinding} options.binding
+   * @param {import("src/game/GameContracts.js").KeyboardAction} options.action
+   * @returns {[import("src/game/GameContracts.js").KeyboardBinding, import("src/game/GameContracts.js").KeyboardAction]}
    */
   static #map2({ binding, action }) {
     return [binding, action];
@@ -561,7 +566,8 @@ export class GameControls {
 
   /**
    *
-   * @param {string} name
+   * @param {keyof typeof DEFAULT_CONTROLS & keyof ControlActions} name
+   * @returns {[import("src/game/GameContracts.js").KeyboardBinding, import("src/game/GameContracts.js").KeyboardAction]}
    */
   #mapName(name) {
     return [this.#config()[name], this.#actions[name]];

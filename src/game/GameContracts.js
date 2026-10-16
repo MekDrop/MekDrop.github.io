@@ -169,6 +169,12 @@
 /**
  * @typedef {object} InteractionDescription
  * @property {string} [id]
+ * @property {string} [labelKey]
+ * @property {number} [health]
+ * @property {boolean} [showHealth]
+ * @property {number} [x]
+ * @property {number} [y]
+ * @property {number} [z]
  * @property {string} [label]
  * @property {string} [action]
  * @property {GameObjectContract} [target]
@@ -306,6 +312,72 @@
  * @property {number} [scaleV]
  * @property {boolean} [flipU]
  * @property {boolean} [flipV]
+ * @property {number} [startU]
+ * @property {number} [startV]
+ * @property {boolean} [useLighting]
+ * @property {number} [emissive]
+ * @property {number} [emissiveIntensity]
+ * @property {number} [opacity]
+ */
+
+/**
+ * @typedef {object} KeyboardBinding
+ * @property {string[]} keys
+ * @property {boolean} [altKey]
+ * @property {boolean} [ctrlKey]
+ * @property {boolean} [metaKey]
+ * @property {boolean} [shiftKey]
+ * @property {string[]} [allowedModifiers]
+ * @property {boolean} [allowRepeat]
+ */
+
+/**
+ * @typedef {{invoke: (event: KeyboardEvent) => void}} KeyboardAction
+ * @typedef {{invoke: (event: MouseEvent) => boolean}} DoubleClickAction
+ * @typedef {{binding: KeyboardBinding, action: KeyboardAction}} KeyboardActionBinding
+ * @typedef {object} ControlKeyboardOptions
+ * @property {KeyboardActionBinding[]} [keydownActions]
+ * @property {KeyboardActionBinding[]} [keyupActions]
+ * @property {KeyboardBinding[]} [keydownConsumeBindings]
+ * @property {Array<{action: DoubleClickAction}>} [doubleClickActions]
+ */
+
+/**
+ * @typedef {object} SceneInteraction
+ * @property {boolean} canInteract
+ * @property {InteractionDescription} description
+ * @property {() => boolean} interact
+ * @typedef {object} InteractionProvider
+ * @property {(options: {hero: import("./objects/characters/hero/Hero.js").Hero, onChange: () => void, onComplete: () => void}) => SceneInteraction|null} findInteraction
+ */
+
+/**
+ * @typedef {(key: string, values?: Record<string, string|number>) => string} Translate
+ * @typedef {object} RendererOptions
+ * @property {((error: Error) => void)|null} [onRuntimeError]
+ * @property {((description: InteractionDescription|null) => void)|null} [onInteractionChange]
+ * @property {Translate} [t]
+ * @property {ReturnType<typeof import("src/stores/debug-store.js").useDebugStore>} debugStore
+ * @property {ReturnType<typeof import("src/stores/game-view-store.js").useGameViewStore>} gameViewStore
+ * @property {ReturnType<typeof import("src/stores/graphics-settings-store.js").useGraphicsSettingsStore>} graphicsSettingsStore
+ * @property {ReturnType<typeof import("src/stores/hero-configuration-store.js").useHeroConfigurationStore>} heroConfigurationStore
+ * @property {ReturnType<typeof import("src/stores/hero-state-store.js").useHeroStateStore>} heroStateStore
+ */
+
+/**
+ * @typedef {object} CameraView
+ * @property {number} panX
+ * @property {number} panZ
+ * @property {number} centerX
+ * @property {number} centerZ
+ * @property {number} targetY
+ * @property {number} rotation
+ * @property {number} pitch
+ * @property {number} zoom
+ * @property {number} baseOrthoHeight
+ * @property {number} orthoHeight
+ * @property {number} viewportWidth
+ * @property {number} viewportHeight
  */
 
 export {}

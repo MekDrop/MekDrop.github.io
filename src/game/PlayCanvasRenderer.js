@@ -133,7 +133,7 @@ const INVENTORY_DROP_MAX_FALL_HEIGHT = 12;
 /**
  *
  * @param {string} scriptUrl
- * @param {boolean} wasmUrl
+ * @param {string} wasmUrl
  */
 function getShaderTranspilerScriptUrl(scriptUrl, wasmUrl) {
   const expectedWasmUrl = scriptUrl.replace(/\.js$/, ".wasm");
@@ -152,12 +152,12 @@ const TWGSL_URL = getShaderTranspilerScriptUrl(twgslScriptUrl, twgslWasmUrl);
 export class PlayCanvasRenderer {
   /**
    *
-   * @type {null}
+   * @type {typeof playCanvas|null}
    */
   #pc = null;
   /**
    *
-   * @type {null}
+   * @type {playCanvas.Application|null}
    */
   #app = null;
   /**
@@ -166,27 +166,27 @@ export class PlayCanvasRenderer {
   #shadowBudget = null;
   /**
    *
-   * @type {null}
+   * @type {GameCamera|null}
    */
   #camera = null;
   /**
    *
-   * @type {null}
+   * @type {playCanvas.Layer|null}
    */
   #cloudLayer = null;
   /**
    *
-   * @type {null}
+   * @type {playCanvas.Entity|null}
    */
   #mapRoot = null;
   /**
    *
-   * @type {null}
+   * @type {import("src/game/GameContracts.js").GameMapData|null}
    */
   #mapData = null;
   /**
    *
-   * @type {Map}
+   * @type {Map<string, playCanvas.StandardMaterial>}
    */
   #materials = new Map();
   /**
@@ -194,17 +194,17 @@ export class PlayCanvasRenderer {
    */
   #mapObjectReplacement = null;
   /**
-   * @type {Map}
+   * @type {Map<string, playCanvas.Asset>}
    */
   #textureAssets = new Map();
   /**
    *
-   * @type {Array}
+   * @type {playCanvas.VertexBuffer[]}
    */
   #vertexBuffers = [];
   /**
    *
-   * @type {import("./objects/path/BridgeRailingKit.js").BridgeRailingKit}
+   * @type {BridgeRailingKit|null}
    */
   #bridgeRailingKit = null;
   /**
@@ -214,37 +214,37 @@ export class PlayCanvasRenderer {
   #sceneObjects = new SceneObjectRegistry();
   /**
    *
-   * @type {null}
+   * @type {HeroPatGesture|null}
    */
   #heroPatGesture = null;
   /**
    *
-   * @type {null}
+   * @type {HeroPatHand|null}
    */
   #heroPatHand = null;
   /**
    *
-   * @type {null}
+   * @type {HudCollection|null}
    */
   #huds = null;
   /**
    *
-   * @type {null}
+   * @type {InventoryScene|null}
    */
   #inventoryScene = null;
   /**
    *
-   * @type {null}
+   * @type {GameOverScene|null}
    */
   #scene = null;
   /**
    *
-   * @type {null}
+   * @type {HeroVisibilityController|null}
    */
   #heroVisibility = null;
   /**
    *
-   * @type {null}
+   * @type {FloatingIslandMotion|null}
    */
   #floatingIslandMotion = null;
 
@@ -258,12 +258,12 @@ export class PlayCanvasRenderer {
   #firstPersonIslandOffsetsApplied = false;
   /**
    *
-   * @type {null}
+   * @type {playCanvas.Vec3|null}
    */
   #floatingCameraLocalOffset = null;
   /**
    *
-   * @type {null}
+   * @type {playCanvas.Vec3|null}
    */
   #floatingCloudOffset = null;
   /**
@@ -289,17 +289,17 @@ export class PlayCanvasRenderer {
   }
   /**
    *
-   * @type {null}
+   * @type {BuriedTreasureField|null}
    */
   #buriedTreasure = null;
   /**
    *
-   * @type {Array}
+   * @type {import("src/game/GameContracts.js").InteractionProvider[]}
    */
   #interactionProviders = [];
   /**
    *
-   * @type {null}
+   * @type {CubeCloudField|null}
    */
   #cloudField = null;
   /**
@@ -309,7 +309,7 @@ export class PlayCanvasRenderer {
   #collisionWorld = new GroundCollisionWorld();
   /**
    *
-   * @type {null}
+   * @type {TerrainRenderer|null}
    */
   #terrainRenderer = null;
   /**
@@ -330,22 +330,22 @@ export class PlayCanvasRenderer {
   #pointerInteraction = null;
   /**
    *
-   * @type {null}
+   * @type {import("src/game/GameContracts.js").CameraPointer|null}
    */
   #heroLookPointer = null;
   /**
    *
-   * @type {null}
+   * @type {import("src/game/GameContracts.js").SceneInteraction|null}
    */
   #interactionTarget = null;
   /**
    *
-   * @type {null}
+   * @type {string|null}
    */
   #interactionSignature = null;
   /**
    *
-   * @type {(description: import("src/game/GameContracts.js").InteractionDescription|null) => void}
+   * @type {((description: import("src/game/GameContracts.js").InteractionDescription|null) => void)|null}
    */
   #onInteractionChange = null;
   /**
@@ -360,43 +360,43 @@ export class PlayCanvasRenderer {
   #viewportPersistenceEnabled = false;
   /**
    *
-   * @type {() => void}
+   * @type {ReturnType<typeof useDebounceFn>|null}
    */
   #saveViewportDebounced = null;
   /**
    *
-   * @type {import("src/game/GameContracts.js").StoreContract}
+   * @type {ReturnType<typeof import("src/stores/debug-store.js").useDebugStore>|null}
    */
   #debugStore = null;
   /**
    *
-   * @type {import("src/game/GameContracts.js").StoreContract}
+   * @type {ReturnType<typeof import("src/stores/game-view-store.js").useGameViewStore>|null}
    */
   #gameViewStore = null;
   /**
    *
-   * @type {import("src/game/GameContracts.js").StoreContract}
+   * @type {ReturnType<typeof import("src/stores/graphics-settings-store.js").useGraphicsSettingsStore>|null}
    */
   #graphicsSettingsStore = null;
   /**
    *
-   * @type {import("src/game/GameContracts.js").StoreContract}
+   * @type {ReturnType<typeof import("src/stores/hero-configuration-store.js").useHeroConfigurationStore>|null}
    */
   #heroConfigurationStore = null;
   /**
    *
-   * @type {import("src/game/GameContracts.js").StoreContract}
+   * @type {ReturnType<typeof import("src/stores/hero-state-store.js").useHeroStateStore>|null}
    */
   #heroStateStore = null;
   /**
    *
-   * @type {null}
+   * @type {(() => void)|null}
    */
   #stopDebugStoreSubscription = null;
   /**
    *
    * @param {string} key
-   * @type {(key: string, values?: {[key: string]: string|number}) => string}
+   * @type {import("src/game/GameContracts.js").Translate}
    */
   #translate = (key) => key;
   /**
@@ -406,7 +406,7 @@ export class PlayCanvasRenderer {
   #destroyed = false;
   /**
    *
-   * @type {(error: Error) => void}
+   * @type {((error: Error) => void)|null}
    */
   #onRuntimeError;
   /**
@@ -418,16 +418,16 @@ export class PlayCanvasRenderer {
   /**
    *
    * @param {HTMLCanvasElement} canvas
-   * @param {pc.Entity} container
-   * @param {{onRuntimeError: (error: Error) => void, onInteractionChange: (description: (description: import("src/game/GameContracts.js").InteractionDescription|null) => void|null) => void, debugStore: import("src/game/GameContracts.js").StoreContract, gameViewStore: import("src/game/GameContracts.js").StoreContract, graphicsSettingsStore: import("src/game/GameContracts.js").StoreContract, heroConfigurationStore: import("src/game/GameContracts.js").StoreContract, heroStateStore: import("src/game/GameContracts.js").StoreContract}} options
-   * @param {(error: Error) => void} options.onRuntimeError
-   * @param {(description: (description: import("src/game/GameContracts.js").InteractionDescription|null) => void|null) => void} options.onInteractionChange
-   * @param {(key: string, values?: (key: string, values?: {[key: string]: string|number}) => string) => string} options.t
-   * @param {import("src/game/GameContracts.js").StoreContract} options.debugStore
-   * @param {import("src/game/GameContracts.js").StoreContract} options.gameViewStore
-   * @param {import("src/game/GameContracts.js").StoreContract} options.graphicsSettingsStore
-   * @param {import("src/game/GameContracts.js").StoreContract} options.heroConfigurationStore
-   * @param {import("src/game/GameContracts.js").StoreContract} options.heroStateStore
+   * @param {HTMLElement} container
+   * @param {import("src/game/GameContracts.js").RendererOptions} [options]
+   * @param {((error: Error) => void)|null} [options.onRuntimeError]
+   * @param {((description: import("src/game/GameContracts.js").InteractionDescription|null) => void)|null} [options.onInteractionChange]
+   * @param {import("src/game/GameContracts.js").Translate} [options.t]
+   * @param {ReturnType<typeof import("src/stores/debug-store.js").useDebugStore>} options.debugStore
+   * @param {ReturnType<typeof import("src/stores/game-view-store.js").useGameViewStore>} options.gameViewStore
+   * @param {ReturnType<typeof import("src/stores/graphics-settings-store.js").useGraphicsSettingsStore>} options.graphicsSettingsStore
+   * @param {ReturnType<typeof import("src/stores/hero-configuration-store.js").useHeroConfigurationStore>} options.heroConfigurationStore
+   * @param {ReturnType<typeof import("src/stores/hero-state-store.js").useHeroStateStore>} options.heroStateStore
    */
   constructor(
     canvas,
@@ -447,10 +447,6 @@ export class PlayCanvasRenderer {
       heroStateStore,
     } = {},
   ) {
-    /**
-     *
-     * @type {(error: Error) => void}
-     */
     this.#onRuntimeError = onRuntimeError;
     /**
      *
@@ -459,63 +455,27 @@ export class PlayCanvasRenderer {
     this.canvas = canvas;
     /**
      *
-     * @type {pc.Entity}
+     * @type {HTMLElement}
      */
     this.container = container;
-    /**
-     *
-     * @type {(description: import("src/game/GameContracts.js").InteractionDescription|null) => void}
-     */
     this.#onInteractionChange = onInteractionChange;
-    /**
-     *
-     * @type {import("src/game/GameContracts.js").StoreContract}
-     */
     this.#debugStore = debugStore;
-    /**
-     *
-     * @type {import("src/game/GameContracts.js").StoreContract}
-     */
     this.#gameViewStore = gameViewStore;
-    /**
-     *
-     * @type {import("src/game/GameContracts.js").StoreContract}
-     */
     this.#graphicsSettingsStore = graphicsSettingsStore;
-    /**
-     *
-     * @type {import("src/game/GameContracts.js").StoreContract}
-     */
     this.#heroConfigurationStore = heroConfigurationStore;
-    /**
-     *
-     * @type {import("src/game/GameContracts.js").StoreContract}
-     */
     this.#heroStateStore = heroStateStore;
     this.#heroConfigurationStore.normalizeInventorySlots();
-    /**
-     *
-     * @type {(key: string, values?: {[key: string]: string|number}) => string}
-     */
     this.#translate = t;
-    /**
-     *
-     * @type {() => void}
-     */
     this.#saveViewportDebounced = useDebounceFn(
       this.#useDebounceFn.bind(this),
       150,
     );
-    /**
-     *
-     * @type {ScenePointerInteraction}
-     */
     this.#pointerInteraction = new ScenePointerInteraction({
       canvas,
       sceneObjects: this.#sceneObjects,
       /**
        *
-       * @param {Event} event
+       * @param {import("src/game/GameContracts.js").CameraPointer} event
        */
       pointerRay: this.#pointerRay2.bind(this),
       onMousePointerMove: this.#trackHeroLookPointer,
@@ -626,7 +586,7 @@ export class PlayCanvasRenderer {
       getCameraState: this.#getCameraState.bind(this),
       /**
        *
-       * @param {import("src/game/GameContracts.js").StoreContract} state
+       * @param {import("src/game/GameContracts.js").CameraState} state
        */
       setCameraState: this.#setCameraState2.bind(this),
       clearCameraReturn: this.#clearCameraReturn.bind(this),
@@ -838,7 +798,7 @@ export class PlayCanvasRenderer {
 
   /**
    *
-   * @returns {Array}
+   * @returns {Array<import("./objects/castle/rooms/terrace/CastleTerraceActivity.js").CastleTerraceActivity["state"]|null>}
    */
   get royalCastleStates() {
     return this.#sceneObjects
@@ -886,7 +846,7 @@ export class PlayCanvasRenderer {
 
   /**
    *
-   * @returns {Array}
+   * @returns {Array<import("./objects/inventory/ThrownInventoryItem.js").ThrownInventoryItem["state"]>}
    */
   get thrownInventoryItemStates() {
     return this.#inventoryScene?.thrownItemStates ?? [];
@@ -1035,7 +995,7 @@ export class PlayCanvasRenderer {
 
   /**
    *
-   * @param {EventTarget|pc.Entity} target
+   * @param {import("src/game/GameContracts.js").InteractionDescription|null} target
    * @param {boolean} visible
    */
   setInteractionPrompt(target, visible = true) {
@@ -1436,7 +1396,7 @@ export class PlayCanvasRenderer {
 
   /**
    *
-   * @param {new (options: new (options: {pc: typeof pc, app: pc.Application, root: pc.Entity}) => {entity: pc.Entity, destroy: () => void, update?: (deltaTime: number) => void}) => new (options: {pc: typeof pc, app: pc.Application, root: pc.Entity}) => {entity: pc.Entity, destroy: () => void, update?: (deltaTime: number) => void}} HudClass
+   * @param {typeof import("./ui/GamePanelHud.js").GamePanelHud} HudClass
    * @param {{mapName?: string, numPaths?: number, numRivers?: number, signal?: AbortSignal}} options
    */
   addHud(HudClass, options = {}) {
@@ -1445,7 +1405,7 @@ export class PlayCanvasRenderer {
 
   /**
    *
-   * @param {new (options: new (options: {pc: typeof pc, app: pc.Application, root: pc.Entity}) => {entity: pc.Entity, destroy: () => void, update?: (deltaTime: number) => void}) => new (options: {pc: typeof pc, app: pc.Application, root: pc.Entity}) => {entity: pc.Entity, destroy: () => void, update?: (deltaTime: number) => void}} HudClass
+   * @param {typeof import("./ui/GamePanelHud.js").GamePanelHud} HudClass
    */
   getHud(HudClass) {
     return this.#huds?.getHud(HudClass) ?? null;
@@ -1453,7 +1413,7 @@ export class PlayCanvasRenderer {
 
   /**
    *
-   * @param {new (options: new (options: {pc: typeof pc, app: pc.Application, root: pc.Entity}) => {entity: pc.Entity, destroy: () => void, update?: (deltaTime: number) => void}) => new (options: {pc: typeof pc, app: pc.Application, root: pc.Entity}) => {entity: pc.Entity, destroy: () => void, update?: (deltaTime: number) => void}} HudClass
+   * @param {typeof import("./ui/GamePanelHud.js").GamePanelHud} HudClass
    */
   removeHud(HudClass) {
     return this.#huds?.remove(HudClass) ?? false;
@@ -1494,13 +1454,14 @@ export class PlayCanvasRenderer {
   }
 
   async #createMaterials() {
+    /**
+     * @type {Map<string, playCanvas.Texture>}
+     */
     const textures = new Map();
     await Promise.all(
       Object.entries(TEXTURE_URLS).map(/**
        *
-       * @param {{"0": Array, "1": Array}} options
-       * @param {Array} options."0"
-       * @param {Array} options."1"
+       * @param {[string, string]} entry
        */
         async ([name, url]) => {
           textures.set(name, await this.#loadTexture(name, url));
@@ -1516,7 +1477,7 @@ export class PlayCanvasRenderer {
     for (const [name, definition] of Object.entries(SIDE_VARIANT_DEFINITIONS)) {
       SIDE_VARIANT_TRANSFORMS.forEach(/**
        *
-       * @param {pc.Mat4} transform
+       * @param {typeof SIDE_VARIANT_TRANSFORMS[number]} transform
        * @param {number} index
        */
         (transform, index) => {
@@ -1541,7 +1502,7 @@ export class PlayCanvasRenderer {
       /**
        *
        * @param {string} name
-       * @param {import("src/game/GameContracts.js").GameObjectDefinition} definition
+       * @param {import("src/game/GameContracts.js").MaterialDefinition} definition
        */
       (name, definition) => this.#createMaterial(name, definition, textures),
       SIDE_VARIANT_TRANSFORMS,
@@ -1551,7 +1512,7 @@ export class PlayCanvasRenderer {
       /**
        *
        * @param {string} name
-       * @param {import("src/game/GameContracts.js").GameObjectDefinition} definition
+       * @param {import("src/game/GameContracts.js").MaterialDefinition} definition
        */
       (name, definition) => this.#createMaterial(name, definition, textures),
       SIDE_VARIANT_TRANSFORMS,
@@ -1561,8 +1522,8 @@ export class PlayCanvasRenderer {
   /**
    *
    * @param {string} name
-   * @param {import("src/game/GameContracts.js").GameObjectDefinition} definition
-   * @param {Map} textures
+   * @param {import("src/game/GameContracts.js").MaterialDefinition} definition
+   * @param {Map<string, playCanvas.Texture>} textures
    */
   #createMaterial(name, definition, textures = new Map()) {
     const pc = this.#pc;
@@ -1621,7 +1582,7 @@ export class PlayCanvasRenderer {
 
     return new Promise(/**
      *
-     * @param {(value?: (value?: void) => void) => void} resolve
+     * @param {(value: playCanvas.Texture) => void} resolve
      * @param {(reason?: Error) => void} reject
      */
       (resolve, reject) => {
@@ -1836,7 +1797,7 @@ export class PlayCanvasRenderer {
     }
     /**
      *
-     * @param {new (options: new (options: {pc: typeof pc, app: pc.Application, root: pc.Entity}) => {entity: pc.Entity, destroy: () => void, update?: (deltaTime: number) => void}) => new (options: {pc: typeof pc, app: pc.Application, root: pc.Entity}) => {entity: pc.Entity, destroy: () => void, update?: (deltaTime: number) => void}} HudClass
+     * @param {typeof import("./ui/GamePanelHud.js").GamePanelHud} HudClass
      */
     const getHud = this.#getHud.bind(this);
     const hero = new Hero({
@@ -1883,7 +1844,7 @@ export class PlayCanvasRenderer {
     this.#heroPatGesture = new HeroPatGesture(this.canvas, {
       /**
        *
-       * @param {Event} event
+       * @param {import("src/game/GameContracts.js").CameraPointer} event
        */
       hitTest: this.#hitTest.bind(this),
       pat: () => {
@@ -2197,7 +2158,7 @@ export class PlayCanvasRenderer {
 
   /**
    *
-   * @param {Event} event
+   * @param {import("src/game/GameContracts.js").CameraPointer} event
    */
   #isHeroPatHit(event) {
     const hero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
@@ -2510,7 +2471,7 @@ export class PlayCanvasRenderer {
 
   /**
    *
-   * @returns {string}
+   * @returns {import("src/game/GameContracts.js").CameraState}
    */
   get #cameraState() {
     return this.#camera.state;
@@ -2518,7 +2479,7 @@ export class PlayCanvasRenderer {
 
   /**
    *
-   * @param {import("src/game/GameContracts.js").StoreContract} state
+   * @param {import("src/game/GameContracts.js").CameraState} state
    */
   #setCameraState(state) {
     this.#camera.setState(state);
@@ -2526,7 +2487,7 @@ export class PlayCanvasRenderer {
 
   /**
    *
-   * @param {null} panOrigin
+   * @param {{x: number, z: number}|null} [panOrigin]
    * @param {boolean} preserveFocus
    */
   #updateCamera(panOrigin = null, preserveFocus = false) {
@@ -2651,7 +2612,7 @@ export class PlayCanvasRenderer {
 
   /**
    *
-   * @returns {{position: pc.Vec3, target: pc.Vec3}}
+   * @returns {import("src/game/GameContracts.js").CameraView}
    */
   get #cameraView() {
     return {
@@ -2719,7 +2680,7 @@ export class PlayCanvasRenderer {
 
   /**
    *
-   * @param {Event} event
+   * @param {import("src/game/GameContracts.js").CameraPointer} event
    */
   #pointerRay(event) {
     if (!this.#camera?.camera || !this.canvas) {
@@ -2795,7 +2756,7 @@ export class PlayCanvasRenderer {
 
   /**
    *
-   * @param {{origin: pc.Vec3, direction: pc.Vec3}} ray
+   * @param {import("./objects/shared/ScenePointerInteraction.js").ScenePointerRay} ray
    */
   #inventoryDropRaycast(ray) {
     const hits =
@@ -2867,7 +2828,7 @@ export class PlayCanvasRenderer {
 
   /**
    *
-   * @param {{origin: pc.Vec3, direction: pc.Vec3}} ray
+   * @param {import("./objects/shared/ScenePointerInteraction.js").ScenePointerRay} ray
    * @param {number} height
    */
   #inventoryDropPlanePosition(ray, height) {
@@ -2888,8 +2849,8 @@ export class PlayCanvasRenderer {
 
   /**
    *
-   * @param {Event} event
-   * @type {(event: Event) => void}
+   * @param {MouseEvent} event
+   * @type {(event: MouseEvent) => void}
    */
   #trackHeroLookPointer = (event) => {
     this.#heroLookPointer = {
@@ -2973,7 +2934,7 @@ export class PlayCanvasRenderer {
 
   /**
    *
-   * @param {EventTarget|pc.Entity} target
+   * @param {import("src/game/GameContracts.js").SceneInteraction|null} target
    */
   #setInteractionTarget(target) {
     const interaction = target?.canInteract ? target : null;
@@ -3049,7 +3010,7 @@ export class PlayCanvasRenderer {
 
   /**
    *
-   * @param {Event} event
+   * @param {import("src/game/GameContracts.js").CameraPointer} event
    */
   #pointerRay2(event) {
     return this.#camera.firstPersonEnabled ? null : this.#pointerRay(event);
@@ -3101,7 +3062,7 @@ export class PlayCanvasRenderer {
 
   /**
    *
-   * @param {import("src/game/GameContracts.js").StoreContract} state
+   * @param {import("src/game/GameContracts.js").CameraState} state
    */
   #setCameraState2(state) {
     return this.#setCameraState(state);
@@ -3255,7 +3216,7 @@ export class PlayCanvasRenderer {
 
   /**
    *
-   * @param {new (options: new (options: {pc: typeof pc, app: pc.Application, root: pc.Entity}) => {entity: pc.Entity, destroy: () => void, update?: (deltaTime: number) => void}) => new (options: {pc: typeof pc, app: pc.Application, root: pc.Entity}) => {entity: pc.Entity, destroy: () => void, update?: (deltaTime: number) => void}} HudClass
+   * @param {typeof import("./ui/GamePanelHud.js").GamePanelHud} HudClass
    */
   #getHud(HudClass) {
     return this.getHud(HudClass);
@@ -3292,7 +3253,7 @@ export class PlayCanvasRenderer {
 
   /**
    *
-   * @param {Event} event
+   * @param {import("src/game/GameContracts.js").CameraPointer} event
    */
   #hitTest(event) {
     return this.#isHeroPatHit(event);
@@ -3304,8 +3265,8 @@ export class PlayCanvasRenderer {
 
   /**
    *
-   * @param {{findInteraction: (options: {origin: pc.Vec3, direction: pc.Vec3}) => import("src/game/GameContracts.js").InteractionDescription|null}} options
-   * @param {(options: {origin: pc.Vec3, direction: pc.Vec3}) => import("src/game/GameContracts.js").InteractionDescription|null} options.findInteraction
+   * @param {import("src/game/GameContracts.js").InteractionProvider} options
+   * @param {import("src/game/GameContracts.js").InteractionProvider["findInteraction"]} options.findInteraction
    */
   static #filter2({ findInteraction }) {
     return findInteraction;
@@ -3341,7 +3302,7 @@ export class PlayCanvasRenderer {
 
   /**
    *
-   * @param {pc.PickerSelection} hit
+   * @param {playCanvas.RaycastResult} hit
    */
   static #findHit(hit) {
     return hit.normal?.y >= 0.35;
