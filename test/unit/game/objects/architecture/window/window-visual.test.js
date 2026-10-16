@@ -80,6 +80,10 @@ test("window sills overlap masonry without sharing its top plane at every size a
           const railEntity = new pc.Entity(rail.name);
           railEntity.setLocalPosition(...rail.translation);
           visual.addChild(railEntity);
+          const upright = gltf.nodes.find((node) => node.name === "Oak frame upright 1");
+          const uprightEntity = new pc.Entity(upright.name);
+          uprightEntity.setLocalPosition(...upright.translation);
+          visual.addChild(uprightEntity);
           const parent = new pc.Entity();
           Window.addVisual({
             ...pc,
@@ -114,6 +118,18 @@ test("window sills overlap masonry without sharing its top plane at every size a
           assert.equal(position.y, 3);
           assert.ok(Math.abs(position.y + scale.y - (3 + height)) < 1e-7);
           assert.equal(scale.x, 0.5);
+          const railFront = (railEntity.getLocalPosition().z + railBounds.max[2]) * scale.z;
+          const uprightBounds = gltf.accessors[gltf.meshes[upright.mesh].primitives[0].attributes.POSITION];
+          const uprightFront = (uprightEntity.getLocalPosition().z + uprightBounds.max[2]) * scale.z;
+          assert.ok(Math.abs(railFront - uprightFront) > 0.0019, `${variant}/${height}: timber joint faces stay separated`);
+          const uprightOuter = (uprightEntity.getLocalPosition().x + uprightBounds.max[0] * uprightEntity.getLocalScale().x) * scale.x;
+          assert.ok(uprightOuter > scale.x / 2 + 0.0039, `${variant}/${height}: upright extends beyond the wall's 2mm clearance`);
+          const railOuter = railBounds.max[0] * railEntity.getLocalScale().x * scale.x;
+          assert.ok(railOuter > scale.x / 2 + 0.0039, `${variant}/${height}: rail ends extend into jambs`);
+          const uprightTop = (uprightEntity.getLocalPosition().y + uprightBounds.max[1] * uprightEntity.getLocalScale().y) * scale.y;
+          const uprightBottom = (uprightEntity.getLocalPosition().y + uprightBounds.min[1] * uprightEntity.getLocalScale().y) * scale.y;
+          assert.ok(uprightTop > height + 0.0039, `${variant}/${height}: upright extends into lintel`);
+          assert.ok(uprightBottom < -0.0039, `${variant}/${height}: upright extends into sill`);
           parent.destroy();
         }
       }
@@ -157,4 +173,51 @@ test("open windows retain the surround and remove glazing and internal dividers"
   assert.ok(visual.findByName("Projecting stone sill"));
   assert.ok(visual.findByName("Oak frame rail -1"));
   parent.destroy();
+});
+
+test("glazing stays between the front and back of every timber joint", () => {
+  class TestEntity extends pc.Entity {
+    addComponent() {}
+  }
+  for (const variant of ["room", "hall", "slit"]) {
+    const data = readFileSync(new URL(`../../../../../../src/game/models/castle/windows/${variant}-window.glb`, import.meta.url));
+    const gltf = JSON.parse(data.subarray(20, 20 + data.readUInt32LE(12)).toString());
+    for (const depth of [0.25, 0.3, 0.75]) {
+      const app = { _entityIndex: {} };
+      const visual = new pc.Entity("Glazing", app);
+      for (const node of gltf.nodes) {
+        const entity = new pc.Entity(node.name, app);
+        entity.setLocalPosition(...node.translation);
+        visual.addChild(entity);
+      }
+      const parent = new pc.Entity();
+      Window.addVisual({
+        ...pc,
+        Entity: TestEntity,
+      }, { instantiate: () => visual }, parent, {
+        from: {
+          x: 0,
+          y: 0,
+          z: 0,
+        },
+        to: {
+          x: 1,
+          y: 1.5,
+          z: 0,
+        },
+        depth,
+        variant,
+      });
+      const pane = visual.findByName("Amber glass pane 0 0");
+      const sourcePane = gltf.nodes.find(node => node.name === "Amber glass pane 0 0");
+      const paneBounds = gltf.accessors[gltf.meshes[sourcePane.mesh].primitives[0].attributes.POSITION];
+      for (const node of gltf.nodes.filter(node => /^(Oak frame |Central oak mullion|Fine oak transom)/.test(node.name))) {
+        const timber = visual.find(entity => entity.name.startsWith(node.name.startsWith("Fine oak transom") ? "Fine oak transom" : node.name))[0];
+        const bounds = gltf.accessors[gltf.meshes[node.mesh].primitives[0].attributes.POSITION];
+        assert.ok(pane.getLocalPosition().z + paneBounds.min[2] > timber.getLocalPosition().z + bounds.min[2], `${variant}/${depth}/${node.name}: glass stays ahead of inner timber face`);
+        assert.ok(pane.getLocalPosition().z + paneBounds.max[2] < timber.getLocalPosition().z + bounds.max[2], `${variant}/${depth}/${node.name}: glass stays behind outer timber face`);
+      }
+      parent.destroy();
+    }
+  }
 });

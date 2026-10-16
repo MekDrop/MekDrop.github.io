@@ -20,12 +20,19 @@ export class WindowModules {
       for (let row = 0; row < rows; row++) {
         const copy = pane.clone();
         copy.name = `Amber glass pane ${column} ${row}`;
-        // Seat the glazing inside the timber depth. The imported panes sit
-        // behind the dividers, exposing a slit when viewed obliquely.
+        // Keep both faces of the glazing inside the timber depth, including
+        // the rails' joint offset. A pane protruding behind the timber draws
+        // amber over its inner face when viewed from inside the room.
         copy.setLocalPosition(-0.5 + (column + 0.5) / columns,
-          (row + 0.5) / rows, pane.getLocalPosition().z + 0.035);
+          (row + 0.5) / rows, pane.getLocalPosition().z + 0.06);
         const scale = pane.getLocalScale();
         copy.setLocalScale(scale.x * sourceColumns / columns, scale.y * sourceRows / rows, scale.z);
+        // Translucent, emissive glazing must not behave like an opaque shadow
+        // caster. Its two close faces otherwise shadow one another and the oak.
+        for (const render of copy.findComponents("render")) {
+          render.castShadows = false;
+          render.receiveShadows = false;
+        }
         pane.parent.addChild(copy);
       }
     }

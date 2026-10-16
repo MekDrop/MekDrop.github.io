@@ -81,6 +81,22 @@ export class Window {
       window.position.y, window.position.z + Math.cos(angle) * 0.004);
     visual.setLocalEulerAngles(0, window.yaw, 0);
     visual.setLocalScale(window.width, window.height, window.depth);
+    // Timber joints must overlap in depth instead of sharing front/back faces.
+    // The rails cross the uprights, and the transoms cross the mullions.
+    for (const node of visual.find(Window.#findHorizontalTimber)) {
+      const position = node.getLocalPosition();
+      const scale = node.getLocalScale();
+      node.setLocalPosition(position.x, position.y, position.z + 0.002 / window.depth);
+      node.setLocalScale(scale.x * (1 + 0.008 / window.width), scale.y, scale.z);
+    }
+    for (const node of visual.find(Window.#findVerticalTimber)) {
+      const scale = node.getLocalScale();
+      node.setLocalScale(scale.x, scale.y * (1 + 0.008 / window.height), scale.z);
+    }
+    // Bury the outside of each upright in the jamb rather than leaving the
+    // timber side exactly coplanar with the stone aperture face.
+    Window.#fitUpright(visual, window.width, -1);
+    Window.#fitUpright(visual, window.width, 1);
     // The sill overlaps the masonry below the aperture. Separate its top from
     // the wall's horizontal cut face to prevent z-fighting as the camera moves.
     // Correct for parent scaling so the clearance stays two millimetres.
@@ -150,5 +166,35 @@ export class Window {
    */
   static #findNode(node) {
     return /^(Amber glass pane |Fine oak transom |Central oak mullion)/.test(node.name);
+  }
+
+  /**
+   * @param {import("playcanvas").Entity} visual
+   * @param {number} width
+   * @param {number} side
+   */
+  static #fitUpright(visual, width, side) {
+    const upright = visual.findByName(`Oak frame upright ${side}`);
+    if (upright) {
+      const position = upright.getLocalPosition();
+      const scale = upright.getLocalScale();
+      upright.setLocalPosition(position.x + side * 0.002 / width, position.y, position.z);
+      upright.setLocalScale(scale.x * (1 + 0.004 / (0.052 * width)), scale.y, scale.z);
+    }
+  }
+  /**
+   * @param {import("playcanvas").GraphNode} node
+   * @returns {boolean}
+   */
+  static #findHorizontalTimber(node) {
+    return /^(Oak frame rail |Fine oak transom )/.test(node.name);
+  }
+
+  /**
+   * @param {import("playcanvas").GraphNode} node
+   * @returns {boolean}
+   */
+  static #findVerticalTimber(node) {
+    return /^(Oak frame upright |Central oak mullion)/.test(node.name);
   }
 }
