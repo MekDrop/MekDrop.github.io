@@ -24,14 +24,13 @@ export class Banner {
   static get modelUrls() { return BannerCloth.modelUrls; }
 
   /**
-   * Migrate saved room banners and publish castle cloth through map objects.
+   * Publish castle cloth through map objects.
    * @param {import("../ObjectTypes.js").GameMapData} mapData
    */
   static prepareMap(mapData) {
     const objects = mapData.objects ??= [];
     for (let index = objects.length - 1; index >= 0; index--) {
       const item = objects[index];
-      if (item.object === "VestibuleBanner") { item.object = Banner.name; }
       if (!item.castleBanner) { continue; }
       const castle = objects.find(
         /**

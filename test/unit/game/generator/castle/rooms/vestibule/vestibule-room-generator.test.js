@@ -7,7 +7,7 @@ it("furnishes the arrival room while preserving circulation and window approache
   for (const seed of [20, 21]) {
     const plan = await CastleBasePlanGenerator.generate({ seed });
     const items = plan.furniture.filter(item => item.role === "vestibuleProp");
-    for (const object of ["Bench", "VestibuleCloakRail", "Banner", "Rug", "VestibuleLantern",
+    for (const object of ["Bench", "VestibuleCloakRail", "Banner", "Rug", "Lantern",
       "Painting", "StandingArmor", "Chest", "TravelKit", "Boots", "VestibuleStickStand"]) {
       assert.ok(items.some(item => item.object === object), `${object} seed ${seed}`);
     }
@@ -18,7 +18,7 @@ it("furnishes the arrival room while preserving circulation and window approache
         const halfZ = item.depth * item.scale / 2;
         assert.ok(item.x - halfX >= room.minX - 1e-6 && item.x + halfX <= room.maxX + 1e-6);
         assert.ok(item.z - halfZ >= room.minZ - 1e-6 && item.z + halfZ <= room.maxZ + 1e-6);
-        if (["Bench", "VestibuleCloakRail", "VestibuleLantern"].includes(item.object)) {
+        if (["Bench", "VestibuleCloakRail", "Lantern"].includes(item.object)) {
           assert.ok(Math.abs(item.x - (room.minX + room.maxX) / 2) >= halfX + 0.6);
         }
         for (const opening of plan.openings.filter(opening => opening.floorY === room.floorY)) {
@@ -131,9 +131,9 @@ it("chooses either seating or a map table and keeps all door approaches connecte
     const plan = await CastleBasePlanGenerator.generate({ seed });
     const room = plan.spaces.find(room => room.id === "vestibule");
     const items = plan.furniture.filter(item => item.roomId === room.id);
-    const islands = items.filter(item => (item.object === "Bench" && item.variant === "island" || item.object === "VestibuleMapTable"));
+    const islands = items.filter(item => (item.object === "Bench" && item.variant === "island" || item.object === "Table" && item.properties?.worldMap));
     assert.equal(islands.length, 1);
-    assert.equal(islands[0].object, seed < 6 ? "Bench" : "VestibuleMapTable");
+    assert.equal(islands[0].object, seed < 6 ? "Bench" : "Table");
     const bags = items.filter(item => item.underSupport && item.supportId === islands[0].id);
     assert.equal(bags.length, seed < 6 ? 4 : 0);
     if (bags.length) {
@@ -153,7 +153,7 @@ it("chooses either seating or a map table and keeps all door approaches connecte
     const console = items.find(item => item.object === "WritingDesk");
     assert.ok(console, `console for seed ${seed}`);
     assert.ok(!items.some(item => item.object === "Bench" && item.variant === "wall"));
-    assert.ok(items.some(item => item.object === "LibrarySideTable" && item.id.endsWith("window-stand")));
+    assert.ok(items.some(item => item.object === "Table" && item.id.endsWith("window-stand")));
     assert.ok(items.some(item => item.object === "Rug" && item.id?.endsWith("arrival-rug")),
       "arrival furniture has its own broad floor covering");
     assert.ok(items.some(item => item.object === "WarCouncilShield" && item.id.endsWith("arrival-shield")),
@@ -170,7 +170,7 @@ it("chooses either seating or a map table and keeps all door approaches connecte
         "the console-side aisle remains comfortable");
     }
     assert.ok(items.some(item => item.object === "VestibuleCloakRail" && item.id === `${console.id}-hooks`));
-    for (const object of ["TableLantern", "Planter"]) {
+    for (const object of ["Lantern", "Planter"]) {
       assert.ok(items.some(item => item.object === object && item.supportId === console.id));
     }
     assert.ok(islands.every(item => item.y === 0.033));
@@ -247,7 +247,7 @@ it("rotates the selected island in long rooms and leaves narrow corridors clear"
     level: 0,
   };
   const items = generator.furnish(room);
-  const islands = items.filter(item => (item.object === "Bench" && item.variant === "island" || item.object === "VestibuleMapTable"));
+  const islands = items.filter(item => (item.object === "Bench" && item.variant === "island" || item.object === "Table"));
   assert.equal(islands.length, 1);
   assert.ok(islands.every(item => item.rotation === 90 && item.depth === 2.7));
   const smaller = generator.furnish({
@@ -255,11 +255,11 @@ it("rotates the selected island in long rooms and leaves narrow corridors clear"
     maxX: 4,
     maxZ: 3.875,
   });
-  assert.equal(smaller.filter(item => item.object === "VestibuleMapTable").length, 0);
+  assert.equal(smaller.filter(item => item.object === "Table").length, 0);
   assert.equal(smaller.filter(item => item.object === "Bench" && item.variant === "island").length, 1);
   const narrow = generator.furnish({
     ...room,
     maxX: 2.8,
   });
-  assert.equal(narrow.filter(item => (item.object === "Bench" && item.variant === "island" || item.object === "VestibuleMapTable")).length, 0);
+  assert.equal(narrow.filter(item => (item.object === "Bench" && item.variant === "island" || item.object === "Table")).length, 0);
 });

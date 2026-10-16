@@ -68,8 +68,12 @@ export class RoyalBedroomFurnishing {
     const spacious = (room.maxX - room.minX) * (room.maxZ - room.minZ) > 18;
     if (this.#variant === 2 && !spacious) {
       const chair = this.#perimeter("Chair", 0.75, 0.735, 0.85, [90, 0, 270, 180]);
-      const table = this.#perimeter("LibrarySideTable", 0.6841, 0.6162, 0.55, [0, 90, 270, 180], chair);
-      if (table) { this.#supported("OpenReadingBook", table, 0.36, 0.227, 0.0673); }
+      const table = this.#perimeter("Table", 0.6841, 0.6162, 0.55, [0, 90, 270, 180], chair, {
+        width: 0.6841,
+        height: 0.55,
+        depth: 0.6162,
+      });
+      if (table) { this.#supported("Book", table, 0.36, 0.227, 0.0673, {isOpen: true}); }
     }
     if (this.#variant === 3) { this.#bedside(bed, -1); }
     if (this.#variant === 4) {
@@ -112,7 +116,7 @@ export class RoyalBedroomFurnishing {
       const z = bed.z - direction * Math.sin(angle) * 0.95 - Math.cos(angle) * 0.55;
       const drawer = this.#place("BedsideDrawers", x, z, 0.6004, 0.5604, 0.65, bed.rotation);
       if (!drawer) { continue; }
-      this.#supported("TableCandles", drawer, 0.1407, 0.1916, 0.2311);
+      this.#supported("CandleStand", drawer, 0.1407, 0.1916, 0.2311, {variant: "table"});
 
       return;
     }
@@ -149,9 +153,10 @@ export class RoyalBedroomFurnishing {
    * @param {number} height
    * @param {number[]} walls
    * @param {import("../AbstractCastleRoomGenerator.js").RoomItem} [near]
+   * @param {Partial<import("../../../objects/ObjectTypes.js").MapObjectDefinition>} [properties]
    * @returns {import("../AbstractCastleRoomGenerator.js").RoomItem|undefined}
    */
-  #perimeter(object, width, depth, height, walls, near) {
+  #perimeter(object, width, depth, height, walls, near, properties = {}) {
     const room = this.#room.contentBounds ?? this.#room;
     const inset = this.#thickness / 2 + 0.055;
     const candidates = [];
@@ -176,7 +181,7 @@ export class RoyalBedroomFurnishing {
        */ (first, second) => Math.hypot(first.x - near.x, first.z - near.z) - Math.hypot(second.x - near.x, second.z - near.z));
     }
     for (const candidate of candidates) {
-      const item = this.#place(object, candidate.x, candidate.z, width, depth, height, candidate.rotation);
+      const item = this.#place(object, candidate.x, candidate.z, width, depth, height, candidate.rotation, properties);
       if (item && object === "royalBed") {
         const before = this.#items.length;
         this.#bedside(item);
@@ -194,13 +199,15 @@ export class RoyalBedroomFurnishing {
    * @param {number} depth
    * @param {number} height
    * @param {number} rotation
+   * @param {Partial<import("../../../objects/ObjectTypes.js").MapObjectDefinition>} [properties]
    * @returns {import("../AbstractCastleRoomGenerator.js").RoomItem|undefined}
    */
-  #place(object, x, z, width, depth, height, rotation) {
+  #place(object, x, z, width, depth, height, rotation, properties = {}) {
     const sideways = rotation % 180 !== 0;
     const item = {
       id: `${this.#room.id}-royal-${this.#items.length}`,
       object: /^[A-Z]/.test(object) ? object : undefined,
+      properties,
       role: /^[A-Z]/.test(object) ? "royalBedroomProp" : object,
       x,
       z,
@@ -313,13 +320,15 @@ export class RoyalBedroomFurnishing {
    * @param {number} width
    * @param {number} depth
    * @param {number} height
+   * @param {Partial<import("../../../objects/ObjectTypes.js").MapObjectDefinition>} [properties]
    */
-  #supported(object, support, width, depth, height) {
+  #supported(object, support, width, depth, height, properties = {}) {
     const sideways = support.rotation % 180 !== 0;
     const item = {
       id: `${support.id}-${object}`,
       role: "royalBedroomProp",
       object,
+      properties,
       supportId: support.id,
       x: support.x,
       z: support.z,

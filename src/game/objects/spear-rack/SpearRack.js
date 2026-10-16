@@ -20,9 +20,8 @@ export class SpearRack extends AbstractCastleProp {
    */
   prepareModel(model, collision) {
     const { height = 1.2, spearSeed } = this.definition;
-    const legacy = this.definition.length === undefined && this.definition.depth !== undefined;
-    const length = this.definition.length ?? (legacy ? this.definition.width ?? 0.5 : 0.5);
-    const width = legacy ? this.definition.depth : this.definition.width ?? 0.25;
+    const length = this.definition.length ?? 0.5;
+    const width = this.definition.width ?? 0.25;
     const templates = new Map(["Rack rail", "Rack base", "Rack upright", "Rack foot",
       "Rack crossbeam", "Rack brace", "Rack guide", "Rack socket", "Rack spear"].map(
       /**

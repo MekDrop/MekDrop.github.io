@@ -40,7 +40,7 @@ Saved JSON maps and generator finalization author entities through `objects[]`:
 - `Castle`: `navigation` stores its grid foundation and route endpoints alongside
   its existing generation inputs.
 
-`MapObjectDefinitions.prepare(map)` accepts old top-level fields and publishes
+`MapObjectDefinitions.prepare(map)` publishes
 non-enumerable runtime views (`entries`, `riverData`, `groundCoverData`,
 `overpassData`, `heroSpawn`, `islandConnectorData`, and `castle`) from the records.
 These views keep shared terrain, navigation, and physics consumers working and are

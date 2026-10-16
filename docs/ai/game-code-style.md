@@ -2,6 +2,8 @@
 
 Read this when changing class internals, accessors, mutators, errors, enums, or registry keys, especially under `src/game/`.
 
+The project is unreleased. When internal names or data formats change, update their producers, saved maps, callers, and tests together. Remove obsolete aliases and migrations instead of retaining backward compatibility for earlier project data. Keep compatibility with supported external APIs and browsers where it is still needed.
+
 For class methods that are zero-argument, read-only accessors, prefer ES6 getter syntax (`get value()`) over `getValue()` methods when the method is called like property access.
 
 For class mutators that are simple one-argument property writes and are naturally used as properties, prefer ES6 setter syntax (`set value(...)`) over explicit methods.

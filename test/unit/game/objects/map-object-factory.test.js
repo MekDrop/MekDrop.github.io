@@ -29,12 +29,12 @@ const hooks = registerHooks({
 const { MapObjectFactory } = await import("../../../../src/game/objects/MapObjectFactory.js");
 hooks.deregister();
 
-test("castle-generated lanterns are normalized after room objects are published", async () => {
+test("castle-generated lanterns publish canonical names and explicit model types", async () => {
   const map = await generateMap({ mapName: "mv7wfhrn_1d30anq" });
   MapObjectFactory.prepareMap(map);
   assert.ok(map.objects.some(item => item.object === "Lantern"));
-  assert.ok(!map.objects.some(item => ["VestibuleLantern", "ServantBedsideLantern",
-    "EntranceLantern", "WallLantern", "TableLantern"].includes(item.object)));
+  const lanterns = map.objects.filter(item => item.object === "Lantern");
+  assert.ok(lanterns.every(item => ["entrance", "wall", "table"].includes(item.type)));
 });
 
 test("map objects retain one mutable shared runtime and one contained-object factory", () => {

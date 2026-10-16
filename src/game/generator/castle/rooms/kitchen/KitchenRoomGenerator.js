@@ -69,13 +69,15 @@ export class KitchenRoomGenerator extends AbstractCastleRoomGenerator {
      * @param {number} [rotation]
      * @param {import("../../../../objects/ObjectTypes.js").MapObjectDefinition[]} [contents]
      * @param {string} [color]
+     * @param {Partial<import("../../../objects/ObjectTypes.js").MapObjectDefinition>} [properties]
      * @returns {boolean}
      */
-    const prop = (object, x, z, w, d, y = 0, rotation = 0, contents = undefined, color = undefined) => {
+    const prop = (object, x, z, w, d, y = 0, rotation = 0, contents = undefined, color = undefined, properties = {}) => {
       const wallMounted = ["HangingFryingPan", "Fireplace"].includes(object);
       const fireplace = object === "Fireplace";
       if (fireplace && !FireplaceWallBacking.accepts({
         object,
+        properties,
         x,
         z,
         width: w,
@@ -84,7 +86,7 @@ export class KitchenRoomGenerator extends AbstractCastleRoomGenerator {
         y,
       },
       room, context.openings ?? [])) { return false; }
-      if (!available(x, z, w, d, wallMounted ? 0 : ["FirewoodStack", "KitchenTable"].includes(object) ? 0.015 : inset,
+      if (!available(x, z, w, d, wallMounted ? 0 : ["FirewoodStack", "Table"].includes(object) ? 0.015 : inset,
         wallMounted ? room.wallBounds ?? room : room)) { return false; }
       /**
        * @param {import("../AbstractCastleRoomGenerator.js").RoomItem} item
@@ -96,6 +98,7 @@ export class KitchenRoomGenerator extends AbstractCastleRoomGenerator {
       items.push({
         role: "kitchenProp",
         object,
+        properties,
         x,
         z,
         width: w,
@@ -147,7 +150,11 @@ export class KitchenRoomGenerator extends AbstractCastleRoomGenerator {
     if (width < 2.8 || depth < 3) { return items; }
     let tableX = sideEntry ? room.minX + (eastEntry ? 2.3 : 2.2) + random() * (eastEntry ? 0.05 : 0.18) : room.maxX - inset - 0.314;
     let tableZ = sideEntry ? eastEntry ? walls.maxZ - (context.wallThickness ?? 0.25) / 2 - 0.314 - 0.015 : walls.minZ + (context.wallThickness ?? 0.25) / 2 + 0.314 + 0.015 : room.minZ + 1.5 + random() * 0.18;
-    let tablePlaced = prop("KitchenTable", tableX, tableZ, sideEntry ? 1.25 : 0.628, sideEntry ? 0.628 : 1.25, 0, sideEntry ? 90 : 0);
+    let tablePlaced = prop("Table", tableX, tableZ, sideEntry ? 1.25 : 0.628, sideEntry ? 0.628 : 1.25, 0, sideEntry ? 90 : 0, undefined, undefined, {
+      width: 0.6271365,
+      height: 0.56465894,
+      depth: 1.25,
+    });
     for (const bank of sideEntry ? [0, 1] : [0]) {
       for (const fraction of [0.2, 0.5, 0.8]) {
         if (tablePlaced) { break; }
@@ -156,7 +163,11 @@ export class KitchenRoomGenerator extends AbstractCastleRoomGenerator {
           if (bank === 1) { tableZ = eastEntry ? walls.minZ + (context.wallThickness ?? 0.25) / 2 + 0.314 + 0.015 : walls.maxZ - (context.wallThickness ?? 0.25) / 2 - 0.314 - 0.015; }
         }
         else { tableZ = room.minZ + inset + 0.625 + fraction * (depth - 2 * inset - 1.25); }
-        tablePlaced = prop("KitchenTable", tableX, tableZ, sideEntry ? 1.25 : 0.628, sideEntry ? 0.628 : 1.25, 0, sideEntry ? 90 : 0);
+        tablePlaced = prop("Table", tableX, tableZ, sideEntry ? 1.25 : 0.628, sideEntry ? 0.628 : 1.25, 0, sideEntry ? 90 : 0, undefined, undefined, {
+          width: 0.6271365,
+          height: 0.56465894,
+          depth: 1.25,
+        });
       }
     }
     if (tablePlaced) {
@@ -235,7 +246,7 @@ export class KitchenRoomGenerator extends AbstractCastleRoomGenerator {
         if (prop("PotteryJar", shelf.x - (sideways ? 0 : 0.2), shelf.z - (sideways ? 0.2 : 0), 0.229, 0.236, support.height)) {
           items.at(-1).supportId = support.id;
         }
-        if (prop("TableCandles", shelf.x + (sideways ? 0 : 0.2), shelf.z + (sideways ? 0.2 : 0), 0.141, 0.192, support.height)) {
+        if (prop("CandleStand", shelf.x + (sideways ? 0 : 0.2), shelf.z + (sideways ? 0.2 : 0), 0.141, 0.192, support.height, undefined, undefined, undefined, {variant: "table"})) {
           items.at(-1).supportId = support.id;
         }
         break;

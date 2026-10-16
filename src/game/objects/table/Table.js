@@ -60,24 +60,18 @@ export class Table extends AbstractCastleProp {
     this.visualRoots[0].addChild(paper);
   }
   /**
-   * Resolve old saved-map names into dimensions on the shared timber model.
+   * Apply default dimensions to the shared timber model.
    * @param {import("../ObjectTypes.js").MapObjectDefinition} definition
    * @returns {import("../ObjectTypes.js").MapObjectDefinition}
    */
   static definitionFor(definition) {
-    const defaults = {
-      LibrarySideTable: [0.6841, 0.55, 0.6162],
-      VestibuleMapTable: [1.8, 1, 1],
-      TeaTable: [1.25, 1.0622, 1.25],
-    }[definition.object] ?? [0.6271365, 0.56465894, 1.25];
-
     return {
       ...definition,
       object: Table.name,
-      width: definition.width ?? defaults[0],
-      height: definition.height ?? defaults[1],
-      depth: definition.depth ?? defaults[2],
-      worldMap: definition.worldMap ?? ["WarMapTable", "VestibuleMapTable"].includes(definition.object),
+      width: definition.width ?? 0.6271365,
+      height: definition.height ?? 0.56465894,
+      depth: definition.depth ?? 1.25,
+      worldMap: definition.worldMap ?? false,
     };
   }
 

@@ -1197,13 +1197,17 @@
         "col": 6,
         "row": 6
       }
+    },
+    {
+      "id": "hero-spawn",
+      "object": "SpawnPoint",
+      "position": {
+        "x": 0,
+        "y": 2.14,
+        "z": 3
+      }
     }
   ],
-  "heroSpawn": {
-    "x": 0,
-    "y": 2.14,
-    "z": 3
-  },
   "animationViewport": {
     "zoom": 14,
     "rotation": 2,

@@ -42,21 +42,3 @@ test("dimensions resize visible and collision models identically, retaining plac
   visual.destroy();
   collider.destroy();
 });
-
-test("legacy names use one table and explicit dimensions override their defaults", () => {
-  for (const object of ["KitchenTable", "TeaTable", "LibrarySideTable", "VestibuleMapTable", "WarMapTable"]) {
-    const definition = Table.definitionFor({
-      object,
-      width: 3,
-    });
-    assert.equal(definition.object, "Table");
-    assert.equal(definition.width, 3);
-    assert.ok(definition.height > 0);
-    assert.ok(definition.depth > 0);
-    assert.equal(definition.worldMap, ["WarMapTable", "VestibuleMapTable"].includes(object));
-  }
-  assert.equal(Table.definitionFor({
-    object: "WarMapTable",
-    worldMap: false,
-  }).worldMap, false);
-});

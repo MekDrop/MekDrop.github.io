@@ -1,4 +1,4 @@
-import { ROOM_PROP_HEIGHTS, ROOM_PROP_BOTTOMS } from "./RoomPropHeights.js";
+import { roomPropHeight, roomPropBottom } from "./RoomPropHeights.js";
 import { FireplaceWallBacking } from "./FireplaceWallBacking.js";
 import { FireplaceChimneyFootprint } from "../../../objects/fireplace/FireplaceChimneyFootprint.js";
 
@@ -32,8 +32,8 @@ export class RoomPlacementRules {
     const halfZ = item.depth * item.scale / 2;
     if (item.x - halfX < bounds.minX + inset - 1e-6 || item.x + halfX > bounds.maxX - inset + 1e-6 ||
       item.z - halfZ < bounds.minZ + inset - 1e-6 || item.z + halfZ > bounds.maxZ - inset + 1e-6) { return false; }
-    const bottom = (item.floorY ?? room.floorY) + (item.y ?? item.elevation ?? 0) + (ROOM_PROP_BOTTOMS[item.object] ?? 0) * item.scale;
-    const top = bottom + (item.height ?? ROOM_PROP_HEIGHTS[item.object] ?? room.height) * item.scale;
+    const bottom = (item.floorY ?? room.floorY) + (item.y ?? item.elevation ?? 0) + roomPropBottom(item) * item.scale;
+    const top = bottom + roomPropHeight(item, room.height) * item.scale;
     /**
      *
      * @param {import("./AbstractCastleRoomGenerator.js").RoomItem} candidate
@@ -47,8 +47,8 @@ export class RoomPlacementRules {
           item.x + halfX > chimney.minX && item.x - halfX < chimney.maxX &&
           item.z + halfZ > chimney.minZ && item.z - halfZ < chimney.maxZ) { return false; }
       }
-      const otherBottom = (other.floorY ?? room.floorY) + (other.y ?? other.elevation ?? 0) + (ROOM_PROP_BOTTOMS[other.object] ?? 0) * other.scale;
-      const otherTop = otherBottom + (other.height ?? ROOM_PROP_HEIGHTS[other.object] ?? room.height) * other.scale;
+      const otherBottom = (other.floorY ?? room.floorY) + (other.y ?? other.elevation ?? 0) + roomPropBottom(other) * other.scale;
+      const otherTop = otherBottom + roomPropHeight(other, room.height) * other.scale;
       // Contact at a supporting surface is allowed; intersecting volumes are not.
       if (bottom >= otherTop - 0.005 || top <= otherBottom + 0.005) { continue; }
       if (item.supportId === other.id && item.underSupport) { continue; }
@@ -76,7 +76,7 @@ export class RoomPlacementRules {
     // Older generators publish supported tabletop details without explicit IDs.
     for (const item of result) {
       if (item.supportId || (item.y ?? item.elevation ?? 0) < 0.05 ||
-        (item.height ?? ROOM_PROP_HEIGHTS[item.object] ?? 1) * item.scale > 0.5) { continue; }
+        roomPropHeight(item, 1) * item.scale > 0.5) { continue; }
       const a = envelope(item);
       const support = result.find(/**
        *
@@ -230,7 +230,7 @@ export class RoomPlacementRules {
        * @param {{x:number,z:number}} candidate
        * @returns {number}
        */
-      const wallDistance = candidate => Math.min(...(root.endWallStorage && (root.object === "Chest" || root.object === "WoodenStorageChest")
+      const wallDistance = candidate => Math.min(...(root.endWallStorage && root.object === "Chest"
         ? (root.wallAlignment ?? []).slice(0, 2) : root.wallAlignment ?? []).map(/**
        * @param {{axis:string,coordinate:number,side:string}} wall
        */
@@ -324,7 +324,7 @@ export class RoomPlacementRules {
    * @returns {{minX:number,maxX:number,minZ:number,maxZ:number,bottom:number,top:number}}
    */
   static #envelope(item) {
-    const bottom = item.floorY + (item.y ?? item.elevation ?? 0) + (ROOM_PROP_BOTTOMS[item.object] ?? 0) * item.scale;
+    const bottom = item.floorY + (item.y ?? item.elevation ?? 0) + roomPropBottom(item) * item.scale;
     const angle = item.underStair ? (item.rotation ?? 0) * Math.PI / 180 : 0;
     const width = item.width * Math.abs(Math.cos(angle)) + item.depth * Math.abs(Math.sin(angle));
     const depth = item.width * Math.abs(Math.sin(angle)) + item.depth * Math.abs(Math.cos(angle));
@@ -338,7 +338,7 @@ export class RoomPlacementRules {
       minZ: z - depth * item.scale / 2,
       maxZ: z + depth * item.scale / 2,
       bottom,
-      top: bottom + (item.height ?? ROOM_PROP_HEIGHTS[item.object] ?? 1) * item.scale,
+      top: bottom + roomPropHeight(item, 1) * item.scale,
     };
   }
 
@@ -359,8 +359,8 @@ export class RoomPlacementRules {
     return (
       Number(second.object === "Fireplace") - Number(first.object === "Fireplace") ||
       Number(Boolean(second.backPocketStorage)) * 2 - Number(Boolean(first.backPocketStorage)) * 2 ||
-      Number(Boolean(second.underStair && second.endWallStorage && (second.object === "Chest" || second.object === "WoodenStorageChest"))) -
-      Number(Boolean(first.underStair && first.endWallStorage && (first.object === "Chest" || first.object === "WoodenStorageChest")))
+      Number(Boolean(second.underStair && second.endWallStorage && second.object === "Chest")) -
+      Number(Boolean(first.underStair && first.endWallStorage && first.object === "Chest"))
     );
   }
 }

@@ -3,7 +3,7 @@ import { it } from "node:test";
 import { CastleAuthoredBuildPlan } from "../../../../../../../src/game/generator/castle/CastleAuthoredBuildPlan.js";
 import { VestibuleRoomMapObjects } from "../../../../../../../src/game/objects/castle/rooms/vestibule/VestibuleRoomMapObjects.js";
 
-it("migrates saved bench furnishings without changing placement or duplicating objects", async () => {
+it("publishes canonical bench furnishings without changing placement or duplicating objects", async () => {
   for (const seed of [4, 20]) {
     const buildPlan = await CastleAuthoredBuildPlan.generate({
       seed,
@@ -25,7 +25,7 @@ it("migrates saved bench furnishings without changing placement or duplicating o
       cols: 32,
       rows: 32,
       objects: [{
-        id: "bench-compatibility",
+        id: "bench-furnishings",
         object: "Castle",
         buildPlan,
       }],
@@ -33,11 +33,6 @@ it("migrates saved bench furnishings without changing placement or duplicating o
     VestibuleRoomMapObjects.prepareMap(map);
     const expected = structuredClone(map.objects.filter(item => item.object === "Bench"));
     assert.ok(expected.length > 0);
-    for (const item of buildPlan.metadata.runtime.residential.furniture) {
-      if (item.object !== "Bench") { continue; }
-      item.object = item.variant === "island" ? "VestibuleIslandBench" : "VestibuleBench";
-      delete item.variant;
-    }
     VestibuleRoomMapObjects.prepareMap(map);
     assert.deepEqual(map.objects.filter(item => item.object === "Bench"), expected);
     VestibuleRoomMapObjects.prepareMap(map);
@@ -167,9 +162,9 @@ it("publishes exactly one central island in each variant and reflected service-w
     };
     VestibuleRoomMapObjects.prepareMap(map);
     const first = structuredClone(map.objects.slice(1));
-    const islands = first.filter(item => (item.object === "Bench" && item.variant === "island" || item.object === "VestibuleMapTable"));
+    const islands = first.filter(item => (item.object === "Bench" && item.variant === "island" || item.object === "Table" && item.worldMap));
     assert.equal(islands.length, 1);
-    assert.equal(islands[0].object, seed < 6 ? "Bench" : "VestibuleMapTable");
+    assert.equal(islands[0].object, seed < 6 ? "Bench" : "Table");
     assert.ok(islands.every(item => Math.abs(item.position.y - 2.033) < 1e-6 && item.scale === 1));
     const rug = first.find(item => item.object === "Rug");
     assert.ok(rug.stretch.x > 1 && rug.stretch.z < 1);
@@ -198,11 +193,11 @@ it("publishes exactly one central island in each variant and reflected service-w
     assert.ok(!first.some(item => item.object === "Bench" && item.variant === "wall"));
     if (bench) { assert.equal(islands[0].stretch.x, 1.5); }
     assert.equal(first.filter(item => item.object === "WritingDesk").length, 1);
-    assert.equal(first.filter(item => item.object === "TableLantern").length, 2);
+    assert.equal(first.filter(item => item.object === "Lantern").length, 2);
     const arrivalStorage = authored.find(item => item.id.endsWith("arrival-storage"));
     assert.ok(arrivalStorage && !arrivalStorage.placementIssue, "storage fills the bay beneath the shield");
     assert.ok(authored.some(item => item.object === "FoldedLinens" && item.supportId === arrivalStorage.id));
-    assert.ok(authored.filter(item => (item.object === "Bench" && item.variant === "island" || item.object === "VestibuleMapTable"))
+    assert.ok(authored.filter(item => (item.object === "Bench" && item.variant === "island" || item.object === "Table"))
       .every(item => !item.placementIssue));
     VestibuleRoomMapObjects.prepareMap(map);
     assert.deepEqual(map.objects.slice(1), first);

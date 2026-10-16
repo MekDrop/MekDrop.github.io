@@ -99,31 +99,7 @@ export class CastleLanternMapObjects {
           }
         }
       }
-      if (layout && residential.version !== 2) {
-        for (const room of [layout.rooms.work, layout.rooms.bedroom]) {
-          for (const x of [room.minX + 0.12, room.maxX - 0.12]) {
-            add({
-              object: "Lantern",
-              type: "wall",
-              position: layout.toWorld(x,
-                room.minZ + (room.maxZ - room.minZ) * 0.65, room.floorY - layout.origin.y + 0.65),
-              rotation: layout.yaw + (x < 0 ? 90 : -90),
-              scale: 0.7,
-              collisionBox: wallCollision,
-              lighting: {
-                position: {
-                  x: 0,
-                  y: 0.25,
-                  z: 0.25,
-                },
-                color: [1, 0.72, 0.38],
-                intensity: 1.25,
-                range: Math.min(3.5, room.maxX - room.minX),
-              },
-            });
-          }
-        }
-      }
+
       const door = plan.input.doors?.[0];
       if (!door) {
         continue;
@@ -173,7 +149,7 @@ export class CastleLanternMapObjects {
       const forward = throne ? throne.maxZ - clearance : Math.max(0, floorDepth - clearance);
       const yaw = layout?.yaw ?? direction.yaw;
       const angle = yaw * Math.PI / 180;
-      // Legacy audience rooms use a positive map-axis tangent on both opposing
+      // Audience rooms use a positive map-axis tangent on both opposing
       // facades; planned residential rooms use their rotated local X axis.
       const tangentX = room ? Math.cos(angle) : ["NORTH", "SOUTH"].includes(door.side) ? 1 : 0;
       const tangentZ = room ? -Math.sin(angle) : ["WEST", "EAST"].includes(door.side) ? 1 : 0;

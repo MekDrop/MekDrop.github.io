@@ -15,8 +15,8 @@ it("repeats study groups and preserves the end-wall bookcase row across seeds", 
     assert.ok(desk);
     assert.ok(furniture.filter(item => item.object === "Chair").length >= 1);
     assert.ok(!furniture.some(item => item.object === "Throne"));
-    assert.ok(!plan.furniture.some(item => item.roomId === room.id && item.object === "WallLantern"));
-    assert.ok(furniture.some(item => item.object === "SingleCandleStand"), `seed ${seed} lights the reading furniture`);
+    assert.ok(!plan.furniture.some(item => item.roomId === room.id && item.object === "Lantern"));
+    assert.ok(furniture.some(item => item.object === "CandleStand"), `seed ${seed} lights the reading furniture`);
     const chair = furniture.find(item => item.object === "Chair");
     const angle = chair.rotation * Math.PI / 180;
     // Native chair front is -X. It must face the desk on mirrored seeds too.
@@ -29,7 +29,8 @@ it("repeats study groups and preserves the end-wall bookcase row across seeds", 
       assert.ok(Math.abs(Math.min(Math.abs(shelf.x - room.wallBounds.minX), Math.abs(shelf.x - room.wallBounds.maxX)) - 0.18) < 1e-6);
     }
     assert.equal(furniture.filter(item => item.object === "WritingDesk").length, 1);
-    assert.ok(!furniture.some(item => ["LibrarySideTable", "ClosedReadingBook"].includes(item.object)));
+    assert.ok(!furniture.some(item => item.object === "Table" && item.properties?.height === 1.0622 ||
+      item.object === "Book" && item.properties?.style === "classic"));
     for (const object of ["StepStool", "ParchmentBundle", "LibraryBookStack"]) {
       assert.ok(furniture.some(item => item.object === object), `seed ${seed} uses ${object}`);
     }
@@ -102,7 +103,7 @@ it("small studies omit groups that cannot preserve their approaches", () => {
   };
   const items = new LibraryRoomGenerator().furnish(room, { seed: 42 });
   assert.ok(!items.some(item => item.object === "WritingDesk"));
-  assert.ok(!items.some(item => ["OpenReadingBook", "ClosedReadingBook", "WallLantern"].includes(item.object)));
+  assert.ok(!items.some(item => ["Book", "Book", "Lantern"].includes(item.object)));
   assert.ok(items.some(item => item.object === "Bookshelf"));
 });
 

@@ -45,8 +45,14 @@ export class VestibuleIslandFurnishing {
       const island = {
         id: `${room.id}-${room.level}-island-${bench ? "bench" : "map"}`,
         role: "vestibuleProp",
-        object: bench ? "Bench" : "VestibuleMapTable",
+        object: bench ? "Bench" : "Table",
         variant: bench ? "island" : undefined,
+        properties: bench ? undefined : {
+          width: 1.8,
+          height: 1,
+          depth: 1,
+          worldMap: true,
+        },
         x: centerX + (alongX ? shift : lateral),
         z: centerZ + (alongX ? lateral : shift),
         width: alongX ? span : depth,
@@ -112,6 +118,6 @@ export class VestibuleIslandFurnishing {
    * @param {import("../AbstractCastleRoomGenerator.js").RoomItem} item
    */
   static #findItem(item) {
-    return (item.object === "Chest" || item.object === "WoodenStorageChest");
+    return item.object === "Chest";
   }
 }

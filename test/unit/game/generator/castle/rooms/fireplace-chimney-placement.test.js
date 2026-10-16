@@ -65,7 +65,10 @@ test("repair reserves the final fireplace position before upper furniture and su
   const table = {
     id: "table",
     roomId: upper.id,
-    object: "KitchenTable",
+    object: "Table",
+    width: 0.6271365,
+    height: 0.56465894,
+    depth: 1.25,
     x: 2,
     z: 0.5,
     width: 0.7,

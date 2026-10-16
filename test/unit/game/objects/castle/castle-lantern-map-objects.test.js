@@ -24,7 +24,8 @@ test("entrance lantern placements preserve mounting transforms across facings an
       });
       const authored = {
         id: "independent-lantern",
-        object: "TableLantern",
+        object: "Lantern",
+        "type":"table",
       };
       const map = {
         cols: 64,

@@ -22,21 +22,29 @@ export class TerraceStorageRoomGenerator extends AbstractCastleRoomGenerator {
       // The north-west opening belongs to the neighbouring kitchen. Keep its
       // approach clear even though storage itself authors no door openings.
       ["Sunbed", room.minX + 0.1 + 0.655 * storageScale, room.maxZ - 0.1 - 0.582 * storageScale, 1.31, 1.164, 0.76, 1, 0],
-      ["TeaTable", tableX, tableZ, 1.25, 1.25, 1.075, 1, 0],
+      ["Table", tableX, tableZ, 1.25, 1.25, 1.075, 1, 0, {
+        width: 1.25,
+        height: 1.0622,
+        depth: 1.25,
+      }],
       ["Chair", room.minX + 0.1 + 0.215 * storageScale, room.minZ + 1.6, 0.43, 0.51, 0.85, 1, 0],
       ["ServingTray", tableX, tableZ - 0.28, 1.24, 0.604, 0.128, 1, 1.075],
       ["Teapot", tableX - 0.2, tableZ - 0.28, 0.83, 0.38, 0.472, 1, 1.11],
       ["Teacup", tableX + 0.37, tableZ - 0.28, 0.482, 0.362, 0.217, 1, 1.11],
-      ["TerraceReadingBook", tableX, tableZ + 0.24, 0.619, 0.69, 0.164, 0.6, 1.075],
+      ["Book", tableX, tableZ + 0.24, 0.619, 0.69, 0.164, 0.6, 1.075, {
+        isOpen: true,
+        style: "classic",
+      }],
     ];
 
     return definitions.map(/**
      * @param {Array<string|number>} definition
      * @param {number} index
      */
-      ([object, x, z, width, depth, height, scale, y], index) => ({
+      ([object, x, z, width, depth, height, scale, y, properties], index) => ({
         role: "serviceProp",
         object,
+        properties,
         x: index >= 3 ? tableX + (x - tableX) * storageScale : x,
         z: index >= 3 ? tableZ + (z - tableZ) * storageScale : z,
         width,

@@ -32,6 +32,7 @@ export class LibraryRoomMapObjects {
           id: `${prefix}${roomKey}-${index}`,
           object: item.object,
           variant: item.variant,
+          ...item.properties,
           position,
           rotation,
           generated: true,

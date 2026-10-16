@@ -145,7 +145,7 @@ test("quarters provide cozy, mending and steward layouts with supported work det
   assert.ok(sewing.items.every(item => item.position.y > 0.15));
   assert.equal(new Set(sewing.items.map(item => JSON.stringify(item.position))).size, 5);
   assert.equal(sewing.items[0].scale, 1);
-  assert.ok(variants.get("steward").some(item => item.object === "OpenReadingBook"));
+  assert.ok(variants.get("steward").some(item => item.object === "Book"));
 });
 
 test("service props enter actual authored-plan furniture for both mirrored seeds", async () => {
@@ -193,7 +193,7 @@ test("authored service props publish once with supported heights and rotated res
   const furniture = buildPlan.metadata.runtime.residential.furniture;
   const service = furniture.filter(item => item.role === "serviceProp");
   assert.ok(service.some(item => item.object === "BedsideDrawers"));
-  assert.ok(service.some(item => item.object === "TableCandles"));
+  assert.ok(service.some(item => item.object === "CandleStand"));
   KitchenRoomMapObjects.prepareMap(map);
   const first = structuredClone(map.objects);
   KitchenRoomMapObjects.prepareMap(map);
@@ -215,7 +215,7 @@ test("authored service props publish once with supported heights and rotated res
 });
 
 test("the compact castle publishes each requested quarters variant as normal map objects", async () => {
-  for (const [seed, variant, detail] of [[2, "cozy", "WashBasin"], [0, "mending", "Basket"], [17, "steward", "OpenReadingBook"]]) {
+  for (const [seed, variant, detail] of [[2, "cozy", "WashBasin"], [0, "mending", "Basket"], [17, "steward", "Book"]]) {
     const buildPlan = await CastleAuthoredBuildPlan.generate({
       basePlanId: "castle-demo-compact",
       seed,

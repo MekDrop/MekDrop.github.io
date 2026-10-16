@@ -6,15 +6,6 @@ import { GenerationRandom } from "../../generator/map/GenerationRandom.js";
  * Boxwood in a stone planter, placed through the room's map objects.
  */
 export class Planter extends AbstractCastleProp {
-  /**
-   * Normalize saved map names after castle rooms publish their objects.
-   * @param {import("../../GameContracts.js").GameMapData} mapData
-   */
-  static prepareMap(mapData) {
-    for (const definition of mapData.objects ?? []) {
-      if (definition.object === "TerracePlanter") { definition.object = Planter.name; }
-    }
-  }
 
   /**
    * Vary foliage placement while preserving authored block shapes and colors.

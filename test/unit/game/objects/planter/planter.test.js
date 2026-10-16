@@ -17,30 +17,6 @@ const hooks = registerHooks({
 const { Planter } = await import("../../../../../src/game/objects/planter/Planter.js");
 hooks.deregister();
 
-test("normalizes saved planters without changing their authored placement", () => {
-  const definition = {
-    id: "saved-planter",
-    object: "TerracePlanter",
-    position: {
-      x: 3,
-      y: 2,
-      z: 1,
-    },
-    rotation: 90,
-    scale: 0.35,
-    weathering: 0.2,
-  };
-  const expected = {
-    ...definition,
-    object: "Planter",
-  };
-  const map = { objects: [definition] };
-  Planter.prepareMap(map);
-  Planter.prepareMap(map);
-  assert.equal(map.objects.length, 1);
-  assert.deepEqual(definition, expected);
-});
-
 test("uses identical seeded foliage transforms for the visual and collision models", () => {
   const visual = new Entity();
   const collision = new Entity();

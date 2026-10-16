@@ -22,7 +22,12 @@ export class VestibuleWindowFurnishing {
       const table = {
         id: `${room.id}-${room.level}-window-stand`,
         role: "vestibuleProp",
-        object: "LibrarySideTable",
+        object: "Table",
+        properties: {
+          width: 0.6841,
+          height: 0.55,
+          depth: 0.6162,
+        },
         x: room.minX + 0.39,
         z: Math.max(room.minZ + 1.2, Math.min(room.maxZ - 1.2, window.center)),
         width: 0.6162,
@@ -121,7 +126,8 @@ export class VestibuleWindowFurnishing {
         },
         {
           role: "vestibuleProp",
-          object: "TableLantern",
+          object: "Lantern",
+          properties: {type: "table"},
           x: storage.x,
           z: storage.z - 0.25,
           width: 0.2136,

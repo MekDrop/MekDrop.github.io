@@ -9,8 +9,8 @@ test("terrace spares stay in storage with supported tea ware and a central aisle
     const plan = await CastleBasePlanGenerator.generate({ seed });
     const room = plan.spaces.find(space => space.id === "storage-south");
     const items = plan.furniture.filter(item => item.roomId === room.id);
-    assert.deepEqual(items.map(item => item.object), ["Sunbed", "TeaTable", "Chair",
-      "ServingTray", "Teapot", "Teacup", "TerraceReadingBook"]);
+    assert.deepEqual(items.map(item => item.object), ["Sunbed", "Table", "Chair",
+      "ServingTray", "Teapot", "Teacup", "Book"]);
     for (const item of items) {
       assert.ok(item.x - item.width * item.scale / 2 >= room.minX);
       assert.ok(item.x + item.width * item.scale / 2 <= room.maxX);
@@ -62,8 +62,10 @@ test("storage equipment publishes through map objects without duplication", asyn
   const first = structuredClone(map.objects);
   KitchenRoomMapObjects.prepareMap(map);
   assert.deepEqual(map.objects, first);
-  for (const object of ["Sunbed", "TeaTable", "Chair", "ServingTray",
-    "Teapot", "Teacup", "TerraceReadingBook"]) {
-    assert.equal(map.objects.filter(item => item.object === object).length, 1);
+  for (const object of ["Sunbed", "Table", "Chair", "ServingTray",
+    "Teapot", "Teacup", "Book"]) {
+    assert.equal(map.objects.filter(item => item.object === object &&
+      (object !== "Table" || item.height === 1.0622) &&
+      (object !== "Book" || item.style === "classic")).length, 1);
   }
 });

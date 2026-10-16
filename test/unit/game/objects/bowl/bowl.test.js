@@ -30,7 +30,8 @@ test("bowls accept ordinary game objects, freeze snapshots, and pack only once",
       return new pc.Entity(url); },
   };
   const items = [{ object: "Apple" }, {
-    object: "ClosedReadingBook",
+    object: "Book",
+    "isOpen":false,
     scale: 0.2,
   },
   {
@@ -99,7 +100,7 @@ test("bowls accept ordinary game objects, freeze snapshots, and pack only once",
     bowl.onSceneReady();
     const shell = bowl.visualRoots[0].children[0];
     assert.equal(shell.children.length, 3);
-    assert.deepEqual(created.map(item => item.object), ["Apple", "ClosedReadingBook", "ThreadSpool"]);
+    assert.deepEqual(created.map(item => item.object), ["Apple", "Book", "ThreadSpool"]);
     assert.equal(created[1].scale, 0.2);
     assert.deepEqual(destroyed, ["mixed-item-0", "mixed-item-1", "mixed-item-2"]);
     assert.deepEqual(requests, [Bowl.modelUrl]);
@@ -203,7 +204,10 @@ test("real Engine objects survive source destruction and remain fixed after Ammo
           y: 3,
           z: 4,
         },
-        items: [{ object: "ClosedReadingBook" }, { object: "Crate" }],
+        items: [{
+          object: "Book",
+          "isOpen":false,
+        }, { object: "Crate" }],
       },
     });
     app.root.addChild(bowl.entity);

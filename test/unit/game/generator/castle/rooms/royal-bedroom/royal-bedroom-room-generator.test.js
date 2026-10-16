@@ -62,7 +62,7 @@ test("royal layouts repeat independently and all five concepts have distinct arr
     assert.equal(items.filter(item => item.role === "royalBed").length, 1);
     assert.ok(items.some(item => item.role === "wardrobe"));
     assert.ok(items.some(item => item.object === "BedsideDrawers"));
-    assert.ok(items.some(item => item.object === "TableCandles"));
+    assert.ok(items.some(item => item.object === "CandleStand"));
     assert.ok(items.some(item => item.object === "Rug"));
     if (variant === 1) { assert.ok(items.some(item => item.object === "WritingDesk")); }
     assert.ok(!items.some(item => item.object === "Throne"));
@@ -173,7 +173,7 @@ test("both tower plans publish five furnished variations in every castle orienta
         assert.equal(definitions.length, items.filter(item => item.role === "royalBedroomProp").length);
         assert.ok(items.some(item => item.object === "Bookshelf"));
         assert.equal(items.filter(item => item.object === "WritingDesk").length, 1);
-        assert.ok(!items.some(item => item.object === "LibrarySideTable"));
+        assert.ok(!items.some(item => item.object === "Table"));
         LibraryRoomMapObjects.prepareMap(map);
         assert.ok(map.objects.some(item => item.object === "Bookshelf" && item.id.includes(room.id)));
         const layout = new CastleResidentialLayout(plan);
@@ -213,7 +213,6 @@ test("the saved ladder castle contains the new side-tower bedroom instead of the
   assert.ok(plan.spaces.some(space => space.id === "royal-chamber" && space.maxX - space.minX === 3.25 && space.maxZ - space.minZ === 7.25));
   assert.ok(!plan.spaces.some(space => space.purpose === "Kitchen and storeroom passage"));
 });
-
 
 test("long bedrooms swap the sleeping and study ends while retaining their real doorway", () => {
   const bounds = {

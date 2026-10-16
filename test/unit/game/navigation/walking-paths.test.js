@@ -12,19 +12,34 @@ function fixture() {
     grid: [Array(7).fill(2), Array(7).fill(2)],
     heightmap: [Array(7).fill(2), Array(7).fill(2)],
     tileMeta: [Array.from({length: 7}, () => ({})), Array.from({length: 7}, () => ({}))],
-    entries: [{
-      col: 0,
-      rows: [0, 1],
-    }, {
-      col: 6,
-      rows: [0, 1],
-    }],
-    castle: {
-      doors: [{
-        centerCol: 4,
-        centerRow: 0.5,
-      }],
-    },
+    objects: [
+      {
+        id: "left",
+        object: "Gateway",
+        entry: {
+          col: 0,
+          rows: [0, 1],
+        },
+      },
+      {
+        id: "right",
+        object: "Gateway",
+        entry: {
+          col: 6,
+          rows: [0, 1],
+        },
+      },
+      {
+        id: "castle",
+        object: "Castle",
+        navigation: {
+          doors: [{
+            centerCol: 4,
+            centerRow: 0.5,
+          }],
+        },
+      },
+    ],
   };
 }
 

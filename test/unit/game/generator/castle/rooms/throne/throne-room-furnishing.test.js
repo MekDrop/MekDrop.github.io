@@ -68,8 +68,8 @@ it("reproduces court groups, varies seeds and keeps the central audience lane cl
     assert.deepEqual(items, repeated.furniture.filter(item => item.role === "courtProp"));
     const room = plan.spaces.find(space => space.id === "throne-hall");
     const center = (room.minX + room.maxX) / 2;
-    assert.equal(items.filter(item => item.object === "FloorCandelabrum").length, 2);
-    const work = items.filter(item => ["Lectern", "WritingDesk", "WarMapTable"].includes(item.object));
+    assert.equal(items.filter(item => item.object === "CandleStand").length, 2);
+    const work = items.filter(item => ["Lectern", "WritingDesk", "Table"].includes(item.object));
     assert.equal(work.length, 1);
     variants.add(work[0].object);
     assert.equal(items.filter(item => item.object === "ThroneDais").length, 1);
@@ -83,7 +83,7 @@ it("reproduces court groups, varies seeds and keeps the central audience lane cl
       assert.ok(item.z + item.depth / 2 <= room.maxZ - 0.1);
     }
     const table = items.find(item => item.object === "WritingDesk");
-    for (const detail of items.filter(item => ["DeskGlobe", "OpenReadingBook"].includes(item.object))) {
+    for (const detail of items.filter(item => ["DeskGlobe", "Book"].includes(item.object))) {
       assert.ok(Math.abs(detail.elevation - table.elevation - 0.65) < 0.00001);
       assert.ok(Math.abs(detail.x - table.x) + detail.width / 2 <= table.width / 2);
       assert.ok(Math.abs(detail.z - table.z) + detail.depth / 2 <= table.depth / 2);
@@ -110,8 +110,8 @@ it("omits optional groups in small rooms and offers a working seat in larger hal
     ...room,
     maxX: 3.5,
   });
-  assert.equal(small.filter(item => item.object === "FloorCandelabrum").length, 2);
-  assert.ok(!small.some(item => ["Lectern", "WritingDesk", "WarMapTable"].includes(item.object)));
+  assert.equal(small.filter(item => item.object === "CandleStand").length, 2);
+  assert.ok(!small.some(item => ["Lectern", "WritingDesk", "Table"].includes(item.object)));
   const large = generator.furnish({
     ...room,
     maxX: 5,
@@ -141,8 +141,8 @@ it("omits a blocked work group together with its tabletop details", () => {
       width: 1,
     }],
   });
-  assert.ok(items.some(item => item.object === "FloorCandelabrum"));
-  assert.ok(!items.some(item => ["Lectern", "WritingDesk", "WarMapTable", "OpenReadingBook", "DeskGlobe"].includes(item.object)));
+  assert.ok(items.some(item => item.object === "CandleStand"));
+  assert.ok(!items.some(item => ["Lectern", "WritingDesk", "Table", "Book", "DeskGlobe"].includes(item.object)));
 });
 
 it("faces compact visitors toward the throne in both mirrored layouts", async () => {
@@ -195,7 +195,7 @@ it("publishes actual prop definitions once and replaces old furnishings on regen
   const first = structuredClone(map.objects);
   ThroneRoomMapObjects.prepareMap(map);
   assert.deepEqual(map.objects, first);
-  assert.ok(map.objects.some(item => ["Lectern", "WritingDesk", "WarMapTable"].includes(item.object)));
+  assert.ok(map.objects.some(item => ["Lectern", "WritingDesk", "Table"].includes(item.object)));
   definition.buildPlan = await CastleAuthoredBuildPlan.generate({
     ...definition,
     seed: 48,

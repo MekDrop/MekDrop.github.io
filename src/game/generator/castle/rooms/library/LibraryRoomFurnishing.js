@@ -87,9 +87,9 @@ export class LibraryRoomFurnishing {
       });
       // Measured desktop top .650. Replace baked details so reflection cannot
       // put the globe through the original asymmetrically placed ink pot.
-      this.#items.push(this.#item("OpenReadingBook", top(0.01, 0.02), 0.36, 0.227, desk.rotation, 0.650));
+      this.#items.push(this.#item("Book", top(0.01, 0.02), 0.36, 0.227, desk.rotation, 0.650, {isOpen: true}));
       if (this.#random() < 0.85) { this.#items.push(this.#item("DeskGlobe", top(-0.305, -0.07), 0.24, 0.285, desk.rotation, 0.650)); }
-      if (this.#random() < 0.8) { this.#items.push(this.#item("TableCandles", top(0.29, 0.115), 0.141, 0.192, desk.rotation, 0.650)); }
+      if (this.#random() < 0.8) { this.#items.push(this.#item("CandleStand", top(0.29, 0.115), 0.141, 0.192, desk.rotation, 0.650, {variant: "table"})); }
     }
     this.#shelves(sides, 1);
     // Use every remaining safe wall slot rather than stopping at a random
@@ -140,7 +140,7 @@ export class LibraryRoomFurnishing {
             z: table.z - offset * Math.sin(angle) + forward * Math.cos(angle),
           };
           if (!this.#clear(point, 0.173, 0.173, 0.8)) { continue; }
-          this.#items.push(this.#item("SingleCandleStand", point, 0.173, 0.173, table.rotation));
+          this.#items.push(this.#item("CandleStand", point, 0.173, 0.173, table.rotation, undefined, {variant: "single"}));
 
           return;
         }
@@ -278,12 +278,14 @@ export class LibraryRoomFurnishing {
    * @param {number} depth
    * @param {number} rotation
    * @param {number} [y]
+   * @param {Partial<import("../../../objects/ObjectTypes.js").MapObjectDefinition>} [properties]
    * @returns {import("../AbstractCastleRoomGenerator.js").RoomItem}
    */
-  #item(object, point, width, depth, rotation, y = 0) {
+  #item(object, point, width, depth, rotation, y = 0, properties = {}) {
     return {
       role: "libraryProp",
       object,
+      properties,
       ...point,
       width: rotation % 180 ? depth : width,
       depth: rotation % 180 ? width : depth,

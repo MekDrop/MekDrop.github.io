@@ -293,7 +293,7 @@ export class CastleResidence {
     for (const room of plan.placedRooms) {
       const bedsideLighting = plan.furniture.some(/**
        * @param {import("../../generator/castle/rooms/AbstractCastleRoomGenerator.js").RoomItem & {roomId:string}} item
-       */ item => item.roomId === room.id && item.object === "ServantBedsideLantern");
+       */ item => item.roomId === room.id && item.object === "Lantern" && Boolean(item.properties?.lighting));
       const light = new pc.Entity(`Castle ${room.id} light`);
       light.setLocalPosition((room.minX + room.maxX) / 2, room.floorY - plan.origin.y + 1.7, (room.minZ + room.maxZ) / 2);
       light.addComponent("light", {

@@ -7,14 +7,11 @@ import { AbstractCastleProp } from "../castle-props/AbstractCastleProp.js";
  */
 export class Throne extends AbstractCastleProp {
   /**
-   * Publish castle seating as independent map objects and migrate saved chairs.
+   * Publish castle seating as independent map objects.
    * @param {import("../ObjectTypes.js").GameMapData} mapData
    */
   static prepareMap(mapData) {
     const objects = mapData.objects ??= [];
-    for (const item of objects) {
-      if (item.object === "BlueArmchair") { item.object = Throne.name; }
-    }
     for (const castle of [...objects]) {
       if (castle.object !== "Castle" || !castle.buildPlan?.metadata?.runtime?.residential) { continue; }
       const layout = new CastleResidentialLayout(castle.buildPlan);

@@ -114,42 +114,6 @@ export class Lantern extends AbstractCastleProp {
   get modelUrl() {
     return this.definition.type === "wall" ? wallModelUrl : this.definition.type === "table" ? tableModelUrl : modelUrl;
   }
-  /**
-   * Normalize names retained in old maps and castle furnishing plans.
-   * @param {import("../ObjectTypes.js").GameMapData} mapData
-   */
-  static prepareMap(mapData) {
-    for (const definition of mapData.objects ?? []) {
-      const name = definition.object;
-      if (!["EntranceLantern", "WallLantern", "TableLantern", "ServantBedsideLantern", "VestibuleLantern"].includes(name)) { continue; }
-      definition.object = Lantern.name;
-      definition.type = name === "WallLantern" ? "wall" : name === "TableLantern" ? "table" : "entrance";
-      if (definition.lighting !== undefined) { continue; }
-      if (name === "ServantBedsideLantern") {
-        definition.lighting = {
-          position: {
-            x: 0,
-            y: 0.29,
-            z: 0.18,
-          },
-          color: [1, 0.62, 0.25],
-          intensity: 1.5,
-          range: 2.4,
-        };
-      } else if (name === "VestibuleLantern") {
-        definition.lighting = {
-          position: {
-            x: 0,
-            y: 0.23,
-            z: 0.17,
-          },
-          color: [1, 0.67, 0.3],
-          intensity: 0.65,
-          range: 3,
-        };
-      }
-    }
-  }
 }
 
 /**

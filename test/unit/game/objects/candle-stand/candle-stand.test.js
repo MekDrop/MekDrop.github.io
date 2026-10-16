@@ -111,25 +111,3 @@ test("variants keep model/collision selection, scaled wick positions and effect 
     assert.equal(model.parent, null);
   }
 });
-
-test("saved names migrate idempotently without changing placement or interactions", () => {
-  const map = {
-    objects: ["SingleCandleStand", "FloorCandelabrum", "TableCandles"].map(object => ({
-      object,
-      position: {
-        x: 1,
-        y: 2,
-        z: 3,
-      },
-      scale: 1.4,
-      rotation: 90,
-      script: "retained",
-    })),
-  };
-  CandleStand.prepareMap(map);
-  assert.deepEqual(map.objects.map(item => item.variant), ["single", "floor", "table"]);
-  assert.ok(map.objects.every(item => item.object === "CandleStand" && item.position.y === 2 && item.script === "retained"));
-  const first = structuredClone(map);
-  CandleStand.prepareMap(map);
-  assert.deepEqual(map, first);
-});

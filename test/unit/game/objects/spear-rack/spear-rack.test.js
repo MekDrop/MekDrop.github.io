@@ -62,8 +62,6 @@ function snapshot(model) {
   return model.children.map(section => Array.from(section.getLocalTransform().data));
 }
 
-
-
 test("one frame supports all three rows without per-row feet", () => {
   const { rack, models } = build({
     length: 1.6,
@@ -211,19 +209,4 @@ test("invalid and excessive dimensions allocate no parts", () => {
   const { rack, models } = build({ length: 10000 });
   assert.equal(models[0].children.length, 0);
   rack.destroy();
-});
-
-test("legacy width/depth maps retain the equivalent length/width dimensions", () => {
-  const legacy = build({
-    width: 1.6,
-    depth: 0.6,
-    spearSeed: 42,
-  });
-  const current = build({
-    length: 1.6,
-    width: 0.6,
-    spearSeed: 42,
-  });
-  assert.deepEqual(snapshot(legacy.models[0]), snapshot(current.models[0]));
-  legacy.rack.destroy(); current.rack.destroy();
 });

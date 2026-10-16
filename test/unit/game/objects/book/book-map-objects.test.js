@@ -5,7 +5,7 @@ import { BookMapObjects } from "../../../../../src/game/objects/book/BookMapObje
 import { BookshelfBooks } from "../../../../../src/game/objects/bookshelf/BookshelfBooks.js";
 import { BookshelfLayout } from "../../../../../src/game/objects/bookshelf/BookshelfLayout.js";
 
-test("publishes stable independent books, preserves legacy reading placements, and replaces stale contents", () => {
+test("publishes stable independent books, preserves authored reading placements, and replaces stale contents", () => {
   const shelf = {
     id: "library-shelf",
     object: "Bookshelf",
@@ -29,7 +29,9 @@ test("publishes stable independent books, preserves legacy reading placements, a
   const map = {
     objects: [shelf, ...["Closed", "Open", "Terrace"].map((name, index) => ({
       id: `reading-${index}`,
-      object: `${name}ReadingBook`,
+      object: "Book",
+      isOpen: name !== "Closed",
+      ...(name === "Terrace" ? { style: "classic" } : {}),
       position: {
         x: index,
         y: 3,

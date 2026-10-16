@@ -423,7 +423,8 @@ export class StairwellRoomGenerator extends AbstractCastleRoomGenerator {
         if ((context.occupied ?? []).some(overlapsOccupiedItem)) { continue; }
         candidates.push({
           role: "stairwellProp",
-          object: "WallLantern",
+          object: "Lantern",
+          properties: {type: "wall"},
           x,
           z,
           width,
@@ -477,7 +478,8 @@ export class StairwellRoomGenerator extends AbstractCastleRoomGenerator {
       !(context.occupied ?? []).some(overlapsCandlePlacement)) {
       items.push({
         role: "stairwellProp",
-        object: "SingleCandleStand",
+        object: "CandleStand",
+        properties: {variant: "single"},
         x: candleX,
         z: candleZ,
         width: 0.173,

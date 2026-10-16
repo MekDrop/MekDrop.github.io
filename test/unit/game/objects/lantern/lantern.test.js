@@ -78,18 +78,6 @@ test("type selects the same asset for the visual and authored collision", () => 
   }
 });
 
-test("old map names migrate into one Lantern object with preserved lighting", () => {
-  const map = { objects: ["EntranceLantern", "WallLantern", "TableLantern", "ServantBedsideLantern", "VestibuleLantern"].map(object => ({ object })) };
-  Lantern.prepareMap(map);
-  assert.ok(map.objects.every(item => item.object === "Lantern"));
-  assert.deepEqual(map.objects.map(item => item.type), ["entrance", "wall", "table", "entrance", "entrance"]);
-  assert.equal(map.objects[3].lighting.position.y, 0.29);
-  assert.equal(map.objects[4].lighting.position.y, 0.23);
-  const first = structuredClone(map);
-  Lantern.prepareMap(map);
-  assert.deepEqual(map, first);
-});
-
 class LanternEntity extends pc.Entity {
   addComponent(type, options) {
     this[type] = options;

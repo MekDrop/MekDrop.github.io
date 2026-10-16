@@ -2,7 +2,6 @@ import singleModelUrl from "../../models/castle/props/single-candle-stand.glb?ur
 import floorModelUrl from "../../models/castle/props/floor-candelabrum.glb?url";
 import tableModelUrl from "../../models/castle/props/table-candles.glb?url";
 import { Fire } from "../fire/Fire.js";
-import { CandleStandDefinition } from "./CandleStandDefinition.js";
 import { AbstractCastleProp } from "../castle-props/AbstractCastleProp.js";
 import { CastleFire } from "../castle/CastleFire.js";
 
@@ -95,13 +94,4 @@ export class CandleStand extends AbstractCastleProp {
       this.definition.variant === "table" ? tableModelUrl : singleModelUrl;
   }
 
-  /**
-   * Run after castle preparation publishes generated props.
-   * @param {import("../ObjectTypes.js").GameMapData} mapData
-   */
-  static prepareMap(mapData) {
-    for (const definition of mapData.objects ?? []) {
-      CandleStandDefinition.normalize(definition);
-    }
-  }
 }

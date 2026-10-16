@@ -98,7 +98,10 @@ it("publishes plants idempotently and removes obsolete leisure furniture", async
   const residential = buildPlan.metadata.runtime.residential;
   residential.furniture.push({
     role: "leisureTable",
-    object: "TeaTable",
+    object: "Table",
+    width: 1.25,
+    height: 1.0622,
+    depth: 1.25,
     roomId: "terrace-west",
     x: 0,
     z: 0,
@@ -107,7 +110,10 @@ it("publishes plants idempotently and removes obsolete leisure furniture", async
   });
   map.objects.push({
     id: "castle-test-leisure-old-0",
-    object: "TeaTable",
+    object: "Table",
+    width: 1.25,
+    height: 1.0622,
+    depth: 1.25,
     sourceCastleId: "castle-test",
   });
   LeisureRoomMapObjects.prepareMap(map);

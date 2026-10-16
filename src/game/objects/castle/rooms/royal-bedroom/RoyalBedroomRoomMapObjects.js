@@ -27,6 +27,7 @@ export class RoyalBedroomRoomMapObjects {
           texture: item.texture,
           model: item.model,
           variant: item.variant,
+          ...item.properties,
           position,
           rotation: layout.yaw + (plan.basePlanId ? 180 : 0) + (item.rotation ?? 0),
           scale: item.scale,

@@ -31,6 +31,7 @@ export class StairwellRoomMapObjects {
           id,
           object: item.object,
           variant: item.variant,
+          ...item.properties,
           position,
           rotation: layout.yaw + (item.underStair ? 0 : 180) + item.rotation,
           scale: item.scale,

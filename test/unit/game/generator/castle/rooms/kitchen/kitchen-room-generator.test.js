@@ -33,7 +33,7 @@ test("kitchen varies coherently and reproduces its local seed", () => {
           Math.abs(item.z - other.z) >= (item.depth + other.depth) / 2);
       }
     }
-    const table = items.find(item => item.object === "KitchenTable");
+    const table = items.find(item => item.object === "Table");
     assert.ok(table);
     for (const item of items) {
       assert.ok(item.x - item.width / 2 >= room.minX);
@@ -127,7 +127,7 @@ test("blocked prep bank removes its food group and openings exclude tall furnitu
       },
     ],
   });
-  assert.ok(!items.some(item => ["KitchenTable", "Bowl"].includes(item.object)));
+  assert.ok(!items.some(item => ["Table", "Bowl"].includes(item.object)));
   const hearth = items.find(item => item.object === "Fireplace");
   assert.ok(!hearth || hearth.x - hearth.width / 2 >= 1.35, "hearth is beside the window or omitted when its larger measured body cannot fit");
 });
@@ -142,7 +142,7 @@ test("active authored pipeline publishes kitchen objects and replaces old seeded
   assert.deepEqual([kitchen.minX, kitchen.minZ, kitchen.maxX, kitchen.maxZ], [0.375, 0.375, 3.625, 3.875]);
   const hearth = authored.furniture.find(item => item.object === "Fireplace");
   const pan = authored.furniture.find(item => item.object === "HangingFryingPan");
-  const table = authored.furniture.find(item => item.object === "KitchenTable");
+  const table = authored.furniture.find(item => item.object === "Table" && item.roomId === kitchen.id);
   assert.ok(Math.abs(pan.z + pan.depth / 2 - kitchen.wallBounds.maxZ) < 0.000001,
     "pan sits against the actual wall face");
   assert.equal(pan.x, table.x, "utensil row is centred above the preparation table");
@@ -155,7 +155,7 @@ test("active authored pipeline publishes kitchen objects and replaces old seeded
   assert.ok(hearth.z - 0.42 >= kitchen.wallBounds.minZ + 0.125 - 1e-6, "firebox remains clear of the wall");
   assert.deepEqual([quarters.minX, quarters.minZ, quarters.maxX, quarters.maxZ], [3.625, 3.875, 7.625, 7.625]);
   assert.ok(authored.furniture.some(item => item.roomId === quarters.id && item.role === "servantBed"));
-  assert.ok(authored.furniture.some(item => item.object === "KitchenTable"));
+  assert.ok(authored.furniture.some(item => item.object === "Table"));
   const options = {
     position: {
       x: -4,
@@ -204,7 +204,6 @@ test("active authored pipeline publishes kitchen objects and replaces old seeded
   assert.ok(map.objects.slice(1).every(item => item.position.y >= 0));
 });
 
-
 test("side-tower kitchens retain preparation, pantry storage and cooking furnishings in every theme", async () => {
   for (const seed of [4, 5, 10, 11, 16, 17, 22, 23, 28, 29]) {
     const plan = await CastleBasePlanGenerator.generate({
@@ -212,7 +211,7 @@ test("side-tower kitchens retain preparation, pantry storage and cooking furnish
       seed,
     });
     const items = plan.furniture.filter(item => item.roomId === "kitchen");
-    for (const object of ["Fireplace", "FirewoodStack", "FireplaceCauldron", "KitchenTable", "Bowl", "HangingFryingPan", "PotteryJar"]) {
+    for (const object of ["Fireplace", "FirewoodStack", "FireplaceCauldron", "Table", "Bowl", "HangingFryingPan", "PotteryJar"]) {
       assert.ok(items.some(item => item.object === object), object + " missing for seed " + seed);
     }
     const shelf = items.find(item => item.role === "storageShelf");

@@ -62,32 +62,3 @@ test("variant selects matching visual and collision assets without changing plac
     satchel.destroy();
   }
 });
-
-test("saved legacy objects retain transforms and migrate idempotently", () => {
-  const map = {
-    objects: ["VestibuleBrownSatchel", "VestibuleOliveSatchel"].map(object => ({
-      id: object,
-      object,
-      position: {
-        x: 1,
-        y: 0.033,
-        z: 2,
-      },
-      scale: 0.9,
-      rotation: 270,
-    })),
-  };
-  const before = structuredClone(map);
-  Satchel.prepareMap(map);
-  assert.deepEqual(map.objects.map(item => item.variant), ["brown", "olive"]);
-  for (const [index, item] of map.objects.entries()) {
-    assert.deepEqual(item, {
-      ...before.objects[index],
-      object: "Satchel",
-      variant: index ? "olive" : "brown",
-    });
-  }
-  const first = structuredClone(map);
-  Satchel.prepareMap(map);
-  assert.deepEqual(map, first);
-});

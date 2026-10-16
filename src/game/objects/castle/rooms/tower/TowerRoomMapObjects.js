@@ -40,6 +40,7 @@ export class TowerRoomMapObjects {
           id: `${castle.id}-tower-furnishing-${item.roomId}-${index}`,
           object: item.object,
           variant: item.variant,
+          ...item.properties,
           position,
           rotation,
           scale: item.scale,

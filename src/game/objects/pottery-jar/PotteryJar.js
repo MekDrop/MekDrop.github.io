@@ -9,17 +9,4 @@ export class PotteryJar extends AbstractCastleProp {
    * @returns {string}
    */
   static get modelUrl() { return modelUrl; }
-
-  /**
-   * Normalize saved jar names after castle preparation publishes furnishings.
-   * @param {import("../../GameContracts.js").GameMapData} mapData
-   */
-  static prepareMap(mapData) {
-    for (const definition of mapData.objects ?? []) {
-      if (definition.object === "StoragePotteryJar") {
-        definition.object = PotteryJar.name;
-      }
-    }
-  }
 }
-

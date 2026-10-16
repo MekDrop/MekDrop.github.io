@@ -2,26 +2,9 @@ import { BookshelfBooks } from "../bookshelf/BookshelfBooks.js";
 import { BookshelfLayout } from "../bookshelf/BookshelfLayout.js";
 
 /**
- * Publishes individual shelf volumes and normalizes older reading-book records.
+ * Publishes individual shelf volumes as map objects.
  */
 export class BookMapObjects {
-  /**
-   * @param {import("../ObjectTypes.js").MapObjectDefinition} definition
-   */
-  static normalize(definition) {
-    const legacy = ["ClosedReadingBook", "OpenReadingBook", "TerraceReadingBook"].indexOf(definition.object);
-    if (legacy >= 0) {
-      definition.object = "Book";
-      definition.variant ??= ["closed", "open", "terrace"][legacy];
-    }
-    if (definition.object !== "Book") { return; }
-    const variant = definition.variant;
-    definition.isOpen ??= definition.state !== undefined ? definition.state === "open" : ["open", "terrace"].includes(variant);
-    if (variant === "shelf") { definition.pose ??= "upright"; }
-    if (variant === "terrace") { definition.style ??= "classic"; }
-    delete definition.variant;
-    delete definition.state;
-  }
 
   /**
    * @param {import("../ObjectTypes.js").GameMapData} mapData
@@ -30,9 +13,6 @@ export class BookMapObjects {
     const objects = (mapData.objects ?? []).filter(
       BookMapObjects.#filterDefinition,
     );
-    for (const definition of objects) {
-      this.normalize(definition);
-    }
     // Iterate a snapshot: newly generated volumes are ordinary map records.
     for (const shelf of objects.filter(BookMapObjects.#filterDefinition2)) {
       if (shelf.books === false && !shelf.booksAsObjects) { continue; }

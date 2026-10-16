@@ -28,7 +28,7 @@ it("keeps measured lantern bounds, apertures and the full stair approach clear",
       });
       for (const item of plan.furniture.filter(item => item.role === "stairwellProp")) {
         const room = plan.spaces.find(room => room.id === item.roomId && room.floorY === item.floorY);
-        if (item.object === "WallLantern") {
+        if (item.object === "Lantern") {
           assert.ok(item.y >= 1.75 && item.y + 0.6 < room.height);
           const side = {
             0: "NORTH",
@@ -42,7 +42,7 @@ it("keeps measured lantern bounds, apertures and the full stair approach clear",
             assert.ok(Math.abs(along - opening.center) >= opening.width / 2 + 0.4);
           }
         } else {
-          assert.equal(item.object, "SingleCandleStand");
+          assert.equal(item.object, "CandleStand");
           assert.equal(item.y, 0.002);
         }
         // Back bracket seats five millimetres into the wall; all other edges are contained.

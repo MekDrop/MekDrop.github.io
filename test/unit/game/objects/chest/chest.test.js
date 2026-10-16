@@ -29,34 +29,6 @@ const hooks = registerHooks({
 const { Chest } = await import("../../../../../src/game/objects/chest/Chest.js");
 hooks.deregister();
 
-test("saved chest names migrate idempotently without changing authored properties", () => {
-  const definition = {
-    id: "old-chest",
-    object: "WoodenStorageChest",
-    position: {
-      x: 2,
-      y: 3,
-      z: 4,
-    },
-    rotation: 90,
-    scale: 0.8,
-    stretch: {
-      x: 1,
-      y: 0.82,
-      z: 1,
-    },
-    weathering: 0.3,
-  };
-  const expected = {
-    ...structuredClone(definition),
-    object: "Chest",
-  };
-  const map = { objects: [definition] };
-  Chest.prepareMap(map);
-  Chest.prepareMap(map);
-  assert.deepEqual(definition, expected);
-});
-
 test("chest retains the authored visual and collision asset and transforms", () => {
   const urls = [];
   const chest = new Chest({

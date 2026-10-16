@@ -17,7 +17,6 @@ export class ServingTray extends AbstractCastleProp {
     const objects = mapData.objects ??= [];
     const trays = [];
     for (const definition of objects) {
-      if (definition.object === "TerraceServingTray") { definition.object = "ServingTray"; }
       if (definition.object !== "Servant") { continue; }
       const id = definition.id + "-serving-tray";
       if (objects.some(ServingTray.#matchesId.bind(null, id))) { continue; }

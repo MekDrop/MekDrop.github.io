@@ -10,15 +10,4 @@ export class Lectern extends AbstractCastleProp {
    */
   static get modelUrl() { return modelUrl; }
 
-  /**
-   * Normalize lecterns in older saved maps.
-   * @param {import("../ObjectTypes.js").GameMapData} mapData
-   */
-  static prepareMap(mapData) {
-    for (const definition of mapData.objects ?? []) {
-      if (definition.object !== "CourtLectern") { continue; }
-      definition.object = Lectern.name;
-      definition.type = "court";
-    }
-  }
 }

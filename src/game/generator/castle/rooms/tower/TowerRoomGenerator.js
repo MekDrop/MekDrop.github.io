@@ -54,14 +54,14 @@ export class TowerRoomGenerator extends AbstractCastleRoomGenerator {
     const start = Math.floor(random() * corners.length);
     const reverse = random() < 0.5 ? 1 : -1;
     const supplies = random() < 0.5 ? ["Crate", "Barrel"] : ["Barrel", "Crate"];
-    const choices = [supplies[0], "SingleCandleStand", "Chair"];
+    const choices = [supplies[0], "CandleStand", "Chair"];
     if (random() < 0.8) { choices.push(supplies[1]); }
     if (random() < 0.5) { choices.push(supplies[0]); }
     const sizes = {
       Crate: [0.56, 0.56],
       Barrel: [0.56, 0.56],
       Chair: [0.52, 0.52],
-      SingleCandleStand: [0.18, 0.18],
+      CandleStand: [0.18, 0.18],
     };
     for (const object of choices.slice(0, limit)) {
       const [itemWidth, itemDepth] = sizes[object];
@@ -113,7 +113,7 @@ export class TowerRoomGenerator extends AbstractCastleRoomGenerator {
             Crate: 0.471,
             Barrel: 0.65,
             Chair: 0.85,
-            SingleCandleStand: 0.8,
+            CandleStand: 0.8,
           }[object],
           id: `${room.id}-tower-${items.length}`,
           scale: 1,

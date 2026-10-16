@@ -75,12 +75,14 @@ export class ThroneRoomGenerator extends AbstractCastleRoomGenerator {
      * @param {number} itemDepth
      * @param {number} [elevation]
      * @param {number} [rotation]
+     * @param {Partial<import("../../../objects/ObjectTypes.js").MapObjectDefinition>} [properties]
      */
-    const add = (object, x, z, itemWidth, itemDepth, elevation = 0.05, rotation = 0) => {
+    const add = (object, x, z, itemWidth, itemDepth, elevation = 0.05, rotation = 0, properties = {}) => {
       const angle = rotation * Math.PI / 180;
       items.push({
         role: "courtProp",
         object,
+        properties,
         x,
         z,
         width: Math.abs(Math.cos(angle)) * itemWidth + Math.abs(Math.sin(angle)) * itemDepth,
@@ -119,7 +121,7 @@ export class ThroneRoomGenerator extends AbstractCastleRoomGenerator {
     for (const side of [-1, 1]) {
       const x = center + side * (width / 2 - 0.45);
       if (fits(x, candleForward, 0.308, 0.325)) {
-        add("FloorCandelabrum", x, candleForward, 0.308, 0.325);
+        add("CandleStand", x, candleForward, 0.308, 0.325, undefined, undefined, {variant: "floor"});
       }
     }
     // Each work group occupies the front corner opposite the audience doorway.
@@ -139,7 +141,7 @@ export class ThroneRoomGenerator extends AbstractCastleRoomGenerator {
         items.at(-1).type = "court";
       } else if (variant === "scholarKing") {
         add("WritingDesk", x, z, 0.9, 0.55, 0.05, 90);
-        add("OpenReadingBook", x, z + 0.1, 0.36, 0.227, 0.7, 90);
+        add("Book", x, z + 0.1, 0.36, 0.227, 0.7, 90, {isOpen: true});
         if (random() > 0.3) { add("DeskGlobe", x, z - 0.305, 0.24, 0.285, 0.7); }
         const shelfX = center - side * (width / 2 - 0.35);
         const shelfZ = bounds.minZ + 1.55;
@@ -148,7 +150,12 @@ export class ThroneRoomGenerator extends AbstractCastleRoomGenerator {
           items.at(-1).height = 1.35;
         }
       } else {
-        add("WarMapTable", x, z, 0.628, 1.25);
+        add("Table", x, z, 0.628, 1.25, undefined, undefined, {
+          width: 0.6271365,
+          height: 0.56465894,
+          depth: 1.25,
+          worldMap: true,
+        });
         const rackX = center - side * (width / 2 - 0.45);
         const rackZ = bounds.minZ + 1.55;
         if (fits(rackX, rackZ, 0.5, 0.25)) { add("SpearRack", rackX, rackZ, 0.5, 0.25); }

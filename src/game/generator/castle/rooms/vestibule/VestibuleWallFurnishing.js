@@ -56,13 +56,14 @@ export class VestibuleWallFurnishing {
         wallAttachment: true,
       };
       if (safe(rail) && RoomPlacementRules.accepts(rail, room, [...occupied, ...items], wallThickness)) { items.push(rail); }
-      for (const [object, offset, width, depth, height, scale] of [
-        ["TableLantern", -0.35, 0.22, 0.2136, 0.427, 0.8],
+      for (const [object, offset, width, depth, height, scale, properties] of [
+        ["Lantern", -0.35, 0.22, 0.2136, 0.427, 0.8, { type: "table" }],
         ["Planter", 0.35, 0.745, 0.745, 0.99, 0.27],
       ]) {
         const item = {
           role: "vestibuleProp",
           object,
+          properties,
           x: x + (alongX ? offset : -0.05),
           z: z + (alongX ? -0.05 : offset),
           width,

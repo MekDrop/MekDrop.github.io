@@ -32,6 +32,7 @@ export class ThroneRoomMapObjects {
           object: item.object,
           variant: item.variant,
           ...(item.type ? { type: item.type } : {}),
+          ...item.properties,
           position,
           rotation,
           scale: item.scale,

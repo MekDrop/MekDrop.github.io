@@ -10,14 +10,6 @@ import { BookMapObjects } from "./BookMapObjects.js";
  * One independently owned volume, on a shelf or laid out for reading.
  */
 export class Book extends AbstractCastleProp {
-  /**
-   * Also accept legacy definitions created directly by containers or scripts.
-   * @param {ConstructorParameters<typeof AbstractCastleProp>[0]} options
-   */
-  constructor(options) {
-    BookMapObjects.normalize(options.definition);
-    super(options);
-  }
 
   /**
    * @returns {string[]}

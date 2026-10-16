@@ -1085,7 +1085,7 @@
   "objects": [
     {
       "id": "table-candles",
-      "object": "TableCandles",
+      "object": "CandleStand", "variant":"table",
       "tile": {
         "col": 3,
         "row": 3
@@ -1141,7 +1141,7 @@
     },
     {
       "id": "wall-lantern",
-      "object": "WallLantern",
+      "object": "Lantern", "type":"wall",
       "tile": {
         "col": 6,
         "row": 6
@@ -1155,7 +1155,7 @@
     },
     {
       "id": "entrance-lantern",
-      "object": "EntranceLantern",
+      "object": "Lantern", "type":"entrance",
       "tile": {
         "col": 9,
         "row": 6

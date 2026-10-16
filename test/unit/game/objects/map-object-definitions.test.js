@@ -4,12 +4,8 @@ import { it } from "node:test";
 import { MapObjectDefinitions } from "../../../../src/game/objects/MapObjectDefinitions.js";
 import { GameMapLoader } from "../../../../src/game/GameMapLoader.js";
 
-it("round-trips legacy features through object records without losing navigation or placements", () => {
-  const map = {
-    objects: [{
-      id: "castle",
-      object: "Castle",
-    }],
+it("round-trips canonical object records through runtime views without losing navigation or placements", () => {
+  const original = {
     entries: [{
       col: 1,
       row: 2,
@@ -47,7 +43,45 @@ it("round-trips legacy features through object records without losing navigation
       }],
     },
   };
-  const original = structuredClone(map);
+  const map = {
+    objects: [
+      {
+        id: "castle",
+        object: "Castle",
+        navigation: structuredClone(original.castle),
+      },
+      {
+        id: "gate",
+        object: "Gateway",
+        entry: structuredClone(original.entries[0]),
+      },
+      {
+        id: "rivers",
+        object: "Rivers",
+        rivers: structuredClone(original.riverData),
+      },
+      {
+        id: "cover",
+        object: "GroundCover",
+        placements: structuredClone(original.groundCoverData),
+      },
+      {
+        id: "overpass",
+        object: "Overpass",
+        layout: structuredClone(original.overpassData),
+      },
+      {
+        id: "spawn",
+        object: "SpawnPoint",
+        position: structuredClone(original.heroSpawn),
+      },
+      {
+        id: "connector",
+        object: "IslandConnector",
+        topology: structuredClone(original.islandConnectorData),
+      },
+    ],
+  };
   MapObjectDefinitions.prepare(map);
   const count = map.objects.length;
   MapObjectDefinitions.prepare(map);

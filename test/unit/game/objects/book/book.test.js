@@ -67,23 +67,6 @@ test("book state is independent of placement and artwork, with matching visual a
       isOpen: false,
       pose: "upright",
     }, "uprightClosedUrl.glb"],
-    [{ object: "OpenReadingBook" }, "openUrl.glb"],
-    [{ object: "ClosedReadingBook" }, "closedUrl.glb"],
-    [{ object: "TerraceReadingBook" }, "classicOpenUrl.glb"],
-    [{ variant: "open" }, "openUrl.glb"],
-    [{ variant: "closed" }, "closedUrl.glb"],
-    [{ variant: "terrace" }, "classicOpenUrl.glb"],
-    [{ variant: "shelf" }, "uprightClosedUrl.glb"],
-    [{
-      variant: "open",
-      isOpen: false,
-    }, "closedUrl.glb"],
-    [{ state: "open" }, "openUrl.glb"],
-    [{ state: "closed" }, "closedUrl.glb"],
-    [{
-      state: "open",
-      isOpen: false,
-    }, "closedUrl.glb"],
   ]) {
     const loaded = [];
     const renders = [];
@@ -117,7 +100,7 @@ test("book state is independent of placement and artwork, with matching visual a
       },
     });
     assert.equal(book.modelUrl, expected);
-    assert.equal(typeof book.definition.isOpen, "boolean");
+    assert.equal(book.definition.isOpen, properties.isOpen);
     assert.equal(Object.hasOwn(book.definition, "state"), false);
     assert.equal(Object.hasOwn(book.definition, "variant"), false);
     assert.ok(loaded.every(url => url === expected));

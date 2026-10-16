@@ -4,8 +4,6 @@ import vestibuleUrl from "../../models/castle/props/vestibule-painting.glb?url";
 import { addAuthoredMeshPhysics } from "../shared/AuthoredMeshPhysics.js";
 import paintingUrl from "../../models/castle/residential/framed-map.glb?url";
 import { IslandObjectRoots } from "../shared/IslandObjectRoots.js";
-import { CastleResidentialLayout } from "../castle/CastleResidentialLayout.js";
-import { findCastleMapMount } from "../castle/CastleResidence.js";
 
 /**
  * Thin framed artwork positioned at its bottom-center, with local +Z facing out.
@@ -44,42 +42,6 @@ export class Painting {
    * @returns {string[]}
    */
   static get modelUrls() { return [paintingUrl, royalBedroomUrl, vestibuleUrl]; }
-
-  /**
-   * Extract legacy castle artwork into ordinary map objects, preserving authored overrides.
-   * @param {import("../ObjectTypes.js").GameMapData} mapData
-   */
-  static prepareMap(mapData) {
-    const objects = mapData.objects ??= [];
-    for (const castle of [...objects]) {
-      if (castle.object !== "Castle" || !castle.buildPlan?.input?.position ||
-        castle.buildPlan.metadata.runtime.residential?.version === 2) continue;
-      const id = `${castle.id}-painting`;
-      /**
-       * @param {import("../ObjectTypes.js").MapObjectDefinition} item
-       */
-      const hasPaintingId = (item) => item.id === id;
-      if (objects.some(hasPaintingId)) continue;
-      const layout = new CastleResidentialLayout(castle.buildPlan);
-      const work = layout.rooms.work;
-      const desk = layout.reservations.find(Painting.#findItem);
-      if (!desk) continue;
-      const side = (desk.minX + desk.maxX) / 2 > (work.minX + work.maxX) / 2 ? 1 : -1;
-      const mount = findCastleMapMount(castle.buildPlan, layout, side,
-        work.minZ + (work.maxZ - work.minZ) * 0.45);
-      if (!mount) continue;
-      const position = layout.toWorld(mount.x, mount.z, work.floorY - layout.origin.y + 0.85);
-      objects.push({
-        id,
-        object: Painting.name,
-        position,
-        rotation: layout.yaw + mount.yaw,
-        width: 0.8,
-        height: 0.8,
-        tile: castle.tile,
-      });
-    }
-  }
 
   /**
    * @param {{pc: typeof import("playcanvas"), modelLibrary: import("../../models/GameModelLibrary.js").GameModelLibrary, definition: import("../ObjectTypes.js").MapObjectDefinition, runtime?: import("../ObjectTypes.js").MapObjectRuntime}} options
@@ -146,10 +108,4 @@ export class Painting {
     this.#collisionGraph?.destroy();
   }
 
-  /**
-   * @param {{role: string}} item
-   */
-  static #findItem(item) {
-    return item.role === "workDesk";
-  }
 }

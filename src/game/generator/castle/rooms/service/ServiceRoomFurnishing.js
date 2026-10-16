@@ -59,12 +59,25 @@ export class ServiceRoomFurnishing {
             sideways ? 0.5604 : 0.6004, sideways ? 0.6004 : 0.5604, 0.65, 1, bed.rotation);
           if (drawer) {
             if (this.#cozy) {
-              this.#supported("ServantBedsideLantern", drawer, 0.187, 0.257, 0.45, -0.16);
+              this.#supported("Lantern", drawer, 0.187, 0.257, 0.45, -0.16, {
+                type: "entrance",
+                lighting: {
+                  position: {
+                    x: 0,
+                    y: 0.29,
+                    z: 0.18,
+                  },
+                  color: [1,0.62,0.25],
+                  intensity: 1.5,
+                  range: 2.4,
+                },
+              });
               this.#supported("PotteryJar", drawer, 0.229, 0.236, 0.3, 0.18);
             } else if (this.#random() < 0.8) {
               this.#items.push({
                 role: "serviceProp",
-                object: "TableCandles",
+                object: "CandleStand",
+                properties: {variant: "table"},
                 x: drawer.x,
                 z: drawer.z,
                 width: 0.1407,
@@ -111,7 +124,11 @@ export class ServiceRoomFurnishing {
       }
       this.#perimeter("Chest", 0.7, 0.55, 0.3291, 1);
       if (this.#cozy) {
-        const washStand = this.#perimeter("LibrarySideTable", 0.6841, 0.6162, 0.55, 0.9);
+        const washStand = this.#perimeter("Table", 0.6841, 0.6162, 0.55, 0.9, undefined, {
+          width: 0.6841,
+          height: 0.55,
+          depth: 0.6162,
+        });
         if (washStand) { this.#supported("WashBasin", washStand, 0.5899, 0.5084, 0.2362); }
         else { this.#perimeter("WashBasin", 0.5899, 0.5084, 0.2362, 0.8); }
         this.#perimeter("WaterBucket", 0.304, 0.2865, 0.388, 0.85);
@@ -166,7 +183,19 @@ export class ServiceRoomFurnishing {
        */
       const isBedsideLantern = ServiceRoomFurnishing.#isBedsideLantern;
       if (!this.#items.some(isBedsideLantern)) {
-        this.#perimeter("VestibuleLantern", 0.187, 0.257, 0.45, 1, 1.75);
+        this.#perimeter("Lantern", 0.187, 0.257, 0.45, 1, 1.75, {
+          type: "entrance",
+          lighting: {
+            position: {
+              x: 0,
+              y: 0.23,
+              z: 0.17,
+            },
+            color: [1,0.67,0.3],
+            intensity: 0.65,
+            range: 3,
+          },
+        });
       }
     }
     if (/kitchen|dining/.test(purpose)) { this.#perimeter("workDesk", 0.9, 0.55, 0.73, 1); }
@@ -229,9 +258,9 @@ export class ServiceRoomFurnishing {
       minZ: group.z - group.depth / 2,
       maxZ: group.z + group.depth / 2,
     });
-    this.#supported(variant === "mending" ? "Basket" : "OpenReadingBook", desk,
+    this.#supported(variant === "mending" ? "Basket" : "Book", desk,
       variant === "mending" ? 0.32 : 0.36, variant === "mending" ? 0.28 : 0.227,
-      variant === "mending" ? 0.3 : 0.0673, -0.2);
+      variant === "mending" ? 0.3 : 0.0673, -0.2, variant === "mending" ? {} : { isOpen: true });
     if (variant === "mending") {
       this.#items.at(-1).items = [
         {
@@ -299,13 +328,15 @@ export class ServiceRoomFurnishing {
    * @param {number} depth
    * @param {number} height
    * @param {number} [offset]
+   * @param {Partial<import("../../../objects/ObjectTypes.js").MapObjectDefinition>} [properties]
    */
-  #supported(object, support, width, depth, height, offset = 0) {
+  #supported(object, support, width, depth, height, offset = 0, properties = {}) {
     const angle = support.rotation * Math.PI / 180;
     const sideways = support.rotation % 180 !== 0;
     this.#items.push({
       role: "serviceProp",
       object,
+      properties,
       id: `${support.id}-${object}`,
       x: support.x + Math.cos(angle) * offset,
       z: support.z - Math.sin(angle) * offset,
@@ -342,9 +373,10 @@ export class ServiceRoomFurnishing {
    * @param {number} height
    * @param {number} [scale]
    * @param {number} [y]
+   * @param {Partial<import("../../../objects/ObjectTypes.js").MapObjectDefinition>} [properties]
    * @returns {import("../AbstractCastleRoomGenerator.js").RoomItem|undefined}
    */
-  #perimeter(role, width, depth, height, scale = 1, y = 0) {
+  #perimeter(role, width, depth, height, scale = 1, y = 0, properties = {}) {
     const room = this.#room.contentBounds ?? this.#room;
     const inset = Math.max(0.18, (this.#room.wallThickness ?? 0.25) / 2 + 0.05);
     const candidates = [];
@@ -359,7 +391,7 @@ export class ServiceRoomFurnishing {
       }
     }
     for (const east of [false, true]) {
-      const sideways = role.endsWith("Bed") || ["workspaceReserve", "VestibuleCloakRail", "VestibuleLantern"].includes(role);
+      const sideways = role.endsWith("Bed") || ["workspaceReserve", "VestibuleCloakRail", "Lantern"].includes(role);
       const edgeHalfX = sideways ? halfZ : halfX, edgeHalfZ = sideways ? halfX : halfZ;
       for (let z = room.minZ + inset + edgeHalfZ; z <= room.maxZ - inset - edgeHalfZ; z += 0.35) {
         candidates.push({
@@ -393,7 +425,7 @@ export class ServiceRoomFurnishing {
     }
     for (const candidate of candidates) {
       const sideways = candidate.rotation % 180 !== 0;
-      const item = this.#place(role, candidate.x, candidate.z, sideways ? depth : width, sideways ? width : depth, height, scale, candidate.rotation, y);
+      const item = this.#place(role, candidate.x, candidate.z, sideways ? depth : width, sideways ? width : depth, height, scale, candidate.rotation, y, properties);
       if (item) { return item; }
     }
   }
@@ -408,9 +440,10 @@ export class ServiceRoomFurnishing {
    * @param {number} [scale]
    * @param {number} [rotation]
    * @param {number} [y]
+   * @param {Partial<import("../../../objects/ObjectTypes.js").MapObjectDefinition>} [properties]
    * @returns {import("../AbstractCastleRoomGenerator.js").RoomItem|undefined}
    */
-  #place(role, x, z, width, depth, height, scale = 1, rotation = 0, y = 0) {
+  #place(role, x, z, width, depth, height, scale = 1, rotation = 0, y = 0, properties = {}) {
     const room = this.#room;
     const bounds = this.#cozy && role === "servantBed" ? room.wallBounds ?? room.contentBounds ?? room : room.contentBounds ?? room;
     const halfX = width * scale / 2, halfZ = depth * scale / 2;
@@ -505,6 +538,7 @@ export class ServiceRoomFurnishing {
     }
     const item = {
       role,
+      properties,
       x,
       z,
       width,
@@ -525,7 +559,7 @@ export class ServiceRoomFurnishing {
    * @param {import("../AbstractCastleRoomGenerator.js").RoomItem} item
    */
   static #isBedsideLantern(item) {
-    return item.object === "ServantBedsideLantern";
+    return item.object === "Lantern" && Boolean(item.properties?.lighting);
   }
 
   /**

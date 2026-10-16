@@ -23,13 +23,13 @@ const hooks = registerHooks({
 const { Bench } = await import("../../../../../src/game/objects/bench/Bench.js");
 hooks.deregister();
 
-test("both models preserve authored visual and collision transforms, including legacy construction", () => {
-  for (const [object, variant] of [["Bench", "wall"], ["Bench", "island"], ["VestibuleBench", "wall"], ["VestibuleIslandBench", "island"]]) {
+test("both models preserve authored visual and collision transforms", () => {
+  for (const [object, variant] of [["Bench", "wall"], ["Bench", "island"]]) {
     const models = [];
     const definition = {
       id: "seating",
       object,
-      variant: object === "Bench" ? variant : undefined,
+      variant,
       position: {
         x: 2,
         y: 3.033,
@@ -68,25 +68,4 @@ test("both models preserve authored visual and collision transforms, including l
     assert.ok(Math.abs(root.getLocalEulerAngles().y - 90) < 1e-5);
     bench.destroy();
   }
-});
-
-test("saved-map migration is idempotent and preserves explicit variants and unrelated objects", () => {
-  const map = {
-    objects: [
-      { object: "VestibuleBench" },
-      { object: "VestibuleIslandBench" },
-      {
-        object: "Bench",
-        variant: "island",
-      },
-      { object: "Bench" },
-      { object: "SpawnPoint" },
-    ],
-  };
-  Bench.prepareMap(map);
-  assert.deepEqual(map.objects.map(item => item.variant), ["wall", "island", "island", "wall", undefined]);
-  assert.equal(map.objects[4].object, "SpawnPoint");
-  const first = structuredClone(map);
-  Bench.prepareMap(map);
-  assert.deepEqual(map, first);
 });

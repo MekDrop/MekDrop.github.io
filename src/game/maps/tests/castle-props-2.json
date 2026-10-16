@@ -1085,7 +1085,7 @@
   "objects": [
     {
       "id": "floor-candelabrum",
-      "object": "FloorCandelabrum",
+      "object": "CandleStand", "variant":"floor",
       "tile": {
         "col": 3,
         "row": 3
@@ -1127,7 +1127,7 @@
     },
     {
       "id": "kitchen-table",
-      "object": "KitchenTable",
+      "object": "Table", "width":0.6271365,"height":0.56465894,"depth":1.25,
       "tile": {
         "col": 3,
         "row": 6
@@ -1167,7 +1167,7 @@
     },
     {
       "id": "single-candle-stand",
-      "object": "SingleCandleStand",
+      "object": "CandleStand", "variant":"single",
       "tile": {
         "col": 9,
         "row": 6

@@ -38,6 +38,7 @@ export class KitchenRoomMapObjects {
           variant: item.variant,
           texture: item.texture,
           model: item.model,
+          ...item.properties,
           position,
           rotation,
           scale: item.scale,

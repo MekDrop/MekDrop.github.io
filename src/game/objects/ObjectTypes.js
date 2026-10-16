@@ -20,7 +20,7 @@
  * @property {MapObjectDefinition[]} [items] Contained game objects; an explicit position preserves a local authored pose, otherwise physics packs them.
  * @property {boolean} [worldMap] Draw the current world on a table.
  * @property {string} [carrierId] Servant owning an activity ServingTray.
- * @property {string} object Registered class name; Planter replaces the legacy TerracePlanter name.
+ * @property {string} object Registered class name.
  * @property {"entrance"|"wall"|"table"|"court"} [type] Lantern or lectern model selection.
  * @property {string} [symbol] Gateway banner override.
  * @property {import("../navigation/WalkingPaths.js").WalkingEntry} [entry]
@@ -34,7 +34,7 @@
  * @property {boolean} [generated]
  * @property {RenderCommand} [geometry]
  * @property {boolean} [castleBanner] Banner extracted from castle decorations.
- * @property {string} [variant] Prop artwork/model variant. Bench uses wall (default) or island. CandleStand uses single (default), floor, or table. Satchel uses brown (default) or olive, preserving each model's authored leather finish. Banner uses navy-and-gold artwork by default or cloth for castle artwork; both simulate cloth. Legacy Book variants are migrated to isOpen, pose, and style.
+ * @property {string} [variant] Prop artwork/model variant. Bench uses wall (default) or island. CandleStand uses single (default), floor, or table. Satchel uses brown (default) or olive, preserving each model's authored leather finish. Banner uses navy-and-gold artwork by default or cloth for castle artwork; both simulate cloth.
  * @property {boolean} [isOpen] Whether the Book is open (default false), independent of its location.
  * @property {string} [pose] Book model's resting pose: flat (default) or upright; tilt and rotation control final orientation.
  * @property {string} [style] Book artwork style; classic retains the older painted open volume in any location.

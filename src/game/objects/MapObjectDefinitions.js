@@ -1,5 +1,5 @@
 /**
- * Converts legacy map fields to object records and exposes derived runtime views.
+ * Exposes derived runtime views of canonical map object records.
  * Views are non-enumerable: saved maps have only one source of authored data.
  */
 export class MapObjectDefinitions {
@@ -20,7 +20,7 @@ export class MapObjectDefinitions {
        * @param {import("./ObjectTypes.js").MapObjectDefinition} definition
        */
         (definition) => definition.id === uniqueId)) {
-        uniqueId += "-legacy";
+        uniqueId += "-duplicate";
       }
       map.objects.push({
         id: uniqueId,
@@ -28,47 +28,6 @@ export class MapObjectDefinitions {
         ...properties,
       });
     };
-    /**
-     * @param {string} field
-     */
-    const authored = (field) => Object.getOwnPropertyDescriptor(map, field)?.enumerable;
-    if (authored("entries")) {
-      for (const [index, entry] of (map.entries ?? []).entries()) {
-        add("Gateway", `gateway-${index}`, { entry });
-      }
-    }
-    if (authored("riverData") && map.riverData?.length) {
-      add("Rivers", "rivers", { rivers: map.riverData });
-    }
-    if (authored("groundCoverData") && map.groundCoverData?.length) {
-      add("GroundCover", "ground-cover", { placements: map.groundCoverData });
-    }
-    if (authored("overpassData") && map.overpassData) {
-      add("Overpass", "overpass", { layout: map.overpassData });
-    }
-    if (authored("heroSpawn") && map.heroSpawn) {
-      map.objects = map.objects.filter(MapObjectDefinitions.#filterDefinition);
-      add("SpawnPoint", "hero-spawn", { position: map.heroSpawn });
-    }
-    if (authored("islandConnectorData") && map.islandConnectorData) {
-      add("IslandConnector", "island-connector", { topology: map.islandConnectorData });
-    }
-    if (authored("castle") && map.castle) {
-      const castle = map.objects.find(MapObjectDefinitions.#findDefinition);
-      if (castle) {
-        castle.navigation = map.castle;
-      }
-    }
-    if (authored("castles")) {
-      const castles = map.objects.filter(
-        MapObjectDefinitions.#filterDefinition2,
-      );
-      for (const [index, navigation] of (map.castles ?? []).entries()) {
-        if (castles[index]) {
-          castles[index].navigation ??= navigation;
-        }
-      }
-    }
     let indexedObjects;
     let indexedLength = -1;
     const byClass = new Map();
@@ -170,32 +129,7 @@ export class MapObjectDefinitions {
      * @param {import("./ObjectTypes.js").MapObjectDefinition["topology"]} topology
      */
       (topology) => write("IslandConnector", "topology", topology));
-    if (first("Castle") || !map.castle) {
-      view("castle", () => first("Castle")?.navigation ?? null);
-    }
-    delete map.castles;
-  }
-
-  /**
-   * @param {import("./ObjectTypes.js").MapObjectDefinition} definition
-   */
-  static #filterDefinition(definition) {
-    return definition.object !== "SpawnPoint";
-  }
-
-  /**
-   *
-   * @param {import("./ObjectTypes.js").MapObjectDefinition} definition
-   */
-  static #findDefinition(definition) {
-    return definition.object === "Castle";
-  }
-
-  /**
-   * @param {import("./ObjectTypes.js").MapObjectDefinition} definition
-   */
-  static #filterDefinition2(definition) {
-    return definition.object === "Castle";
+    view("castle", () => first("Castle")?.navigation ?? null);
   }
 
   /**

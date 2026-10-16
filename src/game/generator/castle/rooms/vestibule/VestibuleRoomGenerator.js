@@ -247,7 +247,20 @@ export class VestibuleRoomGenerator extends AbstractCastleRoomGenerator {
     for (let z = high - 0.3; z >= low + 0.3; z -= 0.15) {
       const lantern = {
         role: "vestibuleProp",
-        object: "VestibuleLantern",
+        object: "Lantern",
+        properties: {
+          type: "entrance",
+          lighting: {
+            position: {
+              x: 0,
+              y: 0.23,
+              z: 0.17,
+            },
+            color: [1,0.67,0.3],
+            intensity: 0.65,
+            range: 3,
+          },
+        },
         x: wall + 0.13,
         z,
         width: 0.257,
