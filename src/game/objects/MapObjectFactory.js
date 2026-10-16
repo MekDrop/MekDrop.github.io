@@ -1,3 +1,4 @@
+import { Wardrobe } from "./castle-props/wardrobe/Wardrobe.js";
 import { Bed } from "./castle-props/bed/Bed.js";
 import { CandleStand } from "./castle-props/candle-stand/CandleStand.js";
 import { Book } from "./castle-props/book/Book.js";
@@ -144,6 +145,7 @@ const OBJECT_CLASSES = new Map([
   [Flag.name, Flag],
   [WoodenFloor.name, WoodenFloor],
   [Bed.name, Bed],
+  [Wardrobe.name, Wardrobe],
   [Painting.name, Painting],
   [Window.name, Window],
   [Earth.name, Earth],

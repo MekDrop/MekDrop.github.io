@@ -54,9 +54,10 @@
  * @property {number} [height] Table, firewood/linen pile, bookshelf, window, or flag cloth height.
  * @property {number} [chimneyHeight] Fireplace base to the covering roof surface, in metres.
  * @property {{width: number, depth: number}} [footprint] World-sized bed collision envelope.
- * @property {number} [collisionRotation] Bed collision heading, in degrees.
+ * @property {number} [collisionRotation] Furniture collision heading, in degrees.
  * @property {boolean} [castleTable] Generated castle table ownership marker.
  * @property {boolean} [deskContents] Keep authored writing desk parchment and ink pot.
+ * @property {boolean} [castleWardrobe] Generated castle wardrobe ownership marker.
  * @property {boolean} [castleBed] Generated castle bed ownership marker.
  * @property {number} [poleHeight] Flag pole height in metres (default 1.25).
  * @property {string} [model] Authored rug asset filename under models/rug; omitted uses woven-rug.glb.
