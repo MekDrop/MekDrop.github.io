@@ -16,7 +16,7 @@
     "requestedBounds": "pass: tests use actual exported GLB bounds including braces and rivets",
     "editablePackedSourceAndFreshImport": "pass: Blender 5.2.1 fresh import, 9 mesh parts, 2692 kit triangles, 5 materials, 1 packed texture"
   },
-  "finalEvidence": ["../../objects/spear-rack/preview.png", "../../../../tmp/spear-final-front.png", "../../../../tmp/spear-final-reverse.png", "../../../../tmp/spear-final-top.png"],
+  "finalEvidence": ["../../objects/castle-props/spear-rack/preview.png", "../../../../tmp/spear-final-front.png", "../../../../tmp/spear-final-reverse.png", "../../../../tmp/spear-final-top.png"],
   "historicalClaim": "historically informed design; exact three-row arrangement is not independently attested by researched sources",
   "decision": "retain_repair"
 }

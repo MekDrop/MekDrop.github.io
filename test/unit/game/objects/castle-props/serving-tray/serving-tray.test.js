@@ -1,0 +1,38 @@
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import { test } from "node:test";
+
+const source = await readFile(new URL("../../../../../../src/game/objects/castle-props/serving-tray/ServingTray.js", import.meta.url), "utf8");
+const isolated = source.replace(/^import .*;$/gm, "")
+  .replace("export class", "const modelUrl = 'tray.glb'; class AbstractCastleProp {} export class");
+const { ServingTray } = await import("data:text/javascript," + encodeURIComponent(isolated));
+
+test("stored trays preserve placement and carrier trays precede servants without duplication", () => {
+  const stored = {
+    id: "stored",
+    object: "ServingTray",
+    position: {
+      x: 1,
+      y: 2,
+      z: 3,
+    },
+    scale: 0.45,
+  };
+  const servant = {
+    id: "staff",
+    object: "Servant",
+  };
+  const map = { objects: [stored, servant] };
+  ServingTray.prepareMap(map);
+  assert.equal(stored.object, "ServingTray");
+  assert.deepEqual(stored.position, {
+    x: 1,
+    y: 2,
+    z: 3,
+  });
+  assert.equal(stored.scale, 0.45);
+  assert.equal(map.objects[0].carrierId, servant.id);
+  const first = JSON.stringify(map);
+  ServingTray.prepareMap(map);
+  assert.equal(JSON.stringify(map), first);
+});

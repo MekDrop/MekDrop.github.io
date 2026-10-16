@@ -4,7 +4,7 @@ import { createSpiralStairCollision, spiralStairRise } from "../shared/SpiralSta
 import buttressUrl from "../../models/castle/residential/corner-buttress.glb?url";
 import chimneyUrl from "../../models/castle/residential/chimney.glb?url";
 import crestUrl from "../../models/castle/residential/crown-crest.glb?url";
-import { Bookshelf } from "../bookshelf/Bookshelf.js";
+import { Bookshelf } from "../castle-props/bookshelf/Bookshelf.js";
 import { WoodenFloor } from "../wooden-floor/WoodenFloor.js";
 import rugUrl from "../../models/castle/residential/rug.glb?url";
 import royalBedUrl from "../../models/castle/residential/royal-bed.glb?url";

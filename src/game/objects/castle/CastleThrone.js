@@ -1,4 +1,4 @@
-import { Throne } from "../throne/Throne.js";
+import { Throne } from "../castle-props/throne/Throne.js";
 import { addAuthoredMeshPhysics } from "../shared/AuthoredMeshPhysics.js";
 
 export class CastleThrone {

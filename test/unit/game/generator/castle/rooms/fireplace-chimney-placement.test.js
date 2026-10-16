@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { RoomPlacementRules } from "../../../../../../src/game/generator/castle/rooms/RoomPlacementRules.js";
-import { FireplaceChimneyFootprint } from "../../../../../../src/game/objects/fireplace/FireplaceChimneyFootprint.js";
+import { FireplaceChimneyFootprint } from "../../../../../../src/game/objects/castle-props/fireplace/FireplaceChimneyFootprint.js";
 
 const kitchen = {
   id: "kitchen",

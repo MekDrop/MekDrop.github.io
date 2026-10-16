@@ -1,6 +1,6 @@
 import { roomPropHeight, roomPropBottom } from "./RoomPropHeights.js";
 import { FireplaceWallBacking } from "./FireplaceWallBacking.js";
-import { FireplaceChimneyFootprint } from "../../../objects/fireplace/FireplaceChimneyFootprint.js";
+import { FireplaceChimneyFootprint } from "../../../objects/castle-props/fireplace/FireplaceChimneyFootprint.js";
 
 // Model-local rear mounting planes measured from the source GLBs.
 const WALL_MOUNTS = {

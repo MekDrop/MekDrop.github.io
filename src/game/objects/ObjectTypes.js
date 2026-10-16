@@ -11,7 +11,7 @@
  * @property {number} [length] SpearRack line length along local X in metres; width spans parallel lines along local Z.
  * @property {string|number} [timberSeed] Repeatable SpareTimberBundle layout; defaults to its id.
  * @property {string|number} [linenSeed] Repeatable FoldedLinens bundle layout; defaults to its id.
- * @property {import("./lantern/Lantern.js").LanternLighting|false} [lighting] Lantern-local illumination override.
+ * @property {import("./castle-props/lantern/Lantern.js").LanternLighting|false} [lighting] Lantern-local illumination override.
  * @property {boolean} [flame] Override the lantern variant's candle emitter.
  * @property {{halfExtents: Point3, offset: Point3}} [collisionBox] Model-space lantern contact box.
  * @property {{position: Point3, width: number, depth: number}} [hatch] Framed ladder roof hatch.
