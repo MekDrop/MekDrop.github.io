@@ -1,3 +1,4 @@
+import { CastleBedMapObjects } from "../castle-props/bed/CastleBedMapObjects.js";
 import { CastleStraightStairMapObjects } from "./CastleStraightStairMapObjects.js";
 import { CastleLadderMapObjects } from "./CastleLadderMapObjects.js";
 import { CastleLanternMapObjects } from "./CastleLanternMapObjects.js";
@@ -28,6 +29,7 @@ export class CastleMapPreparation {
    */
   static prepareMap(mapData) {
     CastleStraightStairMapObjects.prepareMap(mapData);
+    CastleBedMapObjects.prepareMap(mapData);
     RoyalBedroomRoomMapObjects.prepareMap(mapData);
     LibraryRoomMapObjects.prepareMap(mapData);
     LeisureRoomMapObjects.prepareMap(mapData);

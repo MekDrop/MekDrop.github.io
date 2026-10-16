@@ -33,7 +33,7 @@
  * @property {boolean} [generated]
  * @property {RenderCommand} [geometry]
  * @property {boolean} [castleBanner] Banner extracted from castle decorations.
- * @property {string} [variant] Prop artwork/model variant. CandleStand uses single (default), floor, or table. Bench uses wall (default) or island. Satchel uses brown (default) or olive, preserving each model's authored leather finish. Banner uses navy-and-gold artwork by default or cloth for castle artwork; both simulate cloth.
+ * @property {string} [variant] Prop artwork/model variant. Bed uses royal (default) or servant. CandleStand uses single (default), floor, or table. Bench uses wall (default) or island. Satchel uses brown (default) or olive, preserving each model's authored leather finish. Banner uses navy-and-gold artwork by default or cloth for castle artwork; both simulate cloth.
  * @property {boolean} [isOpen] Whether the Book is open (default false), independent of its location.
  * @property {string} [pose] Book model's resting pose: flat (default) or upright; tilt and rotation control final orientation.
  * @property {string} [style] Book artwork style; classic retains the older painted open volume in any location.
@@ -51,6 +51,9 @@
  * @property {number} [width] Table/firewood/linen area width in metres, painting horizontal scale, or flag cloth width.
  * @property {number} [height] Table, firewood/linen pile, bookshelf, window, or flag cloth height.
  * @property {number} [chimneyHeight] Fireplace base to the covering roof surface, in metres.
+ * @property {{width: number, depth: number}} [footprint] World-sized bed collision envelope.
+ * @property {number} [collisionRotation] Bed collision heading, in degrees.
+ * @property {boolean} [castleBed] Generated castle bed ownership marker.
  * @property {number} [poleHeight] Flag pole height in metres (default 1.25).
  * @property {string} [model] Authored rug asset filename under models/rug; omitted uses woven-rug.glb.
  * @property {string} [texture] Cloth image URL; omitted keeps the flag or rug default fabric.

@@ -7,8 +7,6 @@ import crestUrl from "../../models/castle/residential/crown-crest.glb?url";
 import { Bookshelf } from "../castle-props/bookshelf/Bookshelf.js";
 import { WoodenFloor } from "../architecture/wooden-floor/WoodenFloor.js";
 import rugUrl from "../../models/castle/residential/rug.glb?url";
-import royalBedUrl from "../../models/castle/residential/royal-bed.glb?url";
-import servantBedUrl from "../../models/castle/residential/servant-bed.glb?url";
 import wardrobeUrl from "../../models/castle/residential/wardrobe.glb?url";
 import deskUrl from "../../models/castle/residential/writing-desk.glb?url";
 import shelfUrl from "../../models/castle/residential/storage-shelf.glb?url";
@@ -26,10 +24,8 @@ const FLOOR_STEP_CLEARANCE = 0.32;
 const MODEL_URLS = {
   workDesk: deskUrl,
   kitchenTable: deskUrl,
-  royalBed: royalBedUrl,
   wardrobe: wardrobeUrl,
   readingChair: chairUrl,
-  servantBed: servantBedUrl,
   storageShelf: shelfUrl,
 };
 
@@ -87,7 +83,7 @@ export class CastleResidence {
     this.#entity.setLocalPosition(origin.x, origin.y, origin.z);
     this.#entity.setLocalEulerAngles(0, yaw, 0);
     for (const placement of this.#layout.placements) {
-      if (placement.role === "bookshelf") { continue; }
+      if (["bookshelf", "royalBed", "servantBed"].includes(placement.role)) { continue; }
       const visual = modelLibrary.instantiate(MODEL_URLS[placement.role]);
       visual.name = `Castle ${placement.role}`;
       const local = this.#layout.toLocal(placement.position.x, placement.position.z);
@@ -99,10 +95,8 @@ export class CastleResidence {
       const dimensions = {
         workDesk: [0.9, 0.73, 0.55],
         kitchenTable: [0.9, 0.73, 0.55],
-        royalBed: [1.2, 2.03, 1.805],
         wardrobe: [0.65, 1.15, 0.46],
         readingChair: [0.429, 0.85, 0.508],
-        servantBed: [0.9, 0.675, 2],
         storageShelf: [0.8, 1, 0.3],
       }[placement.role];
       this.#solids.push({
