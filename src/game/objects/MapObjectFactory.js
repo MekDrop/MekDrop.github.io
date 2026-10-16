@@ -56,7 +56,7 @@ import { FirewoodStack } from "./castle-props/firewood-stack/FirewoodStack.js";
 import { SpareTimberBundle } from "./castle-props/spare-timber-bundle/SpareTimberBundle.js";
 import { Chair } from "./castle-props/chair/Chair.js";
 import { Lantern } from "./castle-props/lantern/Lantern.js";
-import { TowerBrazier } from "./castle-props/tower-brazier/TowerBrazier.js";
+import { Brazier } from "./castle-props/brazier/Brazier.js";
 import { CliffVine } from "./vegetation/CliffVine.js";
 import { WoodenFloor } from "./architecture/wooden-floor/WoodenFloor.js";
 import { Flag } from "./flag/Flag.js";
@@ -141,7 +141,7 @@ const OBJECT_CLASSES = new Map([
   [FirewoodStack.name, FirewoodStack],
   [SpareTimberBundle.name, SpareTimberBundle],
   [Chair.name, Chair],
-  [TowerBrazier.name, TowerBrazier],
+  [Brazier.name, Brazier],
   [Flag.name, Flag],
   [WoodenFloor.name, WoodenFloor],
   [Bed.name, Bed],

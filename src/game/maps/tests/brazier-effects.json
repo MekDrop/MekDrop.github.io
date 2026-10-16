@@ -1,0 +1,425 @@
+{
+  "grid": [
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  ],
+  "heightmap": [
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  ],
+  "tileMeta": [
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
+      },
+      {}
+    ],
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ]
+  ],
+  "cols": 9,
+  "rows": 7,
+  "numPaths": 0,
+  "pipeData": [],
+  "mergeZones": [],
+  "trunkStart": null,
+  "mapName": "brazier-effects",
+  "layoutSignature": "brazier-effects",
+  "objects": [
+    {
+      "id": "bowl",
+      "object": "Brazier",
+      "position": {
+        "x": -2,
+        "y": 1,
+        "z": 0
+      },
+      "scale": 0.25
+    },
+    {
+      "id": "tower",
+      "object": "Brazier",
+      "variant": "tower",
+      "position": {
+        "x": 0,
+        "y": 1,
+        "z": 0
+      }
+    },
+    {
+      "id": "lit-tower",
+      "object": "Brazier",
+      "variant": "tower",
+      "position": {
+        "x": 2,
+        "y": 1,
+        "z": 0
+      },
+      "flame": true
+    },
+    {
+      "id": "candle",
+      "object": "CandleStand",
+      "position": {
+        "x": -2,
+        "y": 1,
+        "z": 2
+      }
+    },
+    {
+      "id": "lantern",
+      "object": "Lantern",
+      "type": "table",
+      "position": {
+        "x": 0,
+        "y": 1,
+        "z": 2
+      },
+      "lighting": {
+        "position": {
+          "x": 0,
+          "y": 0.15,
+          "z": 0
+        },
+        "intensity": 0.6,
+        "range": 2,
+        "modelSpace": true,
+        "flicker": true,
+        "phase": 1.2
+      }
+    },
+    {
+      "id": "hero-spawn",
+      "object": "SpawnPoint",
+      "position": {
+        "x": 3,
+        "y": 1.14,
+        "z": 3
+      }
+    }
+  ]
+}

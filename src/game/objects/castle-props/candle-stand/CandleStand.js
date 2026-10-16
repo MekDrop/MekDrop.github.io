@@ -3,7 +3,7 @@ import floorModelUrl from "../../../models/castle/props/floor-candelabrum.glb?ur
 import tableModelUrl from "../../../models/castle/props/table-candles.glb?url";
 import { Fire } from "../../fire/Fire.js";
 import { AbstractCastleProp } from "../../shared/AbstractCastleProp.js";
-import { CastleFire } from "../../castle/CastleFire.js";
+import { FireEffect } from "../../fire/FireEffect.js";
 
 /**
  * Variant-selected candle models, authored collision and owned wick effects.
@@ -44,10 +44,9 @@ export class CandleStand extends AbstractCastleProp {
       return;
     }
     const app = options.pc.Application.getApplication();
-    const fire = new CastleFire({
+    const fire = new FireEffect({
       pc: options.pc,
       app,
-      modelLibrary: options.modelLibrary,
       particleTexture: app.assets.find("castleFireParticle", "texture").resource,
     });
     fire.add({
@@ -55,7 +54,6 @@ export class CandleStand extends AbstractCastleProp {
       y: 0.64,
       z: 0,
       scale: 0.045,
-      brazier: false,
       intensity: 0.3,
     });
     model.addChild(fire.entity);

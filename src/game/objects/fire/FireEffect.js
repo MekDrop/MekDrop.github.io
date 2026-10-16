@@ -1,15 +1,7 @@
-import authoredModelUrl from "../../models/castle/residential/brazier.glb?url";
-import { colorFromHex } from "../../helpers/colors.js";
-
-export class CastleFire {
-  /**
-   * @returns {string[]}
-   */
-  static get modelUrls() { return [authoredModelUrl]; }
-  /**
-   * @type {import("../../models/GameModelLibrary.js").GameModelLibrary}
-   */
-  #modelLibrary;
+/**
+ * Shared flame, spark and flickering glow effect; owns no prop artwork.
+ */
+export class FireEffect {
   /**
    *
    * @type {typeof import("playcanvas")}
@@ -17,19 +9,9 @@ export class CastleFire {
   #pc;
   /**
    *
-   * @type {import("playcanvas").Application}
-   */
-  #app;
-  /**
-   *
    * @type {import("playcanvas").Entity}
    */
   #entity;
-  /**
-   *
-   * @type {import("playcanvas").StandardMaterial}
-   */
-  #brazierMaterial;
   /**
    *
    * @type {import("playcanvas").Texture}
@@ -55,19 +37,16 @@ export class CastleFire {
    *
    * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, particleTexture: import("playcanvas").Texture}} options
    * @param {typeof import("playcanvas")} options.pc
-   * @param {import("../../models/GameModelLibrary.js").GameModelLibrary} options.modelLibrary
    * @param {import("playcanvas").Application} options.app
    * @param {import("playcanvas").Texture} options.particleTexture
    */
-  constructor({ pc, app, particleTexture, modelLibrary }) {
-    this.#modelLibrary = modelLibrary;
+  constructor({ pc, app, particleTexture }) {
     this.#pc = pc;
-    this.#app = app;
-    this.#entity = new pc.Entity("Castle fires");
-    this.#brazierMaterial = this.#createBrazierMaterial();
+    this.#entity = new pc.Entity("Fire effects");
     this.#particleTexture = particleTexture;
 
     this.#updateHandle = app.on("update", this.#on.bind(this));
+    this.#entity.once("destroy", this.#release, this);
   }
 
   get entity() {
@@ -76,22 +55,20 @@ export class CastleFire {
 
   /**
    *
-   * @param {{x: number, y: number, z: number, scale: number, brazier: boolean, intensity: number, flame?: boolean}} options
+   * @param {{x: number, y: number, z: number, scale: number, intensity: number, flame?: boolean}} options
    * @param {number} options.x
    * @param {number} options.y
    * @param {number} options.z
    * @param {number} options.scale
-   * @param {boolean} options.brazier
    * @param {boolean} [options.flame]
    * @param {number} options.intensity
    * @param {number} [options.phase] Stable flicker phase when glow uses a different parent space.
    */
-  add({ x, y, z, scale = 0.25, brazier = true, intensity = 1, flame = true, phase }) {
-    const root = new this.#pc.Entity("Castle fire");
-    root.setPosition(x, y, z);
+  add({ x, y, z, scale = 0.25, intensity = 1, flame = true, phase }) {
+    const root = new this.#pc.Entity("Fire effect");
+    root.setLocalPosition(x, y, z);
     this.#entity.addChild(root);
 
-    if (brazier) this.#createBrazier(root, scale);
     if (flame) {
       this.#createFlameEmitter(root, scale);
       this.#createSparkEmitter(root, scale);
@@ -116,32 +93,16 @@ export class CastleFire {
   }
 
   destroy() {
-    this.#updateHandle?.off();
-    this.#updateHandle = null;
+    this.#release();
     this.#entity?.destroy();
     this.#entity = null;
     this.#lights = [];
-    this.#brazierMaterial?.destroy();
-    this.#brazierMaterial = null;
     this.#particleTexture = null;
   }
 
-  /**
-   *
-   * @param {import("playcanvas").Entity} parent
-   * @param {number} scale
-   */
-  #createBrazier(parent, scale) {
-    const brazier = this.#modelLibrary.instantiate(authoredModelUrl);
-    brazier.name = "Fire brazier";
-    for (const meshInstance of brazier.findComponents("render").flatMap(CastleFire.#flatMapRender)) {
-      meshInstance.material = this.#brazierMaterial;
-      meshInstance.castShadow = true;
-      meshInstance.receiveShadow = true;
-    }
-    brazier.setLocalPosition(0, 0, 0);
-    brazier.setLocalScale(scale * 1.5, scale * 0.24, scale * 1.5);
-    parent.addChild(brazier);
+  #release() {
+    this.#updateHandle?.off();
+    this.#updateHandle = null;
   }
 
   /**
@@ -280,7 +241,7 @@ export class CastleFire {
 
   /**
    *
-   * @param {string} keys
+   * @param {number[]} keys
    */
   #curve(keys) {
     const curve = new this.#pc.Curve(keys);
@@ -311,16 +272,6 @@ export class CastleFire {
     return curves;
   }
 
-  #createBrazierMaterial() {
-    const material = new this.#pc.StandardMaterial();
-    material.name = "Castle fire brazier";
-    material.diffuse = colorFromHex(this.#pc, 0x202528);
-    material.gloss = 0.14;
-    material.update();
-
-    return material;
-  }
-
   #animateLights() {
     for (const { entity, phase, intensity } of this.#lights) {
       const fast = this.#elapsed * 11.1 + phase;
@@ -339,10 +290,4 @@ export class CastleFire {
     this.#animateLights();
   }
 
-  /**
-   * @param {import("playcanvas").RenderComponent} render
-   */
-  static #flatMapRender(render) {
-    return render.meshInstances;
-  }
 }

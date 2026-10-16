@@ -8,7 +8,6 @@ import { Door } from "../architecture/door/Door.js";
 import { DoorPlacement } from "../architecture/door/DoorPlacement.js";
 import { DoorArch } from "../architecture/door/DoorArch.js";
 import { CastleEntranceDetails } from "./CastleEntranceDetails.js";
-import { CastleFire } from "./CastleFire.js";
 import { CastleRoof } from "./CastleRoof.js";
 import { CastleStairs } from "./CastleStairs.js";
 import { CastleResidence } from "./CastleResidence.js";
@@ -42,7 +41,6 @@ export class CastleEntityBuilder {
     return [
       stoneBlockUrl,
       CastleRoof.modelUrl,
-      ...CastleFire.modelUrls,
       ...DoorPlacement.modelUrls,
       DoorArch.modelUrl,
       ...CastleEntranceDetails.modelUrls,
@@ -87,11 +85,6 @@ export class CastleEntityBuilder {
    * @type {import("src/game/models/GameModelLibrary.js").GameModelLibrary}
    */
   #modelLibrary;
-  /**
-   *
-   * @type {import("playcanvas").Texture}
-   */
-  #fireParticleTexture;
 
   /**
    * @type {import("playcanvas").Texture}
@@ -127,11 +120,6 @@ export class CastleEntityBuilder {
    * @type {Array<import("playcanvas").VertexBuffer>}
    */
   #vertexBuffers = [];
-  /**
-   *
-   * @type {CastleFire|null}
-   */
-  #fire = null;
   /**
    *
    * @type {CastleRoof|null}
@@ -236,7 +224,7 @@ export class CastleEntityBuilder {
 
   /**
    *
-   * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, buildPlan: import("src/game/generator/castle/CastleBuildPlanWriter.js").CastleBuildPlan, modelLibrary: import("src/game/models/GameModelLibrary.js").GameModelLibrary, doorTexture: import("playcanvas").Texture, stoneTexture: import("playcanvas").Texture, fireParticleTexture: import("playcanvas").Texture, carpetTexture: import("playcanvas").Texture, onRuntimeError: ((error: Error) => void)|null}} options
+   * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, buildPlan: import("src/game/generator/castle/CastleBuildPlanWriter.js").CastleBuildPlan, modelLibrary: import("src/game/models/GameModelLibrary.js").GameModelLibrary, doorTexture: import("playcanvas").Texture, stoneTexture: import("playcanvas").Texture, carpetTexture: import("playcanvas").Texture, onRuntimeError: ((error: Error) => void)|null}} options
    * @param {typeof import("playcanvas")} options.pc
    * @param {import("playcanvas").Application} options.app
    * @param {import("src/game/generator/castle/CastleBuildPlanWriter.js").CastleBuildPlan} options.buildPlan
@@ -245,7 +233,6 @@ export class CastleEntityBuilder {
    * @param {import("playcanvas").Texture} options.stoneTexture
    * @param {import("playcanvas").Texture|null} options.gardenTexture
    * @param {import("playcanvas").Texture} options.carpetTexture
-   * @param {import("playcanvas").Texture} options.fireParticleTexture
    * @param {((error: Error) => void)|null} options.onRuntimeError
    */
   constructor({
@@ -255,7 +242,6 @@ export class CastleEntityBuilder {
     modelLibrary,
     doorTexture,
     stoneTexture,
-    fireParticleTexture,
     carpetTexture,
     gardenTexture = null,
     onRuntimeError = null,
@@ -269,7 +255,6 @@ export class CastleEntityBuilder {
     this.#doorTexture = doorTexture;
     this.#stoneTexture = stoneTexture;
     this.#worldToCastle = new pc.Mat4();
-    this.#fireParticleTexture = fireParticleTexture;
     this.#carpetTexture = carpetTexture;
     this.#onRuntimeError = onRuntimeError;
     this.#entity = new pc.Entity("Castle");
@@ -567,8 +552,6 @@ export class CastleEntityBuilder {
     this.#terraceContext = null;
     this.#royal = null;
     this.#servant = null;
-    this.#fire?.destroy();
-    this.#fire = null;
     this.#roofs?.destroy();
     this.#roofs = null;
     this.#stairs?.destroy();
@@ -583,7 +566,6 @@ export class CastleEntityBuilder {
     this.#materials.clear();
     this.#stoneTexture = null;
     this.#doorTexture = null;
-    this.#fireParticleTexture = null;
     this.#carpetTexture = null;
     this.#groundCollisionColumns = [];
     this.#cameraCollisionBlocks = [];
@@ -727,13 +709,6 @@ export class CastleEntityBuilder {
   }
 
   #createDecorations() {
-    this.#fire = new CastleFire({
-      pc: this.#pc,
-      modelLibrary: this.#modelLibrary,
-      app: this.#app,
-      particleTexture: this.#fireParticleTexture,
-    });
-    this.#entity.addChild(this.#fire.entity);
     this.#roofs = new CastleRoof({
       pc: this.#pc,
       app: this.#app,
@@ -792,7 +767,6 @@ export class CastleEntityBuilder {
         }
         : null,
       modelLibrary: this.#modelLibrary,
-      fireParticleTexture: this.#fireParticleTexture,
       carpetTexture: this.#carpetTexture,
     });
     this.#entity.addChild(this.#audienceRoom.entity);
@@ -914,9 +888,6 @@ export class CastleEntityBuilder {
         box.sy,
         box.sz,
       );
-    }
-    for (const flame of geometry.decorations.flames) {
-      this.#fire.add(flame);
     }
     for (const roof of geometry.decorations.roofs) {
       this.#roofs.add(roof);

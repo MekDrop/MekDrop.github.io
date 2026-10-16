@@ -12,7 +12,9 @@
  * @property {string|number} [timberSeed] Repeatable SpareTimberBundle layout; defaults to its id.
  * @property {string|number} [linenSeed] Repeatable FoldedLinens bundle layout; defaults to its id.
  * @property {import("./castle-props/lantern/Lantern.js").LanternLighting|false} [lighting] Lantern-local illumination override.
- * @property {boolean} [flame] Override the lantern variant's candle emitter.
+ * @property {boolean} [castleBrazier] Generated castle brazier owned by sourceCastleId.
+ * @property {number} [phase] Stable fire flicker phase.
+ * @property {boolean} [flame] Override a lantern or brazier flame. Tower braziers are unlit by default.
  * @property {{halfExtents: Point3, offset: Point3}} [collisionBox] Model-space lantern contact box.
  * @property {{position: Point3, width: number, depth: number}} [hatch] Framed ladder roof hatch.
  * @property {Point3} [bottom] Ladder lower landing in world coordinates.
@@ -33,7 +35,7 @@
  * @property {boolean} [generated]
  * @property {RenderCommand} [geometry]
  * @property {boolean} [castleBanner] Banner extracted from castle decorations.
- * @property {string} [variant] Prop artwork/model variant. Shelf uses a ranged book cabinet by default or storage with position/rotation. Bed uses royal (default) or servant. CandleStand uses single (default), floor, or table. Bench uses wall (default) or island. Satchel uses brown (default) or olive, preserving each model's authored leather finish. Banner uses navy-and-gold artwork by default or cloth for castle artwork; both simulate cloth.
+ * @property {string} [variant] Prop artwork/model variant. Brazier uses bowl (default) or tower. Shelf uses a ranged book cabinet by default or storage with position/rotation. Bed uses royal (default) or servant. CandleStand uses single (default), floor, or table. Bench uses wall (default) or island. Satchel uses brown (default) or olive, preserving each model's authored leather finish. Banner uses navy-and-gold artwork by default or cloth for castle artwork; both simulate cloth.
  * @property {boolean} [isOpen] Whether the Book is open (default false), independent of its location.
  * @property {string} [pose] Book model's resting pose: flat (default) or upright; tilt and rotation control final orientation.
  * @property {string} [style] Book artwork style; classic retains the older painted open volume in any location.

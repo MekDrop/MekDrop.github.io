@@ -1169,7 +1169,8 @@
     },
     {
       "id": "tower-brazier",
-      "object": "TowerBrazier",
+      "object": "Brazier",
+      "variant": "tower",
       "tile": {
         "col": 3,
         "row": 9

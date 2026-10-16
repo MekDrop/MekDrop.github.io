@@ -4,7 +4,7 @@ import tableModelUrl from "../../../models/castle/props/table-lantern.glb?url";
 import { AbstractCastleProp } from "../../shared/AbstractCastleProp.js";
 import { LanternGlass } from "./LanternGlass.js";
 import { Fire } from "../../fire/Fire.js";
-import { CastleFire } from "../../castle/CastleFire.js";
+import { FireEffect } from "../../fire/FireEffect.js";
 
 /**
  * Island-owned lantern model, collision, flame and optional local illumination.
@@ -17,7 +17,7 @@ export class Lantern extends AbstractCastleProp {
   constructor(options) {
     super(options);
 
-    const { pc, modelLibrary, definition } = options;
+    const { pc, definition } = options;
     const root = this.visualRoots[0];
     const model = root.children[0];
     if (definition.collisionBox) {
@@ -73,15 +73,13 @@ export class Lantern extends AbstractCastleProp {
     if (!settings) { return; }
     const parent = settings.modelSpace ? model : root;
     if (settings.flicker) {
-      const fire = new CastleFire({
+      const fire = new FireEffect({
         pc,
         app: pc.Application.getApplication(),
-        modelLibrary,
       });
       fire.add({
         ...settings.position,
         scale: settings.range / 12,
-        brazier: false,
         flame: false,
         intensity: settings.intensity,
         phase: settings.phase,

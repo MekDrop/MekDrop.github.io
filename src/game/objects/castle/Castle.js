@@ -90,7 +90,6 @@ export class Castle extends CastleEntityBuilder {
       stoneTexture: textureAssets.get("castleStone").resource,
       gardenTexture: textureAssets.get("castleGarden").resource,
       carpetTexture: textureAssets.get("castleCarpet").resource,
-      fireParticleTexture: textureAssets.get("castleFireParticle").resource,
       onRuntimeError: runtime.onRuntimeError,
     });
 

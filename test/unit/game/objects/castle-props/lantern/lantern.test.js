@@ -23,9 +23,9 @@ const hooks = registerHooks({
         shortCircuit: true,
       };
     }
-    if (specifier.endsWith("/CastleFire.js")) {
+    if (specifier.endsWith("/FireEffect.js")) {
       return {
-        url: 'data:text/javascript,export class CastleFire {}',
+        url: 'data:text/javascript,export class FireEffect {}',
         shortCircuit: true,
       };
     }

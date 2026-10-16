@@ -23,9 +23,9 @@ const hooks = registerHooks({
         shortCircuit: true,
       };
     }
-    if (specifier.endsWith("/CastleFire.js")) {
+    if (specifier.endsWith("/FireEffect.js")) {
       return {
-        url: 'data:text/javascript,export class CastleFire { constructor() { this.entity = new globalThis.CandleTestEntity("single flame"); } add(options) { this.entity.flame = options; } destroy() { this.entity.destroy(); } }',
+        url: 'data:text/javascript,export class FireEffect { constructor() { this.entity = new globalThis.CandleTestEntity("single flame"); } add(options) { this.entity.flame = options; } destroy() { this.entity.destroy(); } }',
         shortCircuit: true,
       };
     }

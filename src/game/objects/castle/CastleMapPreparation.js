@@ -1,3 +1,4 @@
+import { CastleBrazierMapObjects } from "../castle-props/brazier/CastleBrazierMapObjects.js";
 import { CastleWardrobeMapObjects } from "../castle-props/wardrobe/CastleWardrobeMapObjects.js";
 import { CastleTableMapObjects } from "../castle-props/table/CastleTableMapObjects.js";
 import { CastleShelfMapObjects } from "../castle-props/shelf/CastleShelfMapObjects.js";
@@ -47,6 +48,7 @@ export class CastleMapPreparation {
     CastleSignalTowerMapObjects.prepareMap(mapData);
     VestibuleRoomMapObjects.prepareMap(mapData);
     CastleLanternMapObjects.prepareMap(mapData);
+    CastleBrazierMapObjects.prepareMap(mapData);
     const castles = (mapData.objects ?? []).filter(
       CastleMapPreparation.#filterDefinition,
     );
