@@ -6,8 +6,8 @@ import {
   AnimationActorVariantNotSupportedError,
 } from "../errors/debug/index.js";
 import { SeatedRoyal } from "../objects/castle/SeatedRoyal.js";
-import { Hero } from "../objects/hero/Hero.js";
-import { AxeTool, ShovelTool } from "../objects/hero/tools/index.js";
+import { Hero } from "../objects/characters/hero/Hero.js";
+import { AxeTool, ShovelTool } from "../objects/characters/hero/tools/index.js";
 
 const ROYAL_VARIANTS = new Map(
   ["king", "queen", "princess"].map(/**

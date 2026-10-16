@@ -167,12 +167,12 @@ export class CastleEntityBuilder {
   #terraceContext = null;
   /**
    *
-   * @type {import("../royal/AbstractRoyal.js").AbstractRoyal|null}
+   * @type {import("../characters/royal/AbstractRoyal.js").AbstractRoyal|null}
    */
   #royal = null;
   /**
    *
-   * @type {import("../servant/Servant.js").Servant|null}
+   * @type {import("../characters/servant/Servant.js").Servant|null}
    */
   #servant = null;
   /**
@@ -304,7 +304,7 @@ export class CastleEntityBuilder {
 
   /**
    *
-   * @param {import("../royal/AbstractRoyal.js").AbstractRoyal} royal
+   * @param {import("../characters/royal/AbstractRoyal.js").AbstractRoyal} royal
    */
   attachRoyal(royal) {
     this.#royal = royal;
@@ -316,7 +316,7 @@ export class CastleEntityBuilder {
 
   /**
    *
-   * @param {import("../servant/Servant.js").Servant} servant
+   * @param {import("../characters/servant/Servant.js").Servant} servant
    */
   attachServant(servant) {
     this.#servant = servant;

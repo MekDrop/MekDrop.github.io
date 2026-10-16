@@ -7,7 +7,7 @@ export class SignalBellInteraction {
    */
   #bell;
   /**
-   * @type {import("../hero/Hero.js").Hero}
+   * @type {import("../characters/hero/Hero.js").Hero}
    */
   #hero;
   /**
@@ -17,7 +17,7 @@ export class SignalBellInteraction {
 
   /**
    * @param {import("./SignalBell.js").SignalBell} bell
-   * @param {import("../hero/Hero.js").Hero} hero
+   * @param {import("../characters/hero/Hero.js").Hero} hero
    * @param {(()=>void)|undefined} onComplete
    */
   constructor(bell, hero, onComplete) {

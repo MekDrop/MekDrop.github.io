@@ -11,7 +11,7 @@ export class VegetationInteraction {
   #hero;
   /**
    *
-   * @type {import("src/game/objects/hero/tools/HeroTool.js").HeroTool|null}
+   * @type {import("src/game/objects/characters/hero/tools/HeroTool.js").HeroTool|null}
    */
   #tool;
   /**
@@ -32,10 +32,10 @@ export class VegetationInteraction {
 
   /**
    *
-   * @param {{item: import("./DestructibleVegetation.js").DestructibleVegetation, hero: import("src/game/objects/ObjectTypes.js").HeroLike, tool: import("src/game/objects/hero/tools/HeroTool.js").HeroTool, onChange: (value: import("src/game/objects/ObjectTypes.js").InteractionLike|null) => void, onComplete: () => void, onDestroyed: () => void}} options
+   * @param {{item: import("./DestructibleVegetation.js").DestructibleVegetation, hero: import("src/game/objects/ObjectTypes.js").HeroLike, tool: import("src/game/objects/characters/hero/tools/HeroTool.js").HeroTool, onChange: (value: import("src/game/objects/ObjectTypes.js").InteractionLike|null) => void, onComplete: () => void, onDestroyed: () => void}} options
    * @param {import("./DestructibleVegetation.js").DestructibleVegetation} options.item
    * @param {import("src/game/objects/ObjectTypes.js").HeroLike} options.hero
-   * @param {import("src/game/objects/hero/tools/HeroTool.js").HeroTool} options.tool
+   * @param {import("src/game/objects/characters/hero/tools/HeroTool.js").HeroTool} options.tool
    * @param {(value: import("src/game/objects/ObjectTypes.js").InteractionLike|null) => void} options.onChange
    * @param {() => void} options.onComplete
    * @param {() => void} options.onDestroyed

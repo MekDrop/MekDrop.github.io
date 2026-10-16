@@ -1,10 +1,10 @@
 import { GRASS_SURFACE_LIFT } from "../config/terrain.js";
 import { pickupActionForCategory } from "../config/hero-pickup-actions.js";
 import { PickupSequenceItemNotFoundError } from "../errors/debug/index.js";
-import { Hero } from "../objects/hero/Hero.js";
+import { Hero } from "../objects/characters/hero/Hero.js";
 import groundCoverFragmentShader from "../objects/ground-cover/GroundCover.frag?raw";
 import groundCoverHeldVertexShader from "../objects/ground-cover/GroundCoverHeld.vert?raw";
-import { KnifeTool } from "../objects/hero/tools/index.js";
+import { KnifeTool } from "../objects/characters/hero/tools/index.js";
 import { GroundCoverHeldItem } from "../objects/ground-cover/index.js";
 
 const HERO_ACTOR_SCALE = 0.65;

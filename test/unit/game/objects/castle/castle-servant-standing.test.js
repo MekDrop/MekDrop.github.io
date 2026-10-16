@@ -6,7 +6,7 @@ import { CastleResidentMotion } from "../../../../../src/game/objects/castle/Cas
 import { CastleGenerator } from "../../../../../src/game/generator/castle/CastleGenerator.js";
 import { CastleResidentialLayout } from "../../../../../src/game/objects/castle/CastleResidentialLayout.js";
 
-const source = readFileSync(new URL("../../../../../src/game/objects/servant/Servant.js", import.meta.url), "utf8").replace(/^import[^\n]+\r?\n/gm, "");
+const source = readFileSync(new URL("../../../../../src/game/objects/characters/servant/Servant.js", import.meta.url), "utf8").replace(/^import[^\n]+\r?\n/gm, "");
 const Servant = new Function("servantModelUrl", "CHARACTER_HEIGHT", "TerraceActor", "CastleResidentMotion", `${source.replace("export class", "class")}\nreturn Servant;`)("servant.glb", 1.8, class {
   entity = new pc.Entity(); height = 1; pose() {}
 }, CastleResidentMotion);

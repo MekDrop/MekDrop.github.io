@@ -1,4 +1,4 @@
-import { Hero } from "../../objects/hero/index.js";
+import { Hero } from "../../objects/characters/hero/index.js";
 import { ThrownInventoryItem } from "../../objects/inventory/index.js";
 import { InventoryHud } from "../../ui/index.js";
 

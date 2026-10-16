@@ -37,7 +37,7 @@ export class SignalBell extends AbstractCastleProp {
    */
   #rope = null;
   /**
-   * @type {import("../hero/Hero.js").Hero|null}
+   * @type {import("../characters/hero/Hero.js").Hero|null}
    */
   #pullingHero = null;
   /**
@@ -126,7 +126,7 @@ export class SignalBell extends AbstractCastleProp {
 
   /**
    * Begin the bell timeline; the rope follows Ammo and the hero's actual glove.
-   * @param {import("../hero/Hero.js").Hero} hero
+   * @param {import("../characters/hero/Hero.js").Hero} hero
    */
   startPull(hero) {
     this.#pullingHero = hero;
@@ -190,7 +190,7 @@ export class SignalBell extends AbstractCastleProp {
   }
 
   /**
-   * @param {{hero:import("../hero/Hero.js").Hero,onComplete?:()=>void}} options
+   * @param {{hero:import("../characters/hero/Hero.js").Hero,onComplete?:()=>void}} options
    * @returns {SignalBellInteraction|null}
    */
   findInteraction({ hero, onComplete }) {

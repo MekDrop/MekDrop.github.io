@@ -163,7 +163,7 @@ describe("Castle door swing physics", () => {
         "fully open leaf stays clickable").to.equal(door);
         door.update(20);
         expect(layer.activeStateCurrentTime, "still closes").to.be.closeTo(0, .001);
-        const { Servant } = await load("/src/game/objects/servant/Servant.js");
+        const { Servant } = await load("/src/game/objects/characters/servant/Servant.js");
         const { TerraceActor } = await load("/src/game/objects/castle/rooms/terrace/TerraceActor.js");
         await library.load([Servant.modelUrls[0]]);
         const actor = new TerraceActor({

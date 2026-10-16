@@ -6,7 +6,7 @@ const stylistic = require("@stylistic/eslint-plugin");
 const superOwnLine = require("./scripts/eslint/super-own-line.cjs");
 
 const oversizedSourceFileExemptions = [
-  "src/game/objects/hero/Hero.js",
+  "src/game/objects/characters/hero/Hero.js",
   "src/game/PlayCanvasRenderer.js",
   "src/game/objects/treasure/BuriedTreasureField.js",
   "src/game/ui/InventoryHud.js",

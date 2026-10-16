@@ -11,7 +11,7 @@ export class GroundCoverInteraction {
   #hero;
   /**
    *
-   * @type {import("src/game/objects/hero/tools/HeroTool.js").HeroTool|null}
+   * @type {import("src/game/objects/characters/hero/tools/HeroTool.js").HeroTool|null}
    */
   #tool;
   /**
@@ -27,10 +27,10 @@ export class GroundCoverInteraction {
 
   /**
    *
-   * @param {{collectible: number, hero: import("src/game/objects/ObjectTypes.js").HeroLike, tool: import("src/game/objects/hero/tools/HeroTool.js").HeroTool, onChange: (value: import("src/game/objects/ObjectTypes.js").InteractionLike|null) => void, onComplete: () => void}} options
+   * @param {{collectible: number, hero: import("src/game/objects/ObjectTypes.js").HeroLike, tool: import("src/game/objects/characters/hero/tools/HeroTool.js").HeroTool, onChange: (value: import("src/game/objects/ObjectTypes.js").InteractionLike|null) => void, onComplete: () => void}} options
    * @param {number} options.collectible
    * @param {import("src/game/objects/ObjectTypes.js").HeroLike} options.hero
-   * @param {import("src/game/objects/hero/tools/HeroTool.js").HeroTool} options.tool
+   * @param {import("src/game/objects/characters/hero/tools/HeroTool.js").HeroTool} options.tool
    * @param {(value: import("src/game/objects/ObjectTypes.js").InteractionLike|null) => void} options.onChange
    * @param {() => void} options.onComplete
    */

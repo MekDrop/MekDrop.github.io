@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {it} from 'node:test';
 import {CastleGenerator} from '../../../../../src/game/generator/castle/CastleGenerator.js';
 import {CastleResidentialLayout} from '../../../../../src/game/objects/castle/CastleResidentialLayout.js';
-import {MOVEMENT_COLLISION_RADIUS,HERO_COLLISION_HEIGHT} from '../../../../../src/game/objects/hero/HeroSurfaceRules.js';
+import {MOVEMENT_COLLISION_RADIUS,HERO_COLLISION_HEIGHT} from '../../../../../src/game/objects/characters/hero/HeroSurfaceRules.js';
 
 it('supports both sides of every interior door and clears the hero body',async()=>{
   for (const seed of [0,1]) {

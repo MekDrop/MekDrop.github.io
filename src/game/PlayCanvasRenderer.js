@@ -16,9 +16,9 @@ import waterSideUrl from "src/assets/game/tiles/water-side.png";
 import waterTopUrl from "src/assets/game/tiles/water-top.png";
 
 import { BridgeRailingKit } from "./objects/path/index.js";
-import { Hero, HeroPatHand } from "./objects/hero/index.js";
+import { Hero, HeroPatHand } from "./objects/characters/hero/index.js";
 import { HeroPatGesture } from "./controls/HeroPatGesture.js";
-import { KnifeTool, ShovelTool } from "./objects/hero/tools/index.js";
+import { KnifeTool, ShovelTool } from "./objects/characters/hero/tools/index.js";
 import { Overpass } from "./objects/path/Overpass.js";
 import { GroundCover } from "./objects/ground-cover/index.js";
 import {

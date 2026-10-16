@@ -169,7 +169,7 @@ export class BuriedTreasureField {
   #islandRoots;
   /**
    *
-   * @type {import("../hero/tools/HeroTool.js").HeroTool|null}
+   * @type {import("../characters/hero/tools/HeroTool.js").HeroTool|null}
    */
   #tool = null;
   /**

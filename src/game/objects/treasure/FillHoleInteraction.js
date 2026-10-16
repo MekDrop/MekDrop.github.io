@@ -16,7 +16,7 @@ export class FillHoleInteraction {
   #hero;
   /**
    *
-   * @type {import("src/game/objects/hero/tools/HeroTool.js").HeroTool|null}
+   * @type {import("src/game/objects/characters/hero/tools/HeroTool.js").HeroTool|null}
    */
   #tool;
   /**
@@ -32,11 +32,11 @@ export class FillHoleInteraction {
 
   /**
    *
-   * @param {{field: import("./BuriedTreasureField.js").BuriedTreasureField, target: {x: number, y: number, z: number}, hero: import("src/game/objects/ObjectTypes.js").HeroLike, tool: import("src/game/objects/hero/tools/HeroTool.js").HeroTool, onChange: (value: import("src/game/objects/ObjectTypes.js").InteractionLike|null) => void, onComplete: () => void}} options
+   * @param {{field: import("./BuriedTreasureField.js").BuriedTreasureField, target: {x: number, y: number, z: number}, hero: import("src/game/objects/ObjectTypes.js").HeroLike, tool: import("src/game/objects/characters/hero/tools/HeroTool.js").HeroTool, onChange: (value: import("src/game/objects/ObjectTypes.js").InteractionLike|null) => void, onComplete: () => void}} options
    * @param {import("./BuriedTreasureField.js").BuriedTreasureField} options.field
    * @param {{x: number, y: number, z: number}} options.target
    * @param {import("src/game/objects/ObjectTypes.js").HeroLike} options.hero
-   * @param {import("src/game/objects/hero/tools/HeroTool.js").HeroTool} options.tool
+   * @param {import("src/game/objects/characters/hero/tools/HeroTool.js").HeroTool} options.tool
    * @param {(value: import("src/game/objects/ObjectTypes.js").InteractionLike|null) => void} options.onChange
    * @param {() => void} options.onComplete
    */

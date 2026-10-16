@@ -1,5 +1,5 @@
 import { CastleFloorFinish } from "./CastleFloorFinish.js";
-import { MAX_SAFE_STEP_DOWN, STEP_CLEARANCE } from "../hero/HeroSurfaceRules.js";
+import { MAX_SAFE_STEP_DOWN, STEP_CLEARANCE } from "../characters/hero/HeroSurfaceRules.js";
 import { spiralStairRise } from "../shared/SpiralStairCollision.js";
 import { createCastlePlannedFloorAreas } from "./CastlePlannedFloorAreas.js";
 import { createCastleInteriorFloorAreas } from "./CastleInteriorFloorAreas.js";

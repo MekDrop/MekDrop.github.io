@@ -85,7 +85,7 @@ export class CastleTerraceActivity {
   #stopped = false;
 
   /**
-   * @type {import("../../../servant/Servant.js").Servant}
+   * @type {import("../../../characters/servant/Servant.js").Servant}
    */
   #servant;
   /**
@@ -95,13 +95,13 @@ export class CastleTerraceActivity {
 
   /**
    *
-   * @param {{pc: typeof import("playcanvas"), modelLibrary: string, wallMaterial: import("playcanvas").Material, woodMaterial: import("playcanvas").Material, royal: import("../../../royal/AbstractRoyal.js").AbstractRoyal, servant: import("../../../servant/Servant.js").Servant, position: {x: number, y: number, z: number}, doors: Array<{side: string, offset: number, width: number, approachElevation?: number}>, layout: {x: number, y: number, z: number, yaw: number, depth: number, width: number}, onRoyalAtThroneChange: (atThrone: boolean) => void}} options
+   * @param {{pc: typeof import("playcanvas"), modelLibrary: string, wallMaterial: import("playcanvas").Material, woodMaterial: import("playcanvas").Material, royal: import("../../../characters/royal/AbstractRoyal.js").AbstractRoyal, servant: import("../../../characters/servant/Servant.js").Servant, position: {x: number, y: number, z: number}, doors: Array<{side: string, offset: number, width: number, approachElevation?: number}>, layout: {x: number, y: number, z: number, yaw: number, depth: number, width: number}, onRoyalAtThroneChange: (atThrone: boolean) => void}} options
    * @param {typeof import("playcanvas")} options.pc
    * @param {string} options.modelLibrary
    * @param {import("playcanvas").Material} options.wallMaterial
    * @param {import("playcanvas").Material} options.woodMaterial
-   * @param {import("../../../royal/AbstractRoyal.js").AbstractRoyal} options.royal
-   * @param {import("../../../servant/Servant.js").Servant} options.servant
+   * @param {import("../../../characters/royal/AbstractRoyal.js").AbstractRoyal} options.royal
+   * @param {import("../../../characters/servant/Servant.js").Servant} options.servant
    * @param {{x: number, y: number, z: number}} options.position
    * @param {Array<{side: string, offset: number, width: number, approachElevation?: number}>} options.doors
    * @param {{x: number, y: number, z: number, yaw: number, depth: number, width: number}} options.layout

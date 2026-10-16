@@ -4,7 +4,7 @@ import { CameraPointerAction } from "../../../../../src/game/actions/CameraPoint
 import { FirstPersonCameraAction } from "../../../../../src/game/actions/FirstPersonCameraAction.js";
 import { FirstPersonCameraMode } from "../../../../../src/game/strategies/camera/FirstPersonCameraMode.js";
 import { DEFAULT_CONTROLS } from "../../../../../src/config/controls.js";
-import { projectFirstPersonMovement } from "../../../../../src/game/objects/hero/projectFirstPersonMovement.js";
+import { projectFirstPersonMovement } from "../../../../../src/game/objects/characters/hero/projectFirstPersonMovement.js";
 
 class Vec3 {
   constructor(x, y, z) {

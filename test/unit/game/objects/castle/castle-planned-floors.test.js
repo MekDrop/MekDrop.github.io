@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { it } from "node:test";
 import { CastleGenerator } from "../../../../../src/game/generator/castle/CastleGenerator.js";
-import { HeroFootSupport } from "../../../../../src/game/objects/hero/HeroFootSupport.js";
+import { HeroFootSupport } from "../../../../../src/game/objects/characters/hero/HeroFootSupport.js";
 import { CastleResidentialLayout } from "../../../../../src/game/objects/castle/CastleResidentialLayout.js";
 
 const source = readFileSync(new URL("../../../../../src/game/objects/castle/CastleResidence.js", import.meta.url), "utf8");

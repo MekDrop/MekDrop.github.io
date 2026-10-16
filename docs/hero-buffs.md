@@ -96,4 +96,4 @@ near that heading and removes route corners only when the whole shortcut is
 traversable. This keeps initial movement from favoring the grid axes.
 
 Validation: `test/unit/game/buffs/buff-system.test.js` covers generic effect behavior, while
-`test/unit/game/objects/hero/hero-patting.test.js` covers petting with the shared buff clock.
+`test/unit/game/objects/characters/hero/hero-patting.test.js` covers petting with the shared buff clock.

@@ -311,12 +311,12 @@ export class CastleResidence {
   get layout() { return this.#layout; }
 
   /**
-   * @param {import("../servant/Servant.js").Servant} servant
+   * @param {import("../characters/servant/Servant.js").Servant} servant
    */
   set servant(servant) { this.#layout.servant = servant; }
 
   /**
-   * @param {import("../servant/Servant.js").Servant} actor
+   * @param {import("../characters/servant/Servant.js").Servant} actor
    */
   canEnterBasement(actor) { return this.#layout.canEnterBasement(actor); }
 

@@ -7,7 +7,7 @@ export class LadderInteraction {
    */
   #ladder;
   /**
-   * @type {import("../../hero/Hero.js").Hero}
+   * @type {import("../../characters/hero/Hero.js").Hero}
    */
   #hero;
   /**
@@ -21,7 +21,7 @@ export class LadderInteraction {
 
   /**
    * @param {import("./Ladder.js").Ladder} ladder
-   * @param {import("../../hero/Hero.js").Hero} hero
+   * @param {import("../../characters/hero/Hero.js").Hero} hero
    * @param {"bottom"|"top"} end
    * @param {(()=>void)|undefined} onComplete
    */

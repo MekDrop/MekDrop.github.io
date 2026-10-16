@@ -152,7 +152,7 @@ function findCypressSpec(file) {
   }
 
   if (normalized === 'src/components/GameCanvas.vue') {
-    const movementSpec = 'test/cypress/e2e/game/objects/hero/HeroMovement.cy.js'
+    const movementSpec = 'test/cypress/e2e/game/objects/characters/hero/HeroMovement.cy.js'
 
     return existsSync(path.join(root, movementSpec)) ? movementSpec : null
   }
