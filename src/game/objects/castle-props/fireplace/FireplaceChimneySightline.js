@@ -1,21 +1,21 @@
-import { CastleResidentialLayout } from "./CastleResidentialLayout.js";
+import { CastleResidentialLayout } from "../../castle/CastleResidentialLayout.js";
 
 /**
  * Opens the fireplace flue through castle surface materials.
  */
-export class CastleChimneySightline {
+export class FireplaceChimneySightline {
   /**
    * @param {typeof import("playcanvas")} pc
    * @param {import("playcanvas").Application} app
    * @param {import("playcanvas").Entity} root
-   * @param {import("../../GameContracts.js").CastleBuildPlan} buildPlan
+   * @param {import("../../../GameContracts.js").CastleBuildPlan} buildPlan
    */
   static add(pc, app, root, buildPlan) {
     const plan = buildPlan.metadata.runtime.residential;
     const layout = new CastleResidentialLayout(buildPlan);
-    const flues = plan.furniture.filter(CastleChimneySightline.#filterItem).map(
+    const flues = plan.furniture.filter(FireplaceChimneySightline.#filterItem).map(
       /**
-       * @param {import("../../generator/castle/rooms/AbstractCastleRoomGenerator.js").RoomItem} item
+       * @param {import("../../../generator/castle/rooms/AbstractCastleRoomGenerator.js").RoomItem} item
        * @returns {import("playcanvas").Mat4}
        */ item => {
         const position = layout.toWorld(item.x, item.z, item.floorY - layout.origin.y);
@@ -86,7 +86,7 @@ export class CastleChimneySightline {
   }
 
   /**
-   * @param {import("../../generator/castle/rooms/AbstractCastleRoomGenerator.js").RoomItem} item
+   * @param {import("../../../generator/castle/rooms/AbstractCastleRoomGenerator.js").RoomItem} item
    * @returns {boolean}
    */
   static #filterItem(item) {

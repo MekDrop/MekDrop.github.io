@@ -1,9 +1,26 @@
 /**
  * Resolves the roof surface above a room-authored fireplace.
  */
-export class KitchenChimneyLayout {
+export class FireplaceGenerator {
   /**
-   * @param {import("../../GameContracts.js").CastleBuildPlan} buildPlan
+   * Configure the chimney while the room adapter publishes the fireplace.
+   * @param {import("../../../GameContracts.js").CastleBuildPlan} buildPlan
+   * @param {import("../../../generator/castle/rooms/AbstractCastleRoomGenerator.js").RoomItem} item
+   * @param {import("../../ObjectTypes.js").MapObjectDefinition} definition
+   * @returns {import("../../ObjectTypes.js").MapObjectDefinition}
+   */
+  static generate(buildPlan, item, definition) {
+    const chimneyHeight = this.height(buildPlan, item, definition.position, definition.rotation);
+
+    return {
+      ...definition,
+      chimneyHeight,
+      chimneyMetalTerminal: this.hasTerraceTerminal(buildPlan, item, definition.position, chimneyHeight),
+    };
+  }
+
+  /**
+   * @param {import("../../../GameContracts.js").CastleBuildPlan} buildPlan
    * @param {{x:number,z:number,floorY:number}} item
    * @param {{x:number,y:number,z:number}} position
    * @param {number} rotation
@@ -47,7 +64,7 @@ export class KitchenChimneyLayout {
     return Math.max(0, top - position.y + roofClearance);
   }
   /**
-   * @param {import("../../GameContracts.js").CastleBuildPlan} buildPlan
+   * @param {import("../../../GameContracts.js").CastleBuildPlan} buildPlan
    * @param {{x:number,z:number,floorY:number}} item
    * @param {{x:number,y:number,z:number}} position
    * @param {number} height

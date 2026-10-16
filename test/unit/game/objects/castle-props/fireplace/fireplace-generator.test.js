@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { KitchenChimneyLayout } from "../../../../../../../src/game/objects/castle/KitchenChimneyLayout.js";
+import { FireplaceGenerator } from "../../../../../../src/game/objects/castle-props/fireplace/FireplaceGenerator.js";
 
 test("chimneys meet the pitched roof after castle rotation and retain room floor offsets", () => {
   const plan = {
@@ -32,13 +32,13 @@ test("chimneys meet the pitched roof after castle rotation and retain room floor
     y: 3,
     z: 0.2073,
   };
-  assert.equal(KitchenChimneyLayout.height(plan, {
+  assert.equal(FireplaceGenerator.height(plan, {
     x: 2,
     z: 0,
     floorY: 3,
   }, position, 0), 8.72);
   plan.geometry.decorations.roofs[0].yaw = 90;
-  assert.equal(KitchenChimneyLayout.height(plan, {
+  assert.equal(FireplaceGenerator.height(plan, {
     x: 2,
     z: 0,
     floorY: 3,
@@ -47,7 +47,7 @@ test("chimneys meet the pitched roof after castle rotation and retain room floor
     y: 3,
     z: -1.972,
   }, 90), 8.72);
-  assert.equal(KitchenChimneyLayout.height(plan, {
+  assert.equal(FireplaceGenerator.height(plan, {
     x: 2,
     z: 0,
     floorY: 0,
@@ -96,7 +96,7 @@ test("flat ceilings use the highest covering floor while unrelated roofs are exc
       },
     },
   };
-  assert.equal(KitchenChimneyLayout.height(plan, {
+  assert.equal(FireplaceGenerator.height(plan, {
     x: 2,
     z: 2,
     floorY: 3,
@@ -106,7 +106,7 @@ test("flat ceilings use the highest covering floor while unrelated roofs are exc
     z: 2,
   }, 0), 5.72);
   plan.metadata.runtime.residential.walkableAreas = [];
-  assert.ok(Math.abs(KitchenChimneyLayout.height(plan, {
+  assert.ok(Math.abs(FireplaceGenerator.height(plan, {
     x: 2,
     z: 2,
     floorY: 3,
@@ -148,7 +148,7 @@ test("terraces terminate the chimney three masonry courses above their exposed f
     },
     geometry: { decorations: { roofs: [] } },
   };
-  assert.equal(KitchenChimneyLayout.height(plan, {
+  assert.equal(FireplaceGenerator.height(plan, {
     x: 2,
     z: 2,
     floorY: 0,
@@ -157,7 +157,7 @@ test("terraces terminate the chimney three masonry courses above their exposed f
     y: 0,
     z: 2,
   }, 0), 6.72);
-  assert.equal(KitchenChimneyLayout.hasTerraceTerminal(plan, {
+  assert.equal(FireplaceGenerator.hasTerraceTerminal(plan, {
     x: 2,
     z: 2,
     floorY: 0,
@@ -166,7 +166,7 @@ test("terraces terminate the chimney three masonry courses above their exposed f
     y: 0,
     z: 2,
   }, 6.72), true);
-  assert.equal(KitchenChimneyLayout.hasTerraceTerminal(plan, {
+  assert.equal(FireplaceGenerator.hasTerraceTerminal(plan, {
     x: 2,
     z: 2,
     floorY: 0,
@@ -175,4 +175,49 @@ test("terraces terminate the chimney three masonry courses above their exposed f
     y: 0,
     z: 2,
   }, 10), false);
+});
+
+
+test("generation preserves the published fireplace and owns both chimney fields", () => {
+  const buildPlan = {
+    metadata: {
+      runtime: {
+        residential: {
+          spaces: [{
+            kind: "terrace",
+            minX: -2,
+            maxX: 2,
+            minZ: -2,
+            maxZ: 2,
+            floorY: 6,
+            height: 3,
+          }],
+        },
+      },
+    },
+  };
+  const item = {
+    x: 0,
+    z: 0,
+    floorY: 0,
+  };
+  const definition = {
+    id: "hearth",
+    object: "Fireplace",
+    position: {
+      x: 0,
+      y: 0,
+      z: 0,
+    },
+    rotation: 90,
+    scale: 0.8,
+    sourceCastleId: "castle",
+  };
+  const generated = FireplaceGenerator.generate(buildPlan, item, definition);
+  assert.deepEqual(generated, {
+    ...definition,
+    chimneyHeight: 6.72,
+    chimneyMetalTerminal: true,
+  });
+  assert.equal(Object.hasOwn(definition, "chimneyHeight"), false);
 });

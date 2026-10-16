@@ -1,5 +1,5 @@
 import { CastleResidentialLayout } from "../../CastleResidentialLayout.js";
-import { KitchenChimneyLayout } from "../../KitchenChimneyLayout.js";
+import { FireplaceGenerator } from "../../../castle-props/fireplace/FireplaceGenerator.js";
 
 /**
  * Publishes room-authored kitchen and service props through the map lifecycle.
@@ -26,9 +26,7 @@ export class KitchenRoomMapObjects {
         const position = layout.toWorld(item.x, item.z, item.floorY - layout.origin.y + (item.y ?? 0));
         // Only compiled base plans transform both horizontal coordinates by 180°.
         const rotation = layout.yaw + (plan.basePlanId ? 180 : 0) + (item.rotation ?? 0);
-        const chimneyHeight = item.object === "Fireplace"
-          ? KitchenChimneyLayout.height(castle.buildPlan, item, position, rotation) : undefined;
-        objects.push({
+        const definition = {
           ...(item.items ? {
             items: item.items,
             color: item.color,
@@ -44,16 +42,14 @@ export class KitchenRoomMapObjects {
           scale: item.scale,
           generated: true,
           kitchenFurnishing: true,
-          ...(item.object === "Fireplace" ? {
-            chimneyHeight,
-            chimneyMetalTerminal: KitchenChimneyLayout.hasTerraceTerminal(castle.buildPlan, item, position, chimneyHeight),
-          } : {}),
           sourceCastleId: castle.id,
           tile: {
             col: Math.round(position.x + (mapData.cols - 1) / 2),
             row: Math.round(position.z + (mapData.rows - 1) / 2),
           },
-        });
+        };
+        objects.push(item.object === "Fireplace"
+          ? FireplaceGenerator.generate(castle.buildPlan, item, definition) : definition);
         if (item.object === "Fireplace") {
           const scale = item.scale ?? 1;
           const angle = rotation * Math.PI / 180;

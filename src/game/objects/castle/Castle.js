@@ -3,7 +3,7 @@ import { CastleMapPreparation } from "./CastleMapPreparation.js";
 import gardenTextureUrl from "src/assets/game/tiles/grass-top.png";
 import carpetTextureUrl from "src/assets/game/textures/castle-carpet.png";
 import { CastleEntityBuilder } from "./CastleEntityBuilder.js";
-import { CastleChimneySightline } from "./CastleChimneySightline.js";
+import { FireplaceChimneySightline } from "../castle-props/fireplace/FireplaceChimneySightline.js";
 import { IslandCellOwnership } from "../shared/IslandCellOwnership.js";
 import { SCENE_OBJECT_TYPE } from "../../enum/SceneObjectType.js";
 
@@ -107,7 +107,7 @@ export class Castle extends CastleEntityBuilder {
       (cells) => cells.has(`${col},${row}`),
     );
     this.entity.tags.add("map-object", definition.id, this.constructor.name);
-    CastleChimneySightline.add(pc, app, this.entity, definition.buildPlan);
+    FireplaceChimneySightline.add(pc, app, this.entity, definition.buildPlan);
   }
 
   /**
