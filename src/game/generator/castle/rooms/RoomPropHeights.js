@@ -6,6 +6,7 @@ export const ROOM_PROP_HEIGHTS = {
   "ChoppingToolsSet": 0.0485,
   "Lectern": 0.75,
   "DeskGlobe": 0.4,
+  "WritingSet": 0.29,
   "DeskParchment": 0.0376,
   "FireplaceCauldron": 0.65,
   "FirewoodStack": 0.2433,
@@ -119,6 +120,10 @@ export function roomPropHeight(item, fallback) {
     return item.properties.style === "classic" ? 0.1607 : 0.0673;
   }
   if (item.object === "CandleStand") {
+    const variant = item.variant ?? item.properties?.variant;
+    if (variant === "court" || variant === "courtTable") {
+      return variant === "court" ? 1.615 : 0.323;
+    }
     return (item.variant ?? item.properties?.variant) === "floor" ? 0.5836 : (item.variant ?? item.properties?.variant) === "table" ? 0.2311 : 0.6387;
   }
   if (item.object === "Lantern" && item.properties?.type === "wall") {

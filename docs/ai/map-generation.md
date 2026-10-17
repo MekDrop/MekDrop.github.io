@@ -56,6 +56,28 @@ The scene registry owns disposal and forwards shared island offsets.
 Keep `grid`, `heightmap`, `tileMeta`, dimensions, map identity, and test/HUD
 configuration at map level. Routes and arrows are derived runtime data.
 
+## Bookshelf placement
+
+These rules apply to every room generator, authored room layout, and placement
+repair that places a bookcase, including mirrored and rotated layouts.
+
+- Place bookshelves first, before desks, chairs, benches, chests, and other loose
+  furniture. Reserve their access space before placing the remaining furniture.
+- Place the back of the cabinet against a solid wall, with at most 5 cm of
+  clearance. Measure from the cabinet's actual back surface to the wall's inner
+  face, not from either object's origin. Do not block doors or windows.
+- Face the open shelves and book spines into the room. Verify the final model
+  orientation after all map transforms, rotation corrections, and mirroring.
+- Keep at least 1 m of unobstructed standing space in front, across the full
+  cabinet width, connected to the room's walking routes. A gap behind the
+  cabinet or a space blocked by a chair or table does not count as access.
+- Placement repair must preserve wall proximity, facing, and access together.
+  Reposition conflicting loose furniture rather than moving a bookcase into
+  the middle of the room or filling its reading space. If no valid arrangement
+  exists, report the placement conflict instead of silently accepting it.
+- Verify wall clearance, inward facing, and reachable reading space in focused
+  placement checks and inspect the book-facing side in the actual game.
+
 ## Runtime walking paths
 
 `src/game/navigation/WalkingPaths.js` derives walking centerlines from `grid`,

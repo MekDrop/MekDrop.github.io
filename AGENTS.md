@@ -10,6 +10,7 @@ Start with [docs/ai/task-map.md](docs/ai/task-map.md) for task locations and foc
 
 - Render visible game overlays, prompts, status, counters, and controls as PlayCanvas HUD under `src/game/ui/`, not as visible HTML over `GameCanvas.vue`. Hidden HTML may mirror text for accessibility semantics.
 - Authored entities at map coordinates must enter through the map's `objects` array. Their object class owns rendering and behavior. Generic infrastructure may discover shared needs such as model URLs; do not add entity-specific fields, collections, imports, preload entries, or rendering branches to `PlayCanvasRenderer`. If normal object integration cannot support the entity, ask before adding a special case.
+- Place bookshelves against walls before arranging loose furniture. Their open faces and book spines must face into the room, with a reachable, unobstructed reading space in front. Follow the bookshelf placement rules in [docs/ai/map-generation.md](docs/ai/map-generation.md).
 
 ## Universal Code Rules
 

@@ -1,6 +1,8 @@
 import singleModelUrl from "../../../models/castle/props/single-candle-stand.glb?url";
 import floorModelUrl from "../../../models/castle/props/floor-candelabrum.glb?url";
 import tableModelUrl from "../../../models/castle/props/table-candles.glb?url";
+import courtModelUrl from "../../../models/castle/props/court-candelabrum.glb?url";
+import courtTableModelUrl from "../../../models/castle/props/court-table-candelabrum.glb?url";
 import { Fire } from "../../fire/Fire.js";
 import { AbstractCastleProp } from "../../shared/AbstractCastleProp.js";
 import { FireEffect } from "../../fire/FireEffect.js";
@@ -27,7 +29,7 @@ export class CandleStand extends AbstractCastleProp {
   #attachFlames(options, model) {
     if ((this.definition.variant ?? "single") !== "single") {
       const inverse = model.getWorldTransform().clone().invert();
-      const volume = this.definition.variant === "table" ? {
+      const volume = ["table", "courtTable"].includes(this.definition.variant) ? {
         x: 0.0115,
         y: 0.0828,
         z: 0.0115,
@@ -83,13 +85,19 @@ export class CandleStand extends AbstractCastleProp {
    * @returns {string}
    */
   static get modelUrls() {
-    return [singleModelUrl, floorModelUrl, tableModelUrl];
+    return [singleModelUrl, floorModelUrl, tableModelUrl, courtModelUrl, courtTableModelUrl];
   }
 
   /**
    * @returns {string}
    */
   get modelUrl() {
+    if (this.definition.variant === "court") {
+      return courtModelUrl;
+    }
+    if (this.definition.variant === "courtTable") {
+      return courtTableModelUrl;
+    }
     return this.definition.variant === "floor" ? floorModelUrl :
       this.definition.variant === "table" ? tableModelUrl : singleModelUrl;
   }

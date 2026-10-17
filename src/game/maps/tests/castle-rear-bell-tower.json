@@ -6381,7 +6381,11 @@
           },
           {
             "label": "Throne room",
-            "script": "objects.getOne('hero').teleport({x:-4.5,y:2.15,z:3});camera.setFirstPerson(true);"
+            "script": "camera.setFirstPerson(false);objects.getOne('hero').teleport({x:-4.5,y:2.15,z:3});objects.getOne('hero').firstPersonCameraEnabled=true;objects.getOne('hero').firstPersonFacingYaw=180;camera.setFirstPerson(true);"
+          },
+          {
+            "label": "Council table",
+            "script": "camera.setFirstPerson(false);objects.getOne('hero').teleport({x:-4.7,y:2.15,z:2.5});objects.getOne('hero').firstPersonCameraEnabled=true;objects.getOne('hero').firstPersonFacingYaw=270;camera.setFirstPerson(true);"
           },
           {
             "label": "Terrace",

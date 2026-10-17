@@ -1,5 +1,6 @@
 import { Vec2 } from "playcanvas";
 import { AbstractCastleRoomGenerator } from "../AbstractCastleRoomGenerator.js";
+import { WorkingCourtFurnishing } from "./WorkingCourtFurnishing.js";
 
 export class ThroneRoomGenerator extends AbstractCastleRoomGenerator {
   constructor() {
@@ -25,6 +26,12 @@ export class ThroneRoomGenerator extends AbstractCastleRoomGenerator {
     const depth = bounds.maxZ - bounds.minZ;
     if (width < 3.3 || depth < 3.1) {
       return [];
+    }
+    if (width >= 5.3 && depth >= 5.2) {
+      return new WorkingCourtFurnishing({
+        ...room,
+        ...bounds,
+      }, context).items;
     }
     let state = 2166136261;
     const sourceSeed = context.seed ?? room.furnishingSeed ?? room.seed ?? 0;

@@ -1,6 +1,7 @@
 import { Wardrobe } from "./castle-props/wardrobe/Wardrobe.js";
 import { Bed } from "./castle-props/bed/Bed.js";
 import { CandleStand } from "./castle-props/candle-stand/CandleStand.js";
+import { WritingSet } from "./castle-props/writing-set/WritingSet.js";
 import { Book } from "./castle-props/book/Book.js";
 import { Fire } from "./fire/Fire.js";
 import { WarMapDrawing } from "./castle-props/war-map-drawing/WarMapDrawing.js";
@@ -173,6 +174,7 @@ const OBJECT_CLASSES = new Map([
   [Bench.name, Bench],
   [Lantern.name, Lantern],
   [CandleStand.name, CandleStand],
+  [WritingSet.name, WritingSet],
   [Satchel.name, Satchel],
   [Chest.name, Chest],
   [Fire.name, Fire],

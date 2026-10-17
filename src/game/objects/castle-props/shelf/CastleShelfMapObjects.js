@@ -1,4 +1,5 @@
 import { CastleResidentialLayout } from "../../castle/residents/CastleResidentialLayout.js";
+import { ShelfLayout } from "./ShelfLayout.js";
 
 /**
  * Publishes castle cabinets through the same ownership as authored shelves.
@@ -73,21 +74,22 @@ export class CastleShelfMapObjects {
         } else {
           to.z = from.z;
         }
-        const rotation = layout.yaw + (shelf.facing === 1 ? 90 : -90);
-        const angle = rotation * Math.PI / 180;
-        objects.push({
+        const definition = {
           id: `${castle.id}-book-shelf-${index++}`,
           object: "Shelf",
           from,
           to,
           height: shelf.height,
-          facing: from.x === to.x ? Math.sign(Math.sin(angle)) : Math.sign(Math.cos(angle)),
           seed: `${castle.buildPlan.input.seed ?? 0}:${index}`,
           generated: true,
           castleShelf: true,
           sourceCastleId: castle.id,
           tile: CastleShelfMapObjects.#tile(mapData, from),
-        });
+        };
+        const room = layout.rooms.work;
+        definition.facing = ShelfLayout.facingToward(definition,
+          layout.toWorld((room.minX + room.maxX) / 2, (room.minZ + room.maxZ) / 2, 0));
+        objects.push(definition);
       }
     }
   }

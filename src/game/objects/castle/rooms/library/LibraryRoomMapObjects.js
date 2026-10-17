@@ -1,4 +1,5 @@
 import { CastleResidentialLayout } from "../../residents/CastleResidentialLayout.js";
+import { ShelfLayout } from "../../../castle-props/shelf/ShelfLayout.js";
 
 /**
  * Publishes room-authored study furniture through registered object lifecycles.
@@ -86,7 +87,12 @@ export class LibraryRoomMapObjects {
           } else {
             definition.from.z = definition.to.z = position.z;
           }
-          definition.facing = Math.abs(Math.cos(angle)) > 0.5 ? Math.cos(angle) > 0 ? 1 : -1 : Math.sin(angle) > 0 ? 1 : -1;
+          const room = plan.spaces.find(/**
+           * @param {import("../../../../generator/castle/CastleBasePlanGenerator.js").CompiledCastleSpace} space
+           */
+            space => space.id === item.roomId && space.floorY === item.floorY) ?? layout.rooms.work;
+          const center = layout.toWorld((room.minX + room.maxX) / 2, (room.minZ + room.maxZ) / 2, 0);
+          definition.facing = ShelfLayout.facingToward(definition, center);
           definition.height = item.height;
           definition.seed = `${castle.buildPlan.input.seed ?? 0}:${roomKey}:${index}`;
         }

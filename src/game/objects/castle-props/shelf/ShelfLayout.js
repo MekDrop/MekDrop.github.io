@@ -6,6 +6,18 @@ import { InvalidShelfRangeError } from "../../../errors/shelf/index.js";
  */
 export class ShelfLayout {
   /**
+   * Point the open face toward a room's interior after world-space transforms.
+   * @param {import("../../ObjectTypes.js").MapObjectDefinition} definition
+   * @param {{x:number,z:number}} point
+   * @returns {number}
+   */
+  static facingToward(definition, point) {
+    return definition.from.x === definition.to.x
+      ? (point.x > definition.from.x ? 1 : -1)
+      : (point.z > definition.from.z ? 1 : -1);
+  }
+
+  /**
    * @returns {number}
    */
   static get depth() {

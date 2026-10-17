@@ -36,7 +36,7 @@
  * @property {boolean} [generated]
  * @property {RenderCommand} [geometry]
  * @property {boolean} [castleBanner] Banner extracted from castle decorations.
- * @property {string} [variant] Prop artwork/model variant. SignalBell uses framed (default) or ceiling. Brazier uses bowl (default) or tower. Shelf uses a ranged book cabinet by default or storage with position/rotation. Bed uses royal (default) or servant. CandleStand uses single (default), floor, or table. Bench uses wall (default) or island. Satchel uses brown (default) or olive, preserving each model's authored leather finish. Banner uses navy-and-gold artwork by default or cloth for castle artwork; both simulate cloth.
+ * @property {string} [variant] Prop artwork/model variant. SignalBell uses framed (default) or ceiling. Brazier uses bowl (default) or tower. Shelf uses a ranged book cabinet by default or storage with position/rotation. Bed uses royal (default) or servant. CandleStand uses single (default), floor, table, court (tall brass), or courtTable (small brass). Bench uses wall (default) or island. Satchel uses brown (default) or olive, preserving each model's authored leather finish. Banner uses navy-and-gold artwork by default or cloth for castle artwork; both simulate cloth.
  * @property {boolean} [isOpen] Whether the Book is open (default false), independent of its location.
  * @property {string} [pose] Book model's resting pose: flat (default) or upright; tilt and rotation control final orientation.
  * @property {string} [style] Book artwork style; classic retains the older painted open volume in any location.

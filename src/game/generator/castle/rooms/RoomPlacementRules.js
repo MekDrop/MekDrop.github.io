@@ -1,6 +1,7 @@
 import { roomPropHeight, roomPropBottom } from "./RoomPropHeights.js";
 import { FireplaceWallBacking } from "./FireplaceWallBacking.js";
 import { FireplaceChimneyFootprint } from "../../../objects/castle-props/fireplace/FireplaceChimneyFootprint.js";
+import { BookshelfPlacementRules } from "./BookshelfPlacementRules.js";
 
 // Model-local rear mounting planes measured from the source GLBs.
 const WALL_MOUNTS = {
@@ -76,9 +77,10 @@ export class RoomPlacementRules {
    * @param {Array<{x:number,y:number,z:number,halfX:number,halfY:number,halfZ:number}>} walls
    * @param {import("./AbstractCastleRoomGenerator.js").PlannedCastleRoom[]} rooms
    * @param {Array} openings
+   * @param {Set<string>} [rotatedShelves]
    * @returns {import("./AbstractCastleRoomGenerator.js").RoomItem[]}
    */
-  static repair(items, walls, rooms, openings = []) {
+  static repair(items, walls, rooms, openings = [], rotatedShelves = new Set()) {
     const result = items.map(RoomPlacementRules.#mapItem);
     /**
      * @param {import("./AbstractCastleRoomGenerator.js").RoomItem} item
@@ -139,7 +141,7 @@ export class RoomPlacementRules {
         placed.push(...group); continue;
       }
       // Mount fixtures by their rear surface, independently of the hanging contents.
-      const bookshelf = root.object === "Shelf";
+      const bookshelf = BookshelfPlacementRules.isBookcase(root);
       const back = root.wallMountBack ?? (bookshelf ? -0.18 - 0.02501 / root.scale : WALL_MOUNTS[root.object]);
       let mountAxis, mountWall;
       if (back !== undefined) {
@@ -215,6 +217,16 @@ export class RoomPlacementRules {
         if (item.object === "Fireplace") {
           obstacles.push(FireplaceChimneyFootprint.bounds(item, rooms));
         }
+        if (BookshelfPlacementRules.isBookcase(item)) {
+          const placement = BookshelfPlacementRules.placement(item, walls, room);
+          if (placement) {
+            obstacles.push({
+              ...placement.access,
+              masonry: false,
+              bookshelfAccess: true,
+            });
+          }
+        }
       }
       for (const door of openings) {
         // Glazed openings still have collision backing, but cannot support decor.
@@ -240,6 +252,17 @@ export class RoomPlacementRules {
           ...envelope(item),
         }));
       const xs = new Set([0]), zs = new Set([0]);
+      if (bookshelf) {
+        const alongX = root.width >= root.depth;
+        const axis = alongX ? "z" : "x";
+        const half = (alongX ? root.depth : root.width) * root.scale / 2;
+        const offsets = alongX ? zs : xs;
+        for (const wall of walls) {
+          const wallHalf = alongX ? wall.halfZ : wall.halfX;
+          offsets.add(wall[axis] + wallHalf + half + 0.02501 - root[axis]);
+          offsets.add(wall[axis] - wallHalf - half - 0.02501 - root[axis]);
+        }
+      }
       for (const member of members) {
         if (!member.item.wallAttachment) {
           xs.add(room.minX - member.minX); xs.add(room.maxX - member.maxX);
@@ -303,58 +326,97 @@ export class RoomPlacementRules {
      * @param {{x:number,z:number}} candidate
      * @returns {boolean}
      */
-      const valid = candidate => members.every(/**
+      const valid = candidate => {
+        if (bookshelf) {
+          const placement = BookshelfPlacementRules.placement({
+            ...root,
+            x: root.x + candidate.x,
+            z: root.z + candidate.z,
+          }, walls, room);
+          if (!placement) {
+            return false;
+          }
+          const access = placement.access;
+          for (const obstacle of obstacles) {
+            if (obstacle.bookshelfAccess || access.bottom >= obstacle.top - 0.005 || access.top <= obstacle.bottom + 0.005) {
+              continue;
+            }
+            if (access.maxX > obstacle.minX + 1e-6 && access.minX < obstacle.maxX - 1e-6 &&
+              access.maxZ > obstacle.minZ + 1e-6 && access.minZ < obstacle.maxZ - 1e-6) {
+              return false;
+            }
+          }
+        }
+        return members.every(/**
        *
        * @param {{item:import("./AbstractCastleRoomGenerator.js").RoomItem,minX:number,maxX:number,minZ:number,maxZ:number,bottom:number,top:number}} member
        */
-        member => {
-          const minX = member.minX + candidate.x, maxX = member.maxX + candidate.x;
-          const minZ = member.minZ + candidate.z, maxZ = member.maxZ + candidate.z;
-          if (member.item.object === "Fireplace" && !FireplaceWallBacking.accepts({
-            ...member.item,
-            x: member.item.x + candidate.x,
-            z: member.item.z + candidate.z,
-          }, room, openings, walls, root)) {
-            return false;
-          }
-          if (root.stairApproach) {
-            const { axis, coordinate, side } = root.stairApproach;
-            const edge = side === "max" ? (axis === "x" ? maxX : maxZ) : (axis === "x" ? minX : minZ);
-            if (side === "max" ? edge > coordinate : edge < coordinate) {
+          member => {
+            const minX = member.minX + candidate.x, maxX = member.maxX + candidate.x;
+            const minZ = member.minZ + candidate.z, maxZ = member.maxZ + candidate.z;
+            if (member.item.object === "Fireplace" && !FireplaceWallBacking.accepts({
+              ...member.item,
+              x: member.item.x + candidate.x,
+              z: member.item.z + candidate.z,
+            }, room, openings, walls, root)) {
               return false;
             }
-          }
-          if (!member.item.wallAttachment && (minX < room.minX - 1e-6 || maxX > room.maxX + 1e-6 || minZ < room.minZ - 1e-6 || maxZ > room.maxZ + 1e-6)) {
-            return false;
-          }
-          if (!bookshelf && mountAxis && mountWall) {
-            const tangentMin = mountAxis === "x" ? minZ : minX;
-            const tangentMax = mountAxis === "x" ? maxZ : maxX;
-            const center = mountAxis === "x" ? mountWall.z : mountWall.x;
-            const half = mountAxis === "x" ? mountWall.halfZ : mountWall.halfX;
-            if (tangentMin < center - half - 1e-6 || tangentMax > center + half + 1e-6) {
+            if (root.stairApproach) {
+              const { axis, coordinate, side } = root.stairApproach;
+              const edge = side === "max" ? (axis === "x" ? maxX : maxZ) : (axis === "x" ? minX : minZ);
+              if (side === "max" ? edge > coordinate : edge < coordinate) {
+                return false;
+              }
+            }
+            const roomBounds = bookshelf ? room.wallBounds ?? room : room;
+            if (!member.item.wallAttachment && (minX < roomBounds.minX - 1e-6 || maxX > roomBounds.maxX + 1e-6 || minZ < roomBounds.minZ - 1e-6 || maxZ > roomBounds.maxZ + 1e-6)) {
               return false;
             }
-            const roomMin = mountAxis === "x" ? room.minZ : room.minX;
-            const roomMax = mountAxis === "x" ? room.maxZ : room.maxX;
-            if (tangentMin < roomMin - 1e-6 || tangentMax > roomMax + 1e-6) {
-              return false;
+            if (!bookshelf && mountAxis && mountWall) {
+              const tangentMin = mountAxis === "x" ? minZ : minX;
+              const tangentMax = mountAxis === "x" ? maxZ : maxX;
+              const center = mountAxis === "x" ? mountWall.z : mountWall.x;
+              const half = mountAxis === "x" ? mountWall.halfZ : mountWall.halfX;
+              if (tangentMin < center - half - 1e-6 || tangentMax > center + half + 1e-6) {
+                return false;
+              }
+              const roomMin = mountAxis === "x" ? room.minZ : room.minX;
+              const roomMax = mountAxis === "x" ? room.maxZ : room.maxX;
+              if (tangentMin < roomMin - 1e-6 || tangentMax > roomMax + 1e-6) {
+                return false;
+              }
             }
-          }
-          return obstacles.every(/**
+            return obstacles.every(/**
          *
          * @param {{minX:number,maxX:number,minZ:number,maxZ:number,bottom:number,top:number,masonry:boolean,mountingWall?:boolean}} obstacle
          */
-            obstacle => obstacle.rail ? (root.width > root.depth ? maxX <= obstacle.minX + 1e-6 || minX >= obstacle.maxX - 1e-6 : maxZ <= obstacle.minZ + 1e-6 || minZ >= obstacle.maxZ - 1e-6) : member.item.floorCovering && !obstacle.masonry && !obstacle.chimney || member.item.wallAttachment && obstacle.masonry && obstacle.mountingWall ||
+              obstacle => obstacle.rail ? (root.width > root.depth ? maxX <= obstacle.minX + 1e-6 || minX >= obstacle.maxX - 1e-6 : maxZ <= obstacle.minZ + 1e-6 || minZ >= obstacle.maxZ - 1e-6) : member.item.floorCovering && !obstacle.masonry && !obstacle.chimney || member.item.wallAttachment && obstacle.masonry && obstacle.mountingWall ||
           member.bottom >= obstacle.top - 0.005 || member.top <= obstacle.bottom + 0.005 ||
           maxX <= obstacle.minX + 1e-6 || minX >= obstacle.maxX - 1e-6 || maxZ <= obstacle.minZ + 1e-6 || minZ >= obstacle.maxZ - 1e-6);
-        });
+          });
+      };
       const destination = candidates.find(valid);
       if (destination) {
+        delete root.placementIssue;
         for (const item of group) {
           item.x += destination.x; item.z += destination.z;
         }
       } else {
+        if (bookshelf && !rotatedShelves.has(root.id)) {
+          rotatedShelves.add(root.id);
+          const x = root.x;
+          const z = root.z;
+          for (const item of group) {
+            const offsetX = item.x - x;
+            const offsetZ = item.z - z;
+            item.x = x + offsetZ;
+            item.z = z - offsetX;
+            [item.width, item.depth] = [item.depth, item.width];
+            item.rotation = ((item.rotation ?? 0) + 90) % 360;
+          }
+
+          return RoomPlacementRules.repair(result, walls, rooms, openings, rotatedShelves);
+        }
         // Never silently erase a furnishing that cannot fit: retain it for diagnostics.
         root.placementIssue = "No clear position in authored room";
       }
@@ -416,6 +478,7 @@ export class RoomPlacementRules {
   static #sortFirst(first, second) {
     return (
       Number(second.object === "Fireplace") - Number(first.object === "Fireplace") ||
+      Number(BookshelfPlacementRules.isBookcase(second)) - Number(BookshelfPlacementRules.isBookcase(first)) ||
       Number(Boolean(second.backPocketStorage)) * 2 - Number(Boolean(first.backPocketStorage)) * 2 ||
       Number(Boolean(second.underStair && second.endWallStorage && second.object === "Chest")) -
       Number(Boolean(first.underStair && first.endWallStorage && first.object === "Chest"))
