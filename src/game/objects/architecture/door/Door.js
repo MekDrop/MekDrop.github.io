@@ -188,12 +188,10 @@ export class Door {
    * @type {(point: import("yuka").Vector3) => boolean}
    */
   #inNpcSwing = (point) => {
-    const dx = point.x - this.#center.x;
-    const dz = point.z - this.#center.z;
-
-    return point.y < this.#center.y + this.#height && point.y + 2.2 > this.#center.y &&
-      Math.abs(dx * this.#tangent.x + dz * this.#tangent.z) < this.#width / 2 + 0.6 &&
-      Math.abs(dx * this.#inward.x + dz * this.#inward.z) < this.#width + 0.6;
+    // Reserve ahead of the actual leaf, rather than the whole doorway room.
+    // Ammo still checks every swing increment and waits while occupants yield.
+    return this.#collision.blocksAt(point.x, point.y + 0.6, point.z, 0.6) ||
+      this.#collision.blocksAt(point.x, point.y + 1.5, point.z, 0.6);
   };
 
   /**

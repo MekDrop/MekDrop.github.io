@@ -5,9 +5,9 @@ import { CastleResidentMotion } from "../../../../../../src/game/objects/castle/
 import { CastleAuthoredBuildPlan } from "../../../../../../src/game/generator/castle/CastleAuthoredBuildPlan.js";
 import { CastleResidentialLayout } from "../../../../../../src/game/objects/castle/residents/CastleResidentialLayout.js";
 
-it("replans around solid objects added after route construction", () => {
+it("replans around new solid objects and returns to a raised seating home", () => {
   const entity = new pc.Entity();
-  entity.setPosition(0, 0, 0.5);
+  entity.setPosition(0, 0.167, 0.5);
   const layout = {
     origin: { y: 0 },
     walkableAreas: [{
@@ -53,9 +53,15 @@ it("replans around solid objects added after route construction", () => {
   }
   assert.equal(motion.arrived, true);
   assert.ok(furthest > 0.9);
+  motion.moveTo(motion.home);
+  for (let frame = 0; frame < 150 && !motion.arrived; frame++) {
+    motion.update(0.1);
+    assert.equal(occupied(entity.getPosition()), false);
+  }
+  assert.equal(motion.arrived, true);
 });
 
-it("retries an unreachable destination when its obstruction clears", () => {
+it("retains floor connections occupied by props during graph construction", () => {
   const entity = new pc.Entity();
   const layout = {
     origin: { y: 0 },
@@ -78,17 +84,19 @@ it("retries an unreachable destination when its obstruction clears", () => {
       z,
     }),
   };
-  let closed = false;
+  let closed = true;
+  let homeBlocked = false;
   const motion = new CastleResidentMotion({
     actor: {
       entity,
       pose: () => {},
     },
     layout,
-    blocked: point => closed && point.x > 0.4 && point.x < 0.8,
+    blocked: (point, avoidDoors, includeProps = true) => includeProps &&
+      ((closed && point.x > 0.4 && point.x < 0.8) || (homeBlocked && point.x < 0.3)),
     clear: () => true,
+    homeArea: layout.walkableAreas[0],
   });
-  closed = true;
   motion.moveTo(new pc.Vec3(1.5, 0, 0));
   motion.update(0.1);
   assert.ok(entity.getPosition().equals(pc.Vec3.ZERO));
@@ -97,6 +105,14 @@ it("retries an unreachable destination when its obstruction clears", () => {
     motion.update(0.1);
   }
   assert.equal(motion.arrived, true);
+  homeBlocked = true;
+  motion.moveTo(motion.home);
+  for (let frame = 0; frame < 100 && !motion.arrived; frame++) {
+    motion.update(0.1);
+  }
+  assert.equal(motion.arrived, true);
+  assert.ok(motion.home.x >= 0.3 && motion.home.x <= layout.walkableAreas[0].maxX);
+  assert.equal(motion.home.y, 0);
 });
 
 it("walks existing residents through authored castle stairs and home without jumps", async () => {

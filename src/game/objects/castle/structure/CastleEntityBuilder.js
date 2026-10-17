@@ -1,4 +1,5 @@
 import { createCastleMasonryVoxels } from "./CastleMasonryPhysics.js";
+import { NpcObstacleProbe } from "../../shared/NpcObstacleProbe.js";
 import { addGeneratedVoxelPhysics } from "../../shared/GeneratedVoxelPhysics.js";
 import stoneBlockUrl from "../../../models/castle/residential/masonry-block.glb?url";
 import { DynamicRenderBatch } from "../../../rendering/DynamicRenderBatch.js";
@@ -33,6 +34,10 @@ import {
  */
 
 export class CastleEntityBuilder {
+  /**
+   * @type {NpcObstacleProbe|undefined}
+   */
+  #npcObstacleProbe;
   /**
    *
    * @returns {Array<string>}
@@ -541,6 +546,7 @@ export class CastleEntityBuilder {
   }
 
   destroy() {
+    this.#npcObstacleProbe?.destroy();
     this.#renderBatch?.destroy();
     this.#renderBatch = null;
     this.#updateHandle?.off();
@@ -666,14 +672,17 @@ export class CastleEntityBuilder {
       const supported = [...layout.walkableAreas, ...Object.values(layout.rooms)].some(/**
        * @param {{floorY:number,minX:number,maxX:number,minZ:number,maxZ:number}} area
        */ (area) =>
-          Math.abs(area.floorY - point.y) < 0.15 && local.x >= area.minX + 0.5 &&
-        local.x <= area.maxX - 0.5 && local.z >= area.minZ + 0.5 && local.z <= area.maxZ - 0.5);
+          Math.abs(area.floorY - point.y) < 0.15 && local.x >= area.minX + 0.22 &&
+        local.x <= area.maxX - 0.22 && local.z >= area.minZ + 0.22 && local.z <= area.maxZ - 0.22);
       if (!supported) {
         return false;
       }
     }
-    return !this.blocksCameraAt(point.x, point.y + 0.6, point.z, 0.5) &&
-      !this.blocksCameraAt(point.x, point.y + 1.5, point.z, 0.5);
+    // Yielding uses the same footprint as walking, so a valid aisle remains
+    // escapable when a nearby door asks its occupant to step aside.
+    return !this.blocksCameraAt(point.x, point.y + 0.6, point.z, 0.22) &&
+      !this.blocksCameraAt(point.x, point.y + 1.3, point.z, 0.22) &&
+      !this.#npcObstacleProbe?.blockedAt(point);
   };
 
   /**
@@ -1112,8 +1121,11 @@ export class CastleEntityBuilder {
   /**
    * @param {import("playcanvas").Vec3} point
    * @param {boolean} avoidDoors
+   * @param {boolean} includeProps
    */
-  #blocked(point, avoidDoors = false) {
+  #blocked(point, avoidDoors = false, includeProps = true) {
+    this.#npcObstacleProbe ??= new NpcObstacleProbe(this.#app, this.#royal?.audienceActor.entity);
+
     return (
       (avoidDoors && this.#animatedDoors.some(/**
            * @param {Door} door
@@ -1128,7 +1140,7 @@ export class CastleEntityBuilder {
               }
               return Math.hypot(Math.max(0, Math.abs(point.x - block.x) - block.halfX),
                 Math.max(0, Math.abs(point.z - block.z) - block.halfZ)) < 0.22;
-            })
+            }) || (includeProps && this.#npcObstacleProbe.blockedAt(point))
     );
   }
 
@@ -1149,7 +1161,9 @@ export class CastleEntityBuilder {
     for (const door of this.#animatedDoors) {
       if (Math.hypot(door.entity.getPosition().x - point.x, door.entity.getPosition().z - point.z) < 2.4 &&
               Math.abs(door.entity.getPosition().y - point.y) < 2.8) {
-        door.operator = operator; door.openTemporarily(1);
+        // Walking traffic must yield to the swing. Only the handle-inspection
+        // action owns the operator exemption from doorway reactions.
+        door.openTemporarily(1);
       } else if (door.operator === operator) {
         door.operator = null;
       }

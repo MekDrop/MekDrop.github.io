@@ -31,6 +31,29 @@ function scene() {
   };
 }
 
+it("lets walking traffic resume at a safe sidestep while its old position is reserved", () => {
+  const { app, door, npc, behavior } = scene();
+  const inSwing = point => Math.abs(point.x) < 1;
+  try {
+    NpcDoorAvoidance.requestClearance(door, inSwing, () => true);
+    assert.equal(behavior.resumeFromSafePosition(), false);
+    for (let frame = 0; frame < 240; frame++) {
+      NpcDoorAvoidance.requestClearance(door, inSwing, () => true);
+      app.fire("update", 1 / 60);
+      app.fire("prerender");
+    }
+    const safe = npc.getPosition().clone();
+    assert.equal(inSwing(safe), false);
+    assert.equal(behavior.resumeFromSafePosition(), true);
+    assert.equal(behavior.behavior.reacting, false);
+    app.fire("update", 1 / 60);
+    app.fire("prerender");
+    assert.ok(npc.getPosition().equals(safe));
+  } finally {
+    behavior.destroy();
+  }
+});
+
 it("steps clear, waits while the door is active, and returns after it closes", () => {
   const { app, door, npc, behavior } = scene();
   try {

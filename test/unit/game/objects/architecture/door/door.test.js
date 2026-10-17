@@ -4,6 +4,7 @@ import { Entity, Vec3 } from "playcanvas";
 import { Door } from "../../../../../../src/game/objects/architecture/door/Door.js";
 import { DoorLeafQueries } from "../../../../../../src/game/objects/architecture/door/DoorLeafQueries.js";
 import * as pc from "playcanvas";
+import { NpcDoorAvoidance } from "../../../../../../src/game/objects/shared/NpcDoorAvoidance.js";
 
 function fixture(options = {}) {
   const entity = new Entity("Custom door");
@@ -66,6 +67,29 @@ function fixture(options = {}) {
     handle,
   };
 }
+
+it("reserves the leaf clearance without trapping occupants across the room", () => {
+  const { door, entity } = fixture();
+  const root = new Entity();
+  root._enabledInHierarchy = true;
+  root.addChild(entity);
+  const npc = new Entity("Walking resident");
+  root.addChild(npc);
+  npc.setPosition(0, 0, 1.5);
+  const reaction = new NpcDoorAvoidance(npc, new pc.EventHandler());
+  door.npcNavigation = () => true;
+  try {
+    door.update(0.1, true);
+    assert.equal(reaction.behavior.reacting, false);
+    npc.setPosition(0, 0, 0.3);
+    door.update(0.1, true);
+    assert.equal(reaction.behavior.reacting, true);
+  } finally {
+    reaction.destroy();
+    door.destroy();
+    root.destroy();
+  }
+});
 
 it("opens interior doors only near their own doorway on the same floor", () => {
   const { door } = fixture({

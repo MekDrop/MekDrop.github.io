@@ -2,7 +2,7 @@ import { Vector3, Vehicle } from "yuka";
 import { castleStraightStairSurfaces } from "../stairs/CastleStraightStairs.js";
 
 /**
- * @typedef {{entity:import("playcanvas").Entity,behavior?:import("../../shared/NpcStateMachine.js").NpcStateMachine,pose:(action:string,time:number) => void}} ResidentActor
+ * @typedef {{entity:import("playcanvas").Entity,behavior?:import("../../shared/NpcStateMachine.js").NpcStateMachine,pose:(action:string,time:number) => void,settleNavigationOffset?:() => boolean}} ResidentActor
  * @typedef {{point:import("playcanvas").Vec3,links:ResidentRouteNode[],ix?:number,iz?:number,y?:number}} ResidentRouteNode
  */
 
@@ -19,7 +19,7 @@ export class CastleResidentMotion {
    */
   #nodes = [];
   /**
-   * @type {(point:import("playcanvas").Vec3,avoidDoors?:boolean) => boolean}
+   * @type {(point:import("playcanvas").Vec3,avoidDoors?:boolean,includeProps?:boolean) => boolean}
    */
   #blocked;
   /**
@@ -58,18 +58,26 @@ export class CastleResidentMotion {
    * @type {number}
    */
   #retry = 0;
+  /**
+   * @type {{minX:number,maxX:number,minZ:number,maxZ:number,floorY:number}|null}
+   */
+  #homeArea;
+  /**
+   * @type {boolean}
+   */
+  #homeRelocated = false;
 
   /**
-   * @param {{actor:ResidentActor,layout:import("./CastleResidentialLayout.js").CastleResidentialLayout,blocked:(point:import("playcanvas").Vec3,avoidDoors?:boolean) => boolean,clear:(point:import("playcanvas").Vec3|null,operator:import("playcanvas").Entity) => boolean}} options
+   * @param {{actor:ResidentActor,layout:import("./CastleResidentialLayout.js").CastleResidentialLayout,blocked:(point:import("playcanvas").Vec3,avoidDoors?:boolean,includeProps?:boolean) => boolean,clear:(point:import("playcanvas").Vec3|null,operator:import("playcanvas").Entity) => boolean,homeArea?:{minX:number,maxX:number,minZ:number,maxZ:number,floorY:number}}} options
    */
-  constructor({ actor, layout, blocked, clear }) {
+  constructor({ actor, layout, blocked, clear, homeArea = null }) {
     this.#actor = actor;
     this.#layout = layout;
     this.#blocked = blocked;
     this.#clear = clear;
+    this.#homeArea = homeArea;
     this.#home = actor.entity.getPosition().clone();
     this.#vehicle.maxSpeed = 1.2;
-    this.#build();
   }
 
   /**
@@ -100,6 +108,11 @@ export class CastleResidentMotion {
    */
   moveTo(target, action = "walk") {
     this.#walkAction = action;
+    if (this.#homeArea && target.distance(this.#home) < 0.01 &&
+      (!this.#homeRelocated || this.#blocked(target, true))) {
+      this.#relocateHome();
+      target = this.#home;
+    }
     if (this.#target?.distance(target) < 0.01) {
       return;
     }
@@ -108,9 +121,44 @@ export class CastleResidentMotion {
   }
 
   /**
+   * Use a free interior standing spot, away from doorway swing reservations.
+   */
+  #relocateHome() {
+    if (this.#nodes.length === 0) {
+      this.#build();
+    }
+    let nearest = null;
+    let distance = Infinity;
+    for (const node of this.#nodes) {
+      if (Math.abs(node.point.y - this.#homeArea.floorY) > 0.01) {
+        continue;
+      }
+      const local = this.#layout.toLocal(node.point.x, node.point.z);
+      const separation = Math.hypot(local.x - (this.#homeArea.minX + this.#homeArea.maxX) / 2,
+        local.z - (this.#homeArea.minZ + this.#homeArea.maxZ) / 2);
+      if (separation >= distance) {
+        continue;
+      }
+      if (local.x < this.#homeArea.minX || local.x > this.#homeArea.maxX ||
+        local.z < this.#homeArea.minZ || local.z > this.#homeArea.maxZ || this.#blocked(node.point, true)) {
+        continue;
+      }
+      nearest = node.point;
+      distance = separation;
+    }
+    if (nearest) {
+      this.#home.copy(nearest);
+      this.#homeRelocated = true;
+    }
+  }
+
+  /**
    * @param {number} deltaTime
    */
   update(deltaTime) {
+    if (this.#target && this.#route?.length !== 0 && this.#actor.settleNavigationOffset?.()) {
+      this.#route = this.#find(this.#actor.entity.getPosition(), this.#target);
+    }
     this.#retry = Math.max(0, this.#retry - deltaTime);
     if (!this.#route && this.#target && this.#retry === 0) {
       this.#route = this.#find(this.#actor.entity.getPosition(), this.#target);
@@ -135,7 +183,10 @@ export class CastleResidentMotion {
       const candidate = position.clone().add(direction.clone().normalize().mulScalar(step));
       if (!this.#clear(candidate, entity) || !this.#collisionFree(position, candidate, true)) {
         if (this.#retry === 0) {
-          const detour = this.#find(position, this.#target, true);
+          // A moving leaf can temporarily seal the graph. Keep a furniture
+          // detour available; every actual step still waits for door clearance.
+          const detour = this.#find(position, this.#target, true) ??
+            this.#find(position, this.#target);
           if (detour) {
             this.#route = detour;
           }
@@ -172,7 +223,8 @@ export class CastleResidentMotion {
      *
      * @param {{floorY:number,minX:number,maxX:number,minZ:number,maxZ:number}} area
      */
-      (area) => Math.abs(area.floorY - y) < 0.01 &&
+      // Seated homes can sit on a low throne dais above the room floor.
+      (area) => Math.abs(area.floorY - y) <= 0.32 &&
       x >= area.minX && x <= area.maxX && z >= area.minZ && z <= area.maxZ);
   }
 
@@ -186,7 +238,9 @@ export class CastleResidentMotion {
             continue;
           }
           const point = this.#point(ix / 8, iz / 8, area.floorY);
-          if (this.#blocked(point)) {
+          // Furniture can move after construction. Keep its floor nodes and
+          // validate the live prop geometry when selecting and following routes.
+          if (this.#blocked(point, false, false)) {
             continue;
           }
           const node = {
@@ -204,7 +258,7 @@ export class CastleResidentMotion {
     for (const node of this.#nodes) {
       for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
         const neighbor = lookup.get(`${node.ix + dx}:${node.iz + dz}:${node.y}`);
-        if (neighbor && this.#segment(node.point, neighbor.point)) {
+        if (neighbor && this.#segment(node.point, neighbor.point, false, false)) {
           node.links.push(neighbor);
         }
       }
@@ -244,7 +298,7 @@ export class CastleResidentMotion {
       for (const end of [route[0], route.at(-1)]) {
         for (const node of this.#nodes) {
           if (Math.abs(node.point.y - end.point.y) < 0.31 && node.point.distance(end.point) < 0.8 &&
-            !this.#blocked(node.point.clone().add(end.point).mulScalar(0.5))) {
+            !this.#blocked(node.point.clone().add(end.point).mulScalar(0.5), false, false)) {
             node.links.push(end); end.links.push(node);
           }
         }
@@ -268,13 +322,14 @@ export class CastleResidentMotion {
    * @param {import("playcanvas").Vec3} start
    * @param {import("playcanvas").Vec3} end
    * @param {boolean} avoidDoors
+   * @param {boolean} includeProps
    */
-  #segment(start, end, avoidDoors = false) {
+  #segment(start, end, avoidDoors = false, includeProps = true) {
     const steps = Math.ceil(start.distance(end) / 0.1);
     for (let step = 0; step <= steps; step++) {
       const point = start.clone().lerp(start, end, step / Math.max(1, steps));
       const local = this.#layout.toLocal(point.x, point.z);
-      if (!this.#floor(local.x, local.z, end.y) || this.#blocked(point, avoidDoors)) {
+      if (!this.#floor(local.x, local.z, end.y) || this.#blocked(point, avoidDoors, includeProps)) {
         return false;
       }
     }
@@ -291,7 +346,7 @@ export class CastleResidentMotion {
    * @returns {boolean}
    */
   #collisionFree(start, end, avoidDoors = false) {
-    const steps = Math.max(1, Math.ceil(start.distance(end) / 0.05));
+    const steps = Math.max(1, Math.ceil(start.distance(end) / 0.02));
     for (let step = 0; step <= steps; step++) {
       if (this.#blocked(start.clone().lerp(start, end, step / steps), avoidDoors)) {
         return false;
@@ -307,6 +362,11 @@ export class CastleResidentMotion {
    * @param {boolean} avoidDoors
    */
   #find(start, target, avoidDoors = false) {
+    // Scene parenting and collider registration finish after residents are
+    // constructed. Build against their final transforms on the first journey.
+    if (this.#nodes.length === 0) {
+      this.#build();
+    }
     const source = {
       point: start,
       links: [],

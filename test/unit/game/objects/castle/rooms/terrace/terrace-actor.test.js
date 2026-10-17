@@ -92,6 +92,29 @@ for (const kind of ["king", "queen", "princess", "servant", "elder-servant"]) {
   });
 }
 
+it("absorbs a completed sidestep into navigation without moving the visible model", () => {
+  const { root } = royalModel("king");
+  const actor = new TerraceActor({
+    pc,
+    kind: "king",
+    modelUrl: "king",
+    modelLibrary: { instantiate: () => root },
+  });
+  actor.entity.setPosition(8, 3, 5);
+  actor.entity.setEulerAngles(0, 45, 0);
+  actor.entity.setLocalScale(0.3, 0.3, 0.3);
+  const reactionRoot = actor.entity.findByName("NPC doorway reaction");
+  reactionRoot.setLocalPosition(1, 0, -0.5);
+  const visible = root.getPosition().clone();
+  const navigation = reactionRoot.getPosition().clone();
+  assert.equal(actor.settleNavigationOffset(), true);
+  assert.ok(root.getPosition().distance(visible) < 0.00001);
+  assert.ok(actor.entity.getPosition().distance(navigation) < 0.00001);
+  assert.ok(reactionRoot.getLocalPosition().equals(pc.Vec3.ZERO));
+  assert.equal(actor.settleNavigationOffset(), false);
+  actor.destroy();
+});
+
 it("keeps the authored sword attached to the animated king hand", () => {
   const { root } = royalModel("king");
   const actor = new TerraceActor({

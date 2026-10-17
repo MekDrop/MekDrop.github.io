@@ -151,8 +151,11 @@ export class TerraceServantActions {
     const enter = [PHASE.SERVANT_ENTER, PHASE.SERVANT_RETURN].includes(phase);
     const leave = [PHASE.SERVANT_EXIT, PHASE.SERVANT_LEAVE].includes(phase);
     if (enter || leave) {
-      const target = behavior.cargo === "chair" ? [-0.75, 0, 4]
-        : behavior.cargo === "sunbed" ? [0, 0, 4] : [0.65, 0, 4];
+      // Resident bodies use world scale independently of the furniture stage.
+      // Leave space for the table/daybed that will appear during furnishing.
+      const approach = 3.1 + CHARACTER_HEIGHT * 0.55 / this.#stage.getWorldTransform().getScale().z;
+      const target = behavior.cargo === "chair" ? [-0.75, 0, approach]
+        : behavior.cargo === "sunbed" ? [0, 0, approach] : [0.65, 0, approach];
       const point = this.#servant.entity.getPosition().clone().set(...target);
       this.#motion.moveTo(leave ? this.#motion.home
         : this.#stage.getWorldTransform().transformPoint(point, point), behavior.action);

@@ -141,6 +141,25 @@ export class NpcDoorAvoidance {
   }
 
   /**
+   * Walking traffic can continue from its safe sidestep instead of waiting to
+   * return to a doorway that remains reserved by a moving leaf.
+   * @returns {boolean}
+   */
+  resumeFromSafePosition() {
+    if (!this.#home || !this.#hazard || this.#hazard(this.#entity.getPosition())) {
+      return false;
+    }
+    this.#entity.setLocalRotation(this.#homeRotation);
+    this.#home = null;
+    this.#homeRotation = null;
+    this.#target = null;
+    this.#door = null;
+    this.#transition(PHASE.IDLE);
+
+    return true;
+  }
+
+  /**
    * @param {NpcStateMachine} behavior
    */
   set behavior(behavior) {

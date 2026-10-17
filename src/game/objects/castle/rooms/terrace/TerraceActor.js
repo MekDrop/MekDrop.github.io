@@ -186,6 +186,25 @@ export class TerraceActor {
     return this.#model;
   }
 
+  /**
+   * Resume navigation at a safe doorway sidestep without moving the visible body.
+   * @returns {boolean}
+   */
+  settleNavigationOffset() {
+    const reactionRoot = this.#body.parent;
+    if (this.behavior.reacting && !this.#doorAvoidance.resumeFromSafePosition()) {
+      return false;
+    }
+    if (reactionRoot.getLocalPosition().lengthSq() < 0.000001) {
+      return false;
+    }
+    const position = reactionRoot.getPosition().clone();
+    this.#entity.setPosition(position);
+    reactionRoot.setLocalPosition(0, 0, 0);
+
+    return true;
+  }
+
   get rightHand() {
     return this.#rightHand;
   }

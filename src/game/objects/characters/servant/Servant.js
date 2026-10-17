@@ -218,6 +218,7 @@ export class Servant {
     this.#motion = new CastleResidentMotion({
       actor: this.#resident,
       ...navigation,
+      homeArea: navigation.layout.rooms.servantBedroom,
     });
     this.#behavior = kind === "king" ? null : new TerraceServantBehavior();
     this.#serviceActions =
