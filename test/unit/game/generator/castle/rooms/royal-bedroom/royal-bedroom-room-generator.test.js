@@ -125,8 +125,14 @@ test("bedroom props stay inside the room, clear neighbouring door swings and kee
 
 test("the tower binds the dedicated generator and preserves the mirrored inventory", async () => {
   for (const seed of [2, 8, 14, 20, 26]) {
-    const original = await CastleBasePlanGenerator.generate({ seed });
-    const mirrored = await CastleBasePlanGenerator.generate({ seed: seed + 1 });
+    const original = await CastleBasePlanGenerator.generate({
+      planId: "castle-compact-service-wing",
+      seed,
+    });
+    const mirrored = await CastleBasePlanGenerator.generate({
+      planId: "castle-compact-service-wing",
+      seed: seed + 1,
+    });
     assert.equal(original.spaces.find(space => space.id === room.id).generator, "RoyalBedroomRoomGenerator");
     const first = original.furniture.filter(item => item.roomId === room.id);
     const second = mirrored.furniture.filter(item => item.roomId === room.id);
@@ -139,9 +145,8 @@ test("the tower binds the dedicated generator and preserves the mirrored invento
   }
 });
 
-test("both tower plans publish five furnished variations in every castle orientation", async () => {
-  for (const [basePlanId, seeds] of [["castle-compact-tower", [2, 8, 14, 20, 26]],
-    ["castle-compact-service-wing", [4, 10, 16, 22, 28]]]) {
+test("the service-wing plan publishes five furnished variations in every castle orientation", async () => {
+  for (const [basePlanId, seeds] of [["castle-compact-service-wing", [4, 10, 16, 22, 28]]]) {
     for (const side of ["NORTH", "SOUTH", "WEST", "EAST"]) {
       for (const seed of seeds) {
         const plan = await CastleAuthoredBuildPlan.generate({
@@ -188,7 +193,7 @@ test("both tower plans publish five furnished variations in every castle orienta
         assert.ok(map.objects.some(item => item.object === "Shelf" && item.id.includes(room.id)));
         const layout = new CastleResidentialLayout(plan);
         const bedroom = residential.rooms[room.id];
-        assert.equal(bedroom.maxX - bedroom.minX, basePlanId === "castle-compact-service-wing" ? 3.25 : 7.25);
+        assert.equal(bedroom.maxX - bedroom.minX, 3.25);
         for (const z of [bedroom.minZ + 0.5, (bedroom.minZ + bedroom.maxZ) / 2, bedroom.maxZ - 0.5]) {
           const point = layout.toWorld((bedroom.minX + bedroom.maxX) / 2, z, bedroom.floorY - layout.origin.y + 1);
           assert.ok(!plan.metadata.collision.cameraBlocks.some(box =>

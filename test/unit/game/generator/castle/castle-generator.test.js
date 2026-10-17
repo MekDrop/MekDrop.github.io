@@ -30,12 +30,12 @@ it("always uses quarter-metre brick geometry and finite collision bounds",async(
   assert.ok(plan.geometry.boxes.every(b=>b.sx<=0.250001&&b.sy<=0.250001&&b.sz<=0.250001));
   assert.ok(plan.metadata.collision.cameraBlocks.every(b=>Object.values(b).every(Number.isFinite)));
 });
-it("ignores obsolete legacy selectors rather than dispatching to the old generator",async()=>{
-  assert.deepEqual(await CastleGenerator.generate({
+it("rejects removed explicit layouts rather than dispatching to the old generator",async()=>{
+  await assert.rejects(CastleGenerator.generate({
     ...options,
     style:"twin-tower",
-    basePlanId:"castle-01",
-  }),await CastleGenerator.generate(options));
+    basePlanId:"removed-layout",
+  }));
 });
 it("rejects aborted generation before compiling a plan",async()=>{
   const controller=new AbortController();controller.abort();

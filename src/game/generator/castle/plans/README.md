@@ -1,16 +1,12 @@
 # Authored castle base plans
 
-The reference JSON files are manual schematic transcriptions of the supplied drawings.
-`castle-compact-tower` is an authored playable variant of the compact schematic.
-The original sheets are retained in `sources/` under the matching plan ID.
-Coordinates approximate the drawing proportions; these are not architectural surveys.
-The inconsistent stair label on castle 03's upper keep is recorded in the slot label;
-its vertically aligned shaft is consistently named S1.
+Only the three active layouts are retained: `castle-demo-compact`,
+`castle-compact-service-wing` and `castle-rear-bell-tower`.
+The compact reference sheets are retained in `sources/`.
 
 ## Data contract
 
 - North is negative z. Each `bounds` value is `[x, z, width, depth]`.
-  The three large plans use a 100 × 60 schematic envelope at 0.5 metres per unit.
   `castle-demo-compact` uses actual metres: a 7 × 8 metre footprint and three-metre
   floor spacing. Its footprint is preserved rather than stretched to the map reservation.
 - `levels[].spaces` describes room interiors, circulation, courtyards, terraces,
@@ -38,7 +34,7 @@ its vertically aligned shaft is consistently named S1.
 import { CastleBasePlanGenerator } from "../CastleBasePlanGenerator.js";
 
 const plan = await CastleBasePlanGenerator.generate({
-  planId: "castle-03", // omit for seed selection
+  planId: "castle-demo-compact", // omit for seed selection
   seed: "my-castle",
   unitMetres: 0.5,
   baseY: 3,
@@ -53,7 +49,7 @@ roofs, entrance and furniture. It never packs rooms or invents openings.
 
 ## Live integration
 
-The active layout list (`CastleBasePlanGenerator.layoutPlanIds`) contains the compact demo, compact tower variant and service-wing alternative, selected by seed before planning its entrance
+The active layout list (`CastleBasePlanGenerator.layoutPlanIds`) contains the compact demo, service-wing alternative and rear round bell tower with spiral stairs, selected by seed before planning its entrance
 route. Even/odd seed pairs select the same layout; odd seeds mirror all compiled spaces, openings, roofs, buildings, stairs and furniture about the entrance, preserving its position and direction. Named seeds use a stable hash; numeric strings retain numeric parity. Add future playable plan IDs to the ordered active list. `CASTLE_FOOTPRINTS` only reserves the footprint.
 All castle test fixtures store a seed and construction inputs, with no mode flag
 or plan ID. `CastleGenerator.generate({ position, doors, seed })`
@@ -117,36 +113,11 @@ The compact ground floor has a continuous structural slab beneath the room inter
 Generated maps reserve the selected plan's rotated metric footprint plus one tile on each side. The compact castle therefore uses a 10 by 9 tile reservation instead of the legacy 16 by 28 area; island clearance and plateau shaping follow that reservation.
 `flightShift` moves both straight flights toward their door in metres while keeping the back edge of the turning landing fixed. The compact plan uses 0.1 m, enlarging that platform by the same amount so the extended central divider retains a walking route.
 
-## Compact tower variant
+## Seed selection
 
-`castle-compact-tower` keeps the eight-metre envelope, places a full-width royal
-bedroom in front of the basement kitchen, and splits the upper keep into a west library and an east
-watchtower. The existing stair shaft continues to a lookout at elevation 6 metres;
-the tower roof begins at 9 metres. Seed pairs 0/1 select the original compact plan,
-2/3 select the tower variant, and 4/5 select the service-wing alternative, and the sequence repeats every six numeric seeds.
-Odd seeds mirror the selected layout around its entrance.
-
-## Tower basement
-
-`castle-compact-tower` gives the royal sleeping room the full 7.25-metre interior
-width across the front (south) of the basement. The former north-south divider
-through this area is removed. The kitchen occupies the northwest rear room,
-replacing the old service quarters; its south door connects to the bedroom and
-its east door connects to the fixed northeast stair landing. A separate north
-bedroom door opens directly onto that landing, clear of the stair shaft. There
-is no secret room or concealed passage.
-
-`RoyalBedroomRoomGenerator` now owns this bedroom's furnishing. Its five seeded
-arrangements are quiet bedroom, writing retreat, reading nook, ceremonial bedroom
-and dressing room. The existing royal bed, wardrobe and castle prop models retain
-their materials and full size. Optional furnishings yield to neighbouring door
-swings, the staircase and a connected walking route with bedside access.
-
-Open `/en/map/test_royal-bedroom-layouts` for the real-game preview. Its PlayCanvas
-HUD selects all five arrangements and provides a repeatable inside-bedroom view.
-The preview uses the side-attached tower from the supplied screenshot. Seeds
-10, 22, 4, 16 and 28 select these themes respectively; their odd partners
-mirror the same bedroom inventory around the castle entrance.
+Seed pairs 0/1 select the compact demo, 2/3 select the service wing, and 4/5
+select the rear bell tower with spiral stairs. The sequence repeats every six
+numeric seeds; odd seeds mirror the layout around its entrance.
 
 ## Service-wing alternative
 

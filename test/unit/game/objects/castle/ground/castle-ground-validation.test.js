@@ -75,18 +75,15 @@ it("detects terrain in every authored ground room and permits Earth beneath its 
     }
   }
 });
-it("rejects turf touching occupied room floors while allowing an open courtyard",async()=>{
+it("rejects turf touching occupied room floors",async()=>{
   const plan=await CastleAuthoredBuildPlan.generate({
     ...options,
-    basePlanId:"castle-01",
+    basePlanId:"castle-rear-bell-tower",
   });const layout=new CastleResidentialLayout(plan);
   for(const room of plan.layout.roomPlan.placedRooms.filter(r=>r.floorY===3)){
     const grass=terrainAt(layout,room,"Grass",2.75);
     assert.ok(validateCastleGround(mapWith(plan,grass)).some(issue=>issue.kind==="grass-floor"),room.id);
   }
-  const courtyard=plan.layout.roomPlan.spaces.find(s=>s.kind==="courtyard");
-  assert.ok(courtyard);
-  assert.equal(validateCastleGround(mapWith(plan,terrainAt(layout,courtyard,"Grass",2.75))).length,0);
 });
 it("detects penetrations in authored stair shafts",async()=>{
   const plan=await CastleGenerator.generate(options);const layout=new CastleResidentialLayout(plan);

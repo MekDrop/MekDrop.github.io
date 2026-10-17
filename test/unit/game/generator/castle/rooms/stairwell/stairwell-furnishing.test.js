@@ -8,7 +8,10 @@ import { StairwellRoomMapObjects } from "../../../../../../../src/game/objects/c
 it("reproduces sparse stair-room decoration and varies independent seed pairs", async () => {
   const first = await CastleBasePlanGenerator.generate({ seed: 42 });
   const repeated = await CastleBasePlanGenerator.generate({ seed: 42 });
-  const second = await CastleBasePlanGenerator.generate({ seed: 44 });
+  const second = await CastleBasePlanGenerator.generate({
+    planId: "castle-demo-compact",
+    seed: 44,
+  });
   const props = plan => plan.furniture.filter(item => item.role === "stairwellProp");
   assert.deepEqual(props(first), props(repeated));
   assert.notDeepEqual(props(first), props(second));
@@ -19,7 +22,7 @@ it("reproduces sparse stair-room decoration and varies independent seed pairs", 
 });
 
 it("keeps measured lantern bounds, apertures and the full stair approach clear", async () => {
-  for (const planId of ["castle-demo-compact", "castle-01", "castle-03", "castle-04"]) {
+  for (const planId of CastleBasePlanGenerator.layoutPlanIds) {
     for (const seed of [2, 3, 42, 44, 46, 100]) {
       const plan = await CastleBasePlanGenerator.generate({
         planId,

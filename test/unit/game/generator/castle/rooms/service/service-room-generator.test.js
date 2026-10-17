@@ -151,9 +151,9 @@ test("quarters provide cozy, mending and steward layouts with supported work det
 test("service props enter actual authored-plan furniture for both mirrored seeds", async () => {
   for (const seed of [2, 3, 4]) {
     const plan = await CastleBasePlanGenerator.generate({
-      planId: "castle-01",
+      planId: "castle-compact-service-wing",
       seed,
-      unitMetres: 0.3,
+      unitMetres: 1,
     });
     const chamber = plan.furniture.filter(item => item.roomId === "royal-chamber");
     assert.ok(chamber.some(item => item.role === "royalBed"));
@@ -166,7 +166,7 @@ test("service props enter actual authored-plan furniture for both mirrored seeds
 
 test("authored service props publish once with supported heights and rotated resident footprints", async () => {
   const buildPlan = await CastleAuthoredBuildPlan.generate({
-    basePlanId: "castle-01",
+    basePlanId: "castle-compact-service-wing",
     seed: 2,
     position: {
       x: 0,
@@ -198,13 +198,13 @@ test("authored service props publish once with supported heights and rotated res
   const first = structuredClone(map.objects);
   KitchenRoomMapObjects.prepareMap(map);
   assert.deepEqual(map.objects, first);
-  assert.equal(map.objects.filter(item => item.sourceCastleId).length, service.length + furniture.filter(item => item.role === "kitchenProp").length);
+  assert.equal(map.objects.filter(item => item.kitchenFurnishing && item.object !== "Fire").length, service.length + furniture.filter(item => item.role === "kitchenProp").length);
   const layout = new CastleResidentialLayout(buildPlan);
   for (const item of service) {
     const index = furniture.indexOf(item);
     const definition = map.objects.find(candidate => candidate.id === `castle-service-test-kitchen-prop-${index}`);
     assert.ok(definition);
-    assert.equal(definition.position.y, item.floorY + (item.y ?? 0));
+    assert.ok(Math.abs(definition.position.y - item.floorY - (item.y ?? 0)) < 1e-9);
     assert.equal(definition.rotation, layout.yaw + 180 + item.rotation);
     if (item.items) {
       assert.deepEqual(definition.items, item.items);

@@ -35,7 +35,7 @@ export class CastleBasePlanGenerator {
    * @returns {string[]}
    */
   static get layoutPlanIds() {
-    return ["castle-demo-compact", "castle-compact-tower", "castle-compact-service-wing"];
+    return ["castle-demo-compact", "castle-compact-service-wing", "castle-rear-bell-tower"];
   }
 
   /**
@@ -82,9 +82,9 @@ export class CastleBasePlanGenerator {
   static async #loadPlans() {
     let modules;
     if (import.meta.env) {
-      modules = await Promise.all([import("./plans/castle-01.json"), import("./plans/castle-03.json"), import("./plans/castle-04.json"), import("./plans/castle-demo-compact.json"), import("./plans/castle-compact-tower.json"), import("./plans/castle-compact-service-wing.json")]);
+      modules = await Promise.all([import("./plans/castle-demo-compact.json"), import("./plans/castle-compact-service-wing.json")]);
     } else {
-      modules = await Promise.all(["castle-01", "castle-03", "castle-04", "castle-demo-compact", "castle-compact-tower", "castle-compact-service-wing"].map(this.#loadNodePlan));
+      modules = await Promise.all(["castle-demo-compact", "castle-compact-service-wing"].map(this.#loadNodePlan));
     }
     const rearTower = import.meta.env
       ? await import("./plans/castle-rear-bell-tower.json")

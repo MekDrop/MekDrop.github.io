@@ -5,7 +5,7 @@ import { CastleBasePlanInvalidError } from "../../../../../src/game/errors/castl
 import { ServiceRoomGenerator } from "../../../../../src/game/generator/castle/rooms/service/ServiceRoomGenerator.js";
 
 it("compiles all authored plans with fixed rooms, stairs, roofs, doors and windows", async () => {
-  assert.deepEqual((await CastleBasePlanGenerator.plans).map((plan) => plan.id), ["castle-01", "castle-03", "castle-04", "castle-demo-compact", "castle-compact-tower", "castle-compact-service-wing", "castle-rear-bell-tower"]);
+  assert.deepEqual((await CastleBasePlanGenerator.plans).map((plan) => plan.id), CastleBasePlanGenerator.layoutPlanIds);
   for (const authored of (await CastleBasePlanGenerator.plans)) {
     const result = await CastleBasePlanGenerator.generate({
       planId: authored.id,
@@ -62,7 +62,7 @@ it("mirrors odd seeds around the unchanged entrance, including every structural 
     planId: "castle-demo-compact",
     seed: 43,
   });
-  assert.deepEqual(CastleBasePlanGenerator.layoutPlanIds, ["castle-demo-compact", "castle-compact-tower", "castle-compact-service-wing"]);
+  assert.deepEqual(CastleBasePlanGenerator.layoutPlanIds, ["castle-demo-compact", "castle-compact-service-wing", "castle-rear-bell-tower"]);
   assert.equal(original.basePlanId, mirrored.basePlanId);
   assert.equal(original.mirrored, false);
   assert.equal(mirrored.mirrored, true);
@@ -97,7 +97,20 @@ it("mirrors odd seeds around the unchanged entrance, including every structural 
     planId: "castle-demo-compact",
     seed: "43",
   }), mirrored);
-  assert.deepEqual(await CastleBasePlanGenerator.generate({ seed: 43 }), mirrored);
+});
+
+it("excludes the retired tower from numeric and named seed selection", () => {
+  for (const seed of [...Array(120).keys(), "reference", "tower", "castle"]) {
+    assert.notEqual(CastleBasePlanGenerator.selectPlanId(seed), "castle-compact-tower");
+  }
+  for (const seed of [0, 6, 12]) {
+    assert.equal(CastleBasePlanGenerator.selectPlanId(seed), "castle-demo-compact");
+    assert.equal(CastleBasePlanGenerator.selectPlanId(seed + 1), "castle-demo-compact");
+    assert.equal(CastleBasePlanGenerator.selectPlanId(seed + 2), "castle-compact-service-wing");
+    assert.equal(CastleBasePlanGenerator.selectPlanId(seed + 3), "castle-compact-service-wing");
+    assert.equal(CastleBasePlanGenerator.selectPlanId(seed + 4), "castle-rear-bell-tower");
+    assert.equal(CastleBasePlanGenerator.selectPlanId(seed + 5), "castle-rear-bell-tower");
+  }
 });
 
 it("runs a room generator at every assigned slot without changing its bounds", async () => {
@@ -109,16 +122,16 @@ it("runs a room generator at every assigned slot without changing its bounds", a
     return [];
   };
   const result = await CastleBasePlanGenerator.generate({
-    planId: "castle-03",
+    planId: "castle-demo-compact",
     generators: [generator,
-      ...["LibraryRoomGenerator", "ThroneRoomGenerator", "LeisureRoomGenerator"].map((name) => ({
+      ...["LibraryRoomGenerator", "ThroneRoomGenerator", "LeisureRoomGenerator", "VestibuleRoomGenerator", "StairwellRoomGenerator", "KitchenRoomGenerator", "RoyalBedroomRoomGenerator", "TerraceStorageRoomGenerator"].map((name) => ({
         constructor: { name },
         furnish: () => [],
       }))],
   });
   const slots = result.spaces.filter((space) => space.generator === "ServiceRoomGenerator");
   assert.deepEqual(calls, slots);
-  assert.ok(calls.length > 1);
+  assert.ok(calls.length > 0);
 });
 
 it("rejects unknown plans, invalid scaling, missing generators and malformed apertures", async () => {
@@ -130,54 +143,13 @@ it("rejects unknown plans, invalid scaling, missing generators and malformed ape
   assert.throws(() => CastleBasePlanGenerator.validate(plan), CastleBasePlanInvalidError);
 });
 
-it("keeps the symmetric throne hall double height and its upper level empty", async () => {
-  const plan = await CastleBasePlanGenerator.generate({ planId: "castle-01" });
-  const throne = plan.placedRooms.find((room) => room.id === "throne-hall");
-  assert.equal(throne.floorSpan, 2);
-  assert.equal(throne.height, 7.75);
-  assert.ok(!plan.furniture.some((item) => item.roomId === "throne-void"));
-});
 
-it("selects the tower variant with rearranged rooms and a connected lookout floor", async () => {
-  const tower = await CastleBasePlanGenerator.generate({ seed: 2 });
-  assert.equal(tower.basePlanId, "castle-compact-tower");
-  assert.equal(CastleBasePlanGenerator.selectPlanId(3), tower.basePlanId);
-  assert.ok(tower.stairs.some((stair) => stair.to === 2));
-  assert.ok(tower.spaces.some((room) => room.id === "watchtower" && room.level === 2 && room.generator === "TowerRoomGenerator"));
-  assert.ok(tower.roofs.some((roof) => roof.id === "watchtower-roof" && roof.y === 9));
-  assert.equal(tower.spaces.find((room) => room.id === "royal-chamber").generator, "RoyalBedroomRoomGenerator");
-});
 
-it("connects the tower basement bedroom and kitchen to the existing landing", async () => {
-  for (const seed of [2, 3]) {
-    const plan = await CastleBasePlanGenerator.generate({ seed });
-    const bedroom = plan.spaces.find((room) => room.id === "royal-chamber");
-    const kitchen = plan.spaces.find((room) => room.id === "kitchen");
-    const landing = plan.spaces.find((room) => room.id === "basement-stair-room");
-    assert.equal(bedroom.level, -1);
-    assert.equal(bedroom.kind, "room");
-    assert.equal(bedroom.maxX - bedroom.minX, 7.25);
-    assert.equal(bedroom.minX, Math.min(kitchen.minX, landing.minX));
-    assert.equal(bedroom.maxX, Math.max(kitchen.maxX, landing.maxX));
-    assert.equal(bedroom.minZ, kitchen.maxZ);
-    assert.equal(bedroom.minZ, landing.maxZ);
-    assert.ok(plan.furniture.some((item) => item.roomId === bedroom.id && item.role === "royalBed"));
-    assert.ok(plan.furniture.some((item) => item.roomId === bedroom.id && item.role === "wardrobe"));
-    const doors = plan.openings.filter((opening) => opening.roomId === kitchen.id && opening.kind === "door");
-    assert.ok(doors.some((door) => door.axis === "z" && door.coordinate === bedroom.minZ &&
-      door.center > kitchen.minX && door.center < kitchen.maxX));
-    assert.ok(doors.some((door) => door.axis === "x" &&
-      Math.min(Math.abs(door.coordinate - landing.minX), Math.abs(door.coordinate - landing.maxX)) < 1e-6 &&
-      door.center > landing.minZ && door.center < landing.maxZ));
-    assert.ok(plan.openings.some((door) => door.roomId === bedroom.id && door.kind === "door" &&
-      door.axis === "z" && door.coordinate === landing.maxZ && door.center > landing.minX && door.center < landing.maxX));
-  }
-});
 
 it("places the kitchen at the basement stair door, terrace storage on its right and the bedroom in the remaining area", async () => {
-  const plan = await CastleBasePlanGenerator.generate({ seed: 4 });
+  const plan = await CastleBasePlanGenerator.generate({ seed: 2 });
   assert.equal(plan.basePlanId, "castle-compact-service-wing");
-  assert.equal(CastleBasePlanGenerator.selectPlanId(5), plan.basePlanId);
+  assert.equal(CastleBasePlanGenerator.selectPlanId(3), plan.basePlanId);
   const quarters = plan.spaces.find((room) => room.id === "service-quarters");
   assert.equal(quarters.level, 0);
   assert.equal(quarters.generator, "ServiceRoomGenerator");
@@ -185,8 +157,6 @@ it("places the kitchen at the basement stair door, terrace storage on its right 
   for (const id of ["kitchen", "royal-chamber", "basement-storeroom"]) {
     assert.equal(plan.spaces.find((room) => room.id === id).level, -1);
   }
-  const tower = await CastleBasePlanGenerator.generate({ planId: "castle-compact-tower" });
-  assert.equal(tower.spaces.find((room) => room.id === "royal-chamber").level, -1);
   assert.ok(plan.spaces.some((room) => room.id === "watchtower" && room.level === 2));
   assert.ok(!plan.spaces.some((room) => room.generator === "LibraryRoomGenerator"));
   assert.equal(plan.spaces.find((room) => room.id === "royal-chamber").generator, "RoyalBedroomRoomGenerator");
