@@ -67,6 +67,30 @@ function fixture(options = {}) {
   };
 }
 
+it("opens interior doors before an approaching hero reaches their swing", () => {
+  const { door } = fixture({
+    automatic: true,
+    upperFloor: true,
+    width: 1.25,
+    openSpeed: 1.7,
+  });
+  door.updateHeroPosition({
+    x: 0,
+    y: 0,
+    z: 4,
+  });
+  door.update(0.1);
+  assert.ok(door.openAmount > 0);
+  door.updateHeroPosition({
+    x: 0,
+    y: 4,
+    z: 4,
+  });
+  door.update(1);
+  assert.equal(door.openAmount, 0);
+  door.destroy();
+});
+
 it("supports independent model, clip, speed, hinge and query dimensions", () => {
   const { door, layer, handle } = fixture();
   assert.equal(door.insideHandle, handle);

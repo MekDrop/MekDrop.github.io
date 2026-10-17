@@ -61,13 +61,13 @@ export class ServiceRoomFurnishing {
             sideways ? 0.5604 : 0.6004, sideways ? 0.6004 : 0.5604, 0.65, 1, bed.rotation);
           if (drawer) {
             if (this.#cozy) {
-              this.#supported("Lantern", drawer, 0.187, 0.257, 0.45, -0.16, {
-                type: "entrance",
+              this.#supported("Lantern", drawer, 0.2136, 0.22, 0.427, -0.16, {
+                type: "table",
                 lighting: {
                   position: {
                     x: 0,
-                    y: 0.29,
-                    z: 0.18,
+                    y: 0.18,
+                    z: 0,
                   },
                   color: [1,0.62,0.25],
                   intensity: 1.5,

@@ -12,14 +12,14 @@ import { VestibuleRoomGenerator } from "./rooms/vestibule/VestibuleRoomGenerator
 import { StairwellRoomGenerator } from "./rooms/stairwell/StairwellRoomGenerator.js";
 
 /**
- * @typedef {{kind:string,side:string,offset:number,width:number,bottom:number,height:number,swing?:string,openingInset?:number,open?:boolean}} AuthoredCastleOpening
+ * @typedef {{kind:string,side:string,offset:number,width:number,bottom:number,height:number,swing?:string,openWide?:boolean,frameClearance?:number,openingInset?:number,open?:boolean}} AuthoredCastleOpening
  * @typedef {{id:string,label:string,kind:string,bounds:number[],generator:string|null,openings:AuthoredCastleOpening[],floorFinish?:string,furnish?:boolean}} AuthoredCastleSpace
  * @typedef {{id:string,bounds:number[],from:number,to:number,landingProfile?:boolean,radius?:number,flightGap?:number,flightShift?:number,landingLift?:number,entrySide?:string}} AuthoredCastleStair
  * @typedef {{id:string,bounds:number[],elevation:number,shape:string,height?:number,battlements?:boolean}} AuthoredCastleRoof
  * @typedef {{id:string,bounds:number[],elevation:number,height:number}} AuthoredCastleBuilding
  * @typedef {{index:number,elevation:number,spaces:AuthoredCastleSpace[]}} AuthoredCastleFloor
  * @typedef {import("./rooms/AbstractCastleRoomGenerator.js").PlannedCastleRoom & {kind:string,generator:string|null,wallBounds:{minX:number,maxX:number,minZ:number,maxZ:number}}} CompiledCastleSpace
- * @typedef {{roomId:string,kind:string,side:string,axis:string,coordinate:number,center:number,width:number,bottom:number,height:number,floorY:number,swing:string,openingInset:number,open?:boolean}} CompiledCastleOpening
+ * @typedef {{roomId:string,kind:string,side:string,axis:string,coordinate:number,center:number,width:number,bottom:number,height:number,floorY:number,swing:string,openWide?:boolean,frameClearance?:number,openingInset:number,open?:boolean}} CompiledCastleOpening
  * @typedef {{version:number,id:string,name:string,source:{image:string},coordinates:{width:number,depth:number,recommendedUnitMetres:number},floorHeight:number,wallThickness:number,entrance:{spaceId:string,side:string,offset:number,width:number,bridge:number[]},levels:Array<{index:number,elevation:number,spaces:AuthoredCastleSpace[]}>,staircases:AuthoredCastleStair[],roofs:AuthoredCastleRoof[],buildings?:AuthoredCastleBuilding[],roofAccess?:{bounds:number[],bottom:number[],top:number[],position?:number[],rotation?:number}} CastleBasePlan
  */
 
@@ -86,6 +86,11 @@ export class CastleBasePlanGenerator {
         import("./plans/castle-03.json", { with: { type: "json" } }), import("./plans/castle-04.json", { with: { type: "json" } }),
         import("./plans/castle-demo-compact.json", { with: { type: "json" } }), import("./plans/castle-compact-tower.json", { with: { type: "json" } }), import("./plans/castle-compact-service-wing.json", { with: { type: "json" } })]);
     }
+    const rearTower = import.meta.env
+      ? await import("./plans/castle-rear-bell-tower.json")
+      : await import("./plans/castle-rear-bell-tower.json", { with: { type: "json" } });
+    modules.push(rearTower);
+
     return structuredClone(modules.map(/**
      * @param {{default:CastleBasePlan}} module
      */
@@ -155,6 +160,7 @@ export class CastleBasePlanGenerator {
           floorSpan,
           height: floorSpan * plan.floorHeight - (plan.buildings ? 0 : 0.25),
           generator: authored.generator,
+          furnishingBounds: authored.furnishingBounds ? this.#bounds(authored.furnishingBounds, scale) : null,
         };
         spaces.push(room);
         // Exterior walls follow the building envelope rather than the inset
@@ -193,6 +199,8 @@ export class CastleBasePlanGenerator {
             height: opening.height,
             floorY: room.floorY,
             swing: opening.swing ?? "outward",
+            openWide: opening.openWide,
+            frameClearance: opening.frameClearance ?? 0,
             openingInset: opening.openingInset ?? 0,
           });
         }
@@ -207,7 +215,11 @@ export class CastleBasePlanGenerator {
       if (!generator) {
         throw new CastleBasePlanInvalidError(plan.id, `generator:${room.generator}`);
       }
-      for (const item of generator.furnish(room, {
+      const furnishingRoom = room.furnishingBounds ? {
+        ...room,
+        ...room.furnishingBounds,
+      } : room;
+      for (const item of generator.furnish(furnishingRoom, {
         seed: options.seed,
         wallThickness: plan.wallThickness * scale,
         openings,

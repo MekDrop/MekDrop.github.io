@@ -1,3 +1,4 @@
+import { HeroStairCameraHeight } from "./HeroStairCameraHeight.js";
 import { HeroSpawn } from "./HeroSpawn.js";
 import {
   HeroAnimationPlayback,
@@ -490,6 +491,30 @@ export class Hero {
    * @type {number}
    */
   #automaticStepVisualOffset = 0;
+  /**
+   * @type {HeroStairCameraHeight}
+   */
+  #stairCameraHeight = new HeroStairCameraHeight();
+  /**
+   * @type {number}
+   */
+  #stairCameraOffset = 0;
+  /**
+   * @type {number|null}
+   */
+  #stairCameraEyeHeight = null;
+  /**
+   * @type {number}
+   */
+  #stairCameraFrame = 0;
+  /**
+   * @type {number}
+   */
+  #stairCameraSampleFrame = -1;
+  /**
+   * @type {number}
+   */
+  #stairCameraDeltaTime = 0;
   /**
    *
    * @type {Array<import("playcanvas").Entity>}
@@ -1081,6 +1106,10 @@ export class Hero {
     this.#coyoteRemaining = 0;
     this.#jumpsUsed = 0;
     this.#automaticStepVisualOffset = 0;
+    this.#stairCameraHeight.reset();
+    this.#stairCameraOffset = 0;
+    this.#stairCameraEyeHeight = null;
+    this.#stairCameraSampleFrame = -1;
     this.#automaticStepGroundingRemaining = 0;
     this.#automaticStepTargetHeight = null;
     this.#stableGroundPosition = { ...this.#position };
@@ -1438,10 +1467,14 @@ export class Hero {
    */
   get firstPersonCameraPose() {
     const direction = this.facingDirection;
-    // Animated eyes orbit the head pivot during look and body turns. Anchoring
-    // to them feeds the previous camera direction back into camera translation.
     const body = this.#entity.getPosition();
-    const anchor = {
+    const left = this.#leftEyeEntity?.getPosition();
+    const right = this.#rightEyeEntity?.getPosition();
+    const anchor = left && right ? {
+      x: (left.x + right.x) / 2,
+      y: (left.y + right.y) / 2,
+      z: (left.z + right.z) / 2,
+    } : {
       x: body.x,
       y: body.y + HERO_COLLISION_HEIGHT * 0.8,
       z: body.z,
@@ -1472,6 +1505,43 @@ export class Hero {
     if (Math.abs(yaw - previousYaw) > 0.001) {
       this.#onFacingChange?.(this.facingDirection);
     }
+  }
+
+  #syncFirstPersonPresentation() {
+    if (!this.#modelRoot || !this.#leftEyeEntity || !this.#rightEyeEntity) {
+      return;
+    }
+    const local = this.#modelRoot.getLocalPosition().clone();
+    const left = this.#leftEyeEntity.getPosition();
+    const right = this.#rightEyeEntity.getPosition();
+    // Remove the current root correction before sampling the authored eye pose.
+    // This captures capsule steps and animation handoffs without feeding the
+    // previous presentation offset back into the filter.
+    const rawEyeHeight = (left.y + right.y) / 2 - local.y;
+    if (this.#stairCameraFrame !== this.#stairCameraSampleFrame) {
+      this.#stairCameraOffset = this.#stairCameraHeight.update(rawEyeHeight, this.#stairCameraDeltaTime, {
+        onStairs: this.#capsuleSupportOnly || this.#automaticStepGroundingRemaining > 0,
+        freeMotion: this.#physics.scripted || Math.abs(this.#velocity.y) > 3,
+      });
+      this.#stairCameraEyeHeight = rawEyeHeight + this.#stairCameraOffset;
+      this.#stairCameraSampleFrame = this.#stairCameraFrame;
+    }
+    // Move the visible actor, then read its eyes. The camera never floats
+    // separately from the face, including after a late capsule correction.
+    this.#modelRoot.setLocalPosition(local.x, this.#stairCameraEyeHeight - rawEyeHeight, local.z);
+  }
+
+  /**
+   * Align the head before sampling the eyes, including a same-frame body turn.
+   * @param {{yaw:number,pitch:number}} look
+   */
+  set firstPersonLook(look) {
+    if (!this.#firstPersonCameraEnabled || !this.#headEntity) {
+      return;
+    }
+    this.#headLookYaw = ((look.yaw - this.#facingYaw + 540) % 360) - 180;
+    this.#headEntity.setLocalEulerAngles(-look.pitch, this.#headLookYaw, 0);
+    this.#syncFirstPersonPresentation();
   }
 
   set firstPersonCameraEnabled(enabled) {
@@ -3048,6 +3118,13 @@ export class Hero {
   #animate(deltaTime) {
     if (!this.#entity || !this.#modelRoot) {
       return;
+    }
+    this.#stairCameraFrame++;
+    this.#stairCameraDeltaTime = deltaTime;
+    if (!this.#firstPersonCameraEnabled) {
+      this.#stairCameraHeight.reset();
+      this.#stairCameraEyeHeight = null;
+      this.#stairCameraSampleFrame = -1;
     }
     const stepVisualBlend =
       1 - Math.exp(-AUTOMATIC_STEP_VISUAL_RESPONSE * deltaTime);

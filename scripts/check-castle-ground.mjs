@@ -75,6 +75,7 @@ if (args.includes("--help")) {
       for (const castle of castles) {
 
         castle.buildPlan = await CastleGenerator.generate({
+          basePlanId: castle.basePlanId,
           position: castle.position ?? castle.buildPlan?.input?.position,
           doors: castle.doors ?? castle.buildPlan?.input?.doors,
           style: castle.style ?? castle.buildPlan?.input?.requestedStyle,

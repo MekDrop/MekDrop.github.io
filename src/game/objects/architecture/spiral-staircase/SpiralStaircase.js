@@ -1,5 +1,6 @@
 import { createSpiralStairCollision } from "../../shared/SpiralStairCollision.js";
 import treadUrl from "../../../models/spiral-staircase/spiral-tread.glb?url";
+import castleTreadUrl from "../../../models/spiral-staircase/castle-spiral-tread.glb?url";
 import columnUrl from "../../../models/spiral-staircase/castle-brick.glb?url";
 import { IslandObjectRoots } from "../../shared/IslandObjectRoots.js";
 import { SpiralStaircaseLayout } from "./SpiralStaircaseLayout.js";
@@ -17,7 +18,7 @@ export class SpiralStaircase {
    * @returns {Array<string>}
    */
   static get modelUrls() {
-    return [treadUrl, columnUrl];
+    return [treadUrl, castleTreadUrl, columnUrl];
   }
   /**
    * @type {import("playcanvas").Entity}
@@ -76,17 +77,27 @@ export class SpiralStaircase {
     this.#entity = new pc.Entity(`${definition.id} island ownership`);
     this.#visual = new pc.Entity(`${definition.id} spiral staircase`);
     this.#visual.tags.add("map-object", definition.id, this.constructor.name);
+    this.#visual.tags.add("capsule-support-zone");
     this.#islandRoots = new IslandObjectRoots(pc, this.#entity, runtime.mapData);
     this.#islandRoots.addChild(this.#visual, definition.tile);
     const { x, z } = definition.position;
     this.#visual.setLocalPosition(x, 0, z);
     const steps = SpiralStaircaseLayout.steps(definition);
+    const castleProfile = definition.stepProfile === "castle";
+    const modelUrl = castleProfile ? castleTreadUrl : treadUrl;
     for (const [index, step] of steps.entries()) {
       const entrance = index < 2 || index >= steps.length - 2;
       const root = new pc.Entity(`${definition.id} tread ${step.height}`);
       root.setLocalPosition(0, step.height, 0);
       root.setLocalEulerAngles(0, step.rotation, 0);
-      const visual = modelLibrary.instantiate(treadUrl);
+      const visual = modelLibrary.instantiate(modelUrl);
+      if (definition.exitFloorOwned && index === steps.length - 1) {
+        for (const render of visual.findComponents("render")) {
+          if (render.entity.name.startsWith("Spiral stone tread")) {
+            render.enabled = false;
+          }
+        }
+      }
       // Leave the lower radial entrance clear instead of fencing off the first tread.
       if (entrance) {
         for (const render of visual.findComponents("render")) {
@@ -97,15 +108,19 @@ export class SpiralStaircase {
       }
       root.addChild(visual);
       this.#visual.addChild(root);
-      const graph = modelLibrary.instantiate(treadUrl);
+      const graph = modelLibrary.instantiate(modelUrl);
       const model = new pc.Model();
       model.graph = graph;
       model.meshInstances = graph.findComponents("render").flatMap(
         /**
          * @param {import("playcanvas").RenderComponent} render
          */
-        (render) => !entrance && render.entity.name.includes("iron") ? render.meshInstances : []);
+        (render) => (castleProfile && render.entity.name.startsWith("Spiral stone tread")) ||
+          (!entrance && render.entity.name.includes("iron")) ? render.meshInstances : []);
       if (model.meshInstances.length) {
+        if (castleProfile) {
+          root.tags.add("capsule-support");
+        }
         root.addComponent("collision", {
           type: "mesh",
           model,
@@ -119,10 +134,11 @@ export class SpiralStaircase {
       this.#collisionGraphs.push(graph);
     }
     const supportRoot = new pc.Entity("Spiral continuous tread physics");
+    supportRoot.tags.add("capsule-support");
     supportRoot.setLocalPosition(0, definition.Z1, 0);
     supportRoot.setLocalEulerAngles(0, definition.rotation ?? 0, 0);
     this.#visual.addChild(supportRoot);
-    const source = modelLibrary.instantiate(treadUrl);
+    const source = modelLibrary.instantiate(modelUrl);
     const firstMesh = source.findComponents("render")[0].meshInstances[0];
     const support = createSpiralStairCollision(pc, {
       device: firstMesh.mesh.device,
@@ -130,7 +146,7 @@ export class SpiralStaircase {
       innerRadius: 0.24,
       outerRadius: 1.77,
       rise: definition.Z2 - definition.Z1,
-      turns: steps.length * SpiralStaircaseLayout.stepAngle / 360,
+      turns: steps.length * SpiralStaircaseLayout.profile(definition).stepAngle / 360,
       steps: steps.length,
     });
     const supportModel = new pc.Model();
@@ -149,7 +165,8 @@ export class SpiralStaircase {
       restitution:0,
     });
     this.#collisionGraphs.push(supportGraph, source);
-    const height = definition.Z2 - definition.Z1 + HANDRAIL_TOP_HEIGHT;
+    const handrailTop = HANDRAIL_TOP_HEIGHT + (castleProfile ? 0.075 : 0);
+    const height = (definition.columnTop ?? definition.Z2 + handrailTop) - definition.Z1;
     const column = new pc.Entity(`${definition.id} center column`);
     column.setLocalPosition(0, definition.Z1 + height / 2, 0);
     // Use the castle's authored masonry at its native block dimensions.
@@ -257,7 +274,8 @@ export class SpiralStaircase {
     if (Math.hypot(x - origin.x, z - origin.z) > 1.8 + radius) {
       return null;
     }
-    const top = Math.min(maximumHeight, this.#definition.Z2 + origin.y + HANDRAIL_TOP_HEIGHT);
+    const handrailTop = HANDRAIL_TOP_HEIGHT + (this.#definition.stepProfile === "castle" ? 0.075 : 0);
+    const top = Math.min(maximumHeight, this.#definition.Z2 + origin.y + handrailTop);
     const from = new this.#pc.Vec3(x, top + 0.001, z);
     const to = new this.#pc.Vec3(x, this.#definition.Z1 + origin.y - 0.2, z);
     if (from.y <= to.y) {

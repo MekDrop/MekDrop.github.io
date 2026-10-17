@@ -37,7 +37,9 @@ export function createDoorCollision(pc, door) {
    * @param {import("playcanvas").RenderComponent} render
    */ (render) => render.entity.name.startsWith("Entrance oak plank") && render.asset);
   for (const render of renders) {
-    if (render.entity.name.startsWith("Entrance masonry interior")) {
+    if (render.entity.name.startsWith("Entrance masonry interior") ||
+        render.entity.name.startsWith("Entrance masonry arch pointed") ||
+        render.entity.name.startsWith("Entrance masonry course pointed")) {
       // Use the authored masonry surface, rather than a box that fills the arch.
       // The ordinary door swing probe then sees its own frame like any nearby wall.
       const node = new pc.GraphNode("Castle entrance frame physics mesh");

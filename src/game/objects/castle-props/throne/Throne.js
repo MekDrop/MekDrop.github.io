@@ -20,7 +20,9 @@ export class Throne extends AbstractCastleProp {
       const room = layout.audienceFloorBounds ?? layout.rooms.work;
       const zone = layout.reservations.find(Throne.#findReservation);
       const forward = (zone?.maxZ ?? room.maxZ) - (layout.throneRearWindow ? 0.35 : 0.65);
-      const position = layout.toWorld((room.minX + room.maxX) / 2, Math.max(0, forward), layout.throneSupportHeight);
+      const platform = layout.thronePlatform;
+      const position = layout.toWorld(platform?.x ?? (room.minX + room.maxX) / 2,
+        platform?.z ?? Math.max(0, forward), layout.throneSupportHeight);
       const id = castle.id + "-throne";
       const definition = {
         id,

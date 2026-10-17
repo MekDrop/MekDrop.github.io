@@ -131,9 +131,9 @@ export class ThroneRoomGenerator extends AbstractCastleRoomGenerator {
       Math.abs(opening.center - center) < opening.width / 2 + 0.4);
     add("ThroneDais", center, bounds.minZ + (rearWindow ? 0.55 : 0.65), 1.1, 0.95, 0.05);
     items.at(-1).height = 0.1;
-    // Keep the emblem above the throne and the rear wall's window lintel.
+    // Keep the crown visually grouped with the throne rather than the ceiling.
     add(variant === "warCouncil" ? "WarCouncilShield" : "RoyalCrest", center,
-      bounds.minZ + 0.2, variant === "warCouncil" ? 0.7 : 1, 0.1, 2.15);
+      bounds.minZ + 0.2, variant === "warCouncil" ? 0.7 : 1, 0.1, variant === "warCouncil" || rearWindow ? 2.15 : 1.65);
     if (variant !== "warCouncil") {
       items.at(-1).scale = 0.7;
     }
@@ -180,7 +180,7 @@ export class ThroneRoomGenerator extends AbstractCastleRoomGenerator {
         const shelfX = center - side * (width / 2 - 0.35);
         const shelfZ = bounds.minZ + 1.55;
         if (fits(shelfX, shelfZ, 0.36, 0.85)) {
-          add("Shelf", shelfX, shelfZ, 0.85, 0.36, 0.05, side > 0 ? -90 : 90);
+          add("Shelf", shelfX, shelfZ, 0.85, 0.36, 0.05, side > 0 ? 90 : -90);
           items.at(-1).height = 1.35;
         }
       } else {

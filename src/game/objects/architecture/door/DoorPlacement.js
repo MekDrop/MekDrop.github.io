@@ -2,6 +2,7 @@ import { createDoorCollision } from "./DoorCollision.js";
 import interiorDoorUrl from "../../../models/castle/doors/interior-doors.glb?url";
 import castleDoorsModelUrl from "../../../models/castle/doors/castle-doors.glb?url";
 import roundedEntranceUrl from "../../../models/castle/doors/entrance-rounded.glb?url";
+import pointedEntranceUrl from "../../../models/castle/doors/entrance-pointed.glb?url";
 import { CASTLE_DOOR_ANIMATION } from "../../../enum/CastleDoorAnimation.js";
 import entranceMasonryShader from "./DoorMasonry.frag?raw";
 import entranceMasonryWgsl from "./DoorMasonry.wgsl?raw";
@@ -22,7 +23,7 @@ export class DoorPlacement {
    * @returns {string[]}
    */
   static get modelUrls() {
-    return [castleDoorsModelUrl, interiorDoorUrl, roundedEntranceUrl];
+    return [castleDoorsModelUrl, interiorDoorUrl, roundedEntranceUrl, pointedEntranceUrl];
   }
 
   /**
@@ -32,7 +33,7 @@ export class DoorPlacement {
    * @param {{x: number, z: number, width: number, depth: number, elevation: number}} options.castlePosition
    * @param {import("src/game/objects/ObjectTypes.js").CastleDoorDefinition} options.door
    * @param {import("../../../models/GameModelLibrary.js").GameModelLibrary} options.modelLibrary
-   * @param {{x: number, y: number, z: number, yaw: number, height: number, arched?: boolean, mirrored?: boolean, frameOffset?:number}|null} options.placement
+   * @param {{x: number, y: number, z: number, yaw: number, height: number, arched?: boolean, mirrored?: boolean, frameOffset?:number,openWide?:boolean,frameClearance?:number}|null} options.placement
    * @param {boolean} options.bundledEntrance Use the complete stone-and-timber entrance.
    * @param {Map<string, import("playcanvas").Material>|null} options.masonryMaterials
    * @returns {import("./DoorTypes.js").DoorOptions}
@@ -80,7 +81,8 @@ export class DoorPlacement {
     }
 
     let archMaterial = null;
-    const modelUrl = bundledEntrance ? roundedEntranceUrl : placement && !placement.arched ? interiorDoorUrl : castleDoorsModelUrl;
+    const entranceUrl = door.style === "pointed" ? pointedEntranceUrl : roundedEntranceUrl;
+    const modelUrl = bundledEntrance ? entranceUrl : placement && !placement.arched ? interiorDoorUrl : castleDoorsModelUrl;
     const entity = modelLibrary.instantiate(modelUrl);
     if (bundledEntrance && masonryMaterials) {
       const stone = masonryMaterials.get("castleStoneMid");
@@ -127,6 +129,20 @@ export class DoorPlacement {
       entity.setLocalScale((placement.mirrored ? -1 : 1) * width / 2, height / DOOR_HEIGHT, framedInterior ? 0.54 : width / 2);
     }
     if (framedInterior) {
+      // Wider masonry reveals need wider outer casing, with the inner jamb
+      // edges unchanged so the leaf retains its full swing clearance.
+      const extension = (placement.frameClearance ?? 0) / width;
+      if (extension > 0) {
+        for (const name of ["Interior oak hinge jamb", "Interior oak latch jamb"]) {
+          const jamb = entity.findByName(name);
+          const position = jamb.getLocalPosition().clone();
+          position.x += Math.sign(position.x) * extension / 2;
+          jamb.setLocalPosition(position);
+          jamb.setLocalScale(1 + extension / 0.168, 1, 1);
+        }
+        const header = entity.findByName("Interior oak header");
+        header.setLocalScale(1 + extension / 1.18, 1, 1);
+      }
       // Raise only the moving leaf: jambs meet the floor, while the leaf clears
       // the floor finish throughout its swing.
       const hinge = entity.findByName("Right interior door hinge");
@@ -138,7 +154,7 @@ export class DoorPlacement {
       entity,
       modelLibrary,
       modelUrl,
-      animationName: CASTLE_DOOR_ANIMATION.OPEN_WIDE,
+      animationName: placement?.openWide === false ? CASTLE_DOOR_ANIMATION.OPEN : CASTLE_DOOR_ANIMATION.OPEN_WIDE,
       collision: () => createDoorCollision(pc, entity),
       center: geometry.center,
       inward: geometry.inward,

@@ -35,3 +35,23 @@ test("invalid and excessive heights fail before generating entities", () => {
     { name: "InvalidSpiralStaircaseError" });
   }
 });
+
+test("castle risers reach the next landing with equal 20 cm steps and reserve the doorway landing", () => {
+  const definition = {
+    Z1: 2,
+    Z2: 6,
+    rotation: 90,
+    stepProfile: "castle",
+  };
+  const steps = SpiralStaircaseLayout.steps(definition);
+  const profile = SpiralStaircaseLayout.profile(definition);
+  assert.equal(steps.length, 20);
+  assert.equal(steps.length * profile.stepAngle, 240);
+  let previous = definition.Z1;
+  for (const step of steps) {
+    assert.ok(Math.abs(step.height - previous - 0.2) < 1e-6);
+    previous = step.height;
+  }
+  assert.equal(steps[0].rotation, 90);
+  assert.equal(steps.at(-1).height, 6);
+});

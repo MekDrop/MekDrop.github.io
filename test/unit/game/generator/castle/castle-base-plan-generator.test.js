@@ -5,7 +5,7 @@ import { CastleBasePlanInvalidError } from "../../../../../src/game/errors/castl
 import { ServiceRoomGenerator } from "../../../../../src/game/generator/castle/rooms/service/ServiceRoomGenerator.js";
 
 it("compiles all authored plans with fixed rooms, stairs, roofs, doors and windows", async () => {
-  assert.deepEqual((await CastleBasePlanGenerator.plans).map((plan) => plan.id), ["castle-01", "castle-03", "castle-04", "castle-demo-compact", "castle-compact-tower", "castle-compact-service-wing"]);
+  assert.deepEqual((await CastleBasePlanGenerator.plans).map((plan) => plan.id), ["castle-01", "castle-03", "castle-04", "castle-demo-compact", "castle-compact-tower", "castle-compact-service-wing", "castle-rear-bell-tower"]);
   for (const authored of (await CastleBasePlanGenerator.plans)) {
     const result = await CastleBasePlanGenerator.generate({
       planId: authored.id,

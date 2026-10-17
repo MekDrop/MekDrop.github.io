@@ -34,7 +34,7 @@ export class Flag {
     const objects = mapData.objects ??= [];
     for (let index = objects.length - 1; index >= 0; index--) {
       const flag = objects[index];
-      if (!flag.sourceCastleId) {
+      if (flag.object !== Flag.name || !flag.sourceCastleId) {
         continue;
       }
       const castle = objects.find(/**

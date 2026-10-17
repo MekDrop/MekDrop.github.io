@@ -989,7 +989,7 @@ export class CastleEntityBuilder {
           placement: {
             ...residential.origin,
             height: opening.height - 0.05,
-            openingInset: 0,
+            openingInset: -opening.coordinate,
             arched: true,
             swing: opening.swing,
           },

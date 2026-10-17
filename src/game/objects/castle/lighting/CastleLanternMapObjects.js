@@ -189,7 +189,9 @@ export class CastleLanternMapObjects {
     add({
       object: "Lantern",
       type: "entrance",
-      position: layout.toWorld(flank * (entrance.width / 2 + 0.54), -0.48, 1.3),
+      // The scaled bracket reaches 0.177 m behind the model origin.
+      // Seat that bracket on the outer half-metre facade, with the cage clear.
+      position: layout.toWorld(flank * (entrance.width / 2 + 0.54), -0.68, 1.3),
       rotation: layout.yaw + 180,
       scale: 1.6,
       stretch: {
@@ -255,13 +257,15 @@ export class CastleLanternMapObjects {
   ) {
     const lateral = side * Math.min(2.8, roomWidth / 2 - 0.1);
     const center = room ? layout.toWorld((room.minX + room.maxX) / 2, 0, 0) : direction;
+    // The authored backplate ends 13 cm behind the origin, scaled to 85%.
+    const mountForward = room ? room.maxZ - 0.13 * 0.85 + 0.003 : forward + 0.6;
     add({
       object: "Lantern",
       type: "wall",
       position: {
-        x: center.x + tangentX * lateral + Math.sin(angle) * (forward + 0.6),
+        x: center.x + tangentX * lateral + Math.sin(angle) * mountForward,
         y: elevation + 0.85,
-        z: center.z + tangentZ * lateral + Math.cos(angle) * (forward + 0.6),
+        z: center.z + tangentZ * lateral + Math.cos(angle) * mountForward,
       },
       rotation: yaw + 180,
       scale: 0.85,

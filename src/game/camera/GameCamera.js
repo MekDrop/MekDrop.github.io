@@ -9,6 +9,10 @@ export class GameCamera {
    */
   #pc;
   /**
+   * @type {object|null}
+   */
+  #lastUpdateOptions = null;
+  /**
    *
    * @type {pc.Entity}
    */
@@ -111,6 +115,10 @@ export class GameCamera {
      * @type {IsometricCameraMode}
      */
     this.#mode = new IsometricCameraMode(this);
+    // Animation and character physics finish after ordinary update callbacks.
+    // Sample attached eyes immediately before rendering, not one pose behind.
+    const attachment = app.on("prerender", this.#refreshAttachedCamera, this);
+    this.#entity.once("destroy", () => attachment.off());
   }
 
   get playCanvas() {
@@ -391,11 +399,18 @@ export class GameCamera {
     return true;
   }
 
+  #refreshAttachedCamera() {
+    if (this.firstPersonEnabled && this.#lastUpdateOptions?.hero) {
+      this.update(this.#lastUpdateOptions);
+    }
+  }
+
   /**
    *
    * @param {{mapName?: string, numPaths?: number, numRivers?: number, signal?: AbortSignal}} options
    */
   update(options) {
+    this.#lastUpdateOptions = options;
     const result = this.#mode.update(options);
     // PlayCanvas otherwise invalidates these cached matrices only at prerender.
     // Input and scene updates query projections before that event.

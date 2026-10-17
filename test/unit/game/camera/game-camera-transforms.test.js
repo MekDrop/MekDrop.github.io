@@ -26,13 +26,13 @@ class CameraEntity extends pc.Entity {
   }
 }
 
-function createCamera() {
+function createCamera(app = Object.assign(new pc.EventHandler(), { root: new pc.Entity() })) {
   return new GameCamera({
     pc: {
       ...pc,
       Entity: CameraEntity,
     },
-    app: { root: new pc.Entity() },
+    app,
     cloudLayerId: 100,
     targetY: 0,
   });
@@ -109,4 +109,34 @@ it("matches projected landmarks through continuous rotation and the angle wrap",
       ) < 0.000001);
     }
   }
+});
+
+
+it("samples attached eyes after animation and detaches its render listener on destroy", () => {
+  const app = Object.assign(new pc.EventHandler(), { root: new pc.Entity() });
+  const camera = createCamera(app);
+  camera.setFirstPersonEnabled(true, {});
+  const actor = {
+    firstPersonCameraPose: {
+      position: {
+        x: 0,
+        y: 1,
+        z: 0,
+      },
+      direction: {
+        x: 0,
+        y: 0,
+        z: 1,
+      },
+    },
+  };
+  camera.update({
+    ...updateOptions,
+    hero: actor,
+  });
+  actor.firstPersonCameraPose.position.y = 1.2;
+  app.fire("prerender");
+  assert.equal(camera.firstPersonState.position.y, 1.2);
+  camera.entity.destroy();
+  assert.equal(app.hasEvent("prerender"), false);
 });

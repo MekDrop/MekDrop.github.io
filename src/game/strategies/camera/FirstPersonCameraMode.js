@@ -183,6 +183,11 @@ export class FirstPersonCameraMode extends AbstractCameraMode {
       pose = hero.firstPersonCameraPose;
     }
     this.#yaw = normalizeDegrees(this.#yaw);
+    hero.firstPersonLook = {
+      yaw: this.#yaw,
+      pitch: this.#pitch,
+    };
+    pose = hero.firstPersonCameraPose;
     this.#position = new gameCamera.playCanvas.Vec3(
       pose.position.x,
       pose.position.y,

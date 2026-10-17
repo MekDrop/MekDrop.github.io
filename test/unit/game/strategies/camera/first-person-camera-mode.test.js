@@ -138,6 +138,44 @@ describe("first-person camera", () => {
     assert.ok(mode.state.direction.y < -0.98);
   });
 
+  it("aligns the head before reading the attached eye position", () => {
+    const { gameCamera } = cameraFixture();
+    const mode = new FirstPersonCameraMode(gameCamera);
+    let look = {
+      yaw: 0,
+      pitch: 0,
+    };
+    const actor = {
+      set firstPersonLook(value) {
+        look = value;
+      },
+      get firstPersonCameraPose() {
+        return {
+          position: {
+            x: look.yaw / 100,
+            y: 3 + look.pitch / 100,
+            z: 4,
+          },
+          direction: {
+            x: 0,
+            y: 0,
+            z: 1,
+          },
+        };
+      },
+    };
+    mode.enter();
+    mode.update({ hero: actor });
+    mode.lookBy(40, -20);
+    mode.update({ hero: actor });
+    assert.deepEqual(look, {
+      yaw: 40,
+      pitch: 20,
+    });
+    assert.equal(mode.state.position.x, .4);
+    assert.equal(mode.state.position.y, 3.2);
+  });
+
   it("turns the hero beyond either free-look limit and keeps turning across the yaw seam", () => {
     const { gameCamera } = cameraFixture();
     const mode = new FirstPersonCameraMode(gameCamera);

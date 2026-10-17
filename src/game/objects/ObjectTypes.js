@@ -22,6 +22,7 @@
  * @property {MapObjectDefinition[]} [items] Contained game objects; an explicit position preserves a local authored pose, otherwise the container packs them (Shelf spaces them along its bottom board).
  * @property {string} [carrierId] Servant owning an activity ServingTray.
  * @property {string} object Registered class name.
+ * @property {string} [basePlanId] Explicit authored castle layout; omitted uses seed selection.
  * @property {"entrance"|"wall"|"table"|"court"} [type] Lantern or lectern model selection.
  * @property {string} [symbol] Gateway banner override.
  * @property {import("../navigation/WalkingPaths.js").WalkingEntry} [entry]
@@ -35,7 +36,7 @@
  * @property {boolean} [generated]
  * @property {RenderCommand} [geometry]
  * @property {boolean} [castleBanner] Banner extracted from castle decorations.
- * @property {string} [variant] Prop artwork/model variant. Brazier uses bowl (default) or tower. Shelf uses a ranged book cabinet by default or storage with position/rotation. Bed uses royal (default) or servant. CandleStand uses single (default), floor, or table. Bench uses wall (default) or island. Satchel uses brown (default) or olive, preserving each model's authored leather finish. Banner uses navy-and-gold artwork by default or cloth for castle artwork; both simulate cloth.
+ * @property {string} [variant] Prop artwork/model variant. SignalBell uses framed (default) or ceiling. Brazier uses bowl (default) or tower. Shelf uses a ranged book cabinet by default or storage with position/rotation. Bed uses royal (default) or servant. CandleStand uses single (default), floor, or table. Bench uses wall (default) or island. Satchel uses brown (default) or olive, preserving each model's authored leather finish. Banner uses navy-and-gold artwork by default or cloth for castle artwork; both simulate cloth.
  * @property {boolean} [isOpen] Whether the Book is open (default false), independent of its location.
  * @property {string} [pose] Book model's resting pose: flat (default) or upright; tilt and rotation control final orientation.
  * @property {string} [style] Book artwork style; classic retains the older painted open volume in any location.
@@ -82,6 +83,8 @@
  * @property {boolean} [exitFloorOwned] Adjoining floor supplies the exit apron's visible surface.
  * @property {number} [Z1] Spiral staircase lower map elevation (world Y).
  * @property {number} [Z2] Spiral staircase upper map elevation (world Y), above Z1.
+ * @property {"standard"|"castle"} [stepProfile] Castle uses 20 cm closed risers, 12 degree treads with a 120 degree level landing and a matching rising handrail.
+ * @property {number} [columnTop] Spiral column top elevation, when a landing caps the column.
  * @property {{col: number, row: number}} [tile]
  * @property {Array<{offsetX: number, offsetZ: number, diameter: number, height: number}>} [parts]
  * @property {boolean} [active] Runtime pressure-plate latch preserved during object replacement.
@@ -196,6 +199,7 @@
  * @property {{col: number, row: number, width: number}} crossing
  * @property {number} deckElevation
  * @typedef {object} CastleDoorDefinition
+ * @property {"rounded"|"pointed"} [style]
  * @property {string} side
  * @property {number} offset
  * @property {number} width

@@ -47,7 +47,7 @@ test("entrance lantern placements preserve mounting transforms across facings an
       const entrance = buildPlan.metadata.runtime.residential.openings.find(item => item.exteriorEntrance);
       for (const [index, flank] of [-1, 1].entries()) {
         const lantern = lanterns[index];
-        assert.deepEqual(lantern.position, layout.toWorld(flank * (entrance.width / 2 + 0.54), -0.48, 1.3));
+        assert.deepEqual(lantern.position, layout.toWorld(flank * (entrance.width / 2 + 0.54), -0.68, 1.3));
         assert.equal(lantern.rotation, layout.yaw + 180);
         assert.equal(lantern.scale, 1.6);
         assert.equal(lantern.stretch.x, 0.8633);

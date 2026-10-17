@@ -1,4 +1,5 @@
 import modelUrl from "../../models/signal-bell/signal-bell.glb?url";
+import ceilingUrl from "../../models/signal-bell/ceiling-bell.glb?url";
 import soundUrl from "../../models/signal-bell/signal-bell.wav?url";
 import { AbstractCastleProp } from "../shared/AbstractCastleProp.js";
 import { SignalBellInteraction } from "./SignalBellInteraction.js";
@@ -52,6 +53,20 @@ export class SignalBell extends AbstractCastleProp {
   }
 
   /**
+   * @returns {string[]}
+   */
+  static get modelUrls() {
+    return [modelUrl, ceilingUrl];
+  }
+
+  /**
+   * @returns {string}
+   */
+  get modelUrl() {
+    return this.definition.variant === "ceiling" ? ceilingUrl : modelUrl;
+  }
+
+  /**
    * Keep collision on the stationary frame while the bowl swings above it.
    * @param {import("playcanvas").Entity} model
    * @param {boolean} collision
@@ -75,7 +90,7 @@ export class SignalBell extends AbstractCastleProp {
     this.#pc = pc;
     this.#onRuntimeError = options.runtime?.onRuntimeError;
     this.#model = this.visualRoots[0].children[0];
-    const track = modelLibrary.getAnimationTracks(modelUrl, ["Ring"]).get("Ring");
+    const track = modelLibrary.getAnimationTracks(this.modelUrl, ["Ring"]).get("Ring");
     this.#model.addComponent("anim", { activate: true });
     this.#model.anim.addAnimationState("Ring", track, 1, false);
     this.#model.anim.baseLayer.play("Ring");

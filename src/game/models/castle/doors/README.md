@@ -29,8 +29,19 @@ column helpers remain hidden. The masonry reveal supplies static mesh collision.
 Mechanical collision margins are applied after mesh loading. Level floor and
 ceiling support contacts do not restrict a vertical hinge.
 
-The rectangular and pointed alternatives are complete static assemblies.
-Authored castle main entrances use the rounded asset through Door;
+The pointed entrance has one exterior stone band whose straight pointed edges
+follow the oak casing. Its inner and outer slopes are parallel, with 28 cm of
+stone around the frame. Jamb stones form horizontal courses; crown stones follow
+the sloping arch, with joints normal to the slope and the same stone palette.
+The rear face
+sits within the wall, without a projecting indoor surround. The rear apex is
+relieved with a 12 cm rounded transition between the door sweep clearances,
+avoiding an abrupt rectangular ceiling recess.
+The oak leaves sit near the outside and open inward. The inner reveal follows
+the swept door volume with 12 mm clearance. Select door style `pointed` to use
+it; the rear bell tower castle uses this variant.
+The rectangular alternative remains static.
+Authored castle main entrances default to the rounded asset through Door;
 their previous separate DoorArch instance is omitted. The normal
 test_castle-entrance map provides scripted HUD controls and a repeatable inside
 view for checking the closed entrance and its collision-limited opening.

@@ -1,0 +1,365 @@
+{
+  "version": 1,
+  "id": "castle-rear-bell-tower",
+  "name": "Single-floor castle with rear round bell tower",
+  "source": {
+    "image": "concepts/rear-tower-three-rooms",
+    "method": "User-approved concept sketch",
+    "accuracy": "Three ground-floor rooms, full flat terrace, rear corridor and round bell tower. Dimensions in metres."
+  },
+  "coordinates": {
+    "width": 16,
+    "depth": 14,
+    "north": "-z",
+    "units": "metres",
+    "recommendedUnitMetres": 1
+  },
+  "floorHeight": 4,
+  "wallThickness": 0.25,
+  "entrance": {
+    "spaceId": "throne-hall",
+    "side": "SOUTH",
+    "offset": 2.5,
+    "width": 2,
+    "bridge": [
+      3,
+      13,
+      2,
+      0.5
+    ]
+  },
+  "buildings": [
+    {
+      "id": "hall",
+      "bounds": [
+        0.25,
+        7,
+        15.5,
+        6.25
+      ],
+      "elevation": 0,
+      "height": 4
+    }
+  ],
+  "levels": [
+    {
+      "index": 0,
+      "elevation": 0,
+      "spaces": [
+        {
+          "id": "throne-hall",
+          "label": "Throne room",
+          "bounds": [
+            0.5,
+            7.25,
+            6,
+            5.75
+          ],
+          "generator": "ThroneRoomGenerator",
+          "kind": "room",
+          "furnishingBounds": [
+            1,
+            7.25,
+            5.5,
+            5.75
+          ],
+          "openings": [
+            {
+              "kind": "door",
+              "side": "SOUTH",
+              "offset": 2.5,
+              "width": 2,
+              "bottom": 0,
+              "height": 2.75,
+              "open": true
+            },
+            {
+              "kind": "window",
+              "side": "WEST",
+              "offset": 2,
+              "width": 1,
+              "bottom": 1,
+              "height": 1.5
+            },
+            {
+              "kind": "door",
+              "side": "EAST",
+              "offset": 4.15,
+              "width": 1.2,
+              "bottom": 0,
+              "height": 2.45,
+              "open": true,
+              "swing": "inward",
+              "openWide": true,
+              "frameClearance": 0.15
+            }
+          ]
+        },
+        {
+          "id": "service-quarters",
+          "label": "Servant room",
+          "bounds": [
+            9.5,
+            7.25,
+            6,
+            2.75
+          ],
+          "generator": "ServiceRoomGenerator",
+          "kind": "room",
+          "furnishingBounds": [
+            10.75,
+            7.25,
+            4.75,
+            2.75
+          ],
+          "openings": [
+            {
+              "kind": "door",
+              "side": "WEST",
+              "offset": 0.9,
+              "width": 1.2,
+              "bottom": 0,
+              "height": 2.45,
+              "open": false,
+              "swing": "inward",
+              "openWide": true,
+              "frameClearance": 0.15
+            },
+            {
+              "kind": "window",
+              "side": "EAST",
+              "offset": 0.75,
+              "width": 1,
+              "bottom": 1,
+              "height": 1.5
+            }
+          ]
+        },
+        {
+          "id": "storeroom",
+          "label": "Storeroom",
+          "bounds": [
+            9.5,
+            10,
+            6,
+            3
+          ],
+          "generator": null,
+          "kind": "room",
+          "openings": [
+            {
+              "kind": "door",
+              "side": "WEST",
+              "offset": 0.9,
+              "width": 1.2,
+              "bottom": 0,
+              "height": 2.45,
+              "open": false,
+              "swing": "inward",
+              "openWide": true,
+              "frameClearance": 0.15
+            },
+            {
+              "kind": "window",
+              "side": "EAST",
+              "offset": 1,
+              "width": 1,
+              "bottom": 1,
+              "height": 1.5
+            }
+          ]
+        },
+        {
+          "id": "rear-corridor",
+          "label": "Rear corridor",
+          "bounds": [
+            7.3,
+            5,
+            1.4,
+            2
+          ],
+          "generator": null,
+          "openings": [
+            {
+              "kind": "door",
+              "side": "SOUTH",
+              "offset": 0,
+              "width": 1.2,
+              "bottom": 0,
+              "height": 4,
+              "open": true,
+              "swing": "inward",
+              "openWide": true
+            },
+            {
+              "kind": "door",
+              "side": "NORTH",
+              "offset": 0,
+              "width": 1.2,
+              "bottom": 0,
+              "height": 2.75,
+              "open": true
+            }
+          ],
+          "kind": "corridor"
+        },
+        {
+          "id": "service-passage",
+          "label": "Service corridor",
+          "floorFinish": "wood",
+          "bounds": [
+            6.5,
+            7.25,
+            3,
+            5.75
+          ],
+          "generator": null,
+          "kind": "corridor",
+          "openings": [
+            {
+              "kind": "door",
+              "side": "WEST",
+              "offset": 4.15,
+              "width": 1.2,
+              "bottom": 0,
+              "height": 2.45,
+              "open": false,
+              "swing": "inward",
+              "openWide": true,
+              "frameClearance": 0.15
+            },
+            {
+              "kind": "door",
+              "side": "NORTH",
+              "offset": 0.55,
+              "width": 1.9,
+              "bottom": 0,
+              "height": 4,
+              "open": true
+            },
+            {
+              "kind": "door",
+              "side": "EAST",
+              "offset": 0.9,
+              "width": 1.2,
+              "bottom": 0,
+              "height": 2.45,
+              "open": true,
+              "swing": "inward",
+              "openWide": true,
+              "frameClearance": 0.15
+            },
+            {
+              "kind": "door",
+              "side": "EAST",
+              "offset": 3.65,
+              "width": 1.2,
+              "bottom": 0,
+              "height": 2.45,
+              "open": true,
+              "swing": "inward",
+              "openWide": true,
+              "frameClearance": 0.15
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "index": 1,
+      "elevation": 4,
+      "spaces": [
+        {
+          "id": "terrace",
+          "label": "Roof terrace",
+          "bounds": [
+            0.25,
+            7,
+            15.5,
+            6.25
+          ],
+          "generator": null,
+          "openings": [
+            {
+              "kind": "door",
+              "side": "NORTH",
+              "offset": 6.65,
+              "width": 2.2,
+              "bottom": 0,
+              "height": 2.75,
+              "open": true
+            }
+          ],
+          "kind": "terrace"
+        },
+        {
+          "id": "terrace-link",
+          "label": "Terrace access",
+          "bounds": [
+            7.05,
+            4.75,
+            1.9,
+            2.25
+          ],
+          "generator": null,
+          "openings": [
+            {
+              "kind": "door",
+              "side": "SOUTH",
+              "offset": 0.35,
+              "width": 1.2,
+              "bottom": 0,
+              "height": 2.75,
+              "open": true
+            },
+            {
+              "kind": "door",
+              "side": "NORTH",
+              "offset": 0.35,
+              "width": 1.2,
+              "bottom": 0,
+              "height": 2.75,
+              "open": true
+            }
+          ],
+          "kind": "terrace"
+        }
+      ]
+    }
+  ],
+  "staircases": [],
+  "roofs": [
+    {
+      "id": "full-terrace",
+      "bounds": [
+        0.25,
+        7,
+        15.5,
+        6.25
+      ],
+      "elevation": 4,
+      "shape": "flat",
+      "battlements": true
+    }
+  ],
+  "roundTower": {
+    "center": [
+      8,
+      1.75
+    ],
+    "radius": 3.25,
+    "wallThickness": 0.5,
+    "height": 8,
+    "belfryHeight": 2.5,
+    "roofHeight": 1.5,
+    "doorWidth": 1.2,
+    "terraceElevation": 4,
+    "doorHeight": 2.45
+  },
+  "audienceBounds": [
+    1,
+    7.25,
+    6,
+    5.75
+  ]
+}

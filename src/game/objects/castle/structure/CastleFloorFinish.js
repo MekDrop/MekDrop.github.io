@@ -16,7 +16,8 @@ export class CastleFloorFinish {
         continue;
       }
       for (const edge of ["minX", "maxX", "minZ", "maxZ"]) {
-        if (Math.abs(room[edge] - building[edge]) <= 0.125 + 1e-6) {
+        const reveal = room.floorY === building.floorY ? 0.25 : 0.125;
+        if (Math.abs(room[edge] - building[edge]) <= reveal + 1e-6) {
           finish[edge] = building[edge];
         }
       }

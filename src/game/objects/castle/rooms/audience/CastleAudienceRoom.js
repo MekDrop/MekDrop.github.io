@@ -646,7 +646,7 @@ export class CastleAudienceRoom {
     // Keep the wide room slab behind the facade. Only the doorway-width
     // threshold may cross the front wall, otherwise opening the doors exposes
     // the slab through the masonry on oblique castle views.
-    const floorInset = Math.min(
+    const floorInset = this.#residentialLayout ? this.#frontWallDepth : Math.min(
       Math.max(0, this.#frontWallDepth),
       this.#floorDepth,
     );
@@ -680,6 +680,17 @@ export class CastleAudienceRoom {
         [entranceFloorWidth, 0.05, floorInset],
       );
     }
+    if (this.#residentialLayout && entranceFloorWidth > 0) {
+      // The entrance's inset oak sill ends 5 cm outside the structural facade.
+      // Bridge its joint only across the opening, without exposing the room slab.
+      const opening = this.#residentialLayout.exteriorEntrance;
+      if (opening) {
+        this.#boxAt("Audience oak sill joint", "woodLight",
+          opening.center - (this.#residentialLayout.audienceFloorBounds.minX +
+            this.#residentialLayout.audienceFloorBounds.maxX) / 2,
+          floorInset - 0.025, floorTop - 0.025, [opening.width, 0.05, 0.07]);
+      }
+    }
     // The authored parquet panel already includes plank joints and edge detail.
 
     const runnerStart = this.#residentialLayout
@@ -704,7 +715,10 @@ export class CastleAudienceRoom {
     carpetMaterial.update();
     const carpetThickness = this.#residentialLayout ? 0.018 : 0.06;
     const carpetY = this.#residentialLayout ? floorTop + 0.001 + carpetThickness / 2 : 0.055;
-    this.#boxAt("Audience carpet runner", "carpet", 0, runnerCenter, carpetY, [
+    const platform = this.#residentialLayout?.thronePlatform;
+    const room = this.#residentialLayout?.audienceFloorBounds;
+    const runnerLateral = platform && room ? platform.x - (room.minX + room.maxX) / 2 : 0;
+    this.#boxAt("Audience carpet runner", "carpet", runnerLateral, runnerCenter, carpetY, [
       runnerWidth,
       carpetThickness,
       runnerLength,
@@ -732,6 +746,10 @@ export class CastleAudienceRoom {
    */
   #buildThrone(throneForward) {
     const supportHeight = this.#residentialLayout?.throneSupportHeight ?? 0;
+    const platform = this.#residentialLayout?.thronePlatform;
+    const room = this.#residentialLayout?.audienceFloorBounds ?? this.#residentialLayout?.rooms.work;
+    const lateral = platform ? platform.x - (room.minX + room.maxX) / 2 : 0;
+    throneForward = platform?.z ?? throneForward;
     if (!this.#residentialLayout) {
       this.#throne = new CastleThrone({
         pc: this.#pc,
@@ -750,14 +768,14 @@ export class CastleAudienceRoom {
       this.#entity.addChild(throne);
     }
     this.#obstacles.push({
-      lateral: 0,
+      lateral,
       forward: throneForward,
       width: 0.9102 * THRONE_SCALE,
       depth: 0.7375 * THRONE_SCALE,
     });
 
     const royalPosition = this.#point(
-      0,
+      lateral,
       throneForward - 0.07 * THRONE_SCALE,
       supportHeight + 0.02 * THRONE_SCALE,
     );

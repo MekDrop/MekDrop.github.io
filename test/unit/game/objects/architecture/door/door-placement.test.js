@@ -10,13 +10,82 @@ import { DoorSwingPhysics } from "../../../../../../src/game/objects/architectur
 
 const source = readFileSync(new URL("../../../../../../src/game/objects/architecture/door/DoorPlacement.js", import.meta.url), "utf8")
   .replace(/^import[^\n]+\r?\n/gm, "");
-const Placement = new Function("interiorDoorUrl", "castleDoorsModelUrl", "CASTLE_DOOR_ANIMATION", "createDoorCollision", `${source.replace("export class", "class")}\nreturn DoorPlacement;`)("interior.glb", "doors.glb", {
+const Placement = new Function("roundedEntranceUrl", "pointedEntranceUrl", "interiorDoorUrl", "castleDoorsModelUrl", "CASTLE_DOOR_ANIMATION", "createDoorCollision", `${source.replace("export class", "class")}\nreturn DoorPlacement;`)("rounded.glb", "pointed.glb", "interior.glb", "doors.glb", {
   OPEN: "open",
   OPEN_WIDE: "wide",
 }, createDoorCollision);
 function Door(options) {
   return new SharedDoor(Placement.create(options));
 }
+
+it("selects pointed working entrances while preserving the rounded default", () => {
+  for (const [style, expected] of [["pointed", "pointed.glb"], [undefined, "rounded.glb"]]) {
+    const result = Placement.create({
+      pc,
+      castlePosition: {
+        x: 0,
+        z: 0,
+        elevation: 2,
+      },
+      door: {
+        side: "SOUTH",
+        width: 2,
+        style,
+      },
+      placement: {
+        x: 0,
+        y: 2,
+        z: 0,
+        yaw: 0,
+        height: 2.7,
+        arched: true,
+      },
+      bundledEntrance: true,
+      modelLibrary: { instantiate: () => new pc.Entity() },
+    });
+    assert.equal(result.modelUrl, expected);
+    assert.equal(result.animationName, "wide");
+    result.entity.destroy();
+  }
+});
+
+it("covers a wider masonry reveal without moving the inner jamb edges", () => {
+  const entity = new pc.Entity();
+  for (const [name, x] of [["Interior oak hinge jamb", -1.095], ["Interior oak latch jamb", 1.095],
+    ["Interior oak header", 0], ["Right interior door hinge", 0]]) {
+    const child = new pc.Entity(name);
+    child.setLocalPosition(x, 0, 0);
+    entity.addChild(child);
+  }
+  Placement.create({
+    pc,
+    castlePosition: {
+      x: 0,
+      z: 0,
+      elevation: 2,
+    },
+    door: {
+      side: "SOUTH",
+      width: 1.2,
+    },
+    placement: {
+      x: 0,
+      y: 2,
+      z: 0,
+      yaw: 0,
+      height: 2.4,
+      frameClearance: .15,
+    },
+    modelLibrary: { instantiate: () => entity },
+  });
+  for (const name of ["Interior oak hinge jamb", "Interior oak latch jamb"]) {
+    const jamb = entity.findByName(name);
+    const center = Math.abs(jamb.getLocalPosition().x);
+    const halfWidth = .084 * jamb.getLocalScale().x;
+    assert.ok(Math.abs(center - halfWidth - 1.011) < 1e-6, "clear aperture stays unchanged");
+    assert.ok((center + halfWidth) * .6 > .775, "casing overlaps the masonry edge");
+  }
+});
 
 it("registers the entrance arch surface as an obstacle without filling its opening", () => {
   let margin;

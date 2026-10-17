@@ -149,7 +149,7 @@ export class CastleResidence {
     for (const area of this.#layout.walkableAreas) {
       const rooms = (plan.spaces ?? plan.placedRooms).filter(/**
        * @param {import("../../../generator/castle/rooms/AbstractCastleRoomGenerator.js").PlannedCastleRoom} room
-       */ (room) => (room.kind === "room" || !room.kind || room.id === "storage-north" || room.id === "storage-south" ||
+       */ (room) => (room.kind === "room" || room.floorFinish === "wood" || !room.kind || room.id === "storage-north" || room.id === "storage-south" ||
           room.id === "vestibule" || room.id === "vestibule-south") &&
           room.floorFinish !== "stone" && room.id !== "leisure" && room.id !== "basement-stair-room" &&
           !(room.id === "stair-room" && room.floorY === plan.origin.y) &&

@@ -73,6 +73,35 @@ it("migrates castle flags once, preserves overrides, and refreshes a changed see
   assert.deepEqual(map.objects, [standalone]);
 });
 
+it("preserves other castle props when removing stale flags", () => {
+  const throne = {
+    id: "castle-throne",
+    object: "Throne",
+    generated: true,
+    sourceCastleId: "castle",
+  };
+  const table = {
+    id: "castle-table",
+    object: "Table",
+    sourceCastleId: "castle",
+    sourceCastleSeed: 0,
+  };
+  const staleFlag = {
+    id: "castle-flag",
+    object: "Flag",
+    sourceCastleId: "castle",
+    sourceCastleSeed: 0,
+  };
+  const castle = {
+    id: "castle",
+    object: "Castle",
+    seed: 1,
+  };
+  const map = { objects: [castle, throne, table, staleFlag] };
+  Flag.prepareMap(map);
+  assert.deepEqual(map.objects, [castle, throne, table]);
+});
+
 it("owns custom texture loading, placement, dimensions, and cleanup", () => {
   const graphicsDevice = new pc.NullGraphicsDevice({
     width: 1,
