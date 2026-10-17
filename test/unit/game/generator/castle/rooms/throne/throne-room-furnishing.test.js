@@ -5,58 +5,36 @@ import { CastleAuthoredBuildPlan } from "../../../../../../../src/game/generator
 import { ThroneRoomGenerator } from "../../../../../../../src/game/generator/castle/rooms/throne/ThroneRoomGenerator.js";
 import { ThroneRoomMapObjects } from "../../../../../../../src/game/objects/castle/rooms/throne/ThroneRoomMapObjects.js";
 
-it("mounts court emblems above rear windows through the final map transform", async () => {
-  for (const seed of [0, 1, 4, 5, 10]) {
-    for (const side of ["NORTH", "SOUTH", "EAST", "WEST"]) {
-      const castle = {
-        id: "wall-decor-test",
-        object: "Castle",
+it("omits court emblems over rear windows in compact and large halls", () => {
+  const generator = new ThroneRoomGenerator();
+  for (const size of [4, 6]) {
+    const room = {
+      id: "throne-hall",
+      minX: 0,
+      minZ: 0,
+      maxX: size,
+      maxZ: size,
+      level: 0,
+    };
+    for (const seed of [0, 2, 10, 42]) {
+      const solid = generator.furnish(room, { seed });
+      assert.ok(solid.some(item => ["RoyalCrest", "WarCouncilShield"].includes(item.object)));
+      const items = generator.furnish(room, {
         seed,
-        position: {
-          x: -14,
-          z: -8,
-          width: 28,
-          depth: 28,
-          elevation: 2,
-        },
-        doors: [{
-          side,
-          offset: 13,
-          width: 2,
+        openings: [{
+          roomId: room.id,
+          kind: "window",
+          axis: "z",
+          coordinate: 0,
+          center: size / 2,
+          width: 1,
         }],
-      };
-      castle.buildPlan = await CastleAuthoredBuildPlan.generate(castle);
-      const residential = castle.buildPlan.metadata.runtime.residential;
-      const emblem = residential.furniture.find(item => ["RoyalCrest", "WarCouncilShield"].includes(item.object));
-      const room = residential.spaces.find(item => item.id === emblem.roomId);
-      assert.equal(emblem.wallAttachment, true, `${seed}/${side}: attached to masonry`);
-      assert.equal(emblem.placementIssue, undefined);
-      assert.equal(emblem.rotation, 0, "same wall direction as the flanking banners");
-      assert.ok(emblem.x - emblem.width * emblem.scale / 2 >= room.minX);
-      assert.ok(emblem.x + emblem.width * emblem.scale / 2 <= room.maxX);
-      assert.ok(emblem.elevation >= 2.1, "above the window lintel and royal actor");
-      const map = {
-        cols: 42,
-        rows: 42,
-        objects: [castle],
-      };
-      ThroneRoomMapObjects.prepareMap(map);
-      const definition = map.objects.find(item => item.object === emblem.object);
-      const back = emblem.object === "RoyalCrest" ? -0.04 : -0.05;
-      const yaw = definition.rotation * Math.PI / 180;
-      const rear = {
-        x: definition.position.x + Math.sin(yaw) * back * emblem.scale,
-        z: definition.position.z + Math.cos(yaw) * back * emblem.scale,
-      };
-      const originYaw = residential.origin.yaw * Math.PI / 180;
-      const localZ = Math.sin(originYaw) * (rear.x - residential.origin.x) +
-        Math.cos(originYaw) * (rear.z - residential.origin.z);
-      const banner = residential.furniture.find(item => item.role === "courtProp" && item.object === "Banner");
-      assert.ok(Math.abs(localZ - (banner.z + 0.005)) < 1e-6, "rear touches the same wall as the banners");
+      });
+      assert.ok(!items.some(item => ["RoyalCrest", "WarCouncilShield"].includes(item.object)));
+      assert.ok(items.some(item => item.object === "ThroneDais"));
     }
   }
 });
-
 it("reproduces court groups, varies seeds and keeps the central audience lane clear", async () => {
   const arrangements = new Set();
   const counts = new Set();

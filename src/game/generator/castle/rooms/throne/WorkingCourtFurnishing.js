@@ -36,7 +36,15 @@ export class WorkingCourtFurnishing {
     const rear = room.minZ;
     const dais = this.#add("ThroneDais", this.#center, rear + 0.65, 1.1, 0.95);
     dais.height = 0.1;
-    this.#add("RoyalCrest", this.#center, rear + 0.2, 1, 0.1, 2.1).scale = 0.7;
+    const rearWindow = (context.openings ?? room.openings ?? []).some(/**
+     * @param {import("../../CastleBasePlanGenerator.js").CompiledCastleOpening} opening
+     */
+      opening => opening.kind === "window" && opening.roomId === room.id &&
+      opening.axis === "z" && Math.abs(opening.coordinate - rear) < 0.3 &&
+      Math.abs(opening.center - this.#center) < opening.width / 2 + 0.4);
+    if (!rearWindow) {
+      this.#add("RoyalCrest", this.#center, rear + 0.2, 1, 0.1, 2.1).scale = 0.7;
+    }
     this.#rearGroup(-1);
     this.#rearGroup(1);
     this.#corner(-1);

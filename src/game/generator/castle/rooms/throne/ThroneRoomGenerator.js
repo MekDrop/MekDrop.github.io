@@ -138,11 +138,13 @@ export class ThroneRoomGenerator extends AbstractCastleRoomGenerator {
       Math.abs(opening.center - center) < opening.width / 2 + 0.4);
     add("ThroneDais", center, bounds.minZ + (rearWindow ? 0.55 : 0.65), 1.1, 0.95, 0.05);
     items.at(-1).height = 0.1;
-    // Keep the crown visually grouped with the throne rather than the ceiling.
-    add(variant === "warCouncil" ? "WarCouncilShield" : "RoyalCrest", center,
-      bounds.minZ + 0.2, variant === "warCouncil" ? 0.7 : 1, 0.1, variant === "warCouncil" || rearWindow ? 2.15 : 1.65);
-    if (variant !== "warCouncil") {
-      items.at(-1).scale = 0.7;
+    // A window behind the throne leaves no solid wall for its decoration.
+    if (!rearWindow) {
+      add(variant === "warCouncil" ? "WarCouncilShield" : "RoyalCrest", center,
+        bounds.minZ + 0.2, variant === "warCouncil" ? 0.7 : 1, 0.1, variant === "warCouncil" ? 2.15 : 1.65);
+      if (variant !== "warCouncil") {
+        items.at(-1).scale = 0.7;
+      }
     }
     const candleForward = bounds.minZ + 0.55 + random() * 0.14;
     this.#addCandleStand(
