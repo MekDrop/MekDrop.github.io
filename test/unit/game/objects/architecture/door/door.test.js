@@ -67,7 +67,7 @@ function fixture(options = {}) {
   };
 }
 
-it("opens interior doors before an approaching hero reaches their swing", () => {
+it("opens interior doors only near their own doorway on the same floor", () => {
   const { door } = fixture({
     automatic: true,
     upperFloor: true,
@@ -78,6 +78,20 @@ it("opens interior doors before an approaching hero reaches their swing", () => 
     x: 0,
     y: 0,
     z: 4,
+  });
+  door.update(0.1);
+  assert.equal(door.openAmount, 0, "distant visitors leave the room closed");
+  door.updateHeroPosition({
+    x: 2,
+    y: 0,
+    z: 0.5,
+  });
+  door.update(0.1);
+  assert.equal(door.openAmount, 0, "visitors beside another room leave the door closed");
+  door.updateHeroPosition({
+    x: 0,
+    y: 0,
+    z: 2.5,
   });
   door.update(0.1);
   assert.ok(door.openAmount > 0);

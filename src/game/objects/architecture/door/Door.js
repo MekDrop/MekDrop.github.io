@@ -3,6 +3,7 @@ import { DoorLeafQueries } from "./DoorLeafQueries.js";
 
 const SWING_SAMPLE_STEP = 1 / 360;
 const OPEN_DISTANCE = 1.8;
+const INTERIOR_OPEN_DISTANCE = 2.5;
 const APPROACH_SPEED = 6.3;
 const CLOSE_INSIDE_DISTANCE = 0.9;
 const CLICK_OPEN_SECONDS = 1;
@@ -384,17 +385,20 @@ export class Door {
     const lateralDistance = Math.abs(
       deltaX * this.#tangent.x + deltaZ * this.#tangent.z,
     );
-    const openingLead = APPROACH_SPEED / this.#openSpeed;
-    const alignedWithDoor = lateralDistance <= this.#width / 2 + 0.8 + openingLead;
+    const openingLead = this.#exteriorEntrance ? APPROACH_SPEED / this.#openSpeed : 0;
+    const lateralAllowance = this.#exteriorEntrance ? 0.8 + openingLead : 0.4;
+    const alignedWithDoor = lateralDistance <= this.#width / 2 + lateralAllowance;
+    const approachDistance = this.#exteriorEntrance
+      ? Math.max(OPEN_DISTANCE, this.#width + 0.6 + openingLead)
+      : INTERIOR_OPEN_DISTANCE;
 
     if (!this.#upperFloor && insideDistance > CLOSE_INSIDE_DISTANCE) {
       this.#targetOpen = false;
     } else {
       this.#targetOpen =
-        // Leave time for a full leaf to swing clear before a running visitor reaches it.
+        // Interior doors respond only to visitors approaching their own doorway.
         alignedWithDoor &&
-        Math.abs(insideDistance) <=
-          Math.max(OPEN_DISTANCE, this.#width + 0.6 + openingLead);
+        Math.abs(insideDistance) <= approachDistance;
     }
     if (this.#targetOpen && !wasOpen) {
       this.#onOpen?.();
