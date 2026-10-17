@@ -17,8 +17,17 @@
         <strong class="game-loading-scene__label">
           {{ t(`game.loading.${phase}`) }}
         </strong>
-        <span class="game-loading-scene__track" aria-hidden="true">
-          <i />
+        <span class="game-loading-scene__detail">{{ detail }}</span>
+        <span
+          class="game-loading-scene__track"
+          :class="{ 'game-loading-scene__track--measured': progress !== null }"
+          role="progressbar"
+          :aria-label="t(`game.loading.${phase}`)"
+          :aria-valuenow="progress !== null ? Math.round(progress * 100) : undefined"
+          :aria-valuemin="0"
+          :aria-valuemax="100"
+        >
+          <i :style="progress !== null ? { width: `${progress * 100}%` } : undefined" />
         </span>
       </div>
     </section>
@@ -29,6 +38,14 @@
 import { useI18n } from "vue-i18n";
 
 defineProps({
+  detail: {
+    type: String,
+    default: "",
+  },
+  progress: {
+    type: Number,
+    default: null,
+  },
   active: {
     type: Boolean,
     required: true,
@@ -99,6 +116,21 @@ const { t } = useI18n();
   min-height: 1.45em;
   font: 700 clamp(15px, 2.7vw, 18px) / 1.45 var(--app-ui-font-family);
   letter-spacing: 0.025em;
+}
+
+.game-loading-scene__detail {
+  min-height: 2.8em;
+  overflow-wrap: anywhere;
+  color: #b8d5be;
+  font: 400 12px/1.4 var(--app-ui-font-family);
+}
+
+.game-loading-scene__track.game-loading-scene__track--measured i {
+  animation: none;
+  transform: none;
+  left: 0;
+  background: #b8ecc3;
+  transition: width 120ms ease;
 }
 
 .game-loading-scene__track {

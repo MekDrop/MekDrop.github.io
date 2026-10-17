@@ -96,6 +96,26 @@ test("model decodes stay bounded across overlapping load calls and reuse loaded 
   assert.equal(assets.resourcesDestroyed, urls.length);
 });
 
+test("progress counts unique completed models and identifies remaining work", async () => {
+  const assets = new ModelRegistry();
+  const library = new GameModelLibrary({
+    pc: { Asset },
+    app: { assets },
+  });
+  const updates = [];
+  const loading = library.load(["/a", "/b", "/a"], (url, completed, total) => {
+    updates.push({ url, completed, total });
+  });
+  assets.succeed("/b");
+  await setImmediate();
+  assert.deepEqual(updates.at(-1), { url: "/a", completed: 1, total: 2 });
+  assets.succeed("/a");
+  await loading;
+  assert.equal(updates.at(-1).completed, 2);
+  assert.equal(updates.at(-1).total, 2);
+  library.destroy();
+});
+
 test("failed model loads retain the decoding cause and can be retried", async () => {
   const assets = new ModelRegistry();
   const library = new GameModelLibrary({

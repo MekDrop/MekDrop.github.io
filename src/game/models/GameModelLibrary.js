@@ -66,9 +66,21 @@ export class GameModelLibrary {
   /**
    *
    * @param {string[]} urls
+   * @param {(url: string, completed: number, total: number) => void} onProgress
    */
-  async load(urls) {
-    await Promise.all([...new Set(urls)].map(this.#mapUrl.bind(this)));
+  async load(urls, onProgress = null) {
+    const uniqueUrls = [...new Set(urls)];
+    const pending = new Set(uniqueUrls);
+    await Promise.all(uniqueUrls.map(/**
+     *
+     * @param {string} url
+     */
+      async (url) => {
+        onProgress?.(url, uniqueUrls.length - pending.size, uniqueUrls.length);
+        await this.#mapUrl(url);
+        pending.delete(url);
+        onProgress?.(pending.values().next().value ?? url, uniqueUrls.length - pending.size, uniqueUrls.length);
+      }));
   }
 
   /**

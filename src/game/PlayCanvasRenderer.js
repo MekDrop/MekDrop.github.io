@@ -508,8 +508,13 @@ export class PlayCanvasRenderer {
     return [pc.DEVICETYPE_WEBGPU, pc.DEVICETYPE_WEBGL2];
   }
 
-  async init() {
+  /**
+   * @param {(key: string, values?: Record<string, string|number>, progress?: number) => void} onProgress
+   */
+  async init(onProgress = null) {
+    onProgress?.("cache");
     await ObjectDataCache.preload();
+    onProgress?.("physics");
     await AmmoRuntime.initialize(playCanvas);
     this.#pc = playCanvas;
     if (this.#destroyed) {
@@ -519,6 +524,7 @@ export class PlayCanvasRenderer {
     this.#floatingCameraLocalOffset = new pc.Vec3();
     this.#floatingCloudOffset = new pc.Vec3();
 
+    onProgress?.("graphics");
     const graphicsDevice = await pc.createGraphicsDevice(this.canvas, {
       deviceTypes: this.#resolveDeviceTypes(pc),
       glslangUrl: GLSLANG_URL,
@@ -635,7 +641,19 @@ export class PlayCanvasRenderer {
           ...InventoryScene.modelUrls,
           ...BridgeRailingKit.modelUrls,
           ...BuriedTreasureField.modelUrls,
-        ]),
+        ], /**
+         *
+         * @param {string} url
+         * @param {number} completed
+         * @param {number} total
+         */
+        (url, completed, total) => {
+          onProgress?.("model", {
+            name: url.split("/").pop().split("?")[0],
+            completed,
+            total,
+          }, total ? completed / total : 1);
+        }),
       ]);
     } catch (error) {
       if (this.#destroyed) {
@@ -2948,6 +2966,15 @@ export class PlayCanvasRenderer {
    * @param {import("src/game/GameContracts.js").SceneInteraction|null} target
    */
   #setInteractionTarget(target) {
+    const diagnosticHero = this.hero;
+    this.canvas.setAttribute("data-dig-diagnostic", JSON.stringify({
+      position: diagnosticHero?.position,
+      facing: diagnosticHero?.facingDirection,
+      reacting: diagnosticHero?.isReacting,
+      usingTool: diagnosticHero?.isUsingTool,
+      viewport: this.viewport,
+      target: target?.description,
+    }));
     const interaction = target?.canInteract ? target : null;
     const description = interaction?.description ?? null;
     const nextSignature = description

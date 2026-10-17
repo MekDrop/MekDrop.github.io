@@ -29,7 +29,12 @@
             })
       "
     />
-    <game-loading-scene :active="isLoading" :phase="loadingPhase" />
+    <game-loading-scene
+      :active="isLoading"
+      :phase="loadingPhase"
+      :detail="loadingDetail"
+      :progress="loadingProgress"
+    />
     <div
       v-if="firstPersonCameraEnabled"
       class="first-person-camera-status q-sr-only"
@@ -156,6 +161,8 @@ const container = ref(null);
 const canvas = ref(null);
 const gameReady = ref(false);
 const loadingPhase = ref("initializing");
+const loadingDetail = ref("");
+const loadingProgress = ref(null);
 const isLoading = ref(true);
 const graphicsBackend = ref("initializing");
 const showGraphicsFallbackDialog = ref(false);
@@ -425,6 +432,8 @@ async function showLoadingPhase(phase, operationId = null) {
     return nextOperationId;
   }
   loadingPhase.value = phase;
+  loadingDetail.value = t(`game.loading.detail_${phase}`);
+  loadingProgress.value = null;
   isLoading.value = true;
   interactionTarget.value = null;
   renderer?.setInteractionPrompt(null);
@@ -524,7 +533,19 @@ async function init() {
       heroStateStore,
     });
     renderer = activeRenderer;
-    await activeRenderer.init();
+    await activeRenderer.init(/**
+     *
+     * @param {string} key
+     * @param {Record<string, string|number>} values
+     * @param {number|null} progress
+     */
+      (key, values, progress = null) => {
+        if (renderer !== activeRenderer || loadingId !== loadingOperationId) {
+          return;
+        }
+        loadingDetail.value = t(`game.loading.detail_${key}`, values ?? {});
+        loadingProgress.value = progress;
+      });
     if (renderer !== activeRenderer) {
       return;
     }
