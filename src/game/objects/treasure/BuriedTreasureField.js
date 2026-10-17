@@ -75,6 +75,9 @@ const HOLE_INITIAL_SCALE = 0.42;
 const BLOCKED_DIG_HOLE_SCALE = 0.36;
 const HOLE_EXPAND_DURATION = 0.36;
 const CHEST_EMERGE_DURATION = 0.72;
+const CHEST_BURIAL_DEPTH = 0.58;
+// Cover the cavity's uneven upper edge (up to 0.324 m), beneath the soil rim.
+const HOLE_SURFACE_CUT_RADIUS = 0.335;
 const CHEST_OPEN_DURATION = 0.62;
 const CHEST_FADE_DURATION = 0.82;
 const CHEST_COLLISION_RADIUS = 0.3;
@@ -548,7 +551,7 @@ export class BuriedTreasureField {
         y: target.y,
         z: target.z,
       });
-      site.chest.setLocalPosition(site.x, site.y - 0.58, site.z);
+      site.chest.setLocalPosition(site.x, site.y - CHEST_BURIAL_DEPTH, site.z);
       site.chest.enabled = true;
       this.#buriedChests.delete(target.id);
     }
@@ -1102,7 +1105,7 @@ export class BuriedTreasureField {
   #setExcavationScale(site, scale) {
     site.hole.setLocalScale(scale, scale, scale);
     site.earthPile.setLocalScale(scale, scale, scale);
-    this.#onTerrainExcavated?.(site, 0.31 * scale);
+    this.#onTerrainExcavated?.(site, HOLE_SURFACE_CUT_RADIUS * scale);
   }
 
   /**
@@ -1173,7 +1176,7 @@ export class BuriedTreasureField {
     site.chest = this.#modelLibrary.instantiate(chestModelUrl);
     site.chest.name = `Buried treasure chest ${site.id}`;
     site.chest.setLocalScale(0.72, 0.72, 0.72);
-    site.chest.setLocalPosition(site.x, site.y - 0.58, site.z);
+    site.chest.setLocalPosition(site.x, site.y - CHEST_BURIAL_DEPTH, site.z);
     const openTrack = this.#modelLibrary
       .getAnimationTracks(chestModelUrl, [TREASURE_CHEST_ANIMATION.OPEN])
       .get(TREASURE_CHEST_ANIMATION.OPEN);
@@ -1409,7 +1412,7 @@ export class BuriedTreasureField {
       site.elapsed = Math.min(CHEST_EMERGE_DURATION, site.elapsed + deltaTime);
       const progress = site.elapsed / CHEST_EMERGE_DURATION;
       const eased = 1 - (1 - progress) ** 3;
-      site.chest.setLocalPosition(site.x, site.y - 0.58 + eased * 0.18, site.z);
+      site.chest.setLocalPosition(site.x, site.y - CHEST_BURIAL_DEPTH * (1 - eased), site.z);
       if (progress >= 1) {
         site.state = "closed";
         site.elapsed = 0;

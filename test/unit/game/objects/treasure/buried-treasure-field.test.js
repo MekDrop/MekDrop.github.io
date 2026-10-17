@@ -391,10 +391,14 @@ it("reveals the already instantiated chest and spawns its stored contents withou
     },
     getAnimationTracks: () => new Map([["Open", { duration: 1 }], ["open", { duration: 1 }]]),
   };
+  let cutRadius = 0;
   const field = new BuriedTreasureField({
     pc,
     mapData,
     modelLibrary,
+    onTerrainExcavated: (position, radius) => {
+      cutRadius = radius;
+    },
     app: {
       on: (event, callback) => {
         update = callback;
@@ -434,6 +438,10 @@ it("reveals the already instantiated chest and spawns its stored contents withou
     update(0.1);
   }
   assert.equal(field.canOpen(target.id), true);
+  assert.ok(cutRadius > 0.324 && cutRadius < 0.35,
+    "the terrain cut clears the uneven cavity edge while staying beneath its soil rim");
+  assert.ok(Math.abs(chest.getLocalPosition().y - target.y) < 1e-6,
+    "the chest base rises all the way to the ground surface");
   field.tool = {};
   const chestInteraction = field.findInteraction({
     hero: {
