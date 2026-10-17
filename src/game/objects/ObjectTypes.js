@@ -124,6 +124,7 @@
  * @property {(value: string) => string} [resolveMaterial]
  * @property {(resolve: (value: string) => string) => void} [setMaterialResolver]
  * @property {() => Array<MapObjectLike>} [getContactProviders]
+ * @property {(job: () => void|Iterator<void>) => void} [deferDecoration] Chunked scene work completed before revealing the map.
  * @property {{earth: import("./terrain/EarthSurfaceMaterials.js").EarthSurfaceMaterials, grass: import("./terrain/GrassSurfaceMaterials.js").GrassSurfaceMaterials}} [surfaceMaterials]
  * @property {{carpet: import("./ground-cover/GrassCarpet.js").GrassCarpet, surface: import("./ground-cover/GrassSurface.js").GrassSurface}} [canopy]
  * @property {(definition: MapObjectDefinition) => void} [onObjectRemoved]

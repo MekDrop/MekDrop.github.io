@@ -1,0 +1,121 @@
+import assert from "node:assert/strict";
+import { it } from "node:test";
+import { SceneDecorationQueue } from "../../../../../src/game/rendering/scene/SceneDecorationQueue.js";
+
+function mockFrames(t, frames) {
+  const previous = globalThis.requestAnimationFrame;
+  globalThis.requestAnimationFrame = (callback) => frames.push(callback);
+  t.after(() => {
+    if (previous) {
+      globalThis.requestAnimationFrame = previous;
+    } else {
+      delete globalThis.requestAnimationFrame;
+    }
+  });
+}
+
+it("yields between loading frames, pauses, and cancels stale work", (t) => {
+  const frames = [];
+  const timers = [];
+  const calls = [];
+  let now = 0;
+  t.mock.method(globalThis, "setTimeout", (callback) => timers.push(callback));
+  mockFrames(t, frames);
+  t.mock.method(performance, "now", () => now += 5);
+  const queue = new SceneDecorationQueue((error) => calls.push(error));
+  queue.add(function* () {
+    calls.push("grass-start");
+    yield;
+    calls.push("grass-end");
+  });
+  assert.deepEqual(calls, []);
+  queue.start();
+  queue.start();
+  assert.equal(frames.length, 1);
+  frames.shift()();
+  assert.deepEqual(calls, [], "animation-frame callback does no heavy work before paint");
+  timers.shift()();
+  assert.deepEqual(calls, ["grass-start"]);
+  queue.pause();
+  frames.shift()();
+  timers.shift()();
+  assert.deepEqual(calls, ["grass-start"]);
+  queue.start();
+  frames.shift()();
+  timers.shift()();
+  assert.deepEqual(calls, ["grass-start", "grass-end"]);
+  queue.add(() => calls.push("stale"));
+  queue.pause();
+  queue.start();
+  queue.clear();
+  queue.add(() => {
+    calls.push("new-map");
+  });
+  queue.start();
+  while (frames.length) {
+    frames.shift()();
+    timers.shift()();
+  }
+  assert.deepEqual(calls, ["grass-start", "grass-end", "new-map"]);
+});
+
+it("keeps loading pending until every decoration finishes and releases canceled waiters", async (t) => {
+  const frames = [];
+  const timers = [];
+  mockFrames(t, frames);
+  t.mock.method(globalThis, "setTimeout", (callback) => timers.push(callback));
+  let now = 0;
+  t.mock.method(performance, "now", () => now += 5);
+  const queue = new SceneDecorationQueue(assert.fail);
+  let decorated = false;
+  queue.add(function* () {
+    yield;
+    decorated = true;
+  });
+  const completion = queue.start();
+  let ready = false;
+  void completion.then((completed) => {
+    ready = completed;
+  });
+  frames.shift()();
+  timers.shift()();
+  await Promise.resolve();
+  assert.equal(ready, false);
+  assert.equal(decorated, false);
+  frames.shift()();
+  timers.shift()();
+  assert.equal(await completion, true);
+  assert.equal(decorated, true);
+  assert.equal(ready, true);
+
+  queue.add(() => {});
+  const superseded = queue.start();
+  queue.pause();
+  assert.equal(await superseded, false);
+  const removed = queue.start();
+  queue.clear();
+  assert.equal(await removed, false);
+  assert.equal(await queue.start(), true, "an empty scene is already complete");
+});
+
+it("reports decoration errors and allows remaining jobs to finish", (t) => {
+  const frames = [];
+  const errors = [];
+  mockFrames(t, frames);
+  t.mock.method(globalThis, "setTimeout", (callback) => callback());
+  const queue = new SceneDecorationQueue((error) => errors.push(error));
+  const failure = new TypeError("decoration fixture");
+  let finished = false;
+  queue.add(() => {
+    throw failure;
+  });
+  queue.add(() => {
+    finished = true;
+  });
+  queue.start();
+  while (frames.length) {
+    frames.shift()();
+  }
+  assert.deepEqual(errors, [failure]);
+  assert.equal(finished, true);
+});

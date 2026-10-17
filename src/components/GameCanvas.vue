@@ -435,6 +435,7 @@ async function showLoadingPhase(phase, operationId = null) {
   loadingDetail.value = t(`game.loading.detail_${phase}`);
   loadingProgress.value = null;
   isLoading.value = true;
+  renderer?.pauseDecorations();
   interactionTarget.value = null;
   renderer?.setInteractionPrompt(null);
   disconnectControls();
@@ -448,8 +449,20 @@ async function showLoadingPhase(phase, operationId = null) {
  *
  * @param {number} operationId
  */
-function finishLoading(operationId) {
+async function finishLoading(operationId) {
   if (operationId !== loadingOperationId) {
+    return;
+  }
+  const activeRenderer = renderer;
+  if (gameReady.value && activeRenderer) {
+    const completed = await activeRenderer.startDecorations();
+    if (!completed) {
+      return;
+    }
+    // Present a fully decorated frame before revealing the interactive scene.
+    await waitForAnimationFrame();
+  }
+  if (operationId !== loadingOperationId || renderer !== activeRenderer) {
     return;
   }
   isLoading.value = false;
@@ -487,7 +500,7 @@ async function loadMapRoute(mapName) {
       await router.replace(mapRouteLocation(generatedMap.mapName));
     }
   } finally {
-    finishLoading(operationId);
+    await finishLoading(operationId);
   }
 }
 
@@ -715,7 +728,7 @@ async function init() {
     gameCommandRegistry.install();
     gameReady.value = true;
   } finally {
-    finishLoading(loadingId);
+    await finishLoading(loadingId);
   }
 }
 

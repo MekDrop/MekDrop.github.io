@@ -114,6 +114,35 @@ export class GrassObstacleMap {
   }
 
   /**
+   * Initialize once the full scene exists. Finish every weight row before
+   * deriving directions so chunk boundaries produce the same field as refresh.
+   * @param {(x: number, y: number, z: number) => number} weightAt
+   * @returns {Generator<void>}
+   */
+  *refreshSteps(weightAt) {
+    for (let row = 0; row < this.#height; row += 1) {
+      this.#updateWeights(weightAt, {
+        minimumX: 0,
+        maximumX: this.#width,
+        minimumZ: row,
+        maximumZ: row + 1,
+      });
+      yield;
+    }
+    for (let row = 0; row < this.#height; row += 1) {
+      this.#updateField({
+        minimumX: 0,
+        maximumX: this.#width,
+        minimumZ: row,
+        maximumZ: row + 1,
+      });
+      yield;
+    }
+    this.#texture.lock().set(this.#field);
+    this.#texture.unlock();
+  }
+
+  /**
    *
    * @param {import("src/game/objects/ObjectTypes.js").GridPoint} tile
    */

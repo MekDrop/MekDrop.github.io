@@ -78,6 +78,7 @@ export class Grass extends Earth {
        */
       variantForTile: (...args) => runtime.surfaceMaterials.grass.variantForTile(...args),
       zoom: runtime.camera.zoom,
+      deferDecoration: runtime.deferDecoration,
     });
     runtime.root.addChild(carpet.entity);
     const surfaceContacts = new SurfaceContactProviders(runtime.objects, runtime.getContactProviders);
@@ -87,6 +88,7 @@ export class Grass extends Earth {
       mapData: runtime.mapData,
       terrainMaterials: [carpet.material].filter(Boolean),
       zoom: runtime.camera.zoom,
+      deferDecoration: runtime.deferDecoration,
       getImpressionContacts: () =>
         runtime.getContactProviders().flatMap(Grass.#flatMapObject),
       getSurfaceContacts: () => surfaceContacts.contacts,
@@ -126,7 +128,7 @@ export class Grass extends Earth {
     return geometry;
   }
   onSceneReady() {
-    if (this.#ownsSurface) {
+    if (this.#ownsSurface && !this.#runtime.deferDecoration) {
       this.#runtime.canopy.surface.refreshObstacles();
     }
   }

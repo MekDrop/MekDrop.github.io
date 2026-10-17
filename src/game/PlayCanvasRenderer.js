@@ -1,4 +1,5 @@
 import { MapObjectReplacement } from "./rendering/scene/MapObjectReplacement.js";
+import { SceneDecorationQueue } from "./rendering/scene/SceneDecorationQueue.js";
 import { MapTestControls } from "./debug/MapTestControls.js";
 import { MapTestControlsHud } from "./ui/MapTestControlsHud.js";
 import { DirectionalShadowBudget } from "./rendering/DirectionalShadowBudget.js";
@@ -152,6 +153,14 @@ const GLSLANG_URL = getShaderTranspilerScriptUrl(
 const TWGSL_URL = getShaderTranspilerScriptUrl(twgslScriptUrl, twgslWasmUrl);
 
 export class PlayCanvasRenderer {
+  /**
+   * @type {SceneDecorationQueue}
+   */
+  #decorations;
+  /**
+   * @type {boolean}
+   */
+  #decorationsEnabled = false;
   /**
    *
    * @type {typeof playCanvas|null}
@@ -450,6 +459,7 @@ export class PlayCanvasRenderer {
     } = {},
   ) {
     this.#onRuntimeError = onRuntimeError;
+    this.#decorations = new SceneDecorationQueue(this.#reportDecorationError.bind(this));
     /**
      *
      * @type {HTMLCanvasElement}
@@ -732,6 +742,9 @@ export class PlayCanvasRenderer {
       this.setViewport(initialViewport);
       this.#viewportPersistenceEnabled = true;
       this.#saveViewport();
+    }
+    if (this.#decorationsEnabled) {
+      this.#decorations.start();
     }
   }
 
@@ -1674,14 +1687,7 @@ export class PlayCanvasRenderer {
     this.#buildMapObjects();
     this.#terrainRenderer.build();
     this.#vertexBuffers.push(...this.#bridgeRailingKit.build());
-    this.#cloudField = new CubeCloudField({
-      pc: this.#pc,
-      app: this.#app,
-      camera: this.#camera.camera,
-      mapData: this.#mapData,
-      layerId: this.#cloudLayer.id,
-    });
-    this.#app.root.addChild(this.#cloudField.entity);
+    this.#decorations.add(this.#buildClouds.bind(this));
     this.getHud(HeroLifeHud)?.setCastleLives(
       this.#sceneObjects.getFirst(SCENE_OBJECT_TYPE.CASTLE)
         ? MAX_CASTLE_LIVES
@@ -1728,6 +1734,43 @@ export class PlayCanvasRenderer {
     return true;
   }
 
+  /**
+   * @returns {Promise<boolean>}
+   */
+  startDecorations() {
+    this.#decorationsEnabled = true;
+
+    return this.#decorations.start();
+  }
+
+  /**
+   * @param {Error} error
+   */
+  #reportDecorationError(error) {
+    if (this.#onRuntimeError) {
+      this.#onRuntimeError(error);
+    } else {
+      throw error;
+    }
+  }
+
+  pauseDecorations() {
+    this.#decorationsEnabled = false;
+    this.#decorations.pause();
+  }
+
+  #buildClouds() {
+    this.#cloudField = new CubeCloudField({
+      pc: this.#pc,
+      app: this.#app,
+      camera: this.#camera.camera,
+      mapData: this.#mapData,
+      layerId: this.#cloudLayer.id,
+    });
+    this.#app.root.addChild(this.#cloudField.entity);
+    this.#updateCamera();
+  }
+
   #buildMapObjects() {
     const replacement = this.#mapObjectReplacement;
     for (const object of MapObjectFactory.createAll({
@@ -1736,6 +1779,7 @@ export class PlayCanvasRenderer {
       modelLibrary: this.#modelLibrary,
       definitions: this.#mapData.objects ?? [],
       runtime: {
+        deferDecoration: this.#decorations.add.bind(this.#decorations),
         mapData: this.#mapData,
         materials: this.#materials,
         getHero: this.#getHero2.bind(this),
@@ -3005,6 +3049,7 @@ export class PlayCanvasRenderer {
   };
 
   #clearScene() {
+    this.#decorations.clear();
     if (this.#camera) {
       this.#camera.orbitPivot = null;
     }

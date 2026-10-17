@@ -53,6 +53,22 @@ function createSubject(mapData = createMapData()) {
 }
 
 describe("grass obstacle field", () => {
+  it("builds the same obstruction texture incrementally as a synchronous refresh", () => {
+    const map = createMapData(4, 3);
+    map.grid[0][1] = TileType.PATH;
+    const before = createSubject(map);
+    const after = createSubject(map);
+    const weightAt = (x, y, z) => Math.hypot(x - 0.2, z + 0.4) < 0.7 ? 0.75 : 0;
+    before.refresh(weightAt);
+    const work = after.refreshSteps(weightAt);
+    assert.equal(work.next().done, false);
+    for (const step of work) {
+      void step;
+    }
+    assert.deepEqual(after.texture.data, before.texture.data);
+    before.destroy();
+    after.destroy();
+  });
   it("scales grass pressure below an object with its weight", () => {
     const obstacleMap = createSubject();
     const elevations = [];

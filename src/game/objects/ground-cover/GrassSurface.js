@@ -103,6 +103,7 @@ export class GrassSurface {
    * @param {() => Array<{x: number, y: number, z: number, directionX: number, directionZ: number, strength: number}>} options.getImpressionContacts
    * @param {() => Array<{x: number, y: number, z: number, radius: number}>} options.getSurfaceContacts
    * @param {(x: number, z: number, elevation: number) => number} options.getWeightAt
+   * @param {(job: () => void|Iterator<void>) => void} [options.deferDecoration]
    */
   constructor({
     app,
@@ -113,6 +114,7 @@ export class GrassSurface {
     getImpressionContacts = () => [],
     getSurfaceContacts = () => [],
     getWeightAt = () => 0,
+    deferDecoration = null,
   }) {
 
     this.#terrainMaterials = terrainMaterials;
@@ -139,7 +141,11 @@ export class GrassSurface {
         this.#obstacleMap.apply(material);
         this.#windMap.apply(material);
       }
-      this.refreshObstacles();
+      if (deferDecoration) {
+        deferDecoration(() => this.#obstacleMap.refreshSteps(this.#getWeightAt));
+      } else {
+        this.refreshObstacles();
+      }
     }
 
     this.zoom = zoom;

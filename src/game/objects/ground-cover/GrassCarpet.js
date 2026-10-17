@@ -7,6 +7,10 @@ import vertexShader from "./GrassCarpet.vert?raw";
 import fragmentShader from "./GrassCarpet.frag?raw";
 import normalShader from "./GrassCarpetNormal.frag?raw";
 
+/**
+ * @typedef {{x: number, y: number, z: number, rotation: number, width: number, height: number, fringe?: boolean, detail: boolean, castleRearGrass: boolean, broadleaf: boolean, boundaryExtension: number[], edgeJoins?: number[]}} GrassPlacement
+ */
+
 const DETAIL_FADE_START_ZOOM = 1.5;
 const DETAIL_FADE_END_ZOOM = 2.25;
 
@@ -66,6 +70,22 @@ export class GrassCarpet {
    * @type {import("playcanvas").Entity[]|null}
    */
   #islandRoots = null;
+  /**
+   * @type {number}
+   */
+  #zoom = 1;
+  /**
+   * @type {boolean}
+   */
+  #building = true;
+  /**
+   * @type {Array<{position: {x: number, y: number, z: number}, radius: number}>}
+   */
+  #clearings = [];
+  /**
+   * @type {import("../ObjectTypes.js").GameMapData}
+   */
+  #mapData;
 
   /**
    *
@@ -79,6 +99,7 @@ export class GrassCarpet {
    * @param {import("../../models/GameModelLibrary.js").GameModelLibrary} options.modelLibrary
    * @param {Array<Array<number>>} options.tileColors
    * @param {(col: number, row: number, height: number) => number} options.variantForTile
+   * @param {(job: () => void|Iterator<void>) => void} [options.deferDecoration]
    * @param {number} options.zoom
    */
   constructor({
@@ -89,8 +110,11 @@ export class GrassCarpet {
     tileColors,
     variantForTile,
     zoom = 1,
+    deferDecoration = null,
   }) {
 
+    this.#mapData = mapData;
+    this.#zoom = zoom;
     this.#variantMap = new pc.Texture(device, {
       name: "Grass tile variants",
       width: mapData.cols,
@@ -167,12 +191,31 @@ export class GrassCarpet {
     this.#edgeMesh.incRefCount();
     this.#material.setParameter("uGrassEdge", 0);
     this.#material.setParameter("uGrassEdgeJoins", [0, 0]);
+    if (deferDecoration) {
+      deferDecoration(() => this.#build(pc, device, mapData, modelLibrary, islandCells));
+    } else {
+      for (const step of this.#build(pc, device, mapData, modelLibrary, islandCells)) {
+        void step;
+      }
+    }
+  }
+
+  /**
+   * @param {typeof import("playcanvas")} pc
+   * @param {import("playcanvas").GraphicsDevice} device
+   * @param {import("../ObjectTypes.js").GameMapData} mapData
+   * @param {import("../../models/GameModelLibrary.js").GameModelLibrary} modelLibrary
+   * @param {Set<string>[]|null} islandCells
+   * @returns {Generator<void>}
+   */
+  *#build(pc, device, mapData, modelLibrary, islandCells) {
     const chunks = new Map();
+    let count = 0;
     const matrix = new pc.Mat4();
     const position = new pc.Vec3();
     const rotation = new pc.Quat();
     const scale = new pc.Vec3();
-    for (const placement of GrassCarpetLayout.create(mapData)) {
+    for (const placement of GrassCarpetLayout.iterate(mapData)) {
       const col = Math.round(placement.x + (mapData.cols - 1) / 2);
       const row = Math.round(placement.z + (mapData.rows - 1) / 2);
       const group = islandCells?.findIndex(/**
@@ -202,6 +245,9 @@ export class GrassCarpet {
       chunk.matrices.push(...matrix.data);
       chunk.placements.push(placement);
       chunks.set(key, chunk);
+      if (++count % 256 === 0) {
+        yield;
+      }
     }
     for (const [key, chunk] of chunks) {
       const modelUrl = chunk.broadleaf ? cloverModelUrl : meadowGrassModelUrl;
@@ -258,9 +304,16 @@ export class GrassCarpet {
         detail: chunk.detail,
         castleRearGrass: chunk.castleRearGrass,
       });
+      for (const clearing of this.#clearings) {
+        this.#clearAt(clearing.position, clearing.radius);
+      }
+      this.zoom = this.#zoom;
+      yield;
     }
 
-    this.zoom = zoom;
+    this.#building = false;
+    this.#clearings = [];
+    this.zoom = this.#zoom;
   }
 
   /**
@@ -274,7 +327,11 @@ export class GrassCarpet {
     }
   }
 
+  /**
+   * @param {number} value
+   */
   set zoom(value) {
+    this.#zoom = value;
     const detailReveal = revealAtZoom(
       value,
       DETAIL_FADE_START_ZOOM,
@@ -302,13 +359,24 @@ export class GrassCarpet {
 
   /**
    *
-   * @param {{x: number, y: number, z: number}} options
-   * @param {number} options.x
-   * @param {number} options.y
-   * @param {number} options.z
+   * @param {{x: number, y: number, z: number}} position
    * @param {number} radius
    */
-  clearAt({ x, y, z }, radius = 0.65) {
+  clearAt(position, radius = 0.65) {
+    if (this.#building) {
+      this.#clearings.push({
+        position: { ...position },
+        radius,
+      });
+    }
+    this.#clearAt(position, radius);
+  }
+
+  /**
+   * @param {{x: number, y: number, z: number}} position
+   * @param {number} radius
+   */
+  #clearAt({ x, y, z }, radius) {
     for (const { vertexBuffer, placements } of this.#batches) {
       const indices = [];
       placements.forEach(/**
@@ -347,7 +415,10 @@ export class GrassCarpet {
    */
   supportPointsWithin({ x, y, z }, radius) {
     const points = [];
-    for (const { placements } of this.#batches) {
+    const groups = this.#building
+      ? [GrassCarpetLayout.iterate(this.#mapData)]
+      : this.#batches.map(GrassCarpet.#placements);
+    for (const placements of groups) {
       for (const placement of placements) {
         if (
           Math.abs(placement.y - y) <= 0.08 &&
@@ -363,6 +434,14 @@ export class GrassCarpet {
     }
 
     return points;
+  }
+
+  /**
+   * @param {{placements: GrassPlacement[]}} batch
+   * @returns {GrassPlacement[]}
+   */
+  static #placements(batch) {
+    return batch.placements;
   }
 
   destroy() {

@@ -200,12 +200,25 @@ export class TerrainPhysicsSurface {
     }
 
     for (let row = 0; row < this.#mapData.rows; row += 1) {
+      let topEnd = -1;
       for (let col = 0; col < this.#mapData.cols; col += 1) {
         const surface = tiles[row][col];
         if (!surface) {
           continue;
         }
-        this.#addTileTop(positions, indices, col, row, surface);
+        if (col > topEnd) {
+          topEnd = col;
+          if (this.#canMergeTop(col, row, surface)) {
+            while (
+              topEnd + 1 < this.#mapData.cols &&
+              this.#canMergeTop(topEnd + 1, row, tiles[row][topEnd + 1]) &&
+              tiles[row][topEnd + 1][0] === surface[0]
+            ) {
+              topEnd += 1;
+            }
+          }
+          this.#addTileTop(positions, indices, col, row, surface, topEnd - col + 1);
+        }
         this.#addExposedTileSides(
           positions,
           indices,
@@ -223,6 +236,21 @@ export class TerrainPhysicsSurface {
       positions,
       indices,
     };
+  }
+
+  /**
+   * Only uncut, flat terrain tops can share a face. Bridge undersides and all
+   * exposed sides retain their original per-tile geometry.
+   * @param {number} col
+   * @param {number} row
+   * @param {number[]|null} surface
+   * @returns {boolean}
+   */
+  #canMergeTop(col, row, surface) {
+    return Boolean(surface) && surface[0] === surface[1] &&
+      surface[0] === surface[2] && surface[0] === surface[3] &&
+      !this.#mapData.tileMeta?.[row]?.[col]?.terrainCutouts?.length &&
+      !this.#isBridge(col, row);
   }
 
   /**
@@ -288,8 +316,9 @@ export class TerrainPhysicsSurface {
    * @param {number} col
    * @param {number} row
    * @param {number[]} heights
+   * @param {number} width
    */
-  #addTileTop(positions, indices, col, row, heights) {
+  #addTileTop(positions, indices, col, row, heights, width = 1) {
     const x = col - (this.#mapData.cols - 1) / 2;
     const z = row - (this.#mapData.rows - 1) / 2;
     this.#addTerrainQuad(
@@ -297,8 +326,8 @@ export class TerrainPhysicsSurface {
       indices,
       this.#mapData.tileMeta?.[row]?.[col]?.terrainCutouts ?? [],
       [x - 0.5, heights[0], z - 0.5],
-      [x + 0.5, heights[1], z - 0.5],
-      [x + 0.5, heights[2], z + 0.5],
+      [x + width - 0.5, heights[1], z - 0.5],
+      [x + width - 0.5, heights[2], z + 0.5],
       [x - 0.5, heights[3], z + 0.5],
     );
     if (this.#isBridge(col, row)) {
@@ -415,34 +444,41 @@ export class TerrainPhysicsSurface {
       z < maximumZ;
       z += SUPPLEMENTAL_SAMPLE_SIZE
     ) {
+      // Keep the quarter-tile sampling exactly as before; only coalesce the
+      // resulting coplanar faces. A missing sample or height change ends a run.
+      let runStart = minimumX;
+      let runHeight = null;
       for (
         let x = minimumX + half;
-        x < maximumX;
+        x <= maximumX + half;
         x += SUPPLEMENTAL_SAMPLE_SIZE
       ) {
-        const height = this.#collisionWorld.physicsSurfaceHeightAt(
+        const height = x < maximumX ? this.#collisionWorld.physicsSurfaceHeightAt(
           x,
           z,
           half,
-        );
-        if (!Number.isFinite(height)) {
-          continue;
-        }
+        ) : null;
         const col = Math.round(x + (this.#mapData.cols - 1) / 2);
         const row = Math.round(z + (this.#mapData.rows - 1) / 2);
         const terrain = tiles[row]?.[col];
         const terrainHeight = terrain ? Math.max(...terrain) : -Infinity;
-        if (height <= terrainHeight + SURFACE_EPSILON) {
+        const nextHeight = Number.isFinite(height) && height > terrainHeight + SURFACE_EPSILON
+          ? height : null;
+        if (nextHeight === runHeight) {
           continue;
         }
-        this.#addQuad(
-          positions,
-          indices,
-          [x - half, height, z - half],
-          [x + half, height, z - half],
-          [x + half, height, z + half],
-          [x - half, height, z + half],
-        );
+        if (runHeight !== null) {
+          this.#addQuad(
+            positions,
+            indices,
+            [runStart, runHeight, z - half],
+            [x - half, runHeight, z - half],
+            [x - half, runHeight, z + half],
+            [runStart, runHeight, z + half],
+          );
+        }
+        runStart = x - half;
+        runHeight = nextHeight;
       }
     }
   }

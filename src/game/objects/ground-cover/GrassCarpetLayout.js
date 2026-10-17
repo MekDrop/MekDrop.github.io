@@ -10,7 +10,14 @@ export class GrassCarpetLayout {
    * @param {import("src/game/objects/ObjectTypes.js").GameMapData} mapData
    */
   static create(mapData) {
-    const placements = [];
+    return [...this.iterate(mapData)];
+  }
+
+  /**
+   * @param {import("src/game/objects/ObjectTypes.js").GameMapData} mapData
+   * @returns {Generator<import("./GrassCarpet.js").GrassPlacement>}
+   */
+  static *iterate(mapData) {
     const { grid, heightmap, tileMeta, cols, rows } = mapData;
     const castlePosition = mapData.castle?.position;
     let mapSeed = 0;
@@ -163,7 +170,7 @@ export class GrassCarpetLayout {
           for (const [low, high] of spans) {
             const midpoint = (low + high) / 2;
             const [lowSide, highSide] = [[1, 3], [2, 0], [3, 1], [0, 2]][side];
-            placements.push({
+            yield {
               x: x + (acrossX ? midpoint : 0),
               y: surfaceHeight + GRASS_SURFACE_LIFT - 0.002,
               z: z + (acrossX ? 0 : midpoint),
@@ -181,7 +188,7 @@ export class GrassCarpetLayout {
               chunk: `${Math.floor(col / 6)},${Math.floor(row / 6)}`,
               detail: false,
               castleRearGrass: Boolean(castleRearGrass),
-            });
+            };
           }
         }
         for (let index = 0; index < CLUMPS_PER_TILE; index += 1) {
@@ -244,7 +251,7 @@ export class GrassCarpetLayout {
               : normalHeight * (1 + stoneInfluence * 0.35);
           // The same scatter and clump shapes continue all the way to the
           // boundary. A separate edge row would read as an added border.
-          placements.push({
+          yield {
             x,
             y: surfaceHeight + GRASS_SURFACE_LIFT - 0.002,
             z,
@@ -257,12 +264,10 @@ export class GrassCarpetLayout {
             chunk: `${Math.floor(col / 6)},${Math.floor(row / 6)}`,
             detail: index % 3 !== 0,
             castleRearGrass: Boolean(castleRearGrass),
-          });
+          };
         }
       }
     }
-
-    return placements;
   }
 
   /**
