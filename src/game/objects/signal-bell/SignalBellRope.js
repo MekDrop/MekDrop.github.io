@@ -68,7 +68,7 @@ export class SignalBellRope {
     }
     template.enabled = false;
     model.findByName("Bell rope tail").enabled = false;
-    this.#physics = new BellRopePhysics(app.systems.rigidbody.physicsWorld, this.#anchor, this.#scale);
+    this.#physics = new BellRopePhysics(app.systems.rigidbody.physicsWorld, this.#anchor, this.#scale, 0.19);
     // Application has no postupdate event. Render after hero presentation and
     // animation evaluation so the held grip samples the current glove pose.
     this.#update = app.on("prerender", this.#sync, this);
@@ -79,8 +79,9 @@ export class SignalBellRope {
    * @returns {import("playcanvas").Vec3}
    */
   get #anchor() {
-    // RingBell's grasp is 0.65 m high, with 0.5 m of rope above the knot.
-    return this.#bowl.getWorldTransform().transformPoint(new this.#pc.Vec3(0, 1.15, 0));
+    // Continue from the authored hitch wrapped around the clapper's neck.
+    // The 0.19 m upper rope preserves the 0.65 m grasp.
+    return this.#bowl.getWorldTransform().transformPoint(new this.#pc.Vec3(0.004, 0.84, 0.001));
   }
 
   /**

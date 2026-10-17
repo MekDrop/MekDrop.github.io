@@ -66,6 +66,9 @@ it("updates the visible rope and held grip on the application's actual render ev
   try {
     const root = app.root.findByName("Signal bell simulated rope");
     const knot = root.findByName("Bell rope knot");
+    const first = root.findByName("Rope link 0");
+    const attachment = first.getPosition().clone().add(first.getRotation().transformVector(new Vec3(0, first.getLocalScale().y / 2, 0)));
+    assert.ok(attachment.distance(new Vec3(0.004, 0.84, 0.001)) < 0.00001, "rope continues from the clapper hitch");
     const hand = new Vec3(0, 0.65, 0.3);
     rope.hand = () => hand;
     for (let frame = 0; frame < 60; frame++) {
@@ -79,8 +82,8 @@ it("updates the visible rope and held grip on the application's actual render ev
     let maxError = 0;
     let maxJointGap = 0;
     for (let frame = 0; frame < 120; frame++) {
-      hand.z = 0.18 * frame / 120;
-      hand.y = 1.15 - Math.sqrt(0.5 ** 2 - hand.z ** 2);
+      hand.z = 0.14 * frame / 120;
+      hand.y = 0.84 - Math.sqrt(0.19 ** 2 - hand.z ** 2);
       world.step(1 / 60, 1, 1 / 60);
       app.fire("prerender");
       if (frame > 5) {

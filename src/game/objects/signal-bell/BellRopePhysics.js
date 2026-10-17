@@ -50,8 +50,9 @@ export class BellRopePhysics {
    * @param {import("playcanvas").PhysicsWorld} world
    * @param {Vec3} position
    * @param {number} scale
+   * @param {number} upperLength
    */
-  constructor(world, position, scale = 1) {
+  constructor(world, position, scale = 1, upperLength = 0.5) {
     this.#world = world;
     this.#previousAnchor = position.clone();
     this.#anchor = this.#body(BODYTYPE_KINEMATIC, position, 0.005 * scale);
@@ -60,7 +61,7 @@ export class BellRopePhysics {
     let previousLength = 0;
     let distance = 0;
     for (let index = 0; index < 11; index++) {
-      const length = (index < 8 ? 0.5 / 8 : 0.18 / 3) * scale;
+      const length = (index < 8 ? upperLength / 8 : 0.18 / 3) * scale;
       const center = position.clone().add(new Vec3(0, -distance - length / 2, 0));
       const body = this.#body(BODYTYPE_DYNAMIC, center, 0.009 * scale, length);
       this.#joints.push(this.#join(previous, body, -previousLength / 2, length / 2));
