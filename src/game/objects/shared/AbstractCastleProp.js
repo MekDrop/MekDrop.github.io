@@ -80,10 +80,11 @@ export class AbstractCastleProp {
             material.diffuse.set(material.diffuse.r * (1 - wear * 0.48),
               material.diffuse.g * (1 - wear * 0.34), material.diffuse.b * (1 - wear * 0.18));
           }
-          material.shininess = 4;
-          material.gloss = 0;
-          material.metalness = 0;
-          material.specular?.set(0.025, 0.025, 0.025);
+          // glTF imports use roughness, the inverse of engine glossiness.
+          // Preserve authored metalness and maps as the surface wears.
+          material.gloss = material.glossInvert
+            ? Math.max(material.gloss, 0.8 + wear * 0.15)
+            : Math.min(material.gloss, 0.2 - wear * 0.15);
           material.update();
           mesh.material = material;
           this.#instanceMaterials.push(material);

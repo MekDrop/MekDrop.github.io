@@ -5,7 +5,8 @@ import { Color, Mat4, Vec3 } from "playcanvas";
 
 const source = readFileSync(new URL("../../../../src/game/models/GameModelLibrary.js", import.meta.url), "utf8");
 const start = source.indexOf("  #mergeRenderHierarchy(");
-const method = source.slice(start, source.lastIndexOf("}")).replace("#mergeRenderHierarchy", "merge");
+const end = source.indexOf("\n  /**", start + 1);
+const method = source.slice(start, end).replace("#mergeRenderHierarchy", "merge");
 const Library = new Function(`return class {
   #pc; #app;
   constructor(pc) { this.#pc = pc; this.#app = { graphicsDevice: {} }; }

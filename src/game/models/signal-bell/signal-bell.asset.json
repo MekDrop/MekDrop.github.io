@@ -4,7 +4,7 @@
   "sourceUrl": "https://studio.tripo3d.ai/workspace/generate/f3fe2fa1-4eaa-43d0-b29d-0f07eac709ac",
   "credits": 30,
   "prompt": "One standalone low-poly medieval alarm bell in a sturdy open wooden frame, no roof. Two straight square oak posts on small square gray stone feet, horizontal oak crossbeam with short diagonal corner braces, black iron bolts and bands. One dark bronze flared bell hangs centered below crossbeam, visible clapper and a single thin tan pull rope reaching toward ground. Open space between posts. Simple chunky blocky game prop with flat brown wood, dark bronze metal and gray stone, restrained texture, no carvings, no ornament, no flag, no scenery, no floor slab, no shelter. Whole assembly 1.3 metres wide, 0.55 metres deep, 1.9 metres tall, bell diameter 0.55 metres. Bottom centered pivot. Front facing camera, symmetrical frame.",
-  "normalization": "Baked 1.8 metre height and bottom-centre pivot; retained Tripo UVs at 1024px; fixed timber frame, articulated bowl/clapper, and Ammo rope attached to the actual Hero RingBell glove during the grasp.",
+  "normalization": "Baked 1.8 metre height and bottom-centre pivot. Cubist stationary oak frame with broad colour planes with longitudinal oak grain, angular braces, charcoal iron straps and faceted stone feet; retained the authored textured bronze bowl/clapper, Ring animation and Ammo rope attached to the actual Hero RingBell glove during the grasp.",
   "tuning": {
     "boundsSource": "vertices",
     "aabb": {
@@ -48,5 +48,10 @@
     "pullDistance": 0.15,
     "looseTailLength": 0.18
   },
-  "audio": "Original synthesized decaying metal partials, mono 22050Hz PCM, four seconds."
+  "audio": "Original synthesized decaying metal partials, mono 22050Hz PCM, four seconds.",
+  "woodFinish": {
+    "reference": "Existing castle doors and oak floor",
+    "texture": "Shared packed Dry timber grain from the spare-timber asset",
+    "mapping": "WoodGrain UVs follow each individual post, rail and diagonal brace; cut ends retain their solid end-grain planes"
+  }
 }

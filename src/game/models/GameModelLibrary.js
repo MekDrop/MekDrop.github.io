@@ -3,6 +3,7 @@ import {
   GameModelLoadError,
   GameModelUnavailableError,
 } from "../errors/assets/index.js";
+import { AuthoredSurfaceStyle } from "../rendering/AuthoredSurfaceStyle.js";
 
 export class GameModelLibrary {
   /**
@@ -234,6 +235,11 @@ export class GameModelLibrary {
        * @param {pc.Asset} loadedAsset
        */
           (loadedAsset) => {
+            for (const material of loadedAsset.resource.materials) {
+              AuthoredSurfaceStyle.configure(
+                this.#pc, this.#app.graphicsDevice, material.resource,
+              );
+            }
             this.#assets.set(url, loadedAsset);
             resolve();
           });

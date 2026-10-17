@@ -12,6 +12,8 @@ The command uses half the available CPU threads for concurrent Blender processes
 
 Keep procedural code responsible for map-driven placement, transforms, collision, interaction, runtime color variants, shaders, particles, and other behavior. Terrain topology, route markers, portal surfaces, fire, and deformable cloth should remain procedural unless a task explicitly replaces their runtime system.
 
+Keep the world's angular, cubist shapes while retaining each material's identity. Wooden props should feel like the existing castle doors and oak floor: warm timber, visible grain along each board or beam, readable plank seams and cut ends, and a matte finish. Do not reduce wood to plain brown colour planes. Preserve existing successful wood finishes; grain UVs must follow each separate timber, including diagonal braces and horizontal rails. The bell's bronze bowl keeps its authored shape and texture.
+
 Use a modular model kit rather than one monolithic asset whenever dimensions or layouts vary at runtime.
 
 Do not replace `.blend` source files with procedural Blender generator scripts unless the user explicitly requests that workflow.
