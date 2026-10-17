@@ -325,13 +325,20 @@ export class CameraPanBounds {
       }
       const width = bounds.maximumX - bounds.minimumX;
       const height = bounds.maximumY - bounds.minimumY;
-      if (width > frame.safeHalfWidth * 2 || height > frame.safeHalfHeight * 2) {
-        continue;
-      }
-      const minimumX = bounds.maximumX - frame.safeHalfWidth;
-      const maximumX = bounds.minimumX + frame.safeHalfWidth;
-      const minimumY = bounds.maximumY - frame.safeHalfHeight;
-      const maximumY = bounds.minimumY + frame.safeHalfHeight;
+      // Large structures still need reachable details, even when the whole
+      // structure cannot fit inside the viewport at the current zoom.
+      const minimumX = width > frame.safeHalfWidth * 2
+        ? bounds.minimumX
+        : bounds.maximumX - frame.safeHalfWidth;
+      const maximumX = width > frame.safeHalfWidth * 2
+        ? bounds.maximumX
+        : bounds.minimumX + frame.safeHalfWidth;
+      const minimumY = height > frame.safeHalfHeight * 2
+        ? bounds.minimumY
+        : bounds.maximumY - frame.safeHalfHeight;
+      const maximumY = height > frame.safeHalfHeight * 2
+        ? bounds.maximumY
+        : bounds.minimumY + frame.safeHalfHeight;
       const centerX = (minimumX + maximumX) / 2;
       const centerY = (minimumY + maximumY) / 2;
       const center = new Vec2(centerX, centerY);
