@@ -1,3 +1,5 @@
+import { TREASURE_TOOL_MAX_TURN, TREASURE_TOOL_MIN_DISTANCE } from "../../config/treasure.js";
+
 export class DigInteraction {
   /**
    *
@@ -85,6 +87,8 @@ export class DigInteraction {
     let revealedBlockedDig = false;
     const accepted = this.#hero.useTool(this.#tool, {
       targetPosition: this.#target,
+      maxFacingAdjustment: TREASURE_TOOL_MAX_TURN,
+      minimumTargetDistance: TREASURE_TOOL_MIN_DISTANCE,
       onImpact: () => {
         const finished = this.#field.dig(this.#target);
         revealedBlockedDig =

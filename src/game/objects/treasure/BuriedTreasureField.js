@@ -1,3 +1,4 @@
+import { TREASURE_TOOL_MAX_TURN, TREASURE_TOOL_MIN_DISTANCE, treasureToolBackstep } from "../../config/treasure.js";
 import { TileType } from "../../generator/map/MapGenerator.js";
 import { GRASS_SURFACE_LIFT } from "../../config/terrain.js";
 import { COIN_TYPE } from "../../enum/CoinType.js";
@@ -68,6 +69,7 @@ import { IslandObjectRoots } from "../shared/IslandObjectRoots.js";
  */
 
 const MINIMUM_FACING_DOT = Math.cos((50 * Math.PI) / 180);
+const MINIMUM_TOOL_FACING_DOT = Math.cos(TREASURE_TOOL_MAX_TURN * Math.PI / 180);
 const INTERACTION_REACH = 1.18;
 const HOLE_INITIAL_SCALE = 0.42;
 const BLOCKED_DIG_HOLE_SCALE = 0.36;
@@ -541,7 +543,12 @@ export class BuriedTreasureField {
       contents: buriedChest?.contents ?? [],
     };
     if (buriedChest) {
-      Object.assign(site, buriedChest);
+      Object.assign(site, buriedChest, {
+        x: target.x,
+        y: target.y,
+        z: target.z,
+      });
+      site.chest.setLocalPosition(site.x, site.y - 0.58, site.z);
       site.chest.enabled = true;
       this.#buriedChests.delete(target.id);
     }
@@ -760,7 +767,7 @@ export class BuriedTreasureField {
         continue;
       }
       const distance = Math.hypot(site.x - position.x, site.z - position.z);
-      if (distance > INTERACTION_REACH || distance <= 0.001) {
+      if (distance - CHEST_COLLISION_RADIUS > INTERACTION_REACH || distance <= 0.001) {
         continue;
       }
       const facingDot =
@@ -768,6 +775,7 @@ export class BuriedTreasureField {
           (site.z - position.z) * facingDirection.z) /
         distance;
       if (
+        Math.abs(position.y - site.y) > 0.6 ||
         facingDot < MINIMUM_FACING_DOT ||
         (nearest && distance >= nearest.distance)
       ) {
@@ -804,7 +812,7 @@ export class BuriedTreasureField {
         continue;
       }
       const distance = Math.hypot(site.x - position.x, site.z - position.z);
-      if (distance > INTERACTION_REACH || distance <= 0.001) {
+      if (distance - HOLE_COLLISION_RADIUS > INTERACTION_REACH || distance <= 0.001) {
         continue;
       }
       const facingDot =
@@ -812,7 +820,8 @@ export class BuriedTreasureField {
           (site.z - position.z) * facingDirection.z) /
         distance;
       if (
-        facingDot < MINIMUM_FACING_DOT ||
+        Math.abs(position.y - site.y) > 0.6 ||
+        facingDot < MINIMUM_TOOL_FACING_DOT ||
         (nearest && distance >= nearest.distance)
       ) {
         continue;
@@ -842,86 +851,97 @@ export class BuriedTreasureField {
    * @param {{x: number, y: number, z: number}} facingDirection
    */
   #findDigTarget(position, facingDirection) {
-    const centerCol = position.x + (this.#mapData.cols - 1) / 2;
-    const centerRow = position.z + (this.#mapData.rows - 1) / 2;
-    const originCol = Math.round(centerCol);
-    const originRow = Math.round(centerRow);
-    const candidates = [
-      {
-        col: originCol + 1,
-        row: originRow,
-      },
-      {
-        col: originCol - 1,
-        row: originRow,
-      },
-      {
-        col: originCol,
-        row: originRow + 1,
-      },
-      {
-        col: originCol,
-        row: originRow - 1,
-      },
-    ];
+    const direction = new this.#pc.Vec2(facingDirection.x, facingDirection.z);
+    if (direction.lengthSq() < 0.000001) {
+      return null;
+    }
+    direction.normalize();
+    const colOffset = (this.#mapData.cols - 1) / 2;
+    const rowOffset = (this.#mapData.rows - 1) / 2;
+    const originCol = Math.round(position.x + colOffset);
+    const originRow = Math.round(position.z + rowOffset);
     let nearest = null;
-    for (const candidate of candidates) {
-      if (!this.#isDiggable(candidate.col, candidate.row)) {
-        continue;
+    for (let row = originRow - 1; row <= originRow + 1; row += 1) {
+      for (let col = originCol - 1; col <= originCol + 1; col += 1) {
+        const x = col - colOffset;
+        const z = row - rowOffset;
+        const dx = x - position.x;
+        const dz = z - position.z;
+        const distance = Math.hypot(dx, dz);
+        if (distance - HOLE_COLLISION_RADIUS > INTERACTION_REACH) {
+          continue;
+        }
+        const facingDot = distance > 0.001 ? (dx * direction.x + dz * direction.y) / distance : 0;
+        const backstep = treasureToolBackstep(dx, dz, direction.x, direction.y,
+          TREASURE_TOOL_MIN_DISTANCE, TREASURE_TOOL_MAX_TURN);
+        const sourceCover = this.#riverSourceCovers.get(this.#tileKey(col, row));
+        const y = sourceCover?.y ?? this.#mapData.heightmap[row]?.[col] + GRASS_SURFACE_LIFT;
+        if ((facingDot + 0.000001 < MINIMUM_TOOL_FACING_DOT && backstep === null) ||
+          !Number.isFinite(y) || Math.abs(position.y - y) > 0.6 ||
+          !this.#canExcavateAt(x, y, z) ||
+          (nearest && distance >= nearest.distance)) {
+          continue;
+        }
+        nearest = {
+          id: this.#tileKey(col, row),
+          kind: sourceCover ? "blocked-dig" : "dig",
+          col,
+          row,
+          x,
+          y,
+          z,
+          distance,
+        };
       }
-      const key = this.#tileKey(candidate.col, candidate.row);
-      const sourceCover = this.#riverSourceCovers.get(key);
-      const x = sourceCover?.x ?? candidate.col - (this.#mapData.cols - 1) / 2;
-      const z = sourceCover?.z ?? candidate.row - (this.#mapData.rows - 1) / 2;
-      const distance = Math.hypot(x - position.x, z - position.z);
-      if (distance > INTERACTION_REACH || distance <= 0.001) {
-        continue;
-      }
-      const facingDot =
-        ((x - position.x) * facingDirection.x +
-          (z - position.z) * facingDirection.z) /
-        distance;
-      const y =
-        sourceCover?.y ??
-        this.#mapData.heightmap[candidate.row][candidate.col] +
-          GRASS_SURFACE_LIFT;
-      if (
-        facingDot < MINIMUM_FACING_DOT ||
-        Math.abs(position.y - y) > 0.6 ||
-        (nearest && distance >= nearest.distance)
-      ) {
-        continue;
-      }
-      nearest = {
-        ...candidate,
-        x,
-        y,
-        z,
-        distance,
-      };
     }
     if (!nearest) {
       return null;
     }
-    return {
-      id: this.#tileKey(nearest.col, nearest.row),
-      kind: this.#riverSourceCovers.has(this.#tileKey(nearest.col, nearest.row))
-        ? "blocked-dig"
-        : "dig",
-      col: nearest.col,
-      row: nearest.row,
-      x: nearest.x,
-      y: nearest.y,
-      z: nearest.z,
-    };
+    const { distance, ...target } = nearest;
+
+    return target;
+  }
+
+  /**
+   * Require support for the complete hole footprint, including adjacent tile fragments.
+   * @param {number} x
+   * @param {number} y
+   * @param {number} z
+   * @returns {boolean}
+   */
+  #canExcavateAt(x, y, z) {
+    const radius = HOLE_COLLISION_RADIUS + 0.01;
+    const colOffset = (this.#mapData.cols - 1) / 2;
+    const rowOffset = (this.#mapData.rows - 1) / 2;
+    for (let row = Math.round(z - radius + rowOffset); row <= Math.round(z + radius + rowOffset); row += 1) {
+      for (let col = Math.round(x - radius + colOffset); col <= Math.round(x + radius + colOffset); col += 1) {
+        const centerX = col - colOffset;
+        const centerZ = row - rowOffset;
+        const dx = Math.max(0, Math.abs(x - centerX) - 0.5);
+        const dz = Math.max(0, Math.abs(z - centerZ) - 0.5);
+        if (dx * dx + dz * dz >= radius * radius) {
+          continue;
+        }
+        const cover = this.#riverSourceCovers.get(this.#tileKey(col, row));
+        const height = cover?.y ?? this.#mapData.heightmap[row]?.[col] + GRASS_SURFACE_LIFT;
+        if (!Number.isFinite(height) || Math.abs(height - y) > 0.05 ||
+          !this.#isDiggable(col, row, x, z)) {
+          return false;
+        }
+      }
+    }
+
+    return true;
   }
 
   /**
    *
    * @param {number} col
    * @param {number} row
+   * @param {number} x
+   * @param {number} z
    */
-  #isDiggable(col, row) {
+  #isDiggable(col, row, x, z) {
     if (
       row < 0 ||
       row >= this.#mapData.rows ||
@@ -932,16 +952,16 @@ export class BuriedTreasureField {
     }
     const key = this.#tileKey(col, row);
     const metadata = this.#mapData.tileMeta?.[row]?.[col];
-    const x = col - (this.#mapData.cols - 1) / 2;
-    const z = row - (this.#mapData.rows - 1) / 2;
-    // The original grid still contains grass beneath excavated castle rooms.
-    // Keep the whole dig tile clear of occupied building space.
+    // Test the actual hole footprint against occupied building space.
     /**
      * @param {import("../castle/ground/CastleGroundCuts.js").GroundCut} cut
      */
-    const overlapsTerrainCutout = (cut) =>
-      x + 0.5 > cut.minX && x - 0.5 < cut.maxX &&
-          z + 0.5 > cut.minZ && z - 0.5 < cut.maxZ;
+    const overlapsTerrainCutout = (cut) => {
+      const dx = Math.max(cut.minX - x, 0, x - cut.maxX);
+      const dz = Math.max(cut.minZ - z, 0, z - cut.maxZ);
+
+      return dx * dx + dz * dz < (HOLE_COLLISION_RADIUS + 0.01) ** 2;
+    };
     if (
       metadata?.exposedTerrain === false ||
       metadata?.terrainCutouts?.some(overlapsTerrainCutout)
@@ -959,7 +979,9 @@ export class BuriedTreasureField {
     );
 
     return (
-      this.#mapData.grid[row][col] === TileType.GRASS &&
+      (this.#mapData.grid[row][col] === TileType.GRASS ||
+        (metadata?.exposedTerrain === true &&
+          [TileType.CASTLE_WALL, TileType.CASTLE_TOWER].includes(this.#mapData.grid[row][col]))) &&
       (this.#mapData.tileMeta?.[row]?.[col]?.shape ?? "FLAT") === "FLAT" &&
       Number.isFinite(this.#mapData.heightmap[row][col]) &&
       (unfinished || !this.#dugTiles.has(key)) &&

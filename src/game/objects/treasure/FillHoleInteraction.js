@@ -1,3 +1,5 @@
+import { TREASURE_TOOL_MAX_TURN, TREASURE_TOOL_MIN_DISTANCE } from "../../config/treasure.js";
+
 export class FillHoleInteraction {
   /**
    *
@@ -84,6 +86,8 @@ export class FillHoleInteraction {
     }
     const accepted = this.#hero.useTool(this.#tool, {
       targetPosition: this.#target,
+      maxFacingAdjustment: TREASURE_TOOL_MAX_TURN,
+      minimumTargetDistance: TREASURE_TOOL_MIN_DISTANCE,
       context: { action: "fill" },
       onImpact: this.#onImpact.bind(this),
       onComplete: this.#onComplete,

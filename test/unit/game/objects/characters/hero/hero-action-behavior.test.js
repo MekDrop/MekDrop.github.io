@@ -247,6 +247,59 @@ it("runs the full tool sequence inside the tool action state", () => {
   assert.equal(restarts, 2);
 });
 
+it("finishes backward tool positioning before summoning or digging", () => {
+  for (const blocked of [false, true]) {
+    const moves = [];
+    let impacts = 0;
+    const behavior = createBehavior({
+      feedback: {
+        collection: {
+          canOccupy: () => !blocked,
+          moveTo: (x, z) => moves.push([x, z]),
+        },
+      },
+    });
+    behavior.toolAction = {
+      tool: {
+        summonAnimation: "summon",
+        summonDuration: 0.1,
+        impactTime: 0.05,
+        useDuration: 0.1,
+      },
+      useAnimation: "dig",
+      phase: "summon",
+      elapsed: 0,
+      positioningElapsed: 0,
+      positioning: {
+        startX: 0,
+        startZ: 0,
+        targetX: -0.4,
+        targetZ: 0,
+      },
+      onImpact: () => {
+        impacts += 1;
+
+        return true;
+      },
+    };
+    assert.equal(behavior.animation, HERO_ANIMATION.WALK);
+    behavior.update(0.1);
+    assert.equal(impacts, 0);
+    if (blocked) {
+      assert.equal(behavior.state.action, HERO_ACTION.EXPLORING);
+      assert.equal(moves.length, 0);
+      continue;
+    }
+    assert.equal(behavior.toolAction.elapsed, 0);
+    behavior.update(0.1);
+    assert.deepEqual(moves.at(-1), [-0.4, 0]);
+    assert.equal(behavior.animation, "summon");
+    behavior.update(0.1);
+    behavior.update(0.05);
+    assert.equal(impacts, 1);
+  }
+});
+
 it("completes collection from its action state and returns to rest", () => {
   let completedAction = null;
   const behavior = createBehavior({

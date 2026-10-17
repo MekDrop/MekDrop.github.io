@@ -1,4 +1,5 @@
 import { HERO_ACTION } from "../../../../../enum/HeroAction.js";
+import { HERO_ANIMATION } from "../../../../../enum/HeroAnimation.js";
 import { HeroRuntimeActionState } from "./HeroRuntimeActionState.js";
 
 export class HeroToolActionState extends HeroRuntimeActionState {
@@ -32,6 +33,11 @@ export class HeroToolActionState extends HeroRuntimeActionState {
   execute(owner) {
     const action = this.payload;
     const feedback = owner.feedback.tool;
+    if (action.positioning) {
+      this.#advancePositioning(owner);
+
+      return;
+    }
     action.elapsed += owner.deltaTime;
     if (action.phase === "summon") {
       if (action.elapsed >= action.tool.summonDuration) {
@@ -78,11 +84,38 @@ export class HeroToolActionState extends HeroRuntimeActionState {
   }
 
   /**
+   * @param {import("src/game/objects/ObjectTypes.js").HeroActionContext} owner
+   */
+  #advancePositioning(owner) {
+    const action = this.payload;
+    const feedback = owner.feedback.collection;
+    action.positioningElapsed += owner.deltaTime;
+    const progress = Math.min(1, action.positioningElapsed / feedback.positioningDuration);
+    const eased = progress * progress * (3 - 2 * progress);
+    const x = action.positioning.startX + (action.positioning.targetX - action.positioning.startX) * eased;
+    const z = action.positioning.startZ + (action.positioning.targetZ - action.positioning.startZ) * eased;
+    if (!feedback.canOccupy(x, z)) {
+      owner.finish();
+
+      return;
+    }
+    feedback.moveTo(x, z);
+    if (progress >= 1) {
+      action.positioning = null;
+      action.positioningElapsed = 0;
+      owner.feedback.tool.restartAnimation();
+    }
+  }
+
+  /**
    *
    * @param {{payload: import("src/game/objects/ObjectTypes.js").HeroActionPayload}} options
    * @param {import("src/game/objects/ObjectTypes.js").HeroActionPayload} options.payload
    */
   static #animation({ payload }) {
+    if (payload.positioning) {
+      return HERO_ANIMATION.WALK;
+    }
     if (payload.phase === "summon") {
       return payload.tool.summonAnimation;
     }

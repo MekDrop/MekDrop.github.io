@@ -3010,15 +3010,6 @@ export class PlayCanvasRenderer {
    * @param {import("src/game/GameContracts.js").SceneInteraction|null} target
    */
   #setInteractionTarget(target) {
-    const diagnosticHero = this.hero;
-    this.canvas.setAttribute("data-dig-diagnostic", JSON.stringify({
-      position: diagnosticHero?.position,
-      facing: diagnosticHero?.facingDirection,
-      reacting: diagnosticHero?.isReacting,
-      usingTool: diagnosticHero?.isUsingTool,
-      viewport: this.viewport,
-      target: target?.description,
-    }));
     const interaction = target?.canInteract ? target : null;
     const description = interaction?.description ?? null;
     const nextSignature = description
@@ -3045,7 +3036,8 @@ export class PlayCanvasRenderer {
    */
   #completeInteraction = () => {
     this.#setInteractionTarget(null);
-    this.#updateInteractionTarget();
+    // Tool completion fires during state exit; query after the transition finishes.
+    queueMicrotask(this.#updateInteractionTarget.bind(this));
   };
 
   #clearScene() {

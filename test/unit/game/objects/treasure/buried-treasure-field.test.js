@@ -3,6 +3,11 @@ import { it } from "node:test";
 import { registerHooks } from "node:module";
 import * as pc from "playcanvas";
 import { GameMapLoader } from "../../../../../src/game/GameMapLoader.js";
+import { MAP_TILE_TYPE } from "../../../../../src/game/enum/MapTileType.js";
+import { MapGenerator } from "../../../../../src/game/generator/map/MapGenerator.js";
+import { TerrainBlockDefinitions } from "../../../../../src/game/objects/terrain/TerrainBlockDefinitions.js";
+import { CastleMapPreparation } from "../../../../../src/game/objects/castle/ground/CastleMapPreparation.js";
+import { treasureToolBackstep } from "../../../../../src/game/config/treasure.js";
 
 const hooks = registerHooks({
   resolve: (specifier, context, nextResolve) => {
@@ -18,15 +23,201 @@ const hooks = registerHooks({
 const { BuriedTreasureField } = await import("../../../../../src/game/objects/treasure/BuriedTreasureField.js");
 hooks.deregister();
 
+it("offers digging on the exposed castle lawn in mvcoupei_11og30n", async () => {
+  const mapData = await MapGenerator.generate({ mapName: "mvcoupei_11og30n" });
+  TerrainBlockDefinitions.populate(mapData);
+  CastleMapPreparation.prepareMap(mapData);
+  assert.equal(mapData.grid[19][38], MAP_TILE_TYPE.CASTLE_WALL);
+  assert.equal(mapData.tileMeta[19][38].exposedTerrain, true);
+  let update;
+  const field = new BuriedTreasureField({
+    pc,
+    mapData,
+    modelLibrary: { instantiate: (url) => new pc.Entity(url) },
+    app: {
+      on: (event, callback) => {
+        update = callback;
+
+        return { off: () => {} };
+      },
+    },
+  });
+  field.tool = {};
+  const interaction = field.findInteraction({
+    hero: {
+      position: {
+        x: 17.5,
+        y: 3.04,
+        z: -0.5,
+      },
+      facingDirection: {
+        x: 0,
+        z: -1,
+      },
+    },
+  });
+  assert.equal(interaction?.description.labelKey, "game.interaction.dig");
+  assert.equal(interaction.description.col, 38);
+  assert.equal(interaction.description.row, 20);
+  const diagonalInteraction = field.findInteraction({
+    hero: {
+      position: {
+        x: 10.01,
+        y: 3.04,
+        z: -16.01,
+      },
+      facingDirection: {
+        x: -Math.SQRT1_2,
+        z: Math.SQRT1_2,
+      },
+    },
+  });
+  assert.equal(diagonalInteraction?.description.labelKey, "game.interaction.dig");
+  assert.equal(diagonalInteraction.description.col, 30);
+  assert.equal(diagonalInteraction.description.row, 5);
+  const offsetLandingInteraction = field.findInteraction({
+    hero: {
+      position: {
+        x: 18.258895874023438,
+        y: 3.04,
+        z: -7.295778274536133,
+      },
+      facingDirection: {
+        x: 0.9535826651341417,
+        z: -0.3011313679370973,
+      },
+    },
+  });
+  assert.equal(offsetLandingInteraction?.description.labelKey, "game.interaction.dig");
+  assert.equal(offsetLandingInteraction.description.col, 39);
+  assert.equal(offsetLandingInteraction.description.row, 13);
+  const wallHero = {
+    position: {
+      x: 9.335983276367188,
+      y: 2.9999661445617676,
+      z: -2.5120742321014404,
+    },
+    facingDirection: {
+      x: 0.9535826651341417,
+      z: -0.3011313679370973,
+    },
+  };
+  const closeTarget = field.findInteraction({ hero: wallHero })?.description;
+  assert.equal(closeTarget?.labelKey, "game.interaction.dig");
+  assert.equal(closeTarget.col, 30);
+  assert.equal(closeTarget.row, 18);
+  assert.ok(Math.hypot(closeTarget.x - wallHero.position.x, closeTarget.z - wallHero.position.z) < 0.6,
+    "the close centered tile is offered for backward positioning");
+  wallHero.facingDirection = {
+    x: 0.2,
+    z: -Math.sqrt(0.96),
+  };
+  const wallFacingInteraction = field.findInteraction({ hero: wallHero });
+  const wallTarget = wallFacingInteraction?.description;
+  assert.equal(wallTarget?.labelKey, "game.interaction.dig");
+  assert.equal(wallTarget.col, 30, "prefer the nearby tile rather than skipping ahead");
+  assert.equal(wallTarget.row, 18);
+  const backstep = treasureToolBackstep(wallTarget.x - wallHero.position.x,
+    wallTarget.z - wallHero.position.z, wallHero.facingDirection.x,
+    wallHero.facingDirection.z, 0.65, 30);
+  assert.ok(backstep > 0 && backstep <= 0.85);
+  wallHero.position.x -= wallHero.facingDirection.x * backstep;
+  wallHero.position.z -= wallHero.facingDirection.z * backstep;
+  const dx = wallTarget.x - wallHero.position.x;
+  const dz = wallTarget.z - wallHero.position.z;
+  assert.equal(wallTarget.x, wallTarget.col - (mapData.cols - 1) / 2);
+  assert.equal(wallTarget.z, wallTarget.row - (mapData.rows - 1) / 2);
+  assert.ok((dx * wallHero.facingDirection.x + dz * wallHero.facingDirection.z) /
+    Math.hypot(dx, dz) >= Math.cos(Math.PI / 6) - 1e-6, "only a small turn is needed after stepping back");
+  assert.ok(Math.hypot(dx, dz) >= 0.6, "the hole is clear of the hero's feet");
+  assert.ok(wallTarget.x + 0.31 < 10.5, "the entire hole stays outside the castle");
+  field.dig(wallTarget);
+  field.dig(wallTarget);
+  for (let frame = 0; frame < 5; frame += 1) {
+    update(0.1);
+  }
+  const fill = field.findInteraction({ hero: wallHero })?.description;
+  assert.equal(fill?.labelKey, "game.interaction.fill_hole");
+  assert.equal(fill.x, wallTarget.x);
+  assert.equal(fill.z, wallTarget.z);
+  field.destroy();
+});
+
+it("finds diagonal grass after corner landings without digging beneath the hero", () => {
+  const mapData = {
+    cols: 5,
+    rows: 5,
+    grid: Array.from({ length: 5 }, () => Array(5).fill(MAP_TILE_TYPE.GRASS)),
+    heightmap: Array.from({ length: 5 }, () => Array(5).fill(0)),
+    objects: [],
+  };
+  const field = new BuriedTreasureField({
+    pc,
+    mapData,
+    modelLibrary: {},
+    app: { on: () => ({ off: () => {} }) },
+  });
+  field.tool = {};
+  for (const signX of [-1, 1]) {
+    for (const signZ of [-1, 1]) {
+      const hero = {
+        position: {
+          x: signX * 0.49,
+          y: 0.04,
+          z: signZ * 0.49,
+        },
+        facingDirection: {
+          x: signX * Math.SQRT1_2,
+          z: signZ * Math.SQRT1_2,
+        },
+      };
+      const target = field.findInteraction({ hero })?.description;
+      assert.equal(target?.labelKey, "game.interaction.dig");
+      assert.equal(target.x, signX);
+      assert.equal(target.z, signZ);
+      assert.ok(Math.abs((target.x - hero.position.x) * hero.facingDirection.z -
+        (target.z - hero.position.z) * hero.facingDirection.x) < 1e-6);
+      hero.facingDirection.x *= -1;
+      hero.facingDirection.z *= -1;
+      const inward = field.findInteraction({ hero })?.description;
+      assert.ok(inward, "safe grass ahead within the current tile is usable");
+      assert.ok(Math.abs((inward.x - hero.position.x) * hero.facingDirection.z -
+        (inward.z - hero.position.z) * hero.facingDirection.x) < 1e-6);
+      assert.ok(Math.hypot(inward.x - hero.position.x, inward.z - hero.position.z) >= 0.6);
+    }
+  }
+  for (const row of mapData.grid) {
+    row.fill(MAP_TILE_TYPE.PATH);
+  }
+  mapData.grid[2][3] = MAP_TILE_TYPE.GRASS;
+  const hero = {
+    position: {
+      x: -0.4,
+      y: 0.04,
+      z: 0,
+    },
+    facingDirection: {
+      x: 1,
+      z: 0,
+    },
+  };
+  assert.equal(field.findInteraction({ hero })?.description.labelKey,
+    "game.interaction.dig", "the hole edge is within reach");
+  hero.position.x = -0.9;
+  assert.equal(field.findInteraction({ hero }), null,
+    "the hole edge is beyond reach");
+});
+
 it("keeps digging out of castle cutouts while preserving outdoor grass", () => {
   const mapData = {
     cols: 3,
     rows: 3,
-    grid: Array.from({ length: 3 }, () => [1, 1, 1]),
+    grid: Array.from({ length: 3 }, () => Array(3).fill(MAP_TILE_TYPE.PATH)),
     heightmap: Array.from({ length: 3 }, () => [0, 0, 0]),
     tileMeta: Array.from({ length: 3 }, () => [{}, {}, {}]),
     objects: [],
   };
+  mapData.grid[1][2] = MAP_TILE_TYPE.GRASS;
   const field = new BuriedTreasureField({
     pc,
     mapData,
@@ -47,6 +238,15 @@ it("keeps digging out of castle cutouts while preserving outdoor grass", () => {
   };
   const interaction = () => field.findInteraction({ hero });
   assert.equal(interaction()?.description.labelKey, "game.interaction.dig");
+  for (const type of [MAP_TILE_TYPE.CASTLE_WALL, MAP_TILE_TYPE.CASTLE_TOWER]) {
+    mapData.grid[1][2] = type;
+    assert.equal(interaction(), null, "unprepared castle foundations are not diggable");
+    mapData.tileMeta[1][2] = { exposedTerrain: true };
+    assert.equal(interaction()?.description.labelKey, "game.interaction.dig",
+      "surviving foundation lawn is diggable");
+    mapData.tileMeta[1][2] = {};
+  }
+  mapData.grid[1][2] = MAP_TILE_TYPE.CASTLE_WALL;
   mapData.tileMeta[1][2] = { exposedTerrain: false };
   assert.equal(interaction(), null, "removed turf cannot be dug through a floor");
   mapData.tileMeta[1][2] = {
@@ -60,10 +260,99 @@ it("keeps digging out of castle cutouts while preserving outdoor grass", () => {
       maxY: 10,
     }],
   };
-  assert.equal(interaction(), null, "partial turf beside a wall cannot overlap the room");
+  assert.equal(interaction(), null, "the centered hole would intersect the room");
+  mapData.tileMeta[1][2].terrainCutouts[0].minX = 0.8;
+  assert.equal(interaction(), null, "a strip narrower than the hole cannot be excavated");
   mapData.tileMeta[1][2].terrainCutouts[0].minX = 1.5;
   assert.ok(interaction(), "grass outside the cutout remains diggable");
   field.destroy();
+});
+
+it("keeps stop, resume, and fill available after digging from an offset landing", () => {
+  class HeadlessEntity extends pc.Entity {
+    addComponent() {
+      return null;
+    }
+  }
+  for (const x of [-0.4, 2]) {
+    let update;
+    const field = new BuriedTreasureField({
+      pc: {
+        ...pc,
+        Entity: HeadlessEntity,
+      },
+      mapData: {
+        cols: 5,
+        rows: 5,
+        grid: Array.from({ length: 5 }, () => Array(5).fill(MAP_TILE_TYPE.GRASS)),
+        heightmap: Array.from({ length: 5 }, () => Array(5).fill(0)),
+        objects: [],
+      },
+      modelLibrary: { instantiate: (url) => new pc.Entity(url) },
+      app: {
+        on: (event, callback) => {
+          update = callback;
+
+          return { off: () => {} };
+        },
+      },
+    });
+    const tool = {};
+    field.tool = tool;
+    const hero = {
+      position: {
+        x,
+        y: 0.04,
+        z: 0,
+      },
+      facingDirection: {
+        x: x < 1 ? 1 : -1,
+        z: 0,
+      },
+      useTool: (selectedTool, options) => {
+        assert.equal(selectedTool, tool);
+        assert.equal(options.maxFacingAdjustment, 30);
+        assert.equal(options.minimumTargetDistance, 0.65);
+
+        return true;
+      },
+    };
+    const target = {
+      kind: "dig",
+      id: "2:3",
+      col: 3,
+      row: 2,
+      x: 1,
+      y: 0.004,
+      z: 0,
+    };
+    field.dig(target);
+    assert.equal(field.findInteraction({ hero })?.description.labelKey, "game.interaction.dig");
+    assert.equal(field.findInteraction({ hero }).interact(), true);
+    hero.tool = tool;
+    assert.equal(field.findInteraction({ hero })?.description.labelKey, "game.interaction.stop_digging");
+    hero.tool = null;
+    field.dig(target);
+    for (let frame = 0; frame < 5; frame += 1) {
+      update(0.1);
+    }
+    const fill = field.findInteraction({ hero });
+    assert.equal(fill?.description.labelKey, "game.interaction.fill_hole");
+    assert.equal(fill.description.id, target.id);
+    assert.equal(fill.interact(), true);
+    hero.facingDirection.x *= -1;
+    assert.notEqual(field.findInteraction({ hero })?.description.id, target.id,
+      "a hole behind the hero is not selected");
+    hero.facingDirection.x *= -1;
+    hero.tool = tool;
+    assert.equal(field.findInteraction({ hero })?.description.labelKey, "game.interaction.stop_filling");
+    hero.tool = null;
+    assert.equal(field.fill(fill.description), false);
+    assert.equal(field.findInteraction({ hero })?.description.labelKey, "game.interaction.fill_hole");
+    assert.equal(field.fill(fill.description), true);
+    assert.equal(field.canFill(target.id), false);
+    field.destroy();
+  }
 });
 
 it("reveals the already instantiated chest and spawns its stored contents without rerolling", () => {
@@ -127,12 +416,14 @@ it("reveals the already instantiated chest and spawns its stored contents withou
     id: "0:0",
     col: 0,
     row: 0,
-    x: 0,
+    x: 0.08,
     y: 2,
-    z: 0,
+    z: -0.04,
   };
   field.dig(target);
   assert.equal(chest.enabled, true, "digging exposes the existing chest");
+  assert.ok(Math.abs(chest.getLocalPosition().x - target.x) < 1e-6);
+  assert.ok(Math.abs(chest.getLocalPosition().z - target.z) < 1e-6);
   const hole = models.find(({ url }) => url.includes("/hole.glb")).entity;
   const holeY = hole.getPosition().y;
   field.setIslandOffsets(0.2, -0.1);
@@ -143,6 +434,21 @@ it("reveals the already instantiated chest and spawns its stored contents withou
     update(0.1);
   }
   assert.equal(field.canOpen(target.id), true);
+  field.tool = {};
+  const chestInteraction = field.findInteraction({
+    hero: {
+      position: {
+        x: 1.4,
+        y: 2.04,
+        z: 0,
+      },
+      facingDirection: {
+        x: -1,
+        z: 0,
+      },
+    },
+  });
+  assert.equal(chestInteraction?.description.labelKey, "game.interaction.open_treasure");
   assert.equal(models.filter(({ url }) => url.includes("treasure-chest")).length, 1);
   field.open(target);
   for (let frame = 0; frame < 20; frame += 1) {

@@ -1751,8 +1751,11 @@ export class Hero {
   /**
    *
    * @param {import("./tools/HeroTool.js").HeroTool} tool
-   * @param {{targetPosition: {x: number, y: number, z: number}, context: Record<string, string|number|boolean>, onImpact: (impact: import("src/game/objects/ObjectTypes.js").HeroActionPayload) => void, onComplete: () => void}} options
+   * @param {{targetPosition: {x: number, y: number, z: number}, faceTarget?: boolean, maxFacingAdjustment?: number, minimumTargetDistance?: number, context: Record<string, string|number|boolean>, onImpact: (impact: import("src/game/objects/ObjectTypes.js").HeroActionPayload) => void, onComplete: () => void}} options
    * @param {{x: number, y: number, z: number}} options.targetPosition
+   * @param {boolean} [options.faceTarget]
+   * @param {number} [options.maxFacingAdjustment]
+   * @param {number} [options.minimumTargetDistance]
    * @param {Record<string, string|number|boolean>} options.context
    * @param {(impact: import("src/game/objects/ObjectTypes.js").HeroActionPayload) => void} options.onImpact
    * @param {() => void} options.onComplete
@@ -1761,6 +1764,9 @@ export class Hero {
     tool,
     {
       targetPosition,
+      faceTarget = true,
+      maxFacingAdjustment = 180,
+      minimumTargetDistance = 0,
       context = {},
       onImpact,
       onComplete,
@@ -1778,10 +1784,21 @@ export class Hero {
       return false;
     }
 
-    const targetX = targetPosition.x - this.#position.x;
-    const targetZ = targetPosition.z - this.#position.z;
-    if (Math.hypot(targetX, targetZ) > 0.001) {
-      this.#facingYaw = (Math.atan2(targetX, targetZ) * 180) / Math.PI;
+    const positioning = minimumTargetDistance > 0
+      ? this.#toolPositioning(targetPosition, minimumTargetDistance, maxFacingAdjustment)
+      : null;
+    if (positioning === false) {
+      return false;
+    }
+    const targetX = targetPosition.x - (positioning?.targetX ?? this.#position.x);
+    const targetZ = targetPosition.z - (positioning?.targetZ ?? this.#position.z);
+    if (faceTarget && Math.hypot(targetX, targetZ) > 0.001) {
+      const targetYaw = (Math.atan2(targetX, targetZ) * 180) / Math.PI;
+      const adjustment = ((targetYaw - this.#facingYaw + 540) % 360) - 180;
+      if (Math.abs(adjustment) > maxFacingAdjustment + 0.000001) {
+        return false;
+      }
+      this.#facingYaw = targetYaw;
     }
     this.#actionBehavior.toolAction = {
       tool,
@@ -1790,11 +1807,55 @@ export class Hero {
       elapsed: 0,
       impacted: false,
       stopAfterCycle: false,
+      positioning,
+      positioningElapsed: 0,
       onImpact,
       onComplete,
     };
 
     return true;
+  }
+
+  /**
+   * Reuse collection collision checks for a short backward tool-positioning step.
+   * @param {{x: number, y: number, z: number}} target
+   * @param {number} minimumDistance
+   * @param {number} maxTurn
+   * @returns {{startX:number,startZ:number,targetX:number,targetZ:number}|false|null}
+   */
+  #toolPositioning(target, minimumDistance, maxTurn) {
+    const dx = target.x - this.#position.x;
+    const dz = target.z - this.#position.z;
+    const distance = Math.hypot(dx, dz);
+    if (distance >= minimumDistance) {
+      return null;
+    }
+    const yaw = this.#facingYaw * Math.PI / 180;
+    const facingX = Math.sin(yaw);
+    const facingZ = Math.cos(yaw);
+    const adjustment = treasureToolBackstep(dx, dz, facingX, facingZ, minimumDistance, maxTurn);
+    if (adjustment === null) {
+      return false;
+    }
+    const targetX = this.#position.x - facingX * adjustment;
+    const targetZ = this.#position.z - facingZ * adjustment;
+    const steps = Math.ceil(adjustment / 0.05);
+    for (let step = 1; step <= steps; step += 1) {
+      const progress = step / steps;
+      if (!this.#canOccupyCollectionPosition(
+        this.#position.x + (targetX - this.#position.x) * progress,
+        this.#position.z + (targetZ - this.#position.z) * progress,
+      )) {
+        return false;
+      }
+    }
+
+    return {
+      startX: this.#position.x,
+      startZ: this.#position.z,
+      targetX,
+      targetZ,
+    };
   }
 
   /**
@@ -2038,6 +2099,7 @@ export class Hero {
     if (!this.#actionBehavior.toolAction) {
       return false;
     }
+    this.#actionBehavior.toolAction.positioning = null;
     if (dismiss && this.#actionBehavior.toolAction.phase !== "dismiss") {
       this.#actionBehavior.toolAction.phase = "dismiss";
       this.#actionBehavior.toolAction.elapsed = 0;
@@ -4247,3 +4309,4 @@ export class Hero {
     return target.name === "HappyPat";
   }
 }
+import { treasureToolBackstep } from "../../../config/treasure.js";
