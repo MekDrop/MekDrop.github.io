@@ -313,17 +313,15 @@ export class VoxelVegetation {
    * @param {number} elevation
    */
   grassWeightAt(x, z, elevation) {
-    const vegetationWeight = this.#items.reduce(
-      /**
-       *
-       * @param {number} weight
-       * @param {{item: import("./DestructibleVegetation.js").DestructibleVegetation}} options
-       * @param {import("./DestructibleVegetation.js").DestructibleVegetation} options.item
-       */
-      (weight, { item }) =>
-        Math.max(weight, item.grassWeightAt(x, z, elevation)),
-      0,
-    );
+    let vegetationWeight = 0;
+    // Grass obstacle textures sample the whole map. Only nearby vegetation can
+    // contribute; the original bounds remain conservative as cutting removes voxels.
+    for (const item of this.#surfaceIndex.query(x, z)) {
+      vegetationWeight = Math.max(
+        vegetationWeight,
+        item.grassWeightAt(x, z, elevation),
+      );
+    }
 
     return this.#dirtPatches.reduce(
       /**

@@ -50,6 +50,9 @@ describe("destructible vegetation grass footprint", () => {
               const actual = index.query(x, z, radius).has(vegetation)
                 ? vegetation.surfaceHeightAt(x, z, radius) : null;
               assert.equal(actual, vegetation.surfaceHeightAt(x, z, radius));
+              const grassWeight = index.query(x, z).has(vegetation)
+                ? vegetation.grassWeightAt(x, z, 3.002) : 0;
+              assert.equal(grassWeight, vegetation.grassWeightAt(x, z, 3.002));
             }
           }
         }
