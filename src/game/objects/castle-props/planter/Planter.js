@@ -1,3 +1,4 @@
+import { ObjectDataCache } from "../../../cache/ObjectDataCache.js";
 import modelUrl from "../../../models/castle/residential/terrace-planter.glb?url";
 import { AbstractCastleProp } from "../../shared/AbstractCastleProp.js";
 import { GenerationRandom } from "../../../generator/map/GenerationRandom.js";
@@ -13,25 +14,54 @@ export class Planter extends AbstractCastleProp {
    * @param {boolean} collision
    */
   prepareModel(model, collision) {
-    const random = new GenerationRandom(`${this.definition.id}:boxwood`);
-    const angle = random.rng(0, 3) * Math.PI / 2;
-    const mirror = random.rng(0, 1) ? 1 : -1;
-    for (let index = 0; index < 5; index++) {
-      const node = model.findByName(index === 0 ? "Boxwood foliage" :
-        `Boxwood foliage.${String(index).padStart(3, "0")}`);
-      // Authored faces and random offsets share a centimetre grid. Give each
-      // block a distinct sub-grid offset so overlapping faces cannot coincide.
-      const offsetX = random.rng(-4, 4) / 100 + index * 0.001;
-      const offsetZ = random.rng(-4, 4) / 100 + index * 0.001;
-      if (!node) {
-        continue;
+    const nodes = Array.from({ length: 5 }, /**
+     *
+     * @param {undefined} _
+     * @param {number} index
+     */
+      (_, index) => model.findByName(index === 0 ? "Boxwood foliage" :
+        `Boxwood foliage.${String(index).padStart(3, "0")}`));
+    const positions = nodes.map(/**
+     *
+     * @param {import("playcanvas").Entity|null} node
+     */
+      (node) => {
+        const p = node?.getLocalPosition();
+
+        return p ? [p.x, p.y, p.z] : null;
+      });
+    const seed = `${this.definition.id}:boxwood`;
+    const layout = ObjectDataCache.resolve("planters", {
+      seed,
+      positions,
+    }, () => {
+      const random = new GenerationRandom(seed);
+      const angle = random.rng(0, 3) * Math.PI / 2;
+      const mirror = random.rng(0, 1) ? 1 : -1;
+
+      return positions.map(/**
+       *
+       * @param {number[]|null} position
+       * @param {number} index
+       */
+        (position, index) => {
+        // Keep RNG consumption and sub-grid offsets identical to generation.
+          const offsetX = random.rng(-4, 4) / 100 + index * 0.001;
+          const offsetZ = random.rng(-4, 4) / 100 + index * 0.001;
+          if (!position) {
+            return null;
+          }
+          return [
+            position[0] * mirror * Math.cos(angle) - position[2] * Math.sin(angle) + offsetX,
+            position[1],
+            position[0] * mirror * Math.sin(angle) + position[2] * Math.cos(angle) + offsetZ,
+          ];
+        });
+    });
+    for (const [index, position] of layout.entries()) {
+      if (position) {
+        nodes[index].setLocalPosition(...position);
       }
-      const position = node.getLocalPosition().clone();
-      node.setLocalPosition(
-        position.x * mirror * Math.cos(angle) - position.z * Math.sin(angle) + offsetX,
-        position.y,
-        position.x * mirror * Math.sin(angle) + position.z * Math.cos(angle) + offsetZ,
-      );
     }
   }
 

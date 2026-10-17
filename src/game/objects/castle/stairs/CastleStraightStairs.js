@@ -1,9 +1,19 @@
+import { ObjectDataCache } from "../../../cache/ObjectDataCache.js";
+
 /**
  * Two ordinary flights share a full-width turning landing. Coordinates are
  * in the stair frame, with both floor approaches on +Z.
  * @param {{radius:number,rise:number,flightGap?:number,flightShift?:number,landingBack?:number,landingLift?:number,flightBounds?:{minX:number,maxX:number,inner:number}}} stair
  */
 export function castleStraightStairSurfaces(stair) {
+  return ObjectDataCache.resolve("straight-stair-surfaces", stairCacheInput(stair), () => generateStraightStairSurfaces(stair));
+}
+
+/**
+ * @param {StraightStairGeometry} stair
+ * @returns {Array<{minX:number,maxX:number,minZ:number,maxZ:number,low:number,high:number,reverse:boolean}>}
+ */
+function generateStraightStairSurfaces(stair) {
   const r = stair.radius;
   const offset = (stair.flightGap ?? 0) / 2;
   const min = stair.flightBounds?.minX ?? -r - offset;
@@ -99,6 +109,14 @@ export function castleStraightStairStepCount(surface) {
  * @returns {Array<{front:number,rear:number,height:number,bottom:number}>}
  */
 export function castleStraightStairTreads(surface) {
+  return ObjectDataCache.resolve("straight-stair-treads", surface, () => generateStraightStairTreads(surface));
+}
+
+/**
+ * @param {ReturnType<typeof castleStraightStairSurfaces>[number]} surface
+ * @returns {Array<{front:number,rear:number,height:number,bottom:number}>}
+ */
+function generateStraightStairTreads(surface) {
   const count = castleStraightStairStepCount(surface);
   const treads = [];
   for (let index = 0; index < count; index++) {
@@ -158,6 +176,14 @@ export function castleStraightStairAssemblies(layout) {
  * @returns {Array<{x:number,y:number,z:number,width:number,height:number,depth:number}>}
  */
 export function castleStraightStairWalls(stair) {
+  return ObjectDataCache.resolve("straight-stair-walls", stairCacheInput(stair), () => generateStraightStairWalls(stair));
+}
+
+/**
+ * @param {StraightStairGeometry} stair
+ * @returns {Array<{x:number,y:number,z:number,width:number,height:number,depth:number}>}
+ */
+function generateStraightStairWalls(stair) {
   const flight = castleStraightStairSurfaces(stair)[0];
   const height = stair.rise+(stair.continuesAbove ? 0 : 0.75);
   const walls = [{
@@ -220,5 +246,23 @@ function castleStraightStairTread(surface, index, count) {
     rear: front + run / count,
     height: surface.low + rise * (index + 1) / count,
     bottom: surface.low + rise * index / count,
+  };
+}
+
+/**
+ * World placement and object identity do not change the local assembly.
+ * @param {StraightStairGeometry} stair
+ * @returns {import("../../../cache/ObjectDataCache.js").CacheValue}
+ */
+function stairCacheInput(stair) {
+  return {
+    radius: stair.radius,
+    rise: stair.rise,
+    flightGap: stair.flightGap ?? 0,
+    flightShift: stair.flightShift ?? 0,
+    landingBack: stair.landingBack ?? 0,
+    landingLift: stair.landingLift ?? 0,
+    flightBounds: stair.flightBounds ?? null,
+    continuesAbove: stair.continuesAbove ?? false,
   };
 }

@@ -95,7 +95,9 @@ export class Bowl extends AbstractCastleProp {
       geometries.push(BowlPacking.geometry(contents, model));
       packedItems.push(contents);
     }
-    const poses = geometries.length ? BowlPacking.settle(shell, geometries) : [];
+    const poses = geometries.length ? BowlPacking.settle(shell, geometries, {
+      items: definition.items ?? [],
+    }) : [];
     for (const [index, pose] of poses.entries()) {
       // Numeric components also work when the solver and renderer were loaded
       // from different Engine entry points and have distinct Vec3/Quat classes.

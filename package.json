@@ -23,7 +23,8 @@
     "test:e2e": "cross-env NODE_ENV=test start-test \"quasar dev\" http-get://127.0.0.1:9000 \"cypress open --e2e\"",
     "test:e2e:ci": "cross-env NODE_ENV=test start-test \"quasar dev\" http-get://127.0.0.1:9000 \"cypress run --e2e\"",
     "test:game:movement": "npm run test:e2e:ci -- --spec test/cypress/e2e/game/objects/characters/hero/HeroMovement.cy.js",
-    "test:game:performance": "node scripts/run-game-performance-test.cjs"
+    "test:game:performance": "node scripts/run-game-performance-test.cjs",
+    "cache:objects": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/cache-objects.mjs"
   },
   "dependencies": {
     "@mediabunny/aac-encoder": "^1.56.3",

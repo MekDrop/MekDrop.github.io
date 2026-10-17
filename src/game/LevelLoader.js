@@ -1,5 +1,6 @@
 import { generateMap } from "./generator/map/MapGenerator.js";
 import { GameMapLoader } from "./GameMapLoader.js";
+import { ObjectDataCache } from "./cache/ObjectDataCache.js";
 
 /**
  * Prepares generated levels away from the rendering thread when available.
@@ -62,6 +63,8 @@ export class LevelLoader {
    * @param {import("./generator/map/MapGenerationTypes.js").MapGenerationOptions} options
    */
   static async #loadLocally(options) {
+    await ObjectDataCache.preload();
+
     return GameMapLoader.load(await generateMap(options));
   }
 }

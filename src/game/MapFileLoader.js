@@ -1,4 +1,5 @@
 import { CastleGenerator } from "./generator/castle/CastleGenerator.js";
+import { ObjectDataCache } from "./cache/ObjectDataCache.js";
 import { TerrainBlockDefinitions } from "./objects/terrain/TerrainBlockDefinitions.js";
 import { StoredMapNotFoundError } from "./errors/map/index.js";
 import { WalkingPaths } from "./navigation/WalkingPaths.js";
@@ -20,6 +21,7 @@ export class MapFileLoader {
    * @param {string} mapName
    */
   static async load(mapName) {
+    await ObjectDataCache.preload();
     const loader = this.#loaders.get(mapName);
     if (!loader) {
       throw new StoredMapNotFoundError({ mapName });

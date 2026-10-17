@@ -109,6 +109,11 @@ module.exports = configure(function (ctx) {
       // distDir
 
       extendViteConf(viteConf, { isClient, isServer }) {
+        viteConf.plugins.push(require("./scripts/object-cache/vite-plugin.cjs")(__dirname));
+        viteConf.worker ??= {};
+        viteConf.worker.format = "es";
+        viteConf.worker.plugins ??= [];
+        viteConf.worker.plugins.push(require("./scripts/object-cache/vite-plugin.cjs")(__dirname));
         if (isServer && viteConf.ssr?.noExternal) {
           viteConf.ssr.noExternal = viteConf.ssr.noExternal.filter(
             (pkg) => pkg !== "quasar",

@@ -1,3 +1,4 @@
+import { ObjectDataCache } from "../../../cache/ObjectDataCache.js";
 import { everyFiniteNumber } from "../../../helpers/collections.js";
 import { Vec3, Quat, Mat4, BoundingBox } from "playcanvas";
 import { AmmoPhysicsWorld } from "playcanvas/build/playcanvas/src/framework/physics/ammo/ammo-physics-world.js";
@@ -95,9 +96,35 @@ export class BowlPacking {
    * Returned poses are fixed data; no physics bodies survive this method.
    * @param {BowlPackingGeometry} shell
    * @param {BowlPackingGeometry[]} items
+   * @param {import("../../../cache/ObjectDataCache.js").CacheValue} recipe
    * @returns {Array<{position: Vec3, rotation: Quat}>}
    */
-  static settle(shell, items) {
+  static settle(shell, items, recipe = null) {
+    const poses = ObjectDataCache.resolve("bowls", recipe ?? {
+      shell,
+      items,
+    }, () => this.#settle(shell, items));
+
+    return poses.map(BowlPacking.#restorePose);
+  }
+
+  /**
+   * @param {{position: {x:number,y:number,z:number}, rotation: {x:number,y:number,z:number,w:number}}} pose
+   * @returns {{position: Vec3, rotation: Quat}}
+   */
+  static #restorePose(pose) {
+    return {
+      position: new Vec3(pose.position.x, pose.position.y, pose.position.z),
+      rotation: new Quat(pose.rotation.x, pose.rotation.y, pose.rotation.z, pose.rotation.w),
+    };
+  }
+
+  /**
+   * @param {BowlPackingGeometry} shell
+   * @param {BowlPackingGeometry[]} items
+   * @returns {Array<{position: Vec3, rotation: Quat}>}
+   */
+  static #settle(shell, items) {
     if (!items.length) {
       return [];
     }

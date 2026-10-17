@@ -73,8 +73,8 @@ export class CastleBasePlanGenerator {
   }
 
   /**
-   * Vite 4 serves JSON modules as JavaScript; Node requires JSON attributes.
-   * Keep each environment's supported import form in its own branch.
+   * Use static JSON imports in Vite and filesystem reads in native Node.
+   * This also works with bundlers that predate JSON import attributes.
    * @returns {Promise<CastleBasePlan[]>}
    */
   static async #loadPlans() {
@@ -82,19 +82,30 @@ export class CastleBasePlanGenerator {
     if (import.meta.env) {
       modules = await Promise.all([import("./plans/castle-01.json"), import("./plans/castle-03.json"), import("./plans/castle-04.json"), import("./plans/castle-demo-compact.json"), import("./plans/castle-compact-tower.json"), import("./plans/castle-compact-service-wing.json")]);
     } else {
-      modules = await Promise.all([import("./plans/castle-01.json", { with: { type: "json" } }),
-        import("./plans/castle-03.json", { with: { type: "json" } }), import("./plans/castle-04.json", { with: { type: "json" } }),
-        import("./plans/castle-demo-compact.json", { with: { type: "json" } }), import("./plans/castle-compact-tower.json", { with: { type: "json" } }), import("./plans/castle-compact-service-wing.json", { with: { type: "json" } })]);
+      modules = await Promise.all(["castle-01", "castle-03", "castle-04", "castle-demo-compact", "castle-compact-tower", "castle-compact-service-wing"].map(this.#loadNodePlan));
     }
     const rearTower = import.meta.env
       ? await import("./plans/castle-rear-bell-tower.json")
-      : await import("./plans/castle-rear-bell-tower.json", { with: { type: "json" } });
+      : await this.#loadNodePlan("castle-rear-bell-tower");
     modules.push(rearTower);
 
     return structuredClone(modules.map(/**
      * @param {{default:CastleBasePlan}} module
      */
       (module) => module.default));
+  }
+
+  /**
+   * @param {string} name
+   * @returns {Promise<{default: CastleBasePlan}>}
+   */
+  static async #loadNodePlan(name) {
+    const { readFile } = await import("node:fs/promises");
+    const directory = import.meta.url;
+
+    return {
+      default: JSON.parse(await readFile(new URL(`./plans/${name}.json`, directory), "utf8")),
+    };
   }
 
   /**

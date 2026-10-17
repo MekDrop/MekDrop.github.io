@@ -2,6 +2,7 @@ import {
   GameModelAnimationMissingError,
   GameModelLoadError,
   GameModelUnavailableError,
+  GameModelLibraryDestroyedError,
 } from "../errors/assets/index.js";
 import { AuthoredSurfaceStyle } from "../rendering/AuthoredSurfaceStyle.js";
 
@@ -26,6 +27,22 @@ export class GameModelLibrary {
    * @type {Map}
    */
   #mergedModels = new Map();
+  /**
+   * @type {Map<string, Promise<void>>}
+   */
+  #loading = new Map();
+  /**
+   * @type {ModelLoadJob[]}
+   */
+  #loadQueue = [];
+  /**
+   * @type {number}
+   */
+  #activeLoads = 0;
+  /**
+   * @type {boolean}
+   */
+  #destroyed = false;
 
   /**
    *
@@ -198,6 +215,11 @@ export class GameModelLibrary {
   }
 
   destroy() {
+    this.#destroyed = true;
+    for (const job of this.#loadQueue.splice(0)) {
+      this.#loading.delete(job.url);
+      job.reject(new GameModelLibraryDestroyedError({ url: job.url }));
+    }
     for (const { mesh, material } of this.#mergedModels.values()) {
       mesh.decRefCount();
       if (mesh.refCount < 1) {
@@ -207,8 +229,7 @@ export class GameModelLibrary {
     }
     this.#mergedModels.clear();
     for (const asset of this.#assets.values()) {
-      asset.unload();
-      this.#app?.assets.remove(asset);
+      this.#unloadModel(asset);
     }
     this.#assets.clear();
   }
@@ -226,7 +247,7 @@ export class GameModelLibrary {
 
     return new Promise(/**
      *
-     * @param {(value?: (value?: void) => void) => void} resolve
+     * @param {() => void} resolve
      * @param {(reason?: Error) => void} reject
      */
       (resolve, reject) => {
@@ -235,6 +256,12 @@ export class GameModelLibrary {
        * @param {pc.Asset} loadedAsset
        */
           (loadedAsset) => {
+            if (this.#destroyed) {
+              this.#unloadModel(loadedAsset);
+              reject(new GameModelLibraryDestroyedError({ url }));
+
+              return;
+            }
             for (const material of loadedAsset.resource.materials) {
               AuthoredSurfaceStyle.configure(
                 this.#pc, this.#app.graphicsDevice, material.resource,
@@ -248,7 +275,7 @@ export class GameModelLibrary {
        * @param {string|Error} cause
        */
           (cause) => {
-            this.#app.assets.remove(asset);
+            this.#unloadModel(asset);
             reject(new GameModelLoadError({
               url,
               cause,
@@ -425,7 +452,71 @@ export class GameModelLibrary {
    * @param {string} url
    */
   #mapUrl(url) {
-    return this.#loadModel(url);
+    if (this.#destroyed) {
+      return Promise.reject(new GameModelLibraryDestroyedError({ url }));
+    }
+    if (this.#assets.has(url)) {
+      return Promise.resolve();
+    }
+    let loading = this.#loading.get(url);
+    if (!loading) {
+      loading = new Promise(/**
+       *
+       * @param {() => void} resolve
+       * @param {(error: Error) => void} reject
+       */
+        (resolve, reject) => {
+          this.#loadQueue.push({
+            url,
+            resolve,
+            reject,
+          });
+        });
+      this.#loading.set(url, loading);
+      this.#drainLoads();
+    }
+
+    return loading;
+  }
+
+  /**
+   * Keep embedded image decoders from allocating every model's pixels at once.
+   */
+  #drainLoads() {
+    while (!this.#destroyed && this.#activeLoads < 4 && this.#loadQueue.length) {
+      const job = this.#loadQueue.shift();
+      this.#activeLoads += 1;
+      this.#runLoad(job);
+    }
+  }
+
+  /**
+   * @param {ModelLoadJob} job
+   * @returns {Promise<void>}
+   */
+  async #runLoad(job) {
+    try {
+      await this.#loadModel(job.url);
+      job.resolve();
+    } catch (error) {
+      job.reject(error);
+    } finally {
+      this.#loading.delete(job.url);
+      this.#activeLoads -= 1;
+      this.#drainLoads();
+    }
+  }
+
+  /**
+   * Release decoded pixels immediately instead of waiting for bitmap GC.
+   * @param {pc.Asset} asset
+   */
+  #unloadModel(asset) {
+    for (const texture of asset.resource?.textures ?? []) {
+      texture.resource?.releaseImageSources();
+    }
+    asset.unload();
+    this.#app?.assets.remove(asset);
   }
 
   /**
@@ -437,3 +528,7 @@ export class GameModelLibrary {
     return [resource.name, resource];
   }
 }
+
+/**
+ * @typedef {{url:string,resolve:()=>void,reject:(error:Error)=>void}} ModelLoadJob
+ */

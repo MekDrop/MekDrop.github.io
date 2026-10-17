@@ -36,6 +36,8 @@ import {
   GroundCollisionWorld,
 } from "./collision/index.js";
 import { GameModelLibrary } from "./models/index.js";
+import { EmbeddedTextureParser } from "./models/EmbeddedTextureParser.js";
+import { ObjectDataCache } from "./cache/ObjectDataCache.js";
 import { GameCamera, HeroVisibilityController } from "./camera/index.js";
 import { CameraOrbitPivot } from "./camera/CameraOrbitPivot.js";
 import {
@@ -507,6 +509,7 @@ export class PlayCanvasRenderer {
   }
 
   async init() {
+    await ObjectDataCache.preload();
     await AmmoRuntime.initialize(playCanvas);
     this.#pc = playCanvas;
     if (this.#destroyed) {
@@ -547,6 +550,7 @@ export class PlayCanvasRenderer {
     this.#cloudLayer = new pc.Layer({ name: "Cloud backdrop" });
     this.#app.scene.layers.insert(this.#cloudLayer, 0);
     this.#app.on("update", this.#updateFrame);
+    EmbeddedTextureParser.install(this.#app);
     this.#modelLibrary = new GameModelLibrary({
       pc,
       app: this.#app,
@@ -621,17 +625,24 @@ export class PlayCanvasRenderer {
     this.#app.root.addChild(sunlight);
     this.#shadowBudget = new DirectionalShadowBudget(pc, sunlight.light);
 
-    await Promise.all([
-      this.#createMaterials(),
-      this.#modelLibrary.load([
-        ...Hero.modelUrls,
-        HeroPatHand.modelUrl,
-        ...MapObjectFactory.modelUrls,
-        ...InventoryScene.modelUrls,
-        ...BridgeRailingKit.modelUrls,
-        ...BuriedTreasureField.modelUrls,
-      ]),
-    ]);
+    try {
+      await Promise.all([
+        this.#createMaterials(),
+        this.#modelLibrary.load([
+          ...Hero.modelUrls,
+          HeroPatHand.modelUrl,
+          ...MapObjectFactory.modelUrls,
+          ...InventoryScene.modelUrls,
+          ...BridgeRailingKit.modelUrls,
+          ...BuriedTreasureField.modelUrls,
+        ]),
+      ]);
+    } catch (error) {
+      if (this.#destroyed) {
+        return;
+      }
+      throw error;
+    }
     if (this.#destroyed) {
       return;
     }

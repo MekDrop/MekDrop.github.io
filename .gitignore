@@ -22,6 +22,7 @@ coverage/
 
 # Temporary scripts and scratch files
 /tmp/
+/src/game/cache/generated/
 /img.png
 /.junie/memory/errors.md
 /.junie/memory/feedback.md

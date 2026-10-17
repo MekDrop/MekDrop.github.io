@@ -1,3 +1,4 @@
+import { ObjectDataCache } from "../../../cache/ObjectDataCache.js";
 import { ShelfBooks } from "../shelf/ShelfBooks.js";
 import { ShelfLayout } from "../shelf/ShelfLayout.js";
 
@@ -39,15 +40,6 @@ export class BookMapObjects {
     const angle = bounds.rotation * Math.PI / 180;
     const cosine = Math.cos(angle), sine = Math.sin(angle);
     const frontOffset = shelf.facing === -1 ? 0.01 : -0.01;
-    let state = 2166136261;
-    for (const character of String(shelf.seed ?? shelf.id)) {
-      state = Math.imul(state ^ character.charCodeAt(0), 16777619) >>> 0;
-    }
-    const random = () => {
-      state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
-
-      return state / 4294967296;
-    };
     const rows = Math.max(1, Math.round((bounds.height - 0.0775) / 0.35));
     const spacing = (bounds.height - 0.0775) / rows;
     const levels = Array.from({ length: rows }, /**
@@ -59,10 +51,16 @@ export class BookMapObjects {
         bottom: 0.0775 + row * spacing,
         height: spacing - 0.055,
       }));
+    const seed = String(shelf.seed ?? shelf.id);
+    const layouts = ObjectDataCache.resolve("books", {
+      seed,
+      count,
+      levels,
+    }, () => this.#layouts(seed, count, levels));
     const books = [];
     for (let module = 0; module < count; module++) {
       const offset = -bounds.length / 2 + (module + 0.5) * length;
-      for (const book of ShelfBooks.layout(random, levels)) {
+      for (const book of layouts[module]) {
         const x = book.position.x * scaleX, z = book.position.z;
         const horizontal = book.tilt.z === 90;
         books.push({
@@ -88,6 +86,26 @@ export class BookMapObjects {
     }
 
     return books;
+  }
+
+  /**
+   * @param {string} seed
+   * @param {number} count
+   * @param {{bottom:number,height:number}[]} levels
+   * @returns {import("../../ObjectTypes.js").MapObjectDefinition[][]}
+   */
+  static #layouts(seed, count, levels) {
+    let state = 2166136261;
+    for (const character of seed) {
+      state = Math.imul(state ^ character.charCodeAt(0), 16777619) >>> 0;
+    }
+    const random = () => {
+      state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
+
+      return state / 4294967296;
+    };
+
+    return Array.from({ length: count }, () => ShelfBooks.layout(random, levels));
   }
 
   /**

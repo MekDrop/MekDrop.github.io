@@ -1,3 +1,4 @@
+import { RoofCollisionLayout } from "./RoofCollisionLayout.js";
 import roofUrl from "../../../models/castle/residential/blue-roof.glb?url";
 
 /**
@@ -71,24 +72,16 @@ export class CastleRoof {
     // The authored stepped courses own both the visible surface and Ammo contact.
     // Boxes match each course rather than enclosing the whole pitched silhouette.
     roof.addComponent("collision", { type: "compound" });
-    for (const render of roof.findComponents("render")) {
-      if (!render.entity.name.startsWith("Hipped roof course") && render.entity.name !== "Roof cap" &&
-        !render.entity.name.startsWith("Dormer stone body") && !render.entity.name.startsWith("Dormer blue roof course")) {
-        continue;
+    for (const box of RoofCollisionLayout.read(roof)) {
+      let node = roof;
+      for (const index of box.path) {
+        node = node.children[index];
       }
-      // GLB splits each course into material sections. The first section alone
-      // leaves the other tile colours and gable masonry without collision.
-      const bounds = render.meshInstances[0].mesh.aabb.clone();
-      for (const instance of render.meshInstances.slice(1)) {
-        bounds.add(instance.mesh.aabb);
-      }
-      // Primitive collision dimensions and offsets are in world units; Ammo does
-      // not apply the imported mesh hierarchy's scale to these box properties.
-      const scale = render.entity.getWorldTransform().getScale();
-      render.entity.addComponent("collision", {
+      const scale = node.getWorldTransform().getScale();
+      node.addComponent("collision", {
         type: "box",
-        halfExtents: bounds.halfExtents.clone().mul(scale),
-        linearOffset: bounds.center.clone().mul(scale),
+        halfExtents: new this.#pc.Vec3(...box.halfExtents).mul(scale),
+        linearOffset: new this.#pc.Vec3(...box.center).mul(scale),
       });
     }
     roof.addComponent("rigidbody", {

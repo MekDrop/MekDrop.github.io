@@ -497,7 +497,7 @@ export class DestructibleVegetation {
       return;
     }
     const physicsName = this.#kind === "tree" ? "Tree" : "Bush";
-    const physicsVoxels = mergeCollisionVoxels(voxels).map(
+    const physicsVoxels = mergeCollisionVoxels(voxels, this.#kind === "tree" ? "trees" : "bushes").map(
       this.#mapVoxel.bind(this),
     );
     this.#physicsCollider = addGeneratedVoxelPhysics({

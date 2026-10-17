@@ -1,3 +1,4 @@
+import { ObjectDataCache } from "../../../cache/ObjectDataCache.js";
 import { InvalidSpiralStaircaseError } from "../../../errors/spiral-staircase/index.js";
 
 /**
@@ -39,15 +40,38 @@ export class SpiralStaircaseLayout {
       throw new InvalidSpiralStaircaseError(definition);
     }
     const count = Math.ceil((Z2 - Z1) / stepRise - 1e-8);
+    const local = ObjectDataCache.resolve("spiral-stairs", {
+      count,
+      stepRise,
+      stepAngle,
+    },
+    () => this.#generateSteps(count, stepRise, stepAngle));
 
+    return local.map(/**
+     *
+     * @param {{height:number,rotation:number}} step
+     */
+      (step) => ({
+        height: Math.min(Z2, Z1 + step.height),
+        rotation: rotation + step.rotation,
+      }));
+  }
+
+  /**
+   * @param {number} count
+   * @param {number} stepRise
+   * @param {number} stepAngle
+   * @returns {Array<{height: number, rotation: number}>}
+   */
+  static #generateSteps(count, stepRise, stepAngle) {
     return Array.from({ length: count },
       /**
-       * @param {number} unused
+       * @param {undefined} unused
        * @param {number} index
        */
       (unused, index) => ({
-        height: Math.min(Z2, Z1 + (index + 1) * stepRise),
-        rotation: rotation + index * stepAngle,
+        height: (index + 1) * stepRise,
+        rotation: index * stepAngle,
       }));
   }
 }

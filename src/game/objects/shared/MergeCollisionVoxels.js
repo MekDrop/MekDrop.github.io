@@ -1,3 +1,5 @@
+import { ObjectDataCache } from "../../cache/ObjectDataCache.js";
+
 /**
  * @typedef {{x: number, y: number, z: number}} CollisionCell
  * @typedef {CollisionCell & {width: number, height: number, depth: number}} CollisionBox
@@ -6,9 +8,18 @@
 /**
  * Packs contiguous grid cells into non-overlapping boxes without filling holes.
  * @param {CollisionCell[]} voxels
+ * @param {string} family
  * @returns {CollisionBox[]}
  */
-export function mergeCollisionVoxels(voxels) {
+export function mergeCollisionVoxels(voxels, family = "collision-boxes") {
+  return ObjectDataCache.resolve(family, voxels, () => generateCollisionBoxes(voxels));
+}
+
+/**
+ * @param {CollisionCell[]} voxels
+ * @returns {CollisionBox[]}
+ */
+function generateCollisionBoxes(voxels) {
   const original = packCollisionCells(voxels);
   // Filling the canopy first avoids splitting broad layers around a tall trunk.
   const topFirst = packCollisionCells([...voxels].sort(/**
