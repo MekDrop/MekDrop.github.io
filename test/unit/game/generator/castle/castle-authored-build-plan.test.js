@@ -8,6 +8,44 @@ import { CastleResidentialLayout } from "../../../../../src/game/objects/castle/
 import { CastleWindowLayout } from "../../../../../src/game/objects/castle/structure/CastleWindowLayout.js";
 import { MapGenerator } from "../../../../../src/game/generator/map/MapGenerator.js";
 
+it("keeps compact roof terraces free of duplicate dividing parapets", async () => {
+  for (const basePlanId of CastleBasePlanGenerator.layoutPlanIds) {
+    for (const seed of [0, 1]) {
+      for (const side of ["NORTH", "SOUTH", "WEST", "EAST"]) {
+        const plan = await CastleGenerator.generate({
+          basePlanId,
+          seed,
+          position: {
+            x: -14,
+            z: -8,
+            width: 28,
+            depth: 16,
+            elevation: 3,
+          },
+          doors: [{
+            side,
+            offset: 7,
+            width: 2,
+          }],
+        });
+        const residential = plan.metadata.runtime.residential;
+        const layout = new CastleResidentialLayout(plan);
+        for (const terrace of residential.spaces.filter(space => space.kind === "terrace")) {
+          const z = (terrace.minZ + terrace.maxZ) / 2;
+          for (const x of [terrace.minX - 0.1, terrace.maxX + 0.1]) {
+            const point = layout.toWorld(x, z, terrace.floorY - residential.origin.y);
+            const blocked = plan.metadata.collision.cameraBlocks.some(block =>
+              Math.abs(block.x - point.x) < block.halfX - 1e-6 &&
+              Math.abs(block.z - point.z) < block.halfZ - 1e-6 &&
+              Math.abs(block.y - (point.y + 0.5)) < block.halfY - 1e-6);
+            assert.equal(blocked, false, `${basePlanId}/${seed}/${side}/${terrace.id}: no extra side wall`);
+          }
+        }
+      }
+    }
+  }
+});
+
 it("fits the compact roof to the upper shell's outer wall faces without extra eaves", async () => {
   for (const side of ["NORTH", "SOUTH", "WEST", "EAST"]) {
     for (const seed of [0, 1]) {

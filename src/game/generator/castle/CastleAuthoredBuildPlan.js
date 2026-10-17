@@ -1014,8 +1014,9 @@ export class CastleAuthoredBuildPlan {
       }
     }
     for (const room of spaces) {
-      const hasRoofParapet = authored.buildings.some(/**
+      const hasRoofParapet = buildings.some(/**
        * Exterior links need their own parapets; roof terraces get theirs from the roof.
+       * Compare both footprints in entrance-local coordinates.
        * @param {{minX:number,maxX:number,minZ:number,maxZ:number}} building
        */
         building => room.minX >= building.minX && room.maxX <= building.maxX &&
