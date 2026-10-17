@@ -121,3 +121,40 @@ test("book spines face the room from every cardinal wall", () => {
     }), expected);
   }
 });
+
+test("repairs a cabinet over a stair void onto a fully supported floor footprint", () => {
+  const floors = [{
+    minX: 0,
+    maxX: 1.6,
+    minZ: 0,
+    maxZ: 4,
+    floorY: 0,
+  }, {
+    minX: 1.6,
+    maxX: 4,
+    minZ: 0,
+    maxZ: 3,
+    floorY: 0,
+  }];
+  const [shelf] = RoomPlacementRules.repair([cabinet], [wall], [room], [], new Set(), floors);
+  assert.equal(shelf.placementIssue, undefined);
+  assert.ok(shelf.x + shelf.width * shelf.scale / 2 <= 1.6 + 1e-6);
+  assert.ok(BookshelfPlacementRules.placement(shelf, [wall], room));
+});
+
+test("adjacent floor pieces support a cabinet but a lower storey does not", () => {
+  const floors = [0, 2].map(minX => ({
+    minX,
+    maxX: minX + 2,
+    minZ: 0,
+    maxZ: 4,
+    floorY: 0,
+  }));
+  const [supported] = RoomPlacementRules.repair([cabinet], [wall], [room], [], new Set(), floors);
+  assert.equal(supported.placementIssue, undefined);
+  const [unsupported] = RoomPlacementRules.repair([cabinet], [wall], [room], [], new Set(), floors.map(floor => ({
+    ...floor,
+    floorY: -3,
+  })));
+  assert.ok(unsupported.placementIssue);
+});

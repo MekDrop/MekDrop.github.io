@@ -78,9 +78,10 @@ export class RoomPlacementRules {
    * @param {import("./AbstractCastleRoomGenerator.js").PlannedCastleRoom[]} rooms
    * @param {Array} openings
    * @param {Set<string>} [rotatedShelves]
+   * @param {Array<{minX:number,maxX:number,minZ:number,maxZ:number,floorY:number}>} [floors]
    * @returns {import("./AbstractCastleRoomGenerator.js").RoomItem[]}
    */
-  static repair(items, walls, rooms, openings = [], rotatedShelves = new Set()) {
+  static repair(items, walls, rooms, openings = [], rotatedShelves = new Set(), floors) {
     const result = items.map(RoomPlacementRules.#mapItem);
     /**
      * @param {import("./AbstractCastleRoomGenerator.js").RoomItem} item
@@ -263,6 +264,16 @@ export class RoomPlacementRules {
           offsets.add(wall[axis] - wallHalf - half - 0.02501 - root[axis]);
         }
       }
+      if (bookshelf && floors) {
+        const bounds = envelope(root);
+        for (const floor of floors) {
+          if (Math.abs(floor.floorY - root.floorY) > 0.005) {
+            continue;
+          }
+          xs.add(floor.minX - bounds.minX); xs.add(floor.maxX - bounds.maxX);
+          zs.add(floor.minZ - bounds.minZ); zs.add(floor.maxZ - bounds.maxZ);
+        }
+      }
       for (const member of members) {
         if (!member.item.wallAttachment) {
           xs.add(room.minX - member.minX); xs.add(room.maxX - member.maxX);
@@ -328,6 +339,15 @@ export class RoomPlacementRules {
      */
       const valid = candidate => {
         if (bookshelf) {
+          const bounds = envelope(root);
+          if (floors && !RoomPlacementRules.#hasFloor({
+            minX: bounds.minX + candidate.x,
+            maxX: bounds.maxX + candidate.x,
+            minZ: bounds.minZ + candidate.z,
+            maxZ: bounds.maxZ + candidate.z,
+          }, root.floorY, floors)) {
+            return false;
+          }
           const placement = BookshelfPlacementRules.placement({
             ...root,
             x: root.x + candidate.x,
@@ -415,7 +435,7 @@ export class RoomPlacementRules {
             item.rotation = ((item.rotation ?? 0) + 90) % 360;
           }
 
-          return RoomPlacementRules.repair(result, walls, rooms, openings, rotatedShelves);
+          return RoomPlacementRules.repair(result, walls, rooms, openings, rotatedShelves, floors);
         }
         // Never silently erase a furnishing that cannot fit: retain it for diagnostics.
         root.placementIssue = "No clear position in authored room";
@@ -424,6 +444,60 @@ export class RoomPlacementRules {
     }
 
     return result;
+  }
+
+  /**
+   * Subtract coplanar floor pieces to detect unsupported parts of a cabinet.
+   * @param {{minX:number,maxX:number,minZ:number,maxZ:number}} bounds
+   * @param {number} floorY
+   * @param {Array<{minX:number,maxX:number,minZ:number,maxZ:number,floorY:number}>} floors
+   * @returns {boolean}
+   */
+  static #hasFloor(bounds, floorY, floors) {
+    let uncovered = [bounds];
+    for (const floor of floors) {
+      if (Math.abs(floor.floorY - floorY) > 0.005) {
+        continue;
+      }
+      const remaining = [];
+      for (const piece of uncovered) {
+        const left = Math.max(piece.minX, floor.minX), right = Math.min(piece.maxX, floor.maxX);
+        const front = Math.max(piece.minZ, floor.minZ), rear = Math.min(piece.maxZ, floor.maxZ);
+        if (left >= right || front >= rear) {
+          remaining.push(piece);
+          continue;
+        }
+        for (const part of [
+          {
+            ...piece,
+            maxX: left,
+          },
+          {
+            ...piece,
+            minX: right,
+          },
+          {
+            minX: left,
+            maxX: right,
+            minZ: piece.minZ,
+            maxZ: front,
+          },
+          {
+            minX: left,
+            maxX: right,
+            minZ: rear,
+            maxZ: piece.maxZ,
+          },
+        ]) {
+          if (part.maxX - part.minX > 1e-6 && part.maxZ - part.minZ > 1e-6) {
+            remaining.push(part);
+          }
+        }
+      }
+      uncovered = remaining;
+    }
+
+    return uncovered.length === 0;
   }
 
   /**

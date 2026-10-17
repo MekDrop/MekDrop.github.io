@@ -5,11 +5,13 @@ export class FireplaceChimneyFootprint {
   /**
    * @param {import("../../../generator/castle/rooms/AbstractCastleRoomGenerator.js").RoomItem} item
    * @param {import("../../../generator/castle/rooms/AbstractCastleRoomGenerator.js").PlannedCastleRoom[]} rooms
+   * @param {number} [rotationCorrection] Model correction after authored plan transforms.
    * @returns {{minX:number,maxX:number,minZ:number,maxZ:number,bottom:number,top:number,masonry:boolean,chimney:boolean}}
    */
-  static bounds(item, rooms) {
+  static bounds(item, rooms, rotationCorrection = 180) {
     const scale = item.scale ?? 1;
-    const angle = (item.rotation ?? 0) * Math.PI / 180;
+    // Authored castle props publish layout yaw + 180 + item rotation.
+    const angle = ((item.rotation ?? 0) + rotationCorrection) * Math.PI / 180;
     const sine = Math.sin(angle), cosine = Math.cos(angle);
     const x = item.x + (cosine * 0.028 - sine * 0.2073) * scale;
     const z = item.z - (sine * 0.028 + cosine * 0.2073) * scale;

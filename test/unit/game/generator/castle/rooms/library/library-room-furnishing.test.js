@@ -1,3 +1,5 @@
+import { FireplaceChimneyFootprint } from "../../../../../../../src/game/objects/castle-props/fireplace/FireplaceChimneyFootprint.js";
+import { roomPropHeight } from "../../../../../../../src/game/generator/castle/rooms/RoomPropHeights.js";
 import assert from "node:assert/strict";
 import { it } from "node:test";
 import { CastleBasePlanGenerator } from "../../../../../../../src/game/generator/castle/CastleBasePlanGenerator.js";
@@ -232,6 +234,74 @@ it("builds shelf-top stacks from three touching independently colored closed boo
       assert.equal(book.z, stack[0].z);
       assert.equal(book.rotation, stack[0].rotation);
       assert.ok(Math.abs(book.y - shelf.height - level * 0.04) < 1e-6);
+    }
+  }
+});
+
+it("reserves lower-storey chimney volumes before filling library wall slots", () => {
+  const room = {
+    id: "chimney-library",
+    minX: 0,
+    maxX: 6,
+    minZ: 0,
+    maxZ: 4.5,
+    floorY: 3,
+    height: 3,
+    level: 1,
+  };
+  const chimney = {
+    minX: 0.05,
+    maxX: 0.65,
+    minZ: 1.5,
+    maxZ: 2.2,
+    bottom: 1.65,
+    top: 7,
+  };
+  const generator = new LibraryRoomGenerator();
+  for (let seed = 0; seed < 12; seed++) {
+    const items = generator.furnish(room, {
+      seed,
+      chimneys: [chimney],
+    });
+    assert.ok(items.some(item => item.object === "Shelf"));
+    for (const item of items) {
+      const halfX = item.width * item.scale / 2;
+      const halfZ = item.depth * item.scale / 2;
+      assert.ok(item.x + halfX <= chimney.minX || item.x - halfX >= chimney.maxX ||
+        item.z + halfZ <= chimney.minZ || item.z - halfZ >= chimney.maxZ,
+      `${seed}/${item.object}: leaves the chimney footprint clear`);
+    }
+  }
+});
+
+it("keeps generated library furniture outside fireplace chimneys after mirroring and placement repair", async () => {
+  for (const seed of [0, 1, 2, 3]) {
+    const plan = await CastleAuthoredBuildPlan.generate({
+      seed,
+      position: {
+        x: 0,
+        z: 0,
+        width: 16,
+        depth: 28,
+        elevation: 3,
+      },
+      doors: [{
+        side: "NORTH",
+        offset: 7,
+        width: 2,
+      }],
+    });
+    const residential = plan.metadata.runtime.residential;
+    for (const fireplace of residential.furniture.filter(item => item.object === "Fireplace")) {
+      const chimney = FireplaceChimneyFootprint.bounds(fireplace, residential.spaces);
+      for (const item of residential.furniture.filter(item => item.role === "libraryProp")) {
+        const bottom = item.floorY + (item.y ?? 0);
+        const top = bottom + roomPropHeight(item, 3) * item.scale;
+        assert.ok(bottom >= chimney.top || top <= chimney.bottom ||
+          item.x + item.width * item.scale / 2 <= chimney.minX || item.x - item.width * item.scale / 2 >= chimney.maxX ||
+          item.z + item.depth * item.scale / 2 <= chimney.minZ || item.z - item.depth * item.scale / 2 >= chimney.maxZ,
+        `${seed}/${item.object}: does not intersect the chimney`);
+      }
     }
   }
 });

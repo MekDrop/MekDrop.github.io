@@ -1,6 +1,6 @@
 /**
  * @typedef {{minX:number,maxX:number,minZ:number,maxZ:number}} StudyBounds
- * @typedef {import("../AbstractCastleRoomGenerator.js").PlannedCastleRoom & {seed?:string|number,furnishingSeed?:string|number,wallThickness?:number,openings?:import("../../CastleBasePlanGenerator.js").CompiledCastleOpening[],stairs?:(StudyBounds & {to?:number,radius?:number,flightShift?:number})[]}} StudyRoom
+ * @typedef {import("../AbstractCastleRoomGenerator.js").PlannedCastleRoom & {chimneys?:Array<StudyBounds & {bottom:number,top:number}>,seed?:string|number,furnishingSeed?:string|number,wallThickness?:number,openings?:import("../../CastleBasePlanGenerator.js").CompiledCastleOpening[],stairs?:(StudyBounds & {to?:number,radius?:number,flightShift?:number})[]}} StudyRoom
  */
 
 /**
@@ -250,6 +250,19 @@ export class LibraryRoomFurnishing {
     const max = yaw % 180 ? bounds.maxZ : bounds.maxX;
     const values = [];
     const half = yaw === 90 ? 0.395 : 0.425;
+    // Start a new adjoining row immediately beyond a chimney instead of
+    // discarding a whole module and leaving a cabinet-sized gap at the end.
+    for (const chimney of this.#room.chimneys ?? []) {
+      if (this.#room.floorY >= chimney.top || this.#room.floorY + this.#room.height <= chimney.bottom) {
+        continue;
+      }
+      const edge = yaw % 180 ? chimney.maxZ : chimney.maxX;
+      for (let along = edge + half + 0.001; along <= max - half - 0.01; along += half * 2 + 0.001) {
+        if (along >= min + half + 0.01) {
+          values.push(along);
+        }
+      }
+    }
     for (let along = min + half + 0.01; along <= max - half - 0.01; along += half * 2 + 0.001) {
       values.push(along);
     }
@@ -380,6 +393,22 @@ export class LibraryRoomFurnishing {
     if (box.minX < bounds.minX + inset - 1e-6 || box.maxX > bounds.maxX - inset + 1e-6 ||
         box.minZ < bounds.minZ + inset - 1e-6 || box.maxZ > bounds.maxZ - inset + 1e-6) {
       return false;
+    }
+    for (const chimney of room.chimneys ?? []) {
+      const bottom = room.floorY + y;
+      if (bottom < chimney.top - 0.005 && bottom + height > chimney.bottom + 0.005 &&
+        box.maxX > chimney.minX && box.minX < chimney.maxX && box.maxZ > chimney.minZ && box.minZ < chimney.maxZ) {
+        return false;
+      }
+      if (shelfPoint) {
+        const halfX = width > depth ? 0.18 : 0.425;
+        const halfZ = width > depth ? 0.425 : 0.18;
+        if (bottom < chimney.top - 0.005 && bottom + height > chimney.bottom + 0.005 &&
+          shelfPoint.x + halfX > chimney.minX && shelfPoint.x - halfX < chimney.maxX &&
+          shelfPoint.z + halfZ > chimney.minZ && shelfPoint.z - halfZ < chimney.maxZ) {
+          return false;
+        }
+      }
     }
     const aisles = sharedShelfAisle ? this.#shelfAisles.filter(/**
      * @param {StudyBounds & {alongX:boolean}} aisle

@@ -8,12 +8,13 @@ export class LibraryRoomGenerator extends AbstractCastleRoomGenerator {
   }
   /**
    * @param {import("../AbstractCastleRoomGenerator.js").PlannedCastleRoom} room
-   * @param {{seed?:string|number,openings?:import("../../CastleBasePlanGenerator.js").CompiledCastleOpening[],stairs?:Array<{from:number,to:number,minX:number,maxX:number,minZ:number,maxZ:number}>,wallThickness?:number}} [context]
+   * @param {{chimneys?:Array<{minX:number,maxX:number,minZ:number,maxZ:number,bottom:number,top:number}>,seed?:string|number,openings?:import("../../CastleBasePlanGenerator.js").CompiledCastleOpening[],stairs?:Array<{from:number,to:number,minX:number,maxX:number,minZ:number,maxZ:number}>,wallThickness?:number}} [context]
    * @returns {import("../AbstractCastleRoomGenerator.js").RoomItem[]}
    */
   furnish(room, context = {}) {
     return new LibraryRoomFurnishing({
       ...room,
+      chimneys: context.chimneys ?? room.chimneys,
       seed: context.seed ?? room.furnishingSeed,
       wallThickness: context.wallThickness,
       openings: (context.openings ?? room.openings ?? [])

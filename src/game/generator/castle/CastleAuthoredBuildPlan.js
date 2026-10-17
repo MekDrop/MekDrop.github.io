@@ -1303,7 +1303,7 @@ export class CastleAuthoredBuildPlan {
         halfX: Math.abs(Math.sin(angle)) > 0.5 ? block.halfZ : block.halfX,
         halfZ: Math.abs(Math.sin(angle)) > 0.5 ? block.halfX : block.halfZ,
       }));
-    residential.furniture = RoomPlacementRules.repair(residential.furniture, localWalls, spaces, openings);
+    residential.furniture = RoomPlacementRules.repair(residential.furniture, localWalls, spaces, openings, new Set(), residential.walkableAreas);
 
     return {
       input: {

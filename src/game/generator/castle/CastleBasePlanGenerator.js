@@ -1,3 +1,5 @@
+import { FireplaceChimneyFootprint } from "../../objects/castle-props/fireplace/FireplaceChimneyFootprint.js";
+import { roomPropHeight, roomPropBottom } from "./rooms/RoomPropHeights.js";
 import { everyFiniteNumber } from "../../helpers/collections.js";
 import { TerraceStorageRoomGenerator } from "./rooms/terrace-storage/TerraceStorageRoomGenerator.js";
 import { KitchenRoomGenerator } from "./rooms/kitchen/KitchenRoomGenerator.js";
@@ -218,7 +220,14 @@ export class CastleBasePlanGenerator {
       }
     }
     // Furnishing must see doors authored by neighboring rooms, including later spaces.
-    for (const room of spaces) {
+    const furnishingSpaces = [...spaces].sort(/**
+     *
+     * @param {CompiledCastleSpace} first
+     * @param {CompiledCastleSpace} second
+     */
+      (first, second) =>
+        Number(registry.get(second.generator) instanceof KitchenRoomGenerator) - Number(registry.get(first.generator) instanceof KitchenRoomGenerator));
+    for (const room of furnishingSpaces) {
       if (!room.generator || room.furnish === false) {
         continue;
       }
@@ -230,7 +239,18 @@ export class CastleBasePlanGenerator {
         ...room,
         ...room.furnishingBounds,
       } : room;
+      const chimneys = furniture.filter(/**
+       *
+       * @param {import("./rooms/AbstractCastleRoomGenerator.js").RoomItem} item
+       */
+        item => item.object === "Fireplace")
+        .map(/**
+         *
+         * @param {import("./rooms/AbstractCastleRoomGenerator.js").RoomItem} item
+         */
+          item => FireplaceChimneyFootprint.bounds(item, spaces, 0));
       for (const item of generator.furnish(furnishingRoom, {
+        chimneys,
         seed: options.seed,
         wallThickness: plan.wallThickness * scale,
         openings,
@@ -269,7 +289,16 @@ export class CastleBasePlanGenerator {
           (stair) => room.level >= stair.from && room.level <= stair.to &&
           item.x + halfX > stair.bounds[0] * scale && item.x - halfX < (stair.bounds[0] + stair.bounds[2]) * scale &&
           item.z + halfZ > stair.bounds[1] * scale && item.z - halfZ < (stair.bounds[1] + stair.bounds[3]) * scale);
-        if (!blocksDoor && !blocksStair) {
+        const bottom = room.floorY + (item.y ?? item.elevation ?? 0) + roomPropBottom(item) * item.scale;
+        const top = bottom + roomPropHeight(item, room.height) * item.scale;
+        const blocksChimney = chimneys.some(/**
+         *
+         * @param {ReturnType<typeof FireplaceChimneyFootprint.bounds>} chimney
+         */
+          chimney => bottom < chimney.top - 0.005 && top > chimney.bottom + 0.005 &&
+          item.x + halfX > chimney.minX && item.x - halfX < chimney.maxX &&
+          item.z + halfZ > chimney.minZ && item.z - halfZ < chimney.maxZ);
+        if (!blocksDoor && !blocksStair && !blocksChimney) {
           furniture.push({
             ...item,
             roomId: room.id,

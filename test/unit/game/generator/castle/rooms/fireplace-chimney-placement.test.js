@@ -1,3 +1,7 @@
+import { CastleAuthoredBuildPlan } from "../../../../../../src/game/generator/castle/CastleAuthoredBuildPlan.js";
+import { KitchenRoomMapObjects } from "../../../../../../src/game/objects/castle/rooms/kitchen/KitchenRoomMapObjects.js";
+import { LibraryRoomMapObjects } from "../../../../../../src/game/objects/castle/rooms/library/LibraryRoomMapObjects.js";
+import { ShelfLayout } from "../../../../../../src/game/objects/castle-props/shelf/ShelfLayout.js";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { RoomPlacementRules } from "../../../../../../src/game/generator/castle/rooms/RoomPlacementRules.js";
@@ -105,4 +109,56 @@ test("repair reserves the final fireplace position before upper furniture and su
     repairedTable.z + 0.35 <= chimney.minZ || repairedTable.z - 0.35 >= chimney.maxZ);
   assert.equal(repairedTable.x, repairedBowl.x);
   assert.equal(repairedTable.z, repairedBowl.z);
+});
+
+test("map 6 shelves clear the rendered chimney after the castle model yaw correction", async () => {
+  const buildPlan = await CastleAuthoredBuildPlan.generate({
+    position: {
+      x: 9,
+      z: -15,
+      width: 10,
+      depth: 10,
+      elevation: 3,
+    },
+    doors: [{
+      side: "WEST",
+      offset: 2,
+      width: 2,
+      approachElevation: 2,
+      stairOffset: 2,
+      stairWidth: 2,
+    }],
+    seed: "6",
+    requestedStyle: "twin-tower",
+  });
+  const map = {
+    cols: 42,
+    rows: 42,
+    objects: [{
+      id: "map6-castle",
+      object: "Castle",
+      buildPlan,
+    }],
+  };
+  KitchenRoomMapObjects.prepareMap(map);
+  LibraryRoomMapObjects.prepareMap(map);
+  const fireplace = map.objects.find(item => item.object === "Fireplace");
+  const angle = fireplace.rotation * Math.PI / 180;
+  // Use the renderer's actual model transform rather than the placement helper.
+  const x = fireplace.position.x + Math.cos(angle) * 0.028 - Math.sin(angle) * 0.2073;
+  const z = fireplace.position.z - Math.sin(angle) * 0.028 - Math.cos(angle) * 0.2073;
+  const halfX = Math.abs(Math.cos(angle)) * 0.29 + Math.abs(Math.sin(angle)) * 0.2;
+  const halfZ = Math.abs(Math.sin(angle)) * 0.29 + Math.abs(Math.cos(angle)) * 0.2;
+  const shelves = map.objects.filter(item => item.object === "Shelf" && item.libraryFurnishing);
+  const endWallShelves = buildPlan.metadata.runtime.residential.furniture.filter(item =>
+    item.role === "libraryProp" && item.object === "Shelf" && item.rotation === 90);
+  assert.equal(endWallShelves.length, 3, "fits three adjoining cabinets beside the chimney");
+  assert.ok(endWallShelves.every(item => !item.placementIssue));
+  assert.ok(shelves.length > 0);
+  for (const shelf of shelves) {
+    const bounds = ShelfLayout.bounds(shelf);
+    assert.ok(bounds.x + bounds.width / 2 <= x - halfX || bounds.x - bounds.width / 2 >= x + halfX ||
+      bounds.z + bounds.depth / 2 <= z - halfZ || bounds.z - bounds.depth / 2 >= z + halfZ,
+    `${shelf.id}: no intersection with actual chimney courses`);
+  }
 });

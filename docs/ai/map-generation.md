@@ -56,6 +56,11 @@ The scene registry owns disposal and forwards shared island offsets.
 Keep `grid`, `heightmap`, `tileMeta`, dimensions, map identity, and test/HUD
 configuration at map level. Routes and arrows are derived runtime data.
 
+## Chimney reservations
+
+- Generate fireplace rooms before other furnishings and reserve each chimney through every intersected storey. Initial candidate checks must reject chimney overlaps before accepting furniture; placement repair alone is insufficient.
+- Library wall slots and their reading approaches must exclude chimney volumes, including flues rising from lower rooms. Preserve these reservations through mirroring and final placement repair.
+
 ## Bookshelf placement
 
 These rules apply to every room generator, authored room layout, and placement
