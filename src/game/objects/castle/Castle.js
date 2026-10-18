@@ -209,6 +209,7 @@ export class Castle extends CastleEntityBuilder {
    * @param {import("../ObjectTypes.js").MapObjectLike} object
    */
   #findObject(object) {
-    return object.definition?.id === this.#definition.seedSignId;
+    return Boolean(this.#definition.seedSignId) &&
+      object.definition?.id === this.#definition.seedSignId;
   }
 }

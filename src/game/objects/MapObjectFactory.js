@@ -39,6 +39,7 @@ import { ServingTray } from "./castle-props/serving-tray/ServingTray.js";
 import { Teapot } from "./castle-props/teapot/Teapot.js";
 import { Teacup } from "./castle-props/teacup/Teacup.js";
 import { Planter } from "./castle-props/planter/Planter.js";
+import { GardenShelter } from "./castle-props/garden-shelter/GardenShelter.js";
 import { Throne } from "./castle-props/throne/Throne.js";
 import { Bowl } from "./castle-props/bowl/Bowl.js";
 import { Apple } from "./castle-props/food/Apple.js";
@@ -171,6 +172,7 @@ const OBJECT_CLASSES = new Map([
   // Attach cliff growth only after terrain population and castle excavation.
   [CliffVine.name, CliffVine],
   [Planter.name, Planter],
+  [GardenShelter.name, GardenShelter],
   [Bench.name, Bench],
   [Lantern.name, Lantern],
   [CandleStand.name, CandleStand],

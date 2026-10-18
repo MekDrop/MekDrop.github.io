@@ -6404,6 +6404,21 @@
             "script": "objects.getOne('hero').teleport({x:3,y:2.15,z:3.5});camera.setFirstPerson(true);"
           }
         ]
+      },
+      {
+        "title": "Terrace styles",
+        "x": 16,
+        "y": 550,
+        "buttons": [
+          {
+            "label": "Royal garden (1)",
+            "script": "objects.getAll(\"castle\")[0].regenerate(0);"
+          },
+          {
+            "label": "Storybook (4)",
+            "script": "objects.getAll(\"castle\")[0].regenerate(2);"
+          }
+        ]
       }
     ]
   }

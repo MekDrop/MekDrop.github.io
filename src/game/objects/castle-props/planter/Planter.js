@@ -1,5 +1,6 @@
 import { ObjectDataCache } from "../../../cache/ObjectDataCache.js";
 import modelUrl from "../../../models/castle/residential/terrace-planter.glb?url";
+import flowerUrl from "../../../models/castle/garden/flower-planter.glb?url";
 import { AbstractCastleProp } from "../../shared/AbstractCastleProp.js";
 import { GenerationRandom } from "../../../generator/map/GenerationRandom.js";
 
@@ -14,6 +15,9 @@ export class Planter extends AbstractCastleProp {
    * @param {boolean} collision
    */
   prepareModel(model, collision) {
+    if (this.definition.variant === "flowers") {
+      return;
+    }
     const nodes = Array.from({ length: 5 }, /**
      *
      * @param {undefined} _
@@ -70,5 +74,19 @@ export class Planter extends AbstractCastleProp {
    */
   static get modelUrl() {
     return modelUrl;
+  }
+
+  /**
+   * @returns {string[]}
+   */
+  static get modelUrls() {
+    return [modelUrl, flowerUrl];
+  }
+
+  /**
+   * @returns {string}
+   */
+  get modelUrl() {
+    return this.definition.variant === "flowers" ? flowerUrl : modelUrl;
   }
 }

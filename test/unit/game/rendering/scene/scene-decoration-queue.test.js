@@ -14,12 +14,28 @@ function mockFrames(t, frames) {
   });
 }
 
+function mockTimers(t, timers, fallbacks = []) {
+  t.mock.method(globalThis, "setTimeout", (callback, delay) => {
+    const timer = () => {
+      if (!timer.canceled) {
+        callback();
+      }
+    };
+    (delay ? fallbacks : timers).push(timer);
+
+    return timer;
+  });
+  t.mock.method(globalThis, "clearTimeout", (timer) => {
+    timer.canceled = true;
+  });
+}
+
 it("yields between loading frames, pauses, and cancels stale work", (t) => {
   const frames = [];
   const timers = [];
   const calls = [];
   let now = 0;
-  t.mock.method(globalThis, "setTimeout", (callback) => timers.push(callback));
+  mockTimers(t, timers);
   mockFrames(t, frames);
   t.mock.method(performance, "now", () => now += 5);
   const queue = new SceneDecorationQueue((error) => calls.push(error));
@@ -63,7 +79,7 @@ it("keeps loading pending until every decoration finishes and releases canceled 
   const frames = [];
   const timers = [];
   mockFrames(t, frames);
-  t.mock.method(globalThis, "setTimeout", (callback) => timers.push(callback));
+  mockTimers(t, timers);
   let now = 0;
   t.mock.method(performance, "now", () => now += 5);
   const queue = new SceneDecorationQueue(assert.fail);
@@ -100,9 +116,10 @@ it("keeps loading pending until every decoration finishes and releases canceled 
 
 it("reports decoration errors and allows remaining jobs to finish", (t) => {
   const frames = [];
+  const timers = [];
   const errors = [];
   mockFrames(t, frames);
-  t.mock.method(globalThis, "setTimeout", (callback) => callback());
+  mockTimers(t, timers);
   const queue = new SceneDecorationQueue((error) => errors.push(error));
   const failure = new TypeError("decoration fixture");
   let finished = false;
@@ -115,7 +132,29 @@ it("reports decoration errors and allows remaining jobs to finish", (t) => {
   queue.start();
   while (frames.length) {
     frames.shift()();
+    timers.shift()();
   }
   assert.deepEqual(errors, [failure]);
   assert.equal(finished, true);
+});
+
+it("finishes loading with suspended animation frames and ignores the late frame", async (t) => {
+  const frames = [];
+  const timers = [];
+  const fallbacks = [];
+  mockFrames(t, frames);
+  mockTimers(t, timers, fallbacks);
+  const queue = new SceneDecorationQueue(assert.fail);
+  let calls = 0;
+  queue.add(() => {
+    calls++;
+  });
+  const completion = queue.start();
+  assert.equal(frames.length, 1);
+  fallbacks.shift()();
+  assert.equal(await completion, true);
+  assert.equal(calls, 1);
+  frames.shift()();
+  timers.shift()();
+  assert.equal(calls, 1, "a delayed animation frame cannot run the same chunk twice");
 });

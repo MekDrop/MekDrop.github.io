@@ -11,6 +11,7 @@ import { DecorationPlacementRules } from "../../../generator/map/DecorationPlace
 import { LibraryRoomMapObjects } from "../rooms/library/LibraryRoomMapObjects.js";
 import { RoyalBedroomRoomMapObjects } from "../rooms/royal-bedroom/RoyalBedroomRoomMapObjects.js";
 import { LeisureRoomMapObjects } from "../rooms/leisure/LeisureRoomMapObjects.js";
+import { CastleGardenMapObjects } from "../rooms/terrace/CastleGardenMapObjects.js";
 import { KitchenRoomMapObjects } from "../rooms/kitchen/KitchenRoomMapObjects.js";
 import { ThroneRoomMapObjects } from "../rooms/throne/ThroneRoomMapObjects.js";
 import { StairwellRoomMapObjects } from "../rooms/stairwell/StairwellRoomMapObjects.js";
@@ -40,6 +41,7 @@ export class CastleMapPreparation {
     RoyalBedroomRoomMapObjects.prepareMap(mapData);
     LibraryRoomMapObjects.prepareMap(mapData);
     LeisureRoomMapObjects.prepareMap(mapData);
+    CastleGardenMapObjects.prepareMap(mapData);
     KitchenRoomMapObjects.prepareMap(mapData);
     ThroneRoomMapObjects.prepareMap(mapData);
     StairwellRoomMapObjects.prepareMap(mapData);

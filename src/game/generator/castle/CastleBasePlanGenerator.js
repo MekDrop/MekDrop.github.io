@@ -12,6 +12,7 @@ import { LeisureRoomGenerator } from "./rooms/leisure/LeisureRoomGenerator.js";
 import { TowerRoomGenerator } from "./rooms/tower/TowerRoomGenerator.js";
 import { VestibuleRoomGenerator } from "./rooms/vestibule/VestibuleRoomGenerator.js";
 import { StairwellRoomGenerator } from "./rooms/stairwell/StairwellRoomGenerator.js";
+import { GardenTerraceRoomGenerator } from "./rooms/terrace/GardenTerraceRoomGenerator.js";
 
 /**
  * @typedef {{kind:string,side:string,offset:number,width:number,bottom:number,height:number,swing?:string,openWide?:boolean,frameClearance?:number,openingInset?:number,open?:boolean}} AuthoredCastleOpening
@@ -132,7 +133,7 @@ export class CastleBasePlanGenerator {
       throw new CastleBasePlanInvalidError(plan.id, "scale/baseY");
     }
     const generators = options.generators ?? [new ServiceRoomGenerator(), new RoyalBedroomRoomGenerator(), new KitchenRoomGenerator(), new LibraryRoomGenerator(),
-      new ThroneRoomGenerator(), new LeisureRoomGenerator(), new TowerRoomGenerator(1), new VestibuleRoomGenerator(), new TerraceStorageRoomGenerator()];
+      new ThroneRoomGenerator(), new LeisureRoomGenerator(), new GardenTerraceRoomGenerator(), new TowerRoomGenerator(1), new VestibuleRoomGenerator(), new TerraceStorageRoomGenerator()];
     const registry = new Map(generators.map(/**
      *
      * @param {import("./rooms/AbstractCastleRoomGenerator.js").AbstractCastleRoomGenerator} generator

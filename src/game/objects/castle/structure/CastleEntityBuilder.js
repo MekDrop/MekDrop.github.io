@@ -710,7 +710,8 @@ export class CastleEntityBuilder {
     )) {
       const material = new this.#pc.StandardMaterial();
       material.name = name;
-      material.diffuse = colorFromHex(this.#pc, definition.color);
+      material.diffuse = colorFromHex(this.#pc,
+        this.#buildPlan.metadata.runtime.materialColors?.[name] ?? definition.color);
       material.gloss = definition.gloss ?? 0.08;
       material.metalness = 0;
       material.useMetalness = true;

@@ -95,7 +95,19 @@ export class SceneDecorationQueue {
   #schedule(generation) {
     this.#scheduled = true;
     // Let the loading screen paint between chunks instead of blocking a frame.
-    requestAnimationFrame(() => setTimeout(() => this.#run(generation), 0));
+    // Embedded/background browsers may suspend animation frames entirely. Loading
+    // must still settle; whichever callback wins owns this chunk exactly once.
+    let pending = true;
+    const run = () => {
+      if (!pending) {
+        return;
+      }
+      pending = false;
+      clearTimeout(fallback);
+      this.#run(generation);
+    };
+    const fallback = setTimeout(run, 100);
+    requestAnimationFrame(() => setTimeout(run, 0));
   }
 
   /**

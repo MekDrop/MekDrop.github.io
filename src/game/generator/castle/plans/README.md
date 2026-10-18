@@ -69,6 +69,17 @@ step clearance, and open floor shafts provide headroom. Void areas remain unfloo
 The public generator no longer dispatches to the legacy room-packing pipeline.
 A preview fixture is available at /en/map/test_castle-base-plans.
 
+## Rear bell tower terrace
+
+`castle-rear-bell-tower` opts its roof terrace into `GardenTerraceRoomGenerator`.
+Even/odd seed pairs share a decorative family: pairs 0/1, 4/5, etc. produce the
+royal garden; pairs 2/3, 6/7, etc. produce the weathered storybook court.
+The round tower, spiral stairs, terrace link and hall footprint stay fixed.
+Furnishings reserve the central two-metre tower approach and use normal map
+objects, including open-sided imported pergola/canopy models and flower planters.
+Use the **Royal garden (1)** and **Storybook (4)** HUD buttons on
+`/map/test_castle-rear-bell-tower` to compare the two styles.
+
 For regeneration, compare matching ground/upper/roof panels in the source sheet,
 edit the JSON in place, preserve stable slot IDs, and run:
 

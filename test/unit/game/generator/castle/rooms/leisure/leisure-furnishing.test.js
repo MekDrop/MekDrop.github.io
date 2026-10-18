@@ -61,7 +61,10 @@ it("restores the two terrace planters away from the entrance without seeded vari
 });
 it("uses only plants in both active authored terraces", async () => {
   for (const seed of [20, 21, 22, 23]) {
-    const plan = await CastleBasePlanGenerator.generate({ seed });
+    const plan = await CastleBasePlanGenerator.generate({
+      planId: "castle-demo-compact",
+      seed,
+    });
     for (const id of ["terrace-west", "terrace-south"]) {
       const items = plan.furniture.filter((item) => item.roomId === id);
       assert.ok(items.length > 0);
@@ -72,6 +75,7 @@ it("uses only plants in both active authored terraces", async () => {
 
 it("publishes plants idempotently and removes obsolete leisure furniture", async () => {
   const buildPlan = await CastleAuthoredBuildPlan.generate({
+    basePlanId: "castle-demo-compact",
     position: {
       x: -4,
       z: -4,

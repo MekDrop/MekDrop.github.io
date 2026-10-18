@@ -20,7 +20,8 @@ export class LeisureRoomMapObjects {
       const roomOrdinals = new Map();
       const generatedIds = new Set();
       for (const item of plan.furniture) {
-        if (!item.role.startsWith("leisure") || item.object !== "Planter") {
+        if (!item.role.startsWith("leisure") || !item.object ||
+          (item.role !== "leisureProp" && item.object !== "Planter")) {
           continue;
         }
         const index = roomOrdinals.get(item.roomId) ?? 0;
@@ -31,16 +32,18 @@ export class LeisureRoomMapObjects {
           * @param {import("../../../ObjectTypes.js").MapObjectDefinition} definition
           */
           (definition) => definition.id === id);
-        const position = layout.toWorld(item.x, item.z, item.floorY - layout.origin.y + (item.yOffset ?? 0));
+        const position = layout.toWorld(item.x, item.z, item.floorY - layout.origin.y + (item.elevation ?? item.y ?? item.yOffset ?? 0));
         // The compiler has already reflected yaw for mirrored seeds.
         const rotation = layout.yaw + 180 + (item.rotation ?? 0);
         const definition = {
           id,
-          object: "Planter",
+          object: item.object,
+          variant: item.variant,
           ...item.properties,
           position,
           rotation,
           scale: item.scale,
+          stretch: item.stretch,
           generated: true,
           sourceCastleId: castle.id,
           tile: {
