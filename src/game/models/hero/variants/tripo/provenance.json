@@ -1,0 +1,21 @@
+{
+  "provider": "Tripo Studio",
+  "jobId": "1109c4f1-c5c4-4620-bd48-3198a2c7c439",
+  "sourcePage": "https://studio.tripo3d.ai/workspace/generate/1109c4f1-c5c4-4620-bd48-3198a2c7c439",
+  "operation": "image-to-3d",
+  "model": "H3.1 \u2013 Best Quality",
+  "costCredits": 30,
+  "reference": "tmp\\hero-tripo-reference.png",
+  "referenceSha256": "3ba83ceefe12ccd68e2e1031da21bd6c66f3a44df699d5f8ab5bacf39e4a07dc",
+  "prompt": null,
+  "negativePrompt": null,
+  "intendedUse": "separate static hero appearance comparison; preserve production animation model",
+  "status": "completed",
+  "triangles": 4808,
+  "vertices": 3675,
+  "animations": 0,
+  "originalSha256": "f4ca854d1b38edee3ed94b407ab935f472358e5976df602b0fe341ef3d4abd39",
+  "normalization": "Uniform height 2.7069714814424515; sole Z -0.18750841915607452 to match current hero for comparison",
+  "license": "Generated in user-controlled Tripo account; subject to that account/provider terms. No new license accepted.",
+  "runtimeStatus": "Static comparison candidate only; not registered as the playable hero."
+}

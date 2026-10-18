@@ -1,4 +1,26 @@
-# Hero climbing animation
+# Hero animation
+
+## Articulated gloves
+
+Both ivory gloves have five human-like digits: four tapered, three-joint fingers
+and a two-joint opposing thumb. Their proportions keep the rounded, angular
+character style. Palms are broad enough to balance the cuffs, with fuller,
+overlapping knuckles and rounded fingers rather than narrow segmented tubes.
+The existing `Left white glove` and `Right white glove` roots
+retain their attachment origins for tools, rope contacts and hand colliders.
+Idle and ordinary locomotion turn the palms toward the thighs, with the thumbs
+forward and tucked in and a progressively deeper curl toward the little finger.
+Both wrist rotations are explicitly keyed in every clip so action transitions
+restore the correct orientation rather than retaining the previous wrist pose.
+
+Finger rotation is authored in every existing NLA clip and exported in the same
+named GLB animation. Idle and locomotion gently flex the fingers; tool actions
+close the grip, pickups pinch, climbing alternates grasp and release, and the
+lava farewell uses a raised-thumb fist. Every clip owns all finger channels so
+transitions back to Idle release the previous grip. The old separate farewell
+thumb is replaced by the articulated right thumb.
+
+## Climbing
 
 `hero.blend` contains the looping `Climb` action as named NLA tracks on the
 existing articulated object hierarchy. Alternating arm and leg reaches are
