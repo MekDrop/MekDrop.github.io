@@ -97,8 +97,7 @@ it("opens and restores a single grass top without moving its walls or neighborin
     renderer.addCubeMatrix("grass-0", "earth", x, 1.5, 0, "full", "earth", 0.004);
   }
   renderer.build();
-  const batch = root.children[0].children[0];
-  const [walls, underlay, top] = batch.render.meshInstances;
+  const [walls, underlay, top] = root.children[0].children.flatMap((child) => child.render.meshInstances);
   const original = new Float32Array(walls.buffer.data);
   const target = {
     x: -0.5,
@@ -107,13 +106,19 @@ it("opens and restores a single grass top without moving its walls or neighborin
   };
   renderer.excavateSurface(target, 0.31);
   assert.deepEqual(walls.buffer.data, original);
-  assert.equal(underlay.buffer, walls.buffer);
+  assert.notEqual(underlay.buffer, walls.buffer);
+  assert.equal(underlay.buffer.data[13], -10000, "remove the soil cap across the cavity too");
+  assert.equal(underlay.buffer.data[29], original[29], "keep the neighboring soil cap intact");
   assert.equal(top.buffer.data[13], -10000);
   assert.equal(top.buffer.data[29], original[29]);
-  const opening = root.children[0].children[1];
+  const openings = root.children[0].children.filter((child) => child.name === "Excavated cube surface");
+  assert.equal(openings.length, 2);
   renderer.setIslandOffsets(0.2, -0.1);
-  assert.ok(Math.abs(opening.getPosition().y - 2.204) < 1e-6);
+  for (const opening of openings) {
+    assert.ok(Math.abs(opening.getPosition().y - 2.204) < 1e-6);
+  }
   renderer.excavateSurface(target, 0);
   assert.deepEqual(top.buffer.data, original);
-  assert.equal(opening.enabled, false);
+  assert.deepEqual(underlay.buffer.data, original);
+  assert.ok(openings.every((opening) => !opening.enabled));
 });

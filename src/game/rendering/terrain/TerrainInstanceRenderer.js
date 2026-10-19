@@ -48,7 +48,7 @@ export class TerrainInstanceRenderer {
    */
   #vertexBuffers = [];
   /**
-   * @type {Map<string, {buffer: import("playcanvas").VertexBuffer, index: number, y: number, parent: import("playcanvas").Entity, material: import("playcanvas").Material, halfSize: number, entity?: import("playcanvas").Entity, mesh?: import("playcanvas").Mesh}>}
+   * @type {Map<string, {buffer: import("playcanvas").VertexBuffer, index: number, y: number, parent: import("playcanvas").Entity, material: import("playcanvas").Material, halfSize: number, entity?: import("playcanvas").Entity, mesh?: import("playcanvas").Mesh}[]>}
    */
   #surfaceInstances = new Map();
 
@@ -255,7 +255,8 @@ export class TerrainInstanceRenderer {
       if (!surfaceOnly) {
         addFace(slopeMeshes?.sides ?? bridgeSideMesh ?? this.#meshes.wallSides, sideMaterial);
       }
-      addFace(bridgeSideMesh ? this.#meshes.bridgeUnderside : this.#meshes.underlay, underlayMaterial);
+      const excavatable = coverage === "full" && topMaterial.startsWith("grass");
+      addFace(bridgeSideMesh ? this.#meshes.bridgeUnderside : this.#meshes.underlay, underlayMaterial, excavatable);
       addFace(surfaceMesh, topMaterial, coverage === "full" && topMaterial.startsWith("grass"));
     }
     for (const { group, mesh, material, excavatable, matrices } of batches.values()) {
@@ -285,7 +286,9 @@ export class TerrainInstanceRenderer {
           const x = matrices[offset + 12];
           const y = matrices[offset + 13] + matrices[offset + 5] / 2;
           const z = matrices[offset + 14];
-          this.#surfaceInstances.set(`${x},${y.toFixed(4)},${z}`, {
+          const key = `${x},${y.toFixed(4)},${z}`;
+          const surfaces = this.#surfaceInstances.get(key) ?? [];
+          surfaces.push({
             buffer,
             index,
             y: matrices[offset + 13],
@@ -293,6 +296,7 @@ export class TerrainInstanceRenderer {
             material: this.#materials.get(material),
             halfSize: matrices[offset] / 2,
           });
+          this.#surfaceInstances.set(key, surfaces);
         }
       }
       parent.addChild(entity);
@@ -317,10 +321,19 @@ export class TerrainInstanceRenderer {
    * @param {number} radius
    */
   excavateSurface(position, radius) {
-    const record = this.#surfaceInstances.get(`${position.x},${position.y.toFixed(4)},${position.z}`);
-    if (!record) {
-      return;
+    const surfaces = this.#surfaceInstances.get(`${position.x},${position.y.toFixed(4)},${position.z}`) ?? [];
+    for (const record of surfaces) {
+      this.#excavateSurfaceRecord(record, position, radius);
     }
+  }
+
+  /**
+   * Cut the soil cap as well as the grass top, leaving the walls intact.
+   * @param {{buffer: import("playcanvas").VertexBuffer, index: number, y: number, parent: import("playcanvas").Entity, material: import("playcanvas").Material, halfSize: number, entity?: import("playcanvas").Entity, mesh?: import("playcanvas").Mesh}} record
+   * @param {{x: number, y: number, z: number}} position
+   * @param {number} radius
+   */
+  #excavateSurfaceRecord(record, position, radius) {
     const storage = record.buffer.lock();
     const data = storage instanceof Float32Array ? storage : new Float32Array(storage);
     data[record.index * 16 + 13] = radius > 0 ? -10000 : record.y;
@@ -346,7 +359,7 @@ export class TerrainInstanceRenderer {
   }
 
   destroy() {
-    for (const record of this.#surfaceInstances.values()) {
+    for (const record of Array.from(this.#surfaceInstances.values()).flat()) {
       record.entity?.destroy();
       record.mesh?.destroy();
     }

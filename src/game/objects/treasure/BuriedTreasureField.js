@@ -532,7 +532,6 @@ export class BuriedTreasureField {
       return true;
     }
 
-    this.#dugTiles.add(target.id);
     const buriedChest = this.#buriedChests.get(target.id);
     const forwardX = facing?.x ?? 0;
     const forwardZ = facing?.z ?? 1;
@@ -560,6 +559,7 @@ export class BuriedTreasureField {
       fillProgress: 0,
       contents: buriedChest?.contents ?? [],
     };
+    this.#dugTiles.add(target.id);
     if (buriedChest) {
       Object.assign(site, buriedChest, {
         x: target.x,

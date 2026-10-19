@@ -358,6 +358,47 @@ it("keeps stop, resume, and fill available after digging from an offset landing"
   }
 });
 
+it("moves the spoil pile away from a lower neighboring terrace", () => {
+  const models = [];
+  const field = new BuriedTreasureField({
+    pc,
+    mapData: {
+      cols: 5,
+      rows: 5,
+      grid: Array.from({ length: 5 }, () => Array(5).fill(MAP_TILE_TYPE.GRASS)),
+      heightmap: Array.from({ length: 5 }, (_, row) => Array(5).fill(row > 2 ? -1 : 0)),
+      objects: [],
+    },
+    modelLibrary: {
+      instantiate: (url) => {
+        const entity = new pc.Entity(url);
+        models.push(entity);
+
+        return entity;
+      },
+    },
+    app: { on: () => ({ off: () => {} }) },
+  });
+  field.dig({
+    kind: "dig",
+    id: "2:2",
+    col: 2,
+    row: 2,
+    x: 0,
+    y: 0.004,
+    z: 0,
+  }, {
+    x: 0,
+    z: 1,
+  });
+  const pile = models.find((entity) => entity.name.startsWith("Excavated earth pile"));
+  assert.ok(pile.getLocalPosition().z + 0.34 <= 0.5,
+    "the entire mound stays behind the cliff edge");
+  assert.ok(Math.abs(Math.hypot(pile.getLocalPosition().x, pile.getLocalPosition().z) - Math.hypot(0.42, 0.3)) < 1e-6,
+    "use another side before moving the mound closer to the cavity");
+  field.destroy();
+});
+
 it("reveals the already instantiated chest and spawns its stored contents without rerolling", () => {
   const mapData = GameMapLoader.load({
     cols: 1,
