@@ -185,76 +185,44 @@
       {
         "baseHeight": 2,
         "renderMode": "SOLID",
-        "surfaceType": "GRASS"
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
       },
       {
         "baseHeight": 2,
         "renderMode": "SOLID",
-        "surfaceType": "GRASS"
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
       },
       {
         "baseHeight": 2,
         "renderMode": "SOLID",
-        "surfaceType": "GRASS"
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
       },
       {
         "baseHeight": 2,
         "renderMode": "SOLID",
-        "surfaceType": "GRASS"
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
       },
       {
         "baseHeight": 2,
         "renderMode": "SOLID",
-        "surfaceType": "GRASS"
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
       },
       {
         "baseHeight": 2,
         "renderMode": "SOLID",
-        "surfaceType": "GRASS"
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
       },
       {
         "baseHeight": 2,
         "renderMode": "SOLID",
-        "surfaceType": "GRASS"
-      },
-      {}
-    ],
-    [
-      {},
-      {
-        "baseHeight": 2,
-        "renderMode": "SOLID",
-        "surfaceType": "GRASS"
-      },
-      {
-        "baseHeight": 2,
-        "renderMode": "SOLID",
-        "surfaceType": "GRASS"
-      },
-      {
-        "baseHeight": 2,
-        "renderMode": "SOLID",
-        "surfaceType": "GRASS"
-      },
-      {
-        "baseHeight": 2,
-        "renderMode": "SOLID",
-        "surfaceType": "GRASS"
-      },
-      {
-        "baseHeight": 2,
-        "renderMode": "SOLID",
-        "surfaceType": "GRASS"
-      },
-      {
-        "baseHeight": 2,
-        "renderMode": "SOLID",
-        "surfaceType": "GRASS"
-      },
-      {
-        "baseHeight": 2,
-        "renderMode": "SOLID",
-        "surfaceType": "GRASS"
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
       },
       {}
     ],
@@ -263,37 +231,90 @@
       {
         "baseHeight": 2,
         "renderMode": "SOLID",
-        "surfaceType": "GRASS"
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
       },
       {
         "baseHeight": 2,
         "renderMode": "SOLID",
-        "surfaceType": "GRASS"
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
       },
       {
         "baseHeight": 2,
         "renderMode": "SOLID",
-        "surfaceType": "GRASS"
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
       },
       {
         "baseHeight": 2,
         "renderMode": "SOLID",
-        "surfaceType": "GRASS"
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
       },
       {
         "baseHeight": 2,
         "renderMode": "SOLID",
-        "surfaceType": "GRASS"
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
       },
       {
         "baseHeight": 2,
         "renderMode": "SOLID",
-        "surfaceType": "GRASS"
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
       },
       {
         "baseHeight": 2,
         "renderMode": "SOLID",
-        "surfaceType": "GRASS"
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS",
+        "shape": "FLAT"
       },
       {}
     ],

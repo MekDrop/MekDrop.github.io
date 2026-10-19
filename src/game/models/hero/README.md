@@ -1,5 +1,27 @@
 # Hero animation
 
+## Flower pickup
+
+`PickFlower` is a 1.5-second one-knee kneel, right-hand pinch, lift and recovery.
+The glove reaches the stem base 0.25 metres ahead and 0.04 metres above
+the ground at 14/24 seconds, using the production hero scale of 0.65.
+Flower grip points compensate for each variant's vertical scale. The left foot
+plants forward while the right knee lowers and the rear boot rolls onto its toe.
+The spare hand braces on the raised left knee. Fingers close
+for the pickup and release as the flower enters the inventory.
+
+Each animated object has one `PickFlower` NLA track. The action keys the
+object's active rotation mode, with continuous Euler branches between samples,
+and restores the shipped Idle pose at both endpoints. Duplicate neutral tracks
+can override the reach; discontinuous Euler angles can flip the knees between
+otherwise correct keyframes.
+
+Use `/map/test_hero-pickup-items?camera-test` for all flower variants and
+`/map/test_inventory-on-flower?camera-test` for the real approach, pickup and
+inventory transfer. Review complete cycles around the hero at normal, low and
+high camera elevations. The focused exported-animation test checks stem contact,
+front-foot support, the lowered right knee and recovery in `test/unit/game/models/hero/`.
+
 ## Treasure chest opening
 
 `OpenChest` is a 1.8-second, non-looping two-handed reach and lift. The hero

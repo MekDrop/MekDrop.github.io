@@ -22,6 +22,7 @@ import { MushroomPhysics } from "./MushroomPhysics.js";
 
 export const FLOWER_CATEGORY = "flower";
 export const MUSHROOM_CATEGORY = "mushroom";
+// PickFlower grasps the stem base 0.04 metres above the ground at scale 1.
 // Physics tip heights are vertex-measured GLB maxima; the collider must reach
 // the rendered petals, rather than the middle of the stem.
 export const GROUND_COVER_VARIANTS = Object.freeze({
@@ -51,7 +52,7 @@ export const GROUND_COVER_VARIANTS = Object.freeze({
     physicsTipHeight: 0.1454,
     gripPoint: {
       x: 0,
-      y: 0.02,
+      y: 0.04 / 2.05,
       z: 0,
     },
   },
@@ -95,9 +96,9 @@ export const GROUND_COVER_VARIANTS = Object.freeze({
     verticalScale: 0.9,
     physicsTipHeight: 0.1889,
     gripPoint: {
-      x: 0.03,
-      y: 0.02,
-      z: -0.07,
+      x: 0,
+      y: 0.04 / 0.9,
+      z: 0,
     },
   },
   "red-mushroom": {
