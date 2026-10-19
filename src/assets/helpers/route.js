@@ -31,7 +31,10 @@ export function getRouteUrl(to, router, ssrContext = null) {
  * @param {string[]} availableLanguages
  */
 export function getCurrentLocaleFromRoute(to, ssrContext, availableLanguages) {
-  if (to.meta.autoSwitchLanguage && to.params.lang) {
+  if (
+    to.meta.autoSwitchLanguage &&
+    availableLanguages.includes(to.params.lang)
+  ) {
     return to.params.lang;
   }
 

@@ -1,6 +1,6 @@
 const routes = [
   {
-    path: "/:lang?",
+    path: "/:lang(en-US|lt)?",
     component: () => import("layouts/MainLayout.vue"),
     meta: {
       autoSwitchLanguage: true,
