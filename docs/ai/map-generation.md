@@ -63,6 +63,12 @@ configuration at map level. Routes and arrows are derived runtime data.
 
 ## Bookshelf placement
 
+Storage shelves follow the same wall-first placement and clear-front-access rule.
+Keep racks in ordinary rooms against solid walls, facing inward. Freestanding
+rows require an explicitly authored large-room aisle layout; they are not a
+fallback for conflicting furniture. Plan-authored fixtures must obey this rule
+as well as furnishings produced by room generators.
+
 These rules apply to every room generator, authored room layout, and placement
 repair that places a bookcase, including mirrored and rotated layouts.
 

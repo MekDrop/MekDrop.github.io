@@ -294,8 +294,40 @@ export class RoomPlacementRules {
         zs.clear(); zs.add(0);
       }
       const candidates = [];
-      for (const x of xs) {
-        for (const z of zs) {
+      // Reject impossible axis offsets before forming the Cartesian product.
+      // Tower masonry contributes thousands of edges outside this room; none
+      // can place a freestanding group beyond the same bounds valid() checks.
+      const roomBounds = bookshelf ? room.wallBounds ?? room : room;
+      /**
+       * @param {number} x
+       */
+      const fitsX = x => {
+        for (const member of members) {
+          if (!member.item.wallAttachment &&
+            (member.minX + x < roomBounds.minX - 1e-6 || member.maxX + x > roomBounds.maxX + 1e-6)) {
+            return false;
+          }
+        }
+
+        return true;
+      };
+      /**
+       * @param {number} z
+       */
+      const fitsZ = z => {
+        for (const member of members) {
+          if (!member.item.wallAttachment &&
+            (member.minZ + z < roomBounds.minZ - 1e-6 || member.maxZ + z > roomBounds.maxZ + 1e-6)) {
+            return false;
+          }
+        }
+
+        return true;
+      };
+      const possibleX = [...xs].filter(fitsX);
+      const possibleZ = [...zs].filter(fitsZ);
+      for (const x of possibleX) {
+        for (const z of possibleZ) {
           candidates.push({
             x,
             z,

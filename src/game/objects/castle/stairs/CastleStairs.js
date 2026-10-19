@@ -243,7 +243,8 @@ export class CastleStairs {
           ? (this.#authoredThreshold ? -0.5 : 0.5) : 0;
         const distanceBlocks =
           (riseBlocks - level) * STAIR_MODULE_RUN_BLOCKS -
-          STAIR_MODULE_RUN_BLOCKS / 2 - wallOverlapBlocks / 2;
+          STAIR_MODULE_RUN_BLOCKS / 2 - wallOverlapBlocks / 2 +
+          (door.stairBoundaryOffset ?? 0) / this.#cubeSize;
         for (let horizontal = 0; horizontal < widthBlocks; horizontal += 1) {
           for (let layer = 0; layer <= level; layer += 1) {
             const acrossBlocks = offsetBlocks + horizontal;

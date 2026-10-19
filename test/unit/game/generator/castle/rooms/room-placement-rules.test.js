@@ -2,6 +2,56 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { RoomPlacementRules } from "../../../../../../src/game/generator/castle/rooms/RoomPlacementRules.js";
 
+test("distant masonry does not change the nearest valid supported-group placement", () => {
+  const room = {
+    id: "storage",
+    minX: 0,
+    maxX: 5,
+    minZ: 0,
+    maxZ: 5,
+    floorY: 0,
+    height: 3,
+  };
+  const items = [{
+    id: "crate",
+    object: "Crate",
+    roomId: room.id,
+    x: 4.9,
+    z: 4.9,
+    width: 1,
+    depth: 1,
+    height: 1,
+    scale: 1,
+    floorY: 0,
+  }, {
+    id: "jar",
+    object: "PotteryJar",
+    roomId: room.id,
+    supportId: "crate",
+    x: 4.9,
+    z: 4.9,
+    y: 1,
+    width: 0.2,
+    depth: 0.2,
+    height: 0.2,
+    scale: 1,
+    floorY: 0,
+  }];
+  const walls = Array.from({ length: 100 }, (_, index) => ({
+    x: 20 + index * 0.25,
+    z: 20 + index * 0.3,
+    y: 1,
+    halfX: 0.125,
+    halfY: 1,
+    halfZ: 0.125,
+  }));
+  const expected = RoomPlacementRules.repair(items, [], [room]);
+  const actual = RoomPlacementRules.repair(items, walls, [room]);
+  assert.deepEqual(actual, expected);
+  assert.ok(actual[0].x + actual[0].width / 2 <= room.maxX);
+  assert.equal(actual.length, items.length);
+});
+
 test("keeps a complete supported inventory aligned to an eligible outer wall during repair", () => {
   const room = {
     id: "storage",

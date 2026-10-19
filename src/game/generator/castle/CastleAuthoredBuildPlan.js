@@ -50,7 +50,11 @@ export class CastleAuthoredBuildPlan {
     scheduler.throwIfAborted();
     const gate = authored.entrance;
     const along = doors[0].offset + doors[0].width / 2;
-    const adaptedDoors = doors;
+    const adaptedDoors = doors.map(/**
+     *
+     * @param {import("../../GameContracts.js").CastleOpening} door
+     */
+      door => ({ ...door }));
     const yaw = {
       NORTH: 0,
       SOUTH: 180,
@@ -152,6 +156,16 @@ export class CastleAuthoredBuildPlan {
           opening.coordinate = boundary;
         }
       }
+    }
+    const exteriorOpening = openings.find(/**
+     *
+     * @param {import("./CastleBasePlanGenerator.js").CompiledCastleOpening & {exteriorEntrance:boolean}} opening
+     */
+      opening => opening.exteriorEntrance);
+    if (exteriorOpening?.axis === "z") {
+      // Exterior masonry projects beyond the footprint. Align the final
+      // half-metre tread to the door plane, not the original grid boundary.
+      adaptedDoors[0].stairBoundaryOffset = -exteriorOpening.coordinate;
     }
     const rooms = Object.fromEntries(
       placedRooms.map(CastleAuthoredBuildPlan.#mapRoom),
@@ -681,6 +695,13 @@ export class CastleAuthoredBuildPlan {
     const addBox = (bounds, material = "castleStoneMid") => {
       let pieces = [bounds];
       for (const occupied of occupiedBounds) {
+        // Every remaining piece is contained by bounds. Disjoint masonry
+        // cannot cut any piece, so avoid allocating a flatMap result for it.
+        if (Math.min(bounds.maxX, occupied.maxX) - Math.max(bounds.minX, occupied.minX) <= 1e-6 ||
+          Math.min(bounds.maxY, occupied.maxY) - Math.max(bounds.minY, occupied.minY) <= 1e-6 ||
+          Math.min(bounds.maxZ, occupied.maxZ) - Math.max(bounds.minZ, occupied.minZ) <= 1e-6) {
+          continue;
+        }
         pieces = pieces.flatMap(
           /**
            * @param {{minX:number,maxX:number,minZ:number,maxZ:number,minY:number,maxY:number}} piece
@@ -1235,9 +1256,17 @@ export class CastleAuthoredBuildPlan {
     }
     if (envelope.roundTower) {
       const tower = envelope.roundTower;
+      // Move the tower with the reflected corridor, retaining the handedness
+      // of its spiral flights and matching asymmetric landing cuts.
+      const towerAxis = gate.axis === "z" ? "X" : "Z";
+      const towerCenter = [...tower.center];
+      if (authored.mirrored) {
+        const index = towerAxis === "X" ? 0 : 1;
+        towerCenter[index] = 2 * gate.center - towerCenter[index];
+      }
       for (const elevation of [0, tower.terraceElevation]) {
         roomDoors.push({
-          ...world(gate.center - tower.center[0], gate.coordinate - tower.center[1] - tower.radius + 0.125, baseY + elevation),
+          ...world(gate.center - towerCenter[0], gate.coordinate - towerCenter[1] - tower.radius + 0.125, baseY + elevation),
           roomId: elevation === 0 ? "tower-ground" : "tower-terrace",
           width: tower.doorWidth,
           height: tower.doorHeight - 0.05,
@@ -1255,6 +1284,12 @@ export class CastleAuthoredBuildPlan {
        * @param {string} material
        */
         (bounds, material) => {
+          if (authored.mirrored) {
+            const index = towerAxis === "X" ? 0 : 1;
+            const shift = towerCenter[index] - tower.center[index];
+            bounds[`min${towerAxis}`] += shift;
+            bounds[`max${towerAxis}`] += shift;
+          }
           const bellLanding = bounds.maxY === baseY + tower.height + 0.02 && bounds.minY === baseY + tower.height - 0.25;
           const terraceLanding = bounds.maxY === baseY + tower.terraceElevation + 0.02 && bounds.minY === baseY + tower.terraceElevation - 0.25;
           if (bellLanding || terraceLanding) {
@@ -1346,6 +1381,37 @@ export class CastleAuthoredBuildPlan {
       geometry,
       metadata: {
         runtime: {
+          authoredObjects: (envelope.objects ?? []).map(/**
+           *
+           * @param {import("../../objects/ObjectTypes.js").MapObjectDefinition} item
+           */
+            item => {
+              const fixture = structuredClone(item);
+              let x = item.position.x * scale;
+              let z = item.position.z * scale;
+              let rotation = item.rotation ?? 0;
+              if (authored.mirrored) {
+                if (gate.axis === "z") {
+                  x = 2 * gate.center - x;
+                  rotation = -rotation;
+                } else {
+                  z = 2 * gate.center - z;
+                  rotation = 180 - rotation;
+                }
+              }
+              if (item.preserveHandedness) {
+                rotation = item.rotation ?? 0;
+              }
+              fixture.position = world(gate.center - x, gate.coordinate - z, baseY + (item.position.y ?? 0) * scale);
+              fixture.rotation = yaw - 180 + rotation;
+              for (const field of ["Z1", "Z2", "columnTop"]) {
+                if (item[field] !== undefined) {
+                  fixture[field] = baseY + item[field] * scale;
+                }
+              }
+
+              return fixture;
+            }),
           residential,
           roomDoors,
           terrace,

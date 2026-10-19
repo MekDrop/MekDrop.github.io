@@ -6167,7 +6167,7 @@
       "position": {
         "x": 3.2,
         "y": 2,
-        "z": 2.35
+        "z": 2.375
       },
       "variant": "storage",
       "scale": 1.5,
@@ -6226,7 +6226,9 @@
             "z": 0
           }
         }
-      ]
+      ],
+      "rotation": 0,
+      "roomId": "storeroom"
     },
     {
       "id": "store-rack-2",
@@ -6234,7 +6236,7 @@
       "position": {
         "x": 5.8,
         "y": 2,
-        "z": 2.35
+        "z": 2.375
       },
       "variant": "storage",
       "scale": 1.5,
@@ -6293,7 +6295,9 @@
             "z": 0
           }
         }
-      ]
+      ],
+      "rotation": 0,
+      "roomId": "storeroom"
     },
     {
       "id": "store-crate-1",
@@ -6319,7 +6323,7 @@
       "position": {
         "x": 5.1,
         "y": 2,
-        "z": 3.25
+        "z": 4.25
       }
     },
     {
@@ -6328,7 +6332,7 @@
       "position": {
         "x": 6.1,
         "y": 2,
-        "z": 3.25
+        "z": 4.25
       }
     },
     {

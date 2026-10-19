@@ -23,16 +23,16 @@ export function createCastleStairFlight(position, door, cubeSize = 0.25, mapData
   const acrossOrigin = vertical ? position.z : position.x;
   let acrossStart = acrossOrigin + offset;
   let acrossEnd = acrossStart + width;
+  const outwardSign = door.side === "WEST" || door.side === "NORTH" ? -1 : 1;
   const boundaryEdge = {
     WEST: position.x,
     EAST: position.x + position.width,
     NORTH: position.z,
     SOUTH: position.z + position.depth,
-  }[door.side];
+  }[door.side] + outwardSign * (door.stairBoundaryOffset ?? 0);
   if (!Number.isFinite(boundaryEdge)) {
     return null;
   }
-  const outwardSign = door.side === "WEST" || door.side === "NORTH" ? -1 : 1;
   const outerEdge = boundaryEdge + outwardSign * run;
   const edgeMin = Math.min(boundaryEdge, outerEdge);
   const edgeMax = Math.max(boundaryEdge, outerEdge);

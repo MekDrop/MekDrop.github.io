@@ -3,11 +3,112 @@ import { readFile } from "node:fs/promises";
 import { it } from "node:test";
 import { CastleGenerator } from "../../../../../src/game/generator/castle/CastleGenerator.js";
 import { CastleFloorFinish } from "../../../../../src/game/objects/castle/structure/CastleFloorFinish.js";
+import { CastleResidentialLayout } from "../../../../../src/game/objects/castle/residents/CastleResidentialLayout.js";
+
+it("keeps storeroom racks against solid walls and facing clear aisles after mirroring and rotation", async () => {
+  const map = JSON.parse(await readFile(new URL("../../../../../src/game/maps/tests/castle-rear-bell-tower.json", import.meta.url), "utf8"));
+  const castle = map.objects.find(item => item.object === "Castle");
+  for (const side of ["NORTH", "SOUTH", "EAST", "WEST"]) {
+    for (const seed of [0, 1]) {
+      const plan = await CastleGenerator.generate({
+        ...castle,
+        seed,
+        doors: [{
+          ...castle.doors[0],
+          side,
+        }],
+      });
+      const layout = new CastleResidentialLayout(plan);
+      const room = layout.rooms.storeroom;
+      const racks = plan.metadata.runtime.authoredObjects.filter(item => item.object === "Shelf");
+      assert.equal(racks.length, 2);
+      for (const rack of racks) {
+        const angle = rack.rotation * Math.PI / 180;
+        const frontX = Math.sin(angle);
+        const frontZ = Math.cos(angle);
+        const back = layout.toLocal(rack.position.x - frontX * 0.15 * rack.scale, rack.position.z - frontZ * 0.15 * rack.scale);
+        const clearance = Math.min(back.x - room.minX - 0.125, room.maxX - 0.125 - back.x,
+          back.z - room.minZ - 0.125, room.maxZ - 0.125 - back.z);
+        assert.ok(clearance >= -1e-6 && clearance <= 0.05, `${side}/${seed}: rack back is within 5 cm of the wall`);
+        for (const across of [-0.59, 0, 0.59]) {
+          for (const distance of [0.25, 0.75, 1.225]) {
+            const x = rack.position.x + frontX * distance + Math.cos(angle) * across;
+            const z = rack.position.z + frontZ * distance - Math.sin(angle) * across;
+            const point = layout.toLocal(x, z);
+            assert.ok(point.x > room.minX && point.x < room.maxX && point.z > room.minZ && point.z < room.maxZ,
+              `${side}/${seed}: full-width metre aisle faces into the room`);
+            const blocked = plan.metadata.collision.cameraBlocks.some(block => Math.abs(block.x - x) < block.halfX &&
+              Math.abs(block.z - z) < block.halfZ && Math.abs(block.y - rack.position.y - 0.75) < block.halfY);
+            assert.equal(blocked, false, `${side}/${seed}: solid masonry does not obstruct the aisle`);
+          }
+        }
+      }
+    }
+  }
+});
+
+it("mirrors the rear tower with its corridor, doors, and walking surfaces", async () => {
+  const map = JSON.parse(await readFile(new URL("../../../../../src/game/maps/tests/castle-rear-bell-tower.json", import.meta.url), "utf8"));
+  const castle = map.objects.find((object) => object.object === "Castle");
+  const normal = await CastleGenerator.generate({
+    ...castle,
+    seed: 0,
+  });
+  const mirrored = await CastleGenerator.generate({
+    ...castle,
+    seed: 1,
+  });
+  for (const plan of [normal, mirrored]) {
+    const fixtures = plan.metadata.runtime.authoredObjects;
+    const stairs = fixtures.filter(item => item.object === "SpiralStaircase");
+    const bell = fixtures.find(item => item.object === "SignalBell");
+    assert.equal(stairs.length, 2);
+    assert.equal(stairs[0].Z2, stairs[1].Z1);
+    assert.equal(stairs[1].Z2 + 0.02, bell.position.y);
+    assert.equal(stairs[0].position.x, bell.position.x);
+    assert.equal(stairs[0].position.z, bell.position.z);
+    const roof = plan.geometry.boxes.filter(box => box.material === "castleTowerBlue");
+    const towerX = (Math.min(...roof.map(box => box.x - box.sx / 2)) + Math.max(...roof.map(box => box.x + box.sx / 2))) / 2;
+    const towerZ = (Math.min(...roof.map(box => box.z - box.sz / 2)) + Math.max(...roof.map(box => box.z + box.sz / 2))) / 2;
+    for (const stair of stairs) {
+      assert.ok(Math.abs(stair.position.x - towerX) < 1e-6, "Stair column is centered beneath the tower roof");
+      assert.ok(Math.abs(stair.position.z - towerZ) < 1e-6, "Stair column shares the tower's actual bore centre");
+    }
+    assert.equal(fixtures.filter(item => item.object === "Shelf" && item.items.length >= 4).length, 2);
+  }
+  const normalDoor = normal.metadata.runtime.roomDoors.find((door) => door.roomId === "tower-terrace");
+  const mirroredDoor = mirrored.metadata.runtime.roomDoors.find((door) => door.roomId === "tower-terrace");
+  const entranceX = castle.position.x + castle.doors[0].offset + castle.doors[0].width / 2;
+  assert.ok(Math.abs(mirroredDoor.x - (2 * entranceX - normalDoor.x)) < 1e-6, "Tower doorway follows the reflected corridor");
+  assert.ok(Math.abs(mirroredDoor.z - normalDoor.z) < 1e-6);
+  // Tower internals keep the spiral's handedness as the corridor moves.
+  // Exclude the corridor seam, where prior masonry owns overlapping bricks.
+  const normalTower = normal.geometry.boxes.filter((box) => box.z < -3.5);
+  const mirroredTower = mirrored.geometry.boxes.filter((box) => box.z < -3.5);
+  const key = (box) => [box.x, box.y, box.z, box.sx, box.sy, box.sz].map(value => value.toFixed(6)).join(":");
+  assert.deepEqual(mirroredTower.map(key).sort(), normalTower.map((box) => key({
+    ...box,
+    x: box.x + mirroredDoor.x - normalDoor.x,
+  })).sort());
+  const normalFloors = normal.metadata.runtime.residential.walkableAreas.filter((area) => area.id.startsWith("round-tower-"));
+  const mirroredFloors = mirrored.metadata.runtime.residential.walkableAreas.filter((area) => area.id.startsWith("round-tower-"));
+  const floorKey = (area) => [area.minX, area.maxX, area.minZ, area.maxZ, area.floorY].map(value => value.toFixed(6)).join(":");
+  assert.deepEqual(mirroredFloors.map(floorKey).sort(), normalFloors.map((area) => floorKey({
+    ...area,
+    minX: area.minX + 8,
+    maxX: area.maxX + 8,
+  })).sort());
+});
 
 it("loads the explicit three-room castle with an open rear tower and terrace entrance", async () => {
   const map = JSON.parse(await readFile(new URL("../../../../../src/game/maps/tests/castle-rear-bell-tower.json", import.meta.url), "utf8"));
   const castle = map.objects.find((object) => object.object === "Castle");
   const plan = await CastleGenerator.generate(castle);
+  for (const fixture of plan.metadata.runtime.authoredObjects) {
+    const sample = map.objects.find(item => item.id === fixture.id);
+    assert.ok(Math.abs(fixture.position.x - sample.position.x) < 1e-6, `${fixture.id}: saved and generated X agree`);
+    assert.ok(Math.abs(fixture.position.z - sample.position.z) < 1e-6, `${fixture.id}: saved and generated Z agree`);
+  }
   assert.equal(plan.layout.basePlanId, "castle-rear-bell-tower");
   assert.deepEqual(plan.metadata.runtime.residential.placedRooms.map((room) => room.id), ["throne-hall", "service-quarters", "storeroom"]);
   assert.ok(plan.metadata.runtime.residential.placedRooms.every((room) => room.floorY === 2));
