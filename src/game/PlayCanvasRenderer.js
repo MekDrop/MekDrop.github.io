@@ -1,14 +1,14 @@
 import { MapObjectReplacement } from "./rendering/scene/MapObjectReplacement.js";
 import { SceneDecorationQueue } from "./rendering/scene/SceneDecorationQueue.js";
+import { GameFrameLoop } from "./rendering/GameFrameLoop.js";
 import { MapTestControls } from "./debug/MapTestControls.js";
 import { MapTestControlsHud } from "./ui/MapTestControlsHud.js";
 import { DirectionalShadowBudget } from "./rendering/DirectionalShadowBudget.js";
 import { useDebounceFn } from "@vueuse/core";
 import { AmmoRuntime } from "./physics/AmmoRuntime.js";
 import * as playCanvas from "playcanvas/build/playcanvas/src/index.js";
-import castleDoorUrl from "src/assets/game/textures/castle-door.png";
+import { woodTexture } from "./textures/shared-textures.js";
 import castleStoneUrl from "src/assets/game/textures/castle-stone.png";
-import castleFireParticleUrl from "src/assets/game/effects/castle-fire-particle.png?url";
 import glslangScriptUrl from "src/assets/game/wasm/glslang/glslang.js?url";
 import glslangWasmUrl from "src/assets/game/wasm/glslang/glslang.wasm?url";
 import twgslScriptUrl from "src/assets/game/wasm/twgsl/twgsl.js?url";
@@ -37,6 +37,8 @@ import {
   GroundCollisionWorld,
 } from "./collision/index.js";
 import { GameModelLibrary } from "./models/index.js";
+import { GameTextureLibrary } from "./textures/GameTextureLibrary.js";
+import { GameAudioLibrary } from "./audio/GameAudioLibrary.js";
 import { EmbeddedTextureParser } from "./models/EmbeddedTextureParser.js";
 import { ObjectDataCache } from "./cache/ObjectDataCache.js";
 import { GameCamera, HeroVisibilityController } from "./camera/index.js";
@@ -59,16 +61,6 @@ import {
   CUBE_SCALE,
   FIXED_HEIGHTS,
 } from "./rendering/terrain/TerrainMaterialMaps.js";
-
-const TEXTURE_URLS = {
-  ...MapObjectFactory.textureUrls,
-  ...PathSurfaceMaterials.textureUrls,
-  water: waterTopUrl,
-  waterSide: waterSideUrl,
-  castleDoor: castleDoorUrl,
-  castleStone: castleStoneUrl,
-  castleFireParticle: castleFireParticleUrl,
-};
 
 const MATERIAL_DEFINITIONS = {
   water: {
@@ -172,6 +164,10 @@ export class PlayCanvasRenderer {
    */
   #app = null;
   /**
+   * @type {GameFrameLoop|null}
+   */
+  #frameLoop = null;
+  /**
    * @type {DirectionalShadowBudget|null}
    */
   #shadowBudget = null;
@@ -208,6 +204,18 @@ export class PlayCanvasRenderer {
    * @type {Map<string, playCanvas.Asset>}
    */
   #textureAssets = new Map();
+  /**
+   * @type {GameTextureLibrary}
+   */
+  #textureLibrary;
+  /**
+   * @type {GameAudioLibrary}
+   */
+  #audioLibrary;
+  /**
+   * @type {WeakMap<import("./GameContracts.js").GameMapData, MapObjectReplacement>}
+   */
+  #preparedMaps = new WeakMap();
   /**
    *
    * @type {playCanvas.VertexBuffer[]}
@@ -567,9 +575,19 @@ export class PlayCanvasRenderer {
     this.#app.scene.layers.insert(this.#cloudLayer, 0);
     this.#app.on("update", this.#updateFrame);
     EmbeddedTextureParser.install(this.#app);
+    this.#textureLibrary = new GameTextureLibrary({
+      pc,
+      app: this.#app,
+      onProgress: PlayCanvasRenderer.#reportAssetProgress.bind(null, onProgress, "texture"),
+    });
+    this.#audioLibrary = new GameAudioLibrary({
+      pc,
+      app: this.#app,
+    });
     this.#modelLibrary = new GameModelLibrary({
       pc,
       app: this.#app,
+      textureLibrary: this.#textureLibrary,
     });
     this.#huds = new HudCollection({
       pc,
@@ -641,16 +659,58 @@ export class PlayCanvasRenderer {
     this.#app.root.addChild(sunlight);
     this.#shadowBudget = new DirectionalShadowBudget(pc, sunlight.light);
 
+    if (this.#destroyed) {
+      return;
+    }
+    this.resize();
+    this.#applyDebugSettings();
+    this.#stopDebugStoreSubscription = this.#debugStore.$subscribe(
+      this.#$subscribe.bind(this),
+    );
+    this.#app.start();
+    this.#frameLoop = new GameFrameLoop(this.#app);
+    this.#frameLoop.pause();
+    this.#connectPointerInteractions();
+  }
+
+  /**
+   *
+   * @param {import("src/game/GameContracts.js").GameMapData} mapData
+   * @param {((key:string, values:Record<string,string|number>, progress:number)=>void)|null} onProgress
+   */
+  async prepareMapAssets(mapData, onProgress = null) {
+    this.#prepareMap(mapData);
+    const assets = MapObjectFactory.assetsFor(mapData.objects ?? []);
+    const tileTypes = new Set((mapData.grid ?? []).flat());
+    const textureUrls = { ...assets.textureUrls };
+    if (tileTypes.has(TileType.WATER)) {
+      Object.assign(textureUrls, {
+        water: waterTopUrl,
+        waterSide: waterSideUrl,
+      });
+    }
+    if (tileTypes.has(TileType.PATH) || tileTypes.has(TileType.ENTRY)) {
+      Object.assign(textureUrls, PathSurfaceMaterials.textureUrls);
+    }
+    if (tileTypes.has(TileType.CASTLE_WALL) || tileTypes.has(TileType.CASTLE_TOWER)) {
+      Object.assign(textureUrls, {
+        castleDoor: woodTexture.url,
+        castleStone: castleStoneUrl,
+      });
+    }
     try {
       await Promise.all([
-        this.#createMaterials(),
+        this.#createMaterials(textureUrls, onProgress),
+        this.#audioLibrary.load(MapObjectFactory.audioUrlsFor(mapData.objects ?? []),
+          PlayCanvasRenderer.#reportAssetProgress.bind(null, onProgress, "audio")),
         this.#modelLibrary.load([
           ...Hero.modelUrls,
           HeroPatHand.modelUrl,
-          ...MapObjectFactory.modelUrls,
+          ...assets.modelUrls,
           ...InventoryScene.modelUrls,
-          ...BridgeRailingKit.modelUrls,
-          ...BuriedTreasureField.modelUrls,
+          ...(tileTypes.has(TileType.PATH) || tileTypes.has(TileType.ENTRY) ? BridgeRailingKit.modelUrls : []),
+          ...(tileTypes.has(TileType.GRASS) || tileTypes.has(TileType.CASTLE_WALL) || tileTypes.has(TileType.CASTLE_TOWER) || mapData.riverData?.length
+            ? BuriedTreasureField.modelUrls : []),
         ], /**
          *
          * @param {string} url
@@ -671,21 +731,36 @@ export class PlayCanvasRenderer {
       }
       throw error;
     }
-    if (this.#destroyed) {
-      return;
-    }
-    this.resize();
-    this.#applyDebugSettings();
-    this.#stopDebugStoreSubscription = this.#debugStore.$subscribe(
-      this.#$subscribe.bind(this),
-    );
-    this.#app.start();
-    this.#connectPointerInteractions();
   }
 
   /**
-   *
-   * @param {import("src/game/GameContracts.js").GameMapData} mapData
+   * @param {import("./GameContracts.js").GameMapData} mapData
+   */
+  #prepareMap(mapData) {
+    if (!this.#preparedMaps.has(mapData)) {
+      const replacement = new MapObjectReplacement(mapData);
+      MapObjectFactory.prepareMap(mapData);
+      this.#preparedMaps.set(mapData, replacement);
+    }
+  }
+
+  /**
+   * @param {((key:string, values:Record<string,string|number>, progress:number)=>void)|null} onProgress
+   * @param {string} type
+   * @param {string} url
+   * @param {number} completed
+   * @param {number} total
+   */
+  static #reportAssetProgress(onProgress, type, url, completed, total) {
+    onProgress?.(type, {
+      name: url.split("/").pop().split("?")[0],
+      completed,
+      total,
+    }, total ? completed / total : 1);
+  }
+
+  /**
+   * @param {import("./GameContracts.js").GameMapData} mapData
    */
   render(mapData) {
     this.#firstPersonIslandOffsetsApplied = false;
@@ -698,8 +773,8 @@ export class PlayCanvasRenderer {
       this.#heroConfigurationStore.inventory.visible,
     );
     this.#mapData = mapData;
-    this.#mapObjectReplacement = new MapObjectReplacement(mapData);
-    MapObjectFactory.prepareMap(mapData);
+    this.#prepareMap(mapData);
+    this.#mapObjectReplacement = this.#preparedMaps.get(mapData);
     this.#camera.reset(mapData, CAMERA_TARGET_HEIGHT);
     this.#scene?.reset();
     this.#updateFitCenter();
@@ -1479,29 +1554,34 @@ export class PlayCanvasRenderer {
       material.destroy();
     }
     this.#materials.clear();
-    for (const asset of this.#textureAssets.values()) {
-      asset.unload();
-      this.#app?.assets.remove(asset);
-    }
     this.#textureAssets.clear();
     this.#modelLibrary?.destroy();
     this.#modelLibrary = null;
+    this.#textureLibrary?.destroy();
+    this.#audioLibrary?.destroy();
     if (this.#cloudLayer) {
       this.#app?.scene.layers.remove(this.#cloudLayer);
       this.#cloudLayer = null;
     }
     this.#app?.destroy();
     this.#app = null;
+    this.#frameLoop = null;
     this.#shadowBudget = null;
   }
 
-  async #createMaterials() {
+  /**
+   * @param {Record<string,string>} textureUrls
+   * @param {((key:string, values:Record<string,string|number>, progress:number)=>void)|null} onProgress
+   */
+  async #createMaterials(textureUrls, onProgress) {
+    await this.#textureLibrary.loadNamed(textureUrls,
+      PlayCanvasRenderer.#reportAssetProgress.bind(null, onProgress, "texture"));
     /**
      * @type {Map<string, playCanvas.Texture>}
      */
     const textures = new Map();
     await Promise.all(
-      Object.entries(TEXTURE_URLS).map(/**
+      Object.entries(textureUrls).map(/**
        *
        * @param {[string, string]} entry
        */
@@ -1509,6 +1589,9 @@ export class PlayCanvasRenderer {
           textures.set(name, await this.#loadTexture(name, url));
         }),
     );
+    for (const [name, asset] of this.#textureAssets) {
+      textures.set(name, asset.resource);
+    }
     for (const [name, definition] of Object.entries(MATERIAL_DEFINITIONS)) {
       this.#materials.set(
         name,
@@ -1569,7 +1652,7 @@ export class PlayCanvasRenderer {
    */
   #createMaterial(name, definition, textures = new Map()) {
     const pc = this.#pc;
-    const material = new pc.StandardMaterial();
+    const material = this.#materials.get(name) ?? new pc.StandardMaterial();
     material.name = name;
     material.diffuse = colorFromHex(pc, definition.color);
     material.gloss = definition.gloss ?? 0.08;
@@ -1616,45 +1699,29 @@ export class PlayCanvasRenderer {
    * @param {string} name
    * @param {string} url
    */
-  #loadTexture(name, url) {
+  async #loadTexture(name, url) {
     const pc = this.#pc;
-    const asset = new pc.Asset(name, "texture", { url });
+    const asset = this.#textureLibrary.get(url, name);
     this.#textureAssets.set(name, asset);
-    this.#app.assets.add(asset);
+    const texture = asset.resource;
+    texture.mipmaps = this.#graphicsSettingsStore.mipmaps;
+    texture.minFilter = texture.mipmaps
+      ? pc.FILTER_LINEAR_MIPMAP_LINEAR
+      : pc.FILTER_LINEAR;
+    texture.magFilter =
+      name === "castleStone" ? pc.FILTER_NEAREST : pc.FILTER_LINEAR;
+    texture.anisotropy = this.#graphicsSettingsStore.anisotropy;
+    texture.addressU = url === woodTexture.url ? pc.ADDRESS_REPEAT : pc.ADDRESS_CLAMP_TO_EDGE;
+    texture.addressV =
+      name === "castleDoor" ? pc.ADDRESS_REPEAT : pc.ADDRESS_CLAMP_TO_EDGE;
+    MapObjectFactory.configureTexture(
+      pc,
+      name,
+      texture,
+      this.#graphicsSettingsStore.mipmaps,
+    );
 
-    return new Promise(/**
-     *
-     * @param {(value: playCanvas.Texture) => void} resolve
-     * @param {(reason?: Error) => void} reject
-     */
-      (resolve, reject) => {
-        asset.ready(/**
-       *
-       * @param {pc.Asset} loadedAsset
-       */
-          (loadedAsset) => {
-            const texture = loadedAsset.resource;
-            texture.mipmaps = this.#graphicsSettingsStore.mipmaps;
-            texture.minFilter = texture.mipmaps
-              ? pc.FILTER_LINEAR_MIPMAP_LINEAR
-              : pc.FILTER_LINEAR;
-            texture.magFilter =
-              name === "castleStone" ? pc.FILTER_NEAREST : pc.FILTER_LINEAR;
-            texture.anisotropy = this.#graphicsSettingsStore.anisotropy;
-            texture.addressU = pc.ADDRESS_CLAMP_TO_EDGE;
-            texture.addressV =
-              name === "castleDoor" ? pc.ADDRESS_REPEAT : pc.ADDRESS_CLAMP_TO_EDGE;
-            MapObjectFactory.configureTexture(
-              pc,
-              name,
-              texture,
-              this.#graphicsSettingsStore.mipmaps,
-            );
-            resolve(loadedAsset.resource);
-          });
-        asset.once("error", reject);
-        this.#app.assets.load(asset);
-      });
+    return texture;
   }
 
   #rebuildScene() {
@@ -1709,9 +1776,9 @@ export class PlayCanvasRenderer {
   /**
    * @param {import("./objects/ObjectTypes.js").MapObjectDefinition} definition
    * @param {MapObjectReplacement} replacement
-   * @returns {boolean}
+   * @returns {Promise<boolean>}
    */
-  #replaceObjectDefinition(definition, replacement) {
+  async #replaceObjectDefinition(definition, replacement) {
     if (this.#destroyed || replacement !== this.#mapObjectReplacement) {
       return false;
     }
@@ -1721,6 +1788,10 @@ export class PlayCanvasRenderer {
     }
     const viewport = { ...this.viewport };
     const camera = this.firstPersonCameraState;
+    await this.prepareMapAssets(map);
+    if (this.#destroyed || replacement !== this.#mapObjectReplacement) {
+      return false;
+    }
     this.render(map);
     this.setViewport(viewport);
     if (camera) {
@@ -1759,6 +1830,14 @@ export class PlayCanvasRenderer {
     this.#decorations.pause();
   }
 
+  pauseAnimations() {
+    this.#frameLoop?.pause();
+  }
+
+  resumeAnimations() {
+    this.#frameLoop?.resume();
+  }
+
   #buildClouds() {
     this.#cloudField = new CubeCloudField({
       pc: this.#pc,
@@ -1779,6 +1858,7 @@ export class PlayCanvasRenderer {
       modelLibrary: this.#modelLibrary,
       definitions: this.#mapData.objects ?? [],
       runtime: {
+        audioLibrary: this.#audioLibrary,
         deferDecoration: this.#decorations.add.bind(this.#decorations),
         mapData: this.#mapData,
         materials: this.#materials,

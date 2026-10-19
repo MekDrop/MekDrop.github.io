@@ -1,6 +1,6 @@
 import modelUrl from "../../models/signal-bell/signal-bell.glb?url";
 import ceilingUrl from "../../models/signal-bell/ceiling-bell.glb?url";
-import soundUrl from "../../models/signal-bell/signal-bell.wav?url";
+import { SignalBellAudio } from "../../audio/signal-bell/SignalBellAudio.js";
 import { AbstractCastleProp } from "../shared/AbstractCastleProp.js";
 import { SignalBellInteraction } from "./SignalBellInteraction.js";
 import { SignalBellRope } from "./SignalBellRope.js";
@@ -60,6 +60,13 @@ export class SignalBell extends AbstractCastleProp {
   }
 
   /**
+   * @returns {string[]}
+   */
+  static get audioUrls() {
+    return [SignalBellAudio.wavUrl];
+  }
+
+  /**
    * @returns {string}
    */
   get modelUrl() {
@@ -85,7 +92,7 @@ export class SignalBell extends AbstractCastleProp {
   constructor(options) {
     super(options);
 
-    const { pc, app, modelLibrary, definition } = options;
+    const { pc, app, modelLibrary } = options;
     this.#app = app;
     this.#pc = pc;
     this.#onRuntimeError = options.runtime?.onRuntimeError;
@@ -96,9 +103,7 @@ export class SignalBell extends AbstractCastleProp {
     this.#model.anim.baseLayer.play("Ring");
     this.#model.anim.speed = 0;
     this.#model.anim.update(0);
-    this.#sound = new pc.Asset(`${definition.id} bell strike`, "audio", { url: soundUrl });
-    app.assets.add(this.#sound);
-    app.assets.load(this.#sound);
+    this.#sound = options.runtime.audioLibrary.get(SignalBellAudio.wavUrl);
     this.visualRoots[0].addComponent("sound", {
       positional: false,
       slots: {
@@ -235,8 +240,6 @@ export class SignalBell extends AbstractCastleProp {
     this.#rope = null;
     this.visualRoots[0].sound.stop();
     super.destroy();
-    this.#sound.unload();
-    this.#app.assets.remove(this.#sound);
   }
 
   /**

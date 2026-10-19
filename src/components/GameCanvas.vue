@@ -384,10 +384,45 @@ async function updateCurrentMap(generatedMap) {
  *
  * @param {GeneratedMap} mapDataToRender
  */
-function renderMap(mapDataToRender) {
+async function renderMap(mapDataToRender) {
+  const activeRenderer = renderer;
+  const operationId = loadingOperationId;
+  await prepareMapAssets(activeRenderer, mapDataToRender, operationId);
+  if (renderer !== activeRenderer || operationId !== loadingOperationId) {
+    return;
+  }
   gameCanvasPluginRegistry.beforeRender();
   renderer.render(mapDataToRender);
   gameCanvasPluginRegistry.afterRender(mapDataToRender);
+}
+
+/**
+ * @param {PlayCanvasRenderer} activeRenderer
+ * @param {GeneratedMap} map
+ * @param {number} operationId
+ */
+async function prepareMapAssets(activeRenderer, map, operationId) {
+  await showLoadingPhase("assets", operationId);
+  if (renderer !== activeRenderer || operationId !== loadingOperationId) {
+    return;
+  }
+  await activeRenderer.prepareMapAssets(map, /**
+   *
+   * @param {string} key
+   * @param {Record<string,string|number>} values
+   * @param {number} progress
+   */
+    (key, values, progress) => {
+      if (renderer !== activeRenderer || operationId !== loadingOperationId) {
+        return;
+      }
+      loadingDetail.value = t(`game.loading.detail_${key}`, values);
+      loadingProgress.value = progress;
+    });
+  if (renderer !== activeRenderer || operationId !== loadingOperationId) {
+    return;
+  }
+  await showLoadingPhase("rendering", operationId);
 }
 
 function connectControls() {
@@ -436,6 +471,7 @@ async function showLoadingPhase(phase, operationId = null) {
   loadingProgress.value = null;
   isLoading.value = true;
   renderer?.pauseDecorations();
+  renderer?.pauseAnimations();
   interactionTarget.value = null;
   renderer?.setInteractionPrompt(null);
   disconnectControls();
@@ -459,6 +495,7 @@ async function finishLoading(operationId) {
     if (!completed) {
       return;
     }
+    activeRenderer.resumeAnimations();
     // Present a fully decorated frame before revealing the interactive scene.
     await waitForAnimationFrame();
   }
@@ -487,12 +524,11 @@ async function loadMapRoute(mapName) {
       return;
     }
 
-    await showLoadingPhase("rendering", operationId);
+    const viewport = renderer.viewport;
+    await renderMap(generatedMap);
     if (navigationId !== mapNavigationId || !renderer) {
       return;
     }
-    const viewport = renderer.viewport;
-    renderMap(generatedMap);
     renderer.setViewport(viewport);
     await updateCurrentMap(generatedMap);
 
@@ -569,8 +605,10 @@ async function init() {
     if (renderer !== activeRenderer) {
       return;
     }
-    await showLoadingPhase("rendering", loadingId);
-    renderMap(mapData);
+    await renderMap(mapData);
+    if (renderer !== activeRenderer) {
+      return;
+    }
     await updateCurrentMap(mapData);
     if (!requestedMapName()) {
       await router.replace(mapRouteLocation(mapData.mapName));
@@ -586,7 +624,7 @@ async function init() {
      * @param {number} operationId
      */
       beforeRender: async (_generatedMap, operationId) => {
-        await showLoadingPhase("rendering", operationId);
+        await prepareMapAssets(activeRenderer, _generatedMap, operationId);
         gameCanvasPluginRegistry.beforeRender();
       },
       /**

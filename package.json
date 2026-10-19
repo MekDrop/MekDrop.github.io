@@ -13,6 +13,7 @@
     "test": "echo \"See package.json => scripts for available tests.\" && exit 0",
     "test:unit": "node --test --test-isolation=none \"test/unit/**/*.test.js\"",
     "blender:export": "node scripts/export-blender-models.cjs",
+    "audio:encode": "node scripts/encode-audio.cjs",
     "dev:spa": "quasar dev -m spa",
     "build:spa": "quasar build -m spa",
     "dev:ssr": "quasar dev -m ssr",

@@ -3,6 +3,7 @@ const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 const cliProgress = require("cli-progress");
+const { externalizeSharedWood } = require("./shared-wood-texture.cjs");
 
 const projectRoot = path.resolve(__dirname, "..");
 const modelsRoot = path.join(projectRoot, "src", "game", "models");
@@ -175,6 +176,7 @@ async function exportModel(model, blender, sourceSize) {
     if (getSourceSizeFromGlb(temporaryOutput) !== sourceSize) {
       throw new BlenderExportError("Blender did not embed the source size in the GLB");
     }
+    externalizeSharedWood(temporaryOutput, path.join(projectRoot, "src/game/textures/wood/timber-grain.png"));
     fs.renameSync(temporaryOutput, output);
 
     return fs.readFileSync(logPath, "utf8").trim();
@@ -242,6 +244,7 @@ async function main() {
         const sourceSize = fs.statSync(model).size;
         const output = model.slice(0, -".blend".length) + ".glb";
         if (!force && getSourceSizeFromGlb(output) === sourceSize) {
+          externalizeSharedWood(output, path.join(projectRoot, "src/game/textures/wood/timber-grain.png"));
           skipped += 1;
           if (verbose) {
             console.log(`Skipping ${modelName}: source size matches`);

@@ -5,8 +5,17 @@ import {
   GameModelLibraryDestroyedError,
 } from "../errors/assets/index.js";
 import { AuthoredSurfaceStyle } from "../rendering/AuthoredSurfaceStyle.js";
+import { GameTextureLibrary } from "../textures/GameTextureLibrary.js";
 
 export class GameModelLibrary {
+  /**
+   * @type {GameTextureLibrary}
+   */
+  #textures;
+  /**
+   * @type {boolean}
+   */
+  #ownsTextures;
   /**
    *
    * @type {typeof pc}
@@ -46,11 +55,17 @@ export class GameModelLibrary {
 
   /**
    *
-   * @param {{pc: typeof pc, app: pc.Application}} options
+   * @param {{pc: typeof pc, app: pc.Application, textureLibrary?: GameTextureLibrary}} options
    * @param {typeof pc} options.pc
    * @param {pc.Application} options.app
+   * @param {GameTextureLibrary} options.textureLibrary
    */
-  constructor({ pc, app }) {
+  constructor({ pc, app, textureLibrary = null }) {
+    this.#ownsTextures = !textureLibrary;
+    this.#textures = textureLibrary ?? new GameTextureLibrary({
+      pc,
+      app,
+    });
     /**
      *
      * @type {typeof pc}
@@ -244,6 +259,9 @@ export class GameModelLibrary {
       this.#unloadModel(asset);
     }
     this.#assets.clear();
+    if (this.#ownsTextures && this.#activeLoads === 0) {
+      this.#textures.destroy();
+    }
   }
 
   /**
@@ -254,7 +272,7 @@ export class GameModelLibrary {
     const asset = new this.#pc.Asset("Game model", "container", {
       url,
       filename: url.slice(url.lastIndexOf("/") + 1),
-    });
+    }, {}, { image: { processAsync: this.#textures.processImage } });
     this.#app.assets.add(asset);
 
     return new Promise(/**
@@ -515,6 +533,9 @@ export class GameModelLibrary {
     } finally {
       this.#loading.delete(job.url);
       this.#activeLoads -= 1;
+      if (this.#ownsTextures && this.#destroyed && this.#activeLoads === 0) {
+        this.#textures.destroy();
+      }
       this.#drainLoads();
     }
   }
@@ -524,6 +545,7 @@ export class GameModelLibrary {
    * @param {pc.Asset} asset
    */
   #unloadModel(asset) {
+    this.#textures.detachModel(asset);
     for (const texture of asset.resource?.textures ?? []) {
       texture.resource?.releaseImageSources();
     }

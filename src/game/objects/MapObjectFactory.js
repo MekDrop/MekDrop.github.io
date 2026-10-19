@@ -186,7 +186,7 @@ const OBJECT_CLASSES = new Map([
 ]);
 
 /**
- * @typedef {{new (options: {pc: typeof import("playcanvas"), app: import("playcanvas").Application, modelLibrary: import("src/game/models/GameModelLibrary.js").GameModelLibrary, definition: import("./ObjectTypes.js").MapObjectDefinition, runtime: import("./ObjectTypes.js").MapObjectRuntime}): import("./ObjectTypes.js").MapObjectLike, modelUrls?: Array<string>, modelUrl?: string}} MapObjectConstructor
+ * @typedef {{new (options: {pc: typeof import("playcanvas"), app: import("playcanvas").Application, modelLibrary: import("src/game/models/GameModelLibrary.js").GameModelLibrary, definition: import("./ObjectTypes.js").MapObjectDefinition, runtime: import("./ObjectTypes.js").MapObjectRuntime}): import("./ObjectTypes.js").MapObjectLike, modelUrls?: Array<string>, modelUrl?: string, audioUrls?: string[]}} MapObjectConstructor
  */
 
 /**
@@ -283,6 +283,55 @@ export class MapObjectFactory {
         ),
       ),
     ];
+  }
+
+  /**
+   * Collect audio declared by the object classes present in this prepared map.
+   * @param {import("./ObjectTypes.js").MapObjectDefinition[]} definitions
+   * @returns {string[]}
+   */
+  static audioUrlsFor(definitions) {
+    const urls = new Set();
+    for (const ObjectClass of MapObjectFactory.#assetClassesFor(definitions)) {
+      for (const url of ObjectClass?.audioUrls ?? []) {
+        urls.add(url);
+      }
+    }
+
+    return [...urls];
+  }
+
+  /**
+   * Discover dependencies after generated children have entered the object plan.
+   * @param {import("./ObjectTypes.js").MapObjectDefinition[]} definitions
+   * @returns {{modelUrls:string[], textureUrls:Record<string,string>}}
+   */
+  static assetsFor(definitions) {
+    const classes = MapObjectFactory.#assetClassesFor(definitions);
+
+    return {
+      modelUrls: [...new Set([...classes].flatMap(MapObjectFactory.#flatMapObjectClass))],
+      textureUrls: Object.assign({}, ...[...classes].map(MapObjectFactory.#mapObjectClass)),
+    };
+  }
+
+  /**
+   * @param {import("./ObjectTypes.js").MapObjectDefinition[]} definitions
+   * @returns {Set<MapObjectConstructor>}
+   */
+  static #assetClassesFor(definitions) {
+    const classes = new Set();
+    const pending = [...definitions];
+    for (const definition of pending) {
+      const ObjectClass = definition.object === "Vegetation"
+        ? VoxelVegetation : OBJECT_CLASSES.get(definition.object);
+      if (ObjectClass) {
+        classes.add(ObjectClass);
+        pending.push(...ObjectClass.assetDefinitionsFor?.(definition) ?? []);
+      }
+    }
+
+    return classes;
   }
 
   /**

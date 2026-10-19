@@ -4,3 +4,6 @@ export { GameModelUnavailableError } from "./GameModelUnavailableError.js";
 export { UnpackableObjectError } from "./UnpackableObjectError.js";
 export { ShaderTranspilerAssetsNotColocatedError } from "./ShaderTranspilerAssetsNotColocatedError.js";
 export { GameModelLibraryDestroyedError } from "./GameModelLibraryDestroyedError.js";
+export { GameAssetLoadError } from "./GameAssetLoadError.js";
+export { GameAssetUnavailableError } from "./GameAssetUnavailableError.js";
+export { GameAssetLibraryDestroyedError } from "./GameAssetLibraryDestroyedError.js";

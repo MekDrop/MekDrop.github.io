@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { it } from "node:test";
 import * as pc from "playcanvas";
 import { IslandObjectRoots } from "../../../../../src/game/objects/shared/IslandObjectRoots.js";
+import { HeraldryTexture } from "../../../../../src/game/textures/heraldry/HeraldryTexture.js";
 
 const source = readFileSync(new URL("../../../../../src/game/objects/flag/Flag.js", import.meta.url), "utf8")
   .replace(/^import[^\n]*\n/gm, "").replace("export class Flag", "class Flag");
@@ -13,7 +14,7 @@ class Physics {
   endPointer() {}
   destroy() {}
 }
-const Flag = new Function("IslandObjectRoots", "AmmoClothPhysics", `const authoredModelUrl = "pole", finialModelUrl = "finial", clothModelUrl = "cloth"; ${source}; return Flag;`)(IslandObjectRoots, Physics);
+const Flag = new Function("IslandObjectRoots", "AmmoClothPhysics", "HeraldryTexture", `const authoredModelUrl = "pole", finialModelUrl = "finial", clothModelUrl = "cloth"; ${source}; return Flag;`)(IslandObjectRoots, Physics, HeraldryTexture);
 
 it("migrates castle flags once, preserves overrides, and refreshes a changed seed", () => {
   const castle = {

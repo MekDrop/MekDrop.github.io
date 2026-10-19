@@ -1,4 +1,5 @@
 import { BUFFER_STATIC } from "playcanvas";
+import stoneTextureUrl from "src/assets/game/textures/castle-stone.png";
 import { DynamicRenderBatch } from "../../../rendering/DynamicRenderBatch.js";
 import stairModuleUrl from "../../../models/castle/stairs/castle-stair-module.glb?url";
 import masonryBlockUrl from "../../../models/castle/residential/masonry-block.glb?url";
@@ -13,6 +14,12 @@ import { colorFromHex } from "../../../helpers/colors.js";
  * Registered two-flight stair assembly. Its local frame owns visuals and Ammo bodies.
  */
 export class StraightStaircase {
+  /**
+   * @returns {Record<string,string>}
+   */
+  static get textureUrls() {
+    return { castleStone: stoneTextureUrl };
+  }
   /**
    * @returns {string[]}
    */

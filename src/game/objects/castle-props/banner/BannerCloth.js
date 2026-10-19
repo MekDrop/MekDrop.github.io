@@ -1,11 +1,10 @@
+import { HeraldryTexture } from "../../../textures/heraldry/HeraldryTexture.js";
 import { ClothWindExposure } from "../../shared/ClothWindExposure.js";
 import vestibuleModelUrl from "../../../models/castle/props/vestibule-banner.glb?url";
 import clothModelUrl from "../../../models/castle/residential/banner-cloth.glb?url";
 import authoredModelUrl from "../../../models/castle/residential/metal-pole.glb?url";
 import { AmmoClothPhysics } from "../../shared/AmmoClothPhysics.js";
 
-const BANNER_TEXTURE_WIDTH = 64;
-const BANNER_TEXTURE_HEIGHT = 96;
 
 /**
  * @typedef {{root: import("playcanvas").Entity, width: number, height: number, cloth: ReturnType<AmmoClothPhysics["createCloth"]>, mesh: import("playcanvas").Mesh, positions: Float32Array, vertexUv: Float32Array, indices: Uint16Array}} BannerClothInstance
@@ -53,6 +52,10 @@ export class BannerCloth {
    */
   #texture;
   /**
+   * @type {HeraldryTexture|null}
+   */
+  #artwork;
+  /**
    *
    * @type {Array<BannerClothInstance>}
    */
@@ -85,7 +88,8 @@ export class BannerCloth {
     this.#pc = pc;
     this.#app = app;
     this.#entity = new pc.Entity("Castle banners");
-    this.#texture = this.#createTexture();
+    this.#artwork = HeraldryTexture.banner(pc, app.graphicsDevice);
+    this.#texture = this.#artwork.texture;
     this.#material = this.#createMaterial();
     this.#railMaterial = this.#createRailMaterial();
     this.#physics = new AmmoClothPhysics({ pc });
@@ -274,50 +278,9 @@ export class BannerCloth {
     this.#material = null;
     this.#railMaterial?.destroy();
     this.#railMaterial = null;
-    this.#texture?.destroy();
+    this.#artwork?.destroy();
+    this.#artwork = null;
     this.#texture = null;
-  }
-
-  #createTexture() {
-    const canvas = document.createElement("canvas");
-    canvas.width = BANNER_TEXTURE_WIDTH;
-    canvas.height = BANNER_TEXTURE_HEIGHT;
-    const context = canvas.getContext("2d");
-    context.imageSmoothingEnabled = false;
-
-    context.fillStyle = "#173f88";
-    context.fillRect(0, 0, BANNER_TEXTURE_WIDTH, BANNER_TEXTURE_HEIGHT);
-    context.fillStyle = "#245bb7";
-    context.fillRect(7, 0, BANNER_TEXTURE_WIDTH - 14, BANNER_TEXTURE_HEIGHT);
-    context.fillStyle = "#3470d2";
-    context.fillRect(10, 0, 6, BANNER_TEXTURE_HEIGHT);
-    context.fillStyle = "#0f2d69";
-    context.fillRect(BANNER_TEXTURE_WIDTH - 15, 0, 6, BANNER_TEXTURE_HEIGHT);
-
-    context.fillStyle = "#f1dfad";
-    context.fillRect(21, 31, 22, 24);
-    context.fillRect(18, 27, 8, 10);
-    context.fillRect(28, 24, 8, 13);
-    context.fillRect(38, 27, 8, 10);
-    context.fillRect(18, 49, 28, 7);
-    context.fillRect(27, 54, 10, 10);
-    context.fillStyle = "#245bb7";
-    context.fillRect(27, 43, 10, 12);
-
-    const texture = new this.#pc.Texture(this.#app.graphicsDevice, {
-      name: "Castle banner cloth",
-      width: BANNER_TEXTURE_WIDTH,
-      height: BANNER_TEXTURE_HEIGHT,
-      addressU: this.#pc.ADDRESS_CLAMP_TO_EDGE,
-      addressV: this.#pc.ADDRESS_CLAMP_TO_EDGE,
-      minFilter: this.#pc.FILTER_LINEAR_MIPMAP_LINEAR,
-      magFilter: this.#pc.FILTER_LINEAR,
-      anisotropy: 4,
-      mipmaps: true,
-    });
-    texture.setSource(canvas);
-
-    return texture;
   }
 
   #createMaterial() {

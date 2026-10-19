@@ -1,12 +1,30 @@
 import assert from "node:assert/strict";
 import { registerHooks } from "node:module";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { test } from "node:test";
 import * as pc from "playcanvas";
 import { generateMap } from "../../../../src/game/generator/map/MapGenerator.js";
 
 const root = new URL("../../../../", import.meta.url);
 const hooks = registerHooks({
+  load: (url, context, nextLoad) => {
+    const loaded = nextLoad(url, context);
+    if (url.endsWith("/RugModels.js")) {
+      const directory = new URL("../../../models/rug/", url);
+      const modules = readdirSync(directory).filter(name => name.endsWith(".js"));
+      const entries = modules.map(name => {
+        const specifier = `../../../models/rug/${name}`;
+
+        return `${JSON.stringify(specifier)}: await import(${JSON.stringify(specifier)})`;
+      });
+
+      return {
+        ...loaded,
+        source: loaded.source.toString().replace('import.meta.globEager("../../../models/rug/*.js")', `{${entries.join(",")}}`),
+      };
+    }
+    return loaded;
+  },
   resolve: (specifier, context, nextResolve) => {
     if (specifier.startsWith("src/")) {
       specifier = new URL(specifier, root).href;
@@ -30,6 +48,67 @@ const hooks = registerHooks({
 });
 const { MapObjectFactory } = await import("../../../../src/game/objects/MapObjectFactory.js");
 hooks.deregister();
+
+test("asset discovery excludes absent objects and deduplicates shared models", () => {
+  assert.deepEqual(MapObjectFactory.assetsFor([]), {
+    modelUrls: [],
+    textureUrls: {},
+  });
+  const bell = {
+    object: "SignalBell",
+    id: "bell",
+  };
+  const assets = MapObjectFactory.assetsFor([bell, {
+    ...bell,
+    id: "bell-2",
+  }]);
+  assert.equal(assets.modelUrls.length, 2);
+  assert.ok(assets.modelUrls.every(url => url.includes("bell")));
+  assert.deepEqual(assets.textureUrls, {});
+  const lantern = MapObjectFactory.assetsFor([{
+    object: "Lantern",
+    id: "lantern",
+  }]);
+  assert.match(lantern.textureUrls.castleFireParticle, /castle-fire-particle/);
+  const castle = MapObjectFactory.assetsFor([{
+    object: "Castle",
+    id: "castle",
+  }]);
+  assert.match(castle.textureUrls.castleDoor, /timber-grain/);
+  assert.match(castle.textureUrls.castleStone, /castle-stone/);
+  const bowl = MapObjectFactory.assetsFor([{
+    object: "Bowl",
+    id: "bowl",
+    items: [{
+      object: "GreenVegetable",
+      id: "vegetable",
+    }],
+  }]);
+  assert.ok(bowl.modelUrls.some(url => url.includes("green-vegetable")));
+});
+
+test("audio dependencies include only present objects and deduplicate repeated bells", () => {
+  assert.deepEqual(MapObjectFactory.audioUrlsFor([{
+    id: "chair",
+    object: "Chair",
+  }]), []);
+  const urls = MapObjectFactory.audioUrlsFor([
+    {
+      id: "bell-1",
+      object: "SignalBell",
+    },
+    {
+      id: "bell-2",
+      object: "SignalBell",
+    },
+    {
+      id: "chair",
+      object: "Chair",
+    },
+  ]);
+  assert.equal(urls.length, 1);
+  assert.match(urls[0], /signal-bell\.wav/);
+});
 
 test("castle-generated lanterns publish canonical names and explicit model types", async () => {
   const map = await generateMap({ mapName: "mv7wfhrn_1d30anq" });

@@ -114,6 +114,13 @@ test("sign collision excludes lettering and preserves independent scale and faci
       assert.ok(Math.abs(root.forward.x + Math.sin(yaw * Math.PI / 180)) < 1e-6);
       assert.ok(Math.abs(root.forward.z + Math.cos(yaw * Math.PI / 180)) < 1e-6);
       assert.equal(sign.surfaceHeightAt, undefined);
+      const inscription = root.children[0].findByName("Sign inscription").render.meshInstances[0];
+      const material = inscription.material;
+      const texture = material.diffuseMap;
+      sign.text = "Library";
+      assert.equal(sign.definition.text, "Library");
+      assert.equal(inscription.material, material);
+      assert.equal(material.diffuseMap, texture);
       sign.destroy();
       assert.equal(graphs.at(-1).parent, null);
     }

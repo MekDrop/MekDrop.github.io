@@ -1,3 +1,4 @@
+import { HeraldryTexture } from "../../textures/heraldry/HeraldryTexture.js";
 import clothModelUrl from "../../models/castle/residential/flag-cloth.glb?url";
 import finialModelUrl from "../../models/castle/residential/metal-finial.glb?url";
 import authoredModelUrl from "../../models/castle/residential/metal-pole.glb?url";
@@ -5,8 +6,6 @@ import { IslandObjectRoots } from "../shared/IslandObjectRoots.js";
 import { AmmoClothPhysics } from "../shared/AmmoClothPhysics.js";
 
 const FLAG_TRAILING_EDGE_HEIGHT_RATIO = 0.2;
-const FLAG_TEXTURE_WIDTH = 64;
-const FLAG_TEXTURE_HEIGHT = 40;
 
 /**
  * @typedef {{root: import("playcanvas").Entity, width: number, height: number, poleHeight: number, cloth: ReturnType<AmmoClothPhysics["createCloth"]>, mesh: import("playcanvas").Mesh, positions: Float32Array, vertexUv: Float32Array, indices: Uint16Array}} FlagInstance
@@ -174,6 +173,10 @@ export class Flag {
    */
   #texture;
   /**
+   * @type {HeraldryTexture|null}
+   */
+  #artwork;
+  /**
    *
    * @type {Array<FlagInstance>}
    */
@@ -207,7 +210,8 @@ export class Flag {
     this.#pc = pc;
     this.#app = app;
     this.#entity = new pc.Entity(`${definition.id} flag ownership`);
-    this.#texture = this.#createTexture();
+    this.#artwork = HeraldryTexture.flag(pc, app.graphicsDevice);
+    this.#texture = this.#artwork.texture;
     this.#flagMaterial = this.#createFlagMaterial();
     this.#poleMaterial = this.#createPoleMaterial();
     this.#physics = new AmmoClothPhysics({ pc });
@@ -410,47 +414,9 @@ export class Flag {
       this.#app.assets.remove(this.#textureAsset);
       this.#textureAsset = null;
     }
-    this.#texture?.destroy();
+    this.#artwork?.destroy();
+    this.#artwork = null;
     this.#texture = null;
-  }
-
-  #createTexture() {
-    const canvas = document.createElement("canvas");
-    canvas.width = FLAG_TEXTURE_WIDTH;
-    canvas.height = FLAG_TEXTURE_HEIGHT;
-    const context = canvas.getContext("2d");
-    context.imageSmoothingEnabled = false;
-    context.fillStyle = "#153c84";
-    context.fillRect(0, 0, FLAG_TEXTURE_WIDTH, FLAG_TEXTURE_HEIGHT);
-    context.fillStyle = "#245bb7";
-    context.fillRect(4, 3, FLAG_TEXTURE_WIDTH - 8, FLAG_TEXTURE_HEIGHT - 6);
-    context.fillStyle = "#3470d2";
-    context.fillRect(8, 3, 5, FLAG_TEXTURE_HEIGHT - 6);
-    context.fillStyle = "#0f2c66";
-    context.fillRect(49, 3, 7, FLAG_TEXTURE_HEIGHT - 6);
-
-    context.fillStyle = "#f1dfad";
-    context.fillRect(23, 13, 15, 13);
-    context.fillRect(20, 10, 6, 7);
-    context.fillRect(28, 8, 6, 9);
-    context.fillRect(36, 10, 6, 7);
-    context.fillStyle = "#245bb7";
-    context.fillRect(28, 18, 6, 8);
-
-    const texture = new this.#pc.Texture(this.#app.graphicsDevice, {
-      name: "Tapered flag",
-      width: FLAG_TEXTURE_WIDTH,
-      height: FLAG_TEXTURE_HEIGHT,
-      addressU: this.#pc.ADDRESS_CLAMP_TO_EDGE,
-      addressV: this.#pc.ADDRESS_CLAMP_TO_EDGE,
-      minFilter: this.#pc.FILTER_LINEAR_MIPMAP_LINEAR,
-      magFilter: this.#pc.FILTER_LINEAR,
-      anisotropy: 4,
-      mipmaps: true,
-    });
-    texture.setSource(canvas);
-
-    return texture;
   }
 
   #createFlagMaterial() {

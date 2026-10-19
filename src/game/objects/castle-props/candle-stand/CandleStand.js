@@ -12,6 +12,13 @@ import { FireEffect } from "../../fire/FireEffect.js";
  */
 export class CandleStand extends AbstractCastleProp {
   /**
+   * @returns {Record<string,string>}
+   */
+  static get textureUrls() {
+    return Fire.textureUrls;
+  }
+
+  /**
    * @param {ConstructorParameters<typeof AbstractCastleProp>[0]} options
    */
   constructor(options) {

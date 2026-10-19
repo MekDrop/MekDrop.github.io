@@ -7,6 +7,14 @@ import { BowlPacking } from "./BowlPacking.js";
  */
 export class Bowl extends AbstractCastleProp {
   /**
+   * Contained items are constructed after scene creation but preload with the bowl.
+   * @param {import("../../ObjectTypes.js").MapObjectDefinition} definition
+   * @returns {import("../../ObjectTypes.js").MapObjectDefinition[]}
+   */
+  static assetDefinitionsFor(definition) {
+    return definition.items ?? [];
+  }
+  /**
    * @type {import("playcanvas").Entity[]}
    */
   #items = [];

@@ -109,11 +109,12 @@
  * @property {{horizontal: boolean, station: number, cells: Array<{col: number, row: number}>, removedCells: Array<{col: number, row: number}>, nearIsland: string[], farIsland: string[], islands?: string[][]}} [islandConnectorData]
  * @property {{position: {col: number, row: number, width: number, depth: number}}} [castle]
  * @typedef {object} MapObjectRuntime
+ * @property {import("../audio/GameAudioLibrary.js").GameAudioLibrary} [audioLibrary]
  * @property {(definition: MapObjectDefinition) => MapObjectLike} [createObject] Creates a registered child object owned by its container.
  * @property {Array<import("playcanvas").Material>} [materials]
  * @property {() => HeroLike} [getHero]
  * @property {(item: MapObjectLike) => void} [onCollectibleRemoved]
- * @property {(definition: MapObjectDefinition) => boolean} [replaceObjectDefinition]
+ * @property {(definition: MapObjectDefinition) => Promise<boolean>} [replaceObjectDefinition]
  * @property {GameMapData} [mapData]
  * @property {Iterable<MapObjectLike>} [objects]
  * @property {import("playcanvas").Entity} [root]

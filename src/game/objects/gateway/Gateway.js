@@ -2,13 +2,13 @@ import { IslandCellOwnership } from "../shared/IslandCellOwnership.js";
 import { AmmoClothPhysics } from "../shared/AmmoClothPhysics.js";
 import { colorFromValue } from "../../helpers/colors.js";
 import gatewayFrameModelUrl from "../../models/gateway/gateway-frame.glb?url";
-import { GatewayBannerSign } from "./GatewayBannerSign.js";
+import { DynamicTextTexture } from "../../textures/text/DynamicTextTexture.js";
 import { GatewayRepulsionEffect } from "./GatewayRepulsionEffect.js";
 import portalFragmentShader from "./GatewayPortal.frag?raw";
 import portalVertexShader from "./GatewayPortal.vert?raw";
 
 import { DEFAULT_GATEWAY_COLOR } from "../../config/gateway.js";
-import { GATEWAY_BANNER_SIGNS } from "./GatewayBannerSign.js";
+import { GATEWAY_BANNER_SIGNS } from "./GatewayBannerSigns.js";
 import { GRASS_SURFACE_LIFT } from "../../config/terrain.js";
 import { SCENE_OBJECT_TYPE } from "../../enum/SceneObjectType.js";
 import { FIXED_HEIGHTS } from "../../rendering/terrain/TerrainMaterialMaps.js";
@@ -119,9 +119,9 @@ export class Gateway {
   #meshes = [];
   /**
    *
-   * @type {Array<import("playcanvas").Texture>}
+   * @type {DynamicTextTexture|null}
    */
-  #textures = [];
+  #labelTexture = null;
   /**
    *
    * @type {ShaderMaterial}
@@ -313,6 +313,21 @@ export class Gateway {
 
   get entity() {
     return this.#entity;
+  }
+
+  get symbol() {
+    return this.#symbol;
+  }
+
+  /**
+   * @param {string} value
+   */
+  set symbol(value) {
+    this.#symbol = value;
+    this.#labelTexture.text = value;
+    if (this.definition) {
+      this.definition.symbol = value;
+    }
   }
 
   /**
@@ -527,10 +542,8 @@ export class Gateway {
       material.destroy();
     }
     this.#materials = [];
-    for (const texture of this.#textures) {
-      texture.destroy();
-    }
-    this.#textures = [];
+    this.#labelTexture?.destroy();
+    this.#labelTexture = null;
     for (const mesh of this.#meshes) {
       mesh.decRefCount();
       if (mesh.refCount < 1) {
@@ -677,12 +690,12 @@ export class Gateway {
     mesh.incRefCount();
     this.#meshes.push(mesh);
     this.#bannerMesh = mesh;
-    const signTexture = GatewayBannerSign.createTexture(
+    this.#labelTexture = DynamicTextTexture.gatewayLabel(
       pc,
       this.#app.graphicsDevice,
       this.#symbol,
     );
-    this.#textures.push(signTexture);
+    const signTexture = this.#labelTexture.texture;
     this.#bannerMaterial = new pc.StandardMaterial();
     this.#bannerMaterial.name = "Gateway hanging cloth";
     this.#bannerMaterial.gloss = 0.05;

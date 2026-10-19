@@ -2,6 +2,8 @@ import { CastleGenerator } from "../../generator/castle/CastleGenerator.js";
 import { CastleMapPreparation } from "./ground/CastleMapPreparation.js";
 import gardenTextureUrl from "src/assets/game/tiles/grass-top.png";
 import carpetTextureUrl from "src/assets/game/textures/castle-carpet.png";
+import { woodTexture } from "../../textures/shared-textures.js";
+import stoneTextureUrl from "src/assets/game/textures/castle-stone.png";
 import { CastleEntityBuilder } from "./structure/CastleEntityBuilder.js";
 import { FireplaceChimneySightline } from "../castle-props/fireplace/FireplaceChimneySightline.js";
 import { IslandCellOwnership } from "../shared/IslandCellOwnership.js";
@@ -62,6 +64,8 @@ export class Castle extends CastleEntityBuilder {
    */
   static get textureUrls() {
     return {
+      castleDoor: woodTexture.url,
+      castleStone: stoneTextureUrl,
       castleCarpet: carpetTextureUrl,
       castleGarden: gardenTextureUrl,
     };
@@ -158,7 +162,7 @@ export class Castle extends CastleEntityBuilder {
       if (sign) {
         sign.text = `Seed ${seed}`;
       }
-      const replaced = this.#runtime.replaceObjectDefinition({
+      const replaced = await this.#runtime.replaceObjectDefinition({
         ...this.#definition,
         seed,
         buildPlan,
