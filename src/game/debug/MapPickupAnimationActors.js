@@ -1,4 +1,5 @@
 import { GRASS_SURFACE_LIFT } from "../config/terrain.js";
+import { HERO_MODEL_SCALE } from "../config/character-size.js";
 import { pickupActionForCategory } from "../config/hero-pickup-actions.js";
 import { PickupSequenceItemNotFoundError } from "../errors/debug/index.js";
 import { Hero } from "../objects/characters/hero/Hero.js";
@@ -7,7 +8,7 @@ import groundCoverHeldVertexShader from "../objects/ground-cover/GroundCoverHeld
 import { KnifeTool } from "../objects/characters/hero/tools/index.js";
 import { GroundCoverHeldItem } from "../objects/ground-cover/index.js";
 
-const HERO_ACTOR_SCALE = 0.65;
+const HERO_ACTOR_SCALE = HERO_MODEL_SCALE;
 const PICKUP_LOOP_PAUSE = 0.32;
 
 /**
@@ -280,9 +281,7 @@ export class MapPickupAnimationActors {
           ? this.#heldMaterials.get("flower")
           : null,
       gripPoint: entry.definition.gripPoint,
-      pickupTilt: entry.definition.category === "flower" ? -68 : 25,
-      pickupPitch: entry.definition.category === "mushroom" ? 60 : 0,
-      pickupYaw: entry.definition.category === "mushroom" ? 20 : 0,
+      pickupTilt: entry.definition.category === "flower" ? -68 : 0,
       keepCapUpright: entry.definition.category === "mushroom",
     });
   }
@@ -305,6 +304,9 @@ export class MapPickupAnimationActors {
       }
       const animationTime = Math.min(entry.elapsed, entry.pickupAction.duration);
       entry.model.anim.baseLayer.activeStateCurrentTime = animationTime;
+      if (entry.tool) {
+        entry.tool.visible = animationTime < (entry.pickupAction.toolHideTime ?? Infinity);
+      }
       if (animationTime < entry.pickupAction.impactTime) {
         entry.sourceItem.reset();
         entry.sourceItem.advance(deltaTime);

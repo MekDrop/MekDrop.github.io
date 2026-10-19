@@ -82,6 +82,10 @@ export class GroundCoverHeldItem {
    */
   #followTarget = null;
   /**
+   * @type {number}
+   */
+  #initialGripYaw = 0;
+  /**
    *
    * @type {boolean}
    */
@@ -167,6 +171,9 @@ export class GroundCoverHeldItem {
       parent.addChild(this.#entity);
     }
     this.#followTarget = followTarget;
+    // PickMushroom's support fingers point along model +X at the cut.
+    const forward = parent.getRotation().transformVector(new this.#pc.Vec3(0, 0, 1));
+    this.#initialGripYaw = 90 + Math.atan2(forward.x, forward.z) * 180 / Math.PI;
     const outwardRotation = new this.#pc.Quat().setFromEulerAngles(
       0,
       this.#pickupYaw,
@@ -197,7 +204,22 @@ export class GroundCoverHeldItem {
       .clone()
       .invert()
       .transformPoint(this.#followTarget.getPosition());
-    this.#entity.setLocalPosition(gripPosition.sub(this.#scaledGripPoint()));
+    if (this.#keepCapUpright) {
+      this.#entity.setLocalEulerAngles(0, this.#gripYaw() - this.#initialGripYaw, 0);
+    }
+    const offset = this.#entity.getLocalRotation().transformVector(this.#scaledGripPoint());
+    this.#entity.setLocalPosition(gripPosition.sub(offset));
+  }
+
+  /**
+   * @returns {number}
+   */
+  #gripYaw() {
+    const direction = this.#followTarget.getRotation().transformVector(
+      new this.#pc.Vec3(0, -1, 0),
+    );
+
+    return Math.atan2(direction.x, direction.z) * 180 / Math.PI;
   }
 
   destroy() {

@@ -83,7 +83,7 @@ export class DecorationPlacementRules {
     if (metadata?.surfaceType && metadata.surfaceType !== "GRASS") {
       return false;
     }
-    if (metadata?.shape !== TILE_SHAPE.FLAT) {
+    if ((metadata?.shape ?? TILE_SHAPE.FLAT) !== TILE_SHAPE.FLAT) {
       return false;
     }
     if (!Number.isFinite(heightmap[row][col])) {

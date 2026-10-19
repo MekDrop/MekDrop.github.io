@@ -1,3 +1,4 @@
+import { HERO_MODEL_SCALE } from "../../config/character-size.js";
 import { IslandCellOwnership } from "../shared/IslandCellOwnership.js";
 import blueFlowerPatchModelUrl from "../../models/ground-cover/blue-flower-patch.glb?url";
 import buttercupPatchModelUrl from "../../models/ground-cover/buttercup-patch.glb?url";
@@ -110,8 +111,8 @@ export const GROUND_COVER_VARIANTS = Object.freeze({
     scale: 0.82,
     flexibility: 0.35,
     gripPoint: {
-      x: 0.1,
-      y: -0.08,
+      x: -0.3 * HERO_MODEL_SCALE / 0.82,
+      y: 0.3845 * HERO_MODEL_SCALE / 0.82,
       z: 0,
     },
   },
@@ -124,9 +125,9 @@ export const GROUND_COVER_VARIANTS = Object.freeze({
     scale: 0.82,
     flexibility: 0.38,
     gripPoint: {
-      x: -0.02,
-      y: -0.08,
-      z: -0.01,
+      x: -0.3 * HERO_MODEL_SCALE / 0.82,
+      y: 0.3845 * HERO_MODEL_SCALE / 0.82,
+      z: 0,
     },
   },
   "forest-mushroom-cluster": {
@@ -138,9 +139,9 @@ export const GROUND_COVER_VARIANTS = Object.freeze({
     scale: 0.82,
     flexibility: 0.32,
     gripPoint: {
-      x: -0.06,
-      y: -0.08,
-      z: 0.03,
+      x: -0.3 * HERO_MODEL_SCALE / 0.82,
+      y: 0.3845 * HERO_MODEL_SCALE / 0.82,
+      z: 0,
     },
   },
 });
@@ -839,9 +840,7 @@ export class GroundCover {
           castShadows: definition.category !== FLOWER_CATEGORY,
           receiveShadows: definition.category !== FLOWER_CATEGORY,
           gripPoint: definition.gripPoint,
-          pickupTilt: definition.category === FLOWER_CATEGORY ? -68 : 25,
-          pickupPitch: definition.category === MUSHROOM_CATEGORY ? 60 : 0,
-          pickupYaw: definition.category === MUSHROOM_CATEGORY ? 20 : 0,
+          pickupTilt: definition.category === FLOWER_CATEGORY ? -68 : 0,
           keepCapUpright: definition.category === MUSHROOM_CATEGORY,
         }),
     });

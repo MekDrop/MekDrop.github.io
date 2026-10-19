@@ -154,6 +154,11 @@
  * @property {(item: import("./ground-cover/GroundCoverCollectible.js").GroundCoverCollectible) => boolean} [collectInventoryItem]
  * @property {(interaction: InteractionLike|null) => void} [setInteraction]
  * @typedef {object} HeroActionPayload
+ * @property {string} [phase]
+ * @property {number} [cutStartTime]
+ * @property {number} [liftStartTime]
+ * @property {number} [toolHideTime]
+ * @property {number} [stowStartTime]
  * @property {Record<string, string|number|boolean>} [toolContext]
  * @property {number} [useDuration]
  * @property {number[]} [impactTimes]

@@ -1,5 +1,6 @@
 import { HERO_ACTION } from "../../../../../enum/HeroAction.js";
 import { HERO_ANIMATION } from "../../../../../enum/HeroAnimation.js";
+import { HERO_COLLECTION_PHASE } from "../../../../../enum/HeroCollectionPhase.js";
 import { HeroRuntimeActionState } from "./HeroRuntimeActionState.js";
 
 /**
@@ -39,6 +40,14 @@ function advancePositioning(action, owner) {
 }
 
 export class HeroCollectingActionState extends HeroRuntimeActionState {
+  /**
+   * The knife crouch authors both boot contacts on flat harvesting ground.
+   * @returns {boolean}
+   */
+  get allowsFootPlacement() {
+    return this.payload?.cutStartTime === undefined;
+  }
+
   constructor() {
     super(HERO_ACTION.COLLECTING, {
       /**
@@ -51,6 +60,7 @@ export class HeroCollectingActionState extends HeroRuntimeActionState {
       requiresGrounded: true,
       blocksMovement: true,
       allowsIdleHeadLook: false,
+      controlsHeadPresentation: true,
     });
   }
 
@@ -60,6 +70,9 @@ export class HeroCollectingActionState extends HeroRuntimeActionState {
    */
   enter(owner) {
     super.enter(owner);
+    this.payload.phase = this.payload.positioning
+      ? HERO_COLLECTION_PHASE.APPROACHING
+      : HERO_COLLECTION_PHASE.REACHING;
     owner.feedback.collection.begin(this.payload);
   }
 
@@ -74,6 +87,7 @@ export class HeroCollectingActionState extends HeroRuntimeActionState {
       return;
     }
     action.elapsed += owner.deltaTime;
+    action.phase = HeroCollectingActionState.#phase(action);
     if (!action.impacted && action.elapsed >= action.impactTime) {
       action.impacted = true;
       const collected = action.onImpact?.() === true;
@@ -82,6 +96,9 @@ export class HeroCollectingActionState extends HeroRuntimeActionState {
       }
     }
     action.heldItem?.follow(owner.deltaTime);
+    if (action.tool && action.elapsed >= (action.toolHideTime ?? Infinity)) {
+      action.tool.visible = false;
+    }
     if (
       action.heldItem
       && action.heldItemHideTime !== null
@@ -116,6 +133,28 @@ export class HeroCollectingActionState extends HeroRuntimeActionState {
     return payload.positioning
       ? HERO_ANIMATION.WALK
       : payload.animation;
+  }
+
+  /**
+   * @param {import("src/game/objects/ObjectTypes.js").HeroActionPayload} action
+   * @returns {string}
+   */
+  static #phase(action) {
+    if (action.elapsed >= (action.heldItemHideTime ?? action.duration)) {
+      return HERO_COLLECTION_PHASE.RECOVERING;
+    }
+    if (action.elapsed >= (action.stowStartTime ?? action.duration)) {
+      return HERO_COLLECTION_PHASE.STOWING;
+    }
+    if (action.elapsed >= action.impactTime) {
+      return action.elapsed < (action.liftStartTime ?? action.impactTime)
+        ? HERO_COLLECTION_PHASE.WITHDRAWING
+        : HERO_COLLECTION_PHASE.LIFTING;
+    }
+    if (action.elapsed >= (action.cutStartTime ?? Infinity)) {
+      return HERO_COLLECTION_PHASE.CUTTING;
+    }
+    return HERO_COLLECTION_PHASE.REACHING;
   }
 }
 

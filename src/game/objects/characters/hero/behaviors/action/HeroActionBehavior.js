@@ -196,7 +196,7 @@ export class HeroActionBehavior {
 
   /**
    *
-   * @returns {{name: string, action: string, animation: string|number, animationSpeed: number, incapacitated: boolean, dying: boolean, canBePatted: boolean, boostingCountryFinances: boolean}}
+   * @returns {{name: string, action: string, phase: string|null, animation: string|number, animationSpeed: number, incapacitated: boolean, dying: boolean, canBePatted: boolean, boostingCountryFinances: boolean}}
    */
   get state() {
     const current = this.#stateMachine.currentState;
@@ -204,6 +204,7 @@ export class HeroActionBehavior {
     return {
       name: current.action,
       action: current.action,
+      phase: this.payload?.phase ?? null,
       animation: this.animation,
       animationSpeed: this.animationSpeed,
       incapacitated: current.incapacitated,

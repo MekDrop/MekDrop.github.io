@@ -1,4 +1,5 @@
 import { HERO_ANIMATION } from "../enum/HeroAnimation.js";
+import { HERO_MODEL_SCALE } from "./character-size.js";
 
 export const HERO_PICKUP_ACTIONS = Object.freeze({
   flower: Object.freeze({
@@ -13,10 +14,14 @@ export const HERO_PICKUP_ACTIONS = Object.freeze({
   }),
   mushroom: Object.freeze({
     animation: HERO_ANIMATION.PICK_MUSHROOM,
-    duration: 40 / 24,
-    impactTime: 18 / 24,
-    heldItemHideTime: 35 / 24,
-    targetDistance: 0.22,
+    duration: 96 / 24,
+    cutStartTime: 30 / 24,
+    impactTime: 42 / 24,
+    liftStartTime: 1.95,
+    toolHideTime: 2.3,
+    stowStartTime: 64 / 24,
+    heldItemHideTime: 82 / 24,
+    targetDistance: 0.9574 * HERO_MODEL_SCALE,
     maximumStep: 0.45,
     heldItemAttachment: "left",
     requiresTool: true,

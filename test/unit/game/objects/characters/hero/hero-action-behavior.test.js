@@ -5,6 +5,8 @@ import { HERO_ANIMATION } from "../../../../../../src/game/enum/HeroAnimation.js
 import { RIVER_KIND } from "../../../../../../src/game/enum/RiverKind.js";
 import { HeroActionBehavior } from "../../../../../../src/game/objects/characters/hero/behaviors/action/HeroActionBehavior.js";
 import { HeroDyingTimeoutError } from "../../../../../../src/game/errors/hero/index.js";
+import { HERO_COLLECTION_PHASE } from "../../../../../../src/game/enum/HeroCollectionPhase.js";
+import { HERO_PICKUP_ACTIONS } from "../../../../../../src/game/config/hero-pickup-actions.js";
 
 it("reports a stalled dying state and respawns only after ten seconds", (context) => {
   const errors = [];
@@ -355,6 +357,96 @@ it("completes collection from its action state and returns to rest", () => {
 
   assert.equal(behavior.state.action, HERO_ACTION.EXPLORING);
   assert.equal(completedAction, action);
+});
+
+it("cuts mushrooms before lifting, stowing, and recovering", () => {
+  let collected = 0;
+  let mounted = 0;
+  let destroyed = 0;
+  const tool = { visible: true };
+  const behavior = createBehavior({
+    feedback: {
+      collection: {
+        ...createFeedback().collection,
+        mountHeldItem: () => {
+          mounted += 1;
+        },
+      },
+    },
+  });
+  const action = {
+    ...HERO_PICKUP_ACTIONS.mushroom,
+    tool,
+    elapsed: 0,
+    positioning: null,
+    impacted: false,
+    heldItem: {
+      follow: () => {},
+      destroy: () => {
+        destroyed += 1;
+      },
+    },
+    onImpact: () => {
+      collected += 1;
+
+      return true;
+    },
+  };
+  behavior.collectAction = action;
+  assert.equal(behavior.state.phase, HERO_COLLECTION_PHASE.REACHING);
+  assert.equal(behavior.controlsHeadPresentation, true, "idle head look must not overwrite the pickup pose");
+  assert.equal(behavior.allowsFootPlacement, false, "authored boot contacts must not be reposed during the cut");
+  behavior.update(1.3);
+  assert.equal(behavior.state.phase, HERO_COLLECTION_PHASE.CUTTING);
+  assert.equal(collected, 0, "mushroom must remain rooted during the cut");
+  assert.equal(mounted, 0);
+  behavior.update(0.5);
+  assert.equal(behavior.state.phase, HERO_COLLECTION_PHASE.WITHDRAWING);
+  assert.equal(tool.visible, true);
+  assert.equal(collected, 1);
+  assert.equal(mounted, 1);
+  behavior.update(0.2);
+  assert.equal(behavior.state.phase, HERO_COLLECTION_PHASE.LIFTING);
+  behavior.update(0.7);
+  assert.equal(behavior.state.phase, HERO_COLLECTION_PHASE.STOWING);
+  assert.equal(tool.visible, false, "withdraw the knife before carrying the mushroom");
+  assert.equal(destroyed, 0);
+  behavior.update(0.8);
+  assert.equal(behavior.state.phase, HERO_COLLECTION_PHASE.RECOVERING);
+  assert.equal(destroyed, 1);
+  behavior.update(0.5);
+  assert.equal(behavior.state.action, HERO_ACTION.EXPLORING);
+  assert.equal(collected, 1);
+  assert.equal(destroyed, 1);
+  assert.equal(behavior.controlsHeadPresentation, false);
+});
+
+it("applies one mushroom cut and transfer across a slow frame", () => {
+  const behavior = createBehavior();
+  let collected = 0;
+  let destroyed = 0;
+  behavior.collectAction = {
+    ...HERO_PICKUP_ACTIONS.mushroom,
+    elapsed: 0,
+    positioning: null,
+    impacted: false,
+    heldItem: {
+      follow: () => {},
+      destroy: () => {
+        destroyed += 1;
+      },
+    },
+    onImpact: () => {
+      collected += 1;
+
+      return true;
+    },
+  };
+  behavior.update(3.6);
+  behavior.update(0.5);
+  assert.equal(collected, 1);
+  assert.equal(destroyed, 1);
+  assert.equal(behavior.state.action, HERO_ACTION.EXPLORING);
 });
 
 it("lets the drowning state decide whether water or lava feedback begins", () => {

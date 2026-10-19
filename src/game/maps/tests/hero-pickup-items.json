@@ -529,9 +529,9 @@
       "object": "GroundCoverItem",
       "variant": "red-mushroom",
       "position": {
-        "x": 0.3677,
+        "x": 0.5588,
         "y": 2.004,
-        "z": 2.7719
+        "z": 2.963
       }
     },
     {
@@ -539,9 +539,9 @@
       "object": "GroundCoverItem",
       "variant": "golden-mushroom-pair",
       "position": {
-        "x": 2.7719,
+        "x": 2.963,
         "y": 2.004,
-        "z": 0.3677
+        "z": 0.5588
       }
     },
     {
@@ -549,9 +549,9 @@
       "object": "GroundCoverItem",
       "variant": "forest-mushroom-cluster",
       "position": {
-        "x": 5.1761,
+        "x": 5.3672,
         "y": 2.004,
-        "z": -2.0364
+        "z": -1.8453
       }
     },
     {

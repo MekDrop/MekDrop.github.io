@@ -2030,7 +2030,11 @@ export class Hero {
     this.#actionBehavior.collectAction = {
       animation: pickupAction.animation,
       duration: pickupAction.duration,
+      cutStartTime: pickupAction.cutStartTime,
+      liftStartTime: pickupAction.liftStartTime,
+      toolHideTime: pickupAction.toolHideTime,
       impactTime: pickupAction.impactTime,
+      stowStartTime: pickupAction.stowStartTime,
       elapsed: 0,
       impacted: false,
       positioning,
@@ -2127,7 +2131,7 @@ export class Hero {
         this.#facingYaw = (Math.atan2(targetX, targetZ) * 180) / Math.PI;
       }
       positioning = this.#collectionPositioning({
-        picksMushroom: category === "mushroom",
+        pickupAction: pickupActionForCategory(category),
         targetPosition,
         targetRadius,
         targetDistance,

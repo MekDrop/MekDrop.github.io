@@ -22,6 +22,35 @@ inventory transfer. Review complete cycles around the hero at normal, low and
 high camera elevations. The focused exported-animation test checks stem contact,
 front-foot support, the lowered right knee and recovery in `test/unit/game/models/hero/`.
 
+## Mushroom harvesting
+
+`PickMushroom` is a four-second forward hip bend, short lateral slice, knife withdrawal,
+lift and recovery. The right glove grips a smaller horizontal knife; the left
+hand steadies the mushroom. Cutting runs from 30/24 to 42/24 seconds, then the
+knife withdraws before lifting starts at 1.95 seconds. The knife is hidden at
+2.3 seconds, the carry phase begins at 64/24, the held visual is hidden
+at 82/24, and the hero returns to Idle at 96/24. Collection is committed once,
+at the end of the cut.
+
+The collecting state exposes approaching, reaching, cutting, withdrawing,
+lifting, stowing and recovering phases. Approach time does not advance the
+cut clock. The clip owns the head and boots during harvesting. The feet stay
+near hip width, with a short forward step and flexed knees supporting a
+roughly 47-degree hip bend. The tunic flap hinges clear of the front boot.
+The torso stays behind the cap,
+and the lifted item turns with the supporting wrist outside the body while
+its cap stays upright. The grip uses the model's facing, including when it
+differs from the hero root's rotation.
+
+Working distance and held-item grip follow `HERO_MODEL_SCALE`; debug actors
+use the production scale. `/map/test_inventory-mushroom?camera-test` exercises
+the real interaction; `/map/test_hero-pickup-items?camera-test` covers variants.
+The exported-animation tests check blade contact, short stroke length,
+stationary support during cutting, boot height, lift order and recovery.
+Action tests cover withdrawal, tool visibility and slow-frame collection.
+The posture reference is the forward reach at 21:15–21:20 in
+[the user's harvesting video](https://www.youtube.com/watch?v=0saa8VY7DcA&t=1274s).
+
 ## Treasure chest opening
 
 `OpenChest` is a 1.8-second, non-looping two-handed reach and lift. The hero

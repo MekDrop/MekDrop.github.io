@@ -59,6 +59,10 @@ it("flowers and mushrooms require grass surface even when cell ownership remains
   }
   metadata[10][10].surfaceType = "GRASS";
   assert.equal(eligible(), true);
+  delete metadata[10][10].shape;
+  assert.equal(eligible(), true, "unspecified terrain shape renders as flat");
+  metadata[10][10].shape = TILE_SHAPE.SLOPE;
+  assert.equal(eligible(), false, "slopes cannot support ground cover");
   grid[10][10] = MAP_TILE_TYPE.PATH;
   assert.equal(eligible(), false);
 });
