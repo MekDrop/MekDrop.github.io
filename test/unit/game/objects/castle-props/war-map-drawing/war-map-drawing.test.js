@@ -36,6 +36,35 @@ test("parchment reflects current roads, rivers and castle tiles without changing
   assert.notDeepEqual(WarMapDrawing.raster(map, 64).pixels, raster.pixels);
 });
 
+test("raster marks runtime castles at the same center as saved castle definitions", () => {
+  const position = {
+    x: -2,
+    z: -1,
+    width: 4,
+    depth: 2,
+  };
+  const map = {
+    cols: 9,
+    rows: 9,
+    objects: [{
+      object: "Castle",
+      position,
+    }],
+  };
+  const saved = WarMapDrawing.raster(map, 64);
+  map.objects = [{
+    object: "Castle",
+    buildPlan: {
+      input: { position },
+    },
+  }];
+  const before = structuredClone(map);
+  const runtime = WarMapDrawing.raster(map, 64);
+  assert.deepEqual(runtime.pixels, saved.pixels);
+  assert.deepEqual([...runtime.pixels.slice((32 * 64 + 32) * 4, (32 * 64 + 32) * 4 + 3)], [165, 53, 46]);
+  assert.deepEqual(map, before);
+});
+
 test("places a separate drawing above the map table in either room orientation", () => {
   for (const alongX of [true, false]) {
     const items = VestibuleIslandFurnishing.furnish({

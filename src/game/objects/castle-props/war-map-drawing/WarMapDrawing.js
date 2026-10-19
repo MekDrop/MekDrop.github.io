@@ -116,8 +116,9 @@ export class WarMapDrawing {
          * @param {import("../../ObjectTypes.js").MapObjectDefinition} item
          */
         item => {
-          const col = item.tile?.col ?? Math.round(item.position.x + (item.position.width ?? 0) / 2 + (map.cols - 1) / 2);
-          const row = item.tile?.row ?? Math.round(item.position.z + (item.position.depth ?? 0) / 2 + (map.rows - 1) / 2);
+          const position = item.buildPlan?.input.position ?? item.position;
+          const col = item.tile?.col ?? Math.round(position.x + (position.width ?? 0) / 2 + (map.cols - 1) / 2);
+          const row = item.tile?.row ?? Math.round(position.z + (position.depth ?? 0) / 2 + (map.rows - 1) / 2);
 
           return `${col}:${row}`;
         },
