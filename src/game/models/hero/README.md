@@ -1,5 +1,12 @@
 # Hero animation
 
+## Idle breathing
+
+`Idle` and `BoredCursorLook` keep the animation rig at unit scale, with only
+0.002 source units of breathing lift. Scaling or lifting the entire rig more
+strongly fights the runtime planted-boot correction and makes the upper body
+appear to pump up and down. Arm, hand and leg motion remains authored in the clips.
+
 ## Digging
 
 `Dig` contains eight 1.6-second strokes around the hole perimeter (12.8 seconds
