@@ -1,5 +1,7 @@
 export const TREASURE_TOOL_MAX_TURN = 30;
-export const TREASURE_TOOL_MIN_DISTANCE = 0.65;
+// Calibrated to the planted circle in the rendered hero's eight-stroke Dig clip.
+export const TREASURE_TOOL_MIN_DISTANCE = 0.535;
+export const TREASURE_DIG_STROKES = 8;
 
 /**
  * Distance to back straight away from a nearby tile before aiming at its center.

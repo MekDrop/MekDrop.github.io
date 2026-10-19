@@ -39,6 +39,8 @@ export class HeroToolActionState extends HeroRuntimeActionState {
       return;
     }
     action.elapsed += owner.deltaTime;
+    action.tool.visible =
+      action.phase !== "summon" || action.elapsed >= (action.tool.summonVisibilityTime ?? 0);
     if (action.phase === "summon") {
       if (action.elapsed >= action.tool.summonDuration) {
         action.phase = "use";
@@ -53,16 +55,24 @@ export class HeroToolActionState extends HeroRuntimeActionState {
       }
       return;
     }
-    if (!action.impacted && action.elapsed >= action.tool.impactTime) {
+    const impactTimes = action.impactTimes ?? [action.tool.impactTime];
+    action.impactIndex ??= action.impacted ? impactTimes.length : 0;
+    while (!action.stopAfterCycle && action.impactIndex < impactTimes.length &&
+      action.elapsed >= impactTimes[action.impactIndex]) {
       action.impacted = true;
+      action.impactIndex += 1;
       action.stopAfterCycle = action.onImpact?.() === true;
     }
-    if (action.elapsed < action.tool.useDuration) {
+    const duration = action.stopAfterCycle
+      ? action.impactIndex * action.tool.useDuration
+      : (action.useDuration ?? action.tool.useDuration);
+    if (action.elapsed < duration) {
       return;
     }
     if (!action.stopAfterCycle) {
       action.elapsed = 0;
       action.impacted = false;
+      action.impactIndex = 0;
       feedback.restartAnimation();
 
       return;

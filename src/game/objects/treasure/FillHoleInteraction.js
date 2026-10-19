@@ -88,6 +88,7 @@ export class FillHoleInteraction {
       targetPosition: this.#target,
       maxFacingAdjustment: TREASURE_TOOL_MAX_TURN,
       minimumTargetDistance: TREASURE_TOOL_MIN_DISTANCE,
+      targetDistance: TREASURE_TOOL_MIN_DISTANCE,
       context: { action: "fill" },
       onImpact: this.#onImpact.bind(this),
       onComplete: this.#onComplete,

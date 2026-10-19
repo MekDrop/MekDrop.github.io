@@ -39,6 +39,7 @@ import { HeroAngryEscapeBehavior } from "./behaviors/action/HeroAngryEscapeBehav
 import { HeroIdleBehavior } from "./behaviors/action/HeroIdleBehavior.js";
 import { HeroActionBehavior } from "./behaviors/action/HeroActionBehavior.js";
 import { HeroHairPhysics } from "./HeroHairPhysics.js";
+import { HeroClothPhysics } from "./HeroClothPhysics.js";
 import { HERO_MOOD } from "../../../enum/HeroMood.js";
 import { HERO_STAT } from "../../../enum/HeroStat.js";
 import { BuffSystem } from "../../../buffs/BuffSystem.js";
@@ -677,6 +678,10 @@ export class Hero {
    */
   #hairPhysics = null;
   /**
+   * @type {HeroClothPhysics|null}
+   */
+  #clothPhysics = null;
+  /**
    *
    * @type {Map}
    */
@@ -800,7 +805,10 @@ export class Hero {
     this.#modelLibrary = modelLibrary;
     this.#tools.set(AxeTool.name, new AxeTool({ modelLibrary }));
     this.#tools.set(KnifeTool.name, new KnifeTool({ modelLibrary }));
-    this.#tools.set(ShovelTool.name, new ShovelTool({ modelLibrary }));
+    this.#tools.set(ShovelTool.name, new ShovelTool({
+      modelLibrary,
+      app,
+    }));
     this.#entity = new pc.Entity("Hero");
     const spawn = new HeroSpawn(mapData, collisionWorld, spawnCenter);
     this.#spawn = spawn.position;
@@ -1756,6 +1764,7 @@ export class Hero {
    * @param {boolean} [options.faceTarget]
    * @param {number} [options.maxFacingAdjustment]
    * @param {number} [options.minimumTargetDistance]
+   * @param {number} [options.targetDistance]
    * @param {Record<string, string|number|boolean>} options.context
    * @param {(impact: import("src/game/objects/ObjectTypes.js").HeroActionPayload) => void} options.onImpact
    * @param {() => void} options.onComplete
@@ -1767,6 +1776,7 @@ export class Hero {
       faceTarget = true,
       maxFacingAdjustment = 180,
       minimumTargetDistance = 0,
+      targetDistance = 0,
       context = {},
       onImpact,
       onComplete,
@@ -1784,8 +1794,8 @@ export class Hero {
       return false;
     }
 
-    const positioning = minimumTargetDistance > 0
-      ? this.#toolPositioning(targetPosition, minimumTargetDistance, maxFacingAdjustment)
+    const positioning = minimumTargetDistance > 0 || targetDistance > 0
+      ? this.#toolPositioning(targetPosition, targetDistance || minimumTargetDistance, maxFacingAdjustment, targetDistance > 0)
       : null;
     if (positioning === false) {
       return false;
@@ -1803,6 +1813,11 @@ export class Hero {
     this.#actionBehavior.toolAction = {
       tool,
       useAnimation,
+      targetPosition: { ...targetPosition },
+      toolContext: { ...context },
+      useDuration: tool.useDurationFor?.(context) ?? tool.useDuration,
+      impactTimes: tool.impactTimes?.(context) ?? [tool.impactTime],
+      impactIndex: 0,
       phase: "summon",
       elapsed: 0,
       impacted: false,
@@ -1817,29 +1832,45 @@ export class Hero {
   }
 
   /**
-   * Reuse collection collision checks for a short backward tool-positioning step.
+   * Position before a tool stroke, checking the complete short approach for obstacles.
    * @param {{x: number, y: number, z: number}} target
    * @param {number} minimumDistance
    * @param {number} maxTurn
+   * @param {boolean} [exactDistance]
    * @returns {{startX:number,startZ:number,targetX:number,targetZ:number}|false|null}
    */
-  #toolPositioning(target, minimumDistance, maxTurn) {
+  #toolPositioning(target, minimumDistance, maxTurn, exactDistance = false) {
     const dx = target.x - this.#position.x;
     const dz = target.z - this.#position.z;
     const distance = Math.hypot(dx, dz);
-    if (distance >= minimumDistance) {
+    if (distance >= minimumDistance && !exactDistance) {
       return null;
     }
     const yaw = this.#facingYaw * Math.PI / 180;
     const facingX = Math.sin(yaw);
     const facingZ = Math.cos(yaw);
-    const adjustment = treasureToolBackstep(dx, dz, facingX, facingZ, minimumDistance, maxTurn);
+    const adjustment = distance >= minimumDistance ? 0
+      : treasureToolBackstep(dx, dz, facingX, facingZ, minimumDistance, maxTurn);
     if (adjustment === null) {
       return false;
     }
-    const targetX = this.#position.x - facingX * adjustment;
-    const targetZ = this.#position.z - facingZ * adjustment;
-    const steps = Math.ceil(adjustment / 0.05);
+    let targetX = this.#position.x - facingX * adjustment;
+    let targetZ = this.#position.z - facingZ * adjustment;
+    if (exactDistance) {
+      const reachX = target.x - targetX;
+      const reachZ = target.z - targetZ;
+      const reach = Math.hypot(reachX, reachZ);
+      targetX = target.x - reachX / reach * minimumDistance;
+      targetZ = target.z - reachZ / reach * minimumDistance;
+    }
+    const travel = Math.hypot(targetX - this.#position.x, targetZ - this.#position.z);
+    if (travel < 0.002) {
+      return null;
+    }
+    if (travel > 0.85) {
+      return false;
+    }
+    const steps = Math.ceil(travel / 0.05);
     for (let step = 1; step <= steps; step += 1) {
       const progress = step / steps;
       if (!this.#canOccupyCollectionPosition(
@@ -2121,6 +2152,8 @@ export class Hero {
     this.#footPlacement = null;
     this.#hairPhysics?.destroy();
     this.#hairPhysics = null;
+    this.#clothPhysics?.destroy();
+    this.#clothPhysics = null;
     this.#respawnEffect?.destroy();
     this.#respawnEffect = null;
     this.#teleportEffect?.destroy();
@@ -2159,6 +2192,10 @@ export class Hero {
     this.#step(Math.min(deltaTime, MAX_FRAME_TIME));
     this.#animate(deltaTime);
     this.#hairPhysics?.update();
+    this.#clothPhysics?.update(deltaTime);
+    for (const tool of this.#tools.values()) {
+      tool.update?.(deltaTime, this.#actionBehavior.toolAction);
+    }
     this.#syncMood();
   };
 
@@ -3592,6 +3629,10 @@ export class Hero {
         ].map(this.#findRightFootTiltingPart.bind(this)),
       },
     });
+    this.#clothPhysics = new HeroClothPhysics({
+      pc: this.#pc,
+      modelRoot: this.#modelRoot,
+    });
     this.#respawnEffect = new HeroRespawnEffect({
       pc: this.#pc,
       parent: this.#entity,
@@ -3780,7 +3821,7 @@ export class Hero {
    */
   #beginToolAction(action) {
     action.tool.mount(this.#toolAttachmentEntity);
-    action.tool.visible = true;
+    action.tool.visible = (action.tool.summonVisibilityTime ?? 0) === 0;
     this.#tool = action.tool;
     this.#velocity.x = 0;
     this.#velocity.z = 0;

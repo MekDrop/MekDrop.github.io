@@ -1,3 +1,5 @@
+import { Vec3 } from "playcanvas";
+
 export class HeroTool {
   /**
    *
@@ -38,11 +40,25 @@ export class HeroTool {
   }
 
   /**
+   * @returns {import("playcanvas").Entity|null}
+   */
+  get entity() {
+    return this.#entity;
+  }
+
+  /**
    *
     * @returns {number}
    */
   get summonDuration() {
     return 0.57;
+  }
+
+  /**
+   * @returns {number}
+   */
+  get summonVisibilityTime() {
+    return 0;
   }
 
   /**
@@ -90,6 +106,33 @@ export class HeroTool {
   }
 
   /**
+   * @param {Record<string, string|number|boolean>} context
+   * @returns {number[]}
+   */
+  impactTimes(context = {}) {
+    void context;
+
+    return [this.impactTime];
+  }
+
+  /**
+   * @param {Record<string, string|number|boolean>} context
+   * @returns {number}
+   */
+  useDurationFor(context = {}) {
+    void context;
+
+    return this.useDuration;
+  }
+
+  /**
+   * @returns {Vec3}
+   */
+  get mountOffset() {
+    return new Vec3(0, -0.61, 0.06);
+  }
+
+  /**
    *
    * @param {import("playcanvas").Entity} parent
    */
@@ -97,7 +140,8 @@ export class HeroTool {
     if (!this.#entity) {
       this.#entity = this.#modelLibrary.instantiate(this.#modelUrl);
       this.#entity.name = `${this.#name} tool instance`;
-      this.#entity.setLocalPosition(0, -0.61, 0.06);
+      const offset = this.mountOffset;
+      this.#entity.setLocalPosition(offset.x, offset.y, offset.z);
       this.#entity.enabled = false;
     }
     if (this.#entity.parent !== parent) {

@@ -140,3 +140,32 @@ it("can back away from the center of the tile beneath the hero", () => {
     hero.action.positioning.targetZ) - 0.65) < 1e-6);
   assert.ok(Math.abs(hero.facingYaw - 15) < 1e-6);
 });
+it("aligns a tool's fixed reach before starting its planted stroke", () => {
+  for (const distance of [0, 0.2, 0.535, 0.8]) {
+    const hero = new HeroDriver();
+    const target = {
+      x: Math.sin(Math.PI / 12) * distance,
+      z: Math.cos(Math.PI / 12) * distance,
+    };
+    assert.equal(hero.useTool({ useAnimation: () => "dig" }, {
+      targetPosition: target,
+      targetDistance: 0.535,
+      maxFacingAdjustment: 30,
+    }), true);
+    const step = hero.action.positioning;
+    if (distance === 0.535) {
+      assert.equal(step, null);
+    } else {
+      assert.ok(Math.abs(Math.hypot(step.targetX - target.x, step.targetZ - target.z) - 0.535) < 1e-6);
+    }
+  }
+  const blocked = new HeroDriver();
+  blocked.blocked = true;
+  assert.equal(blocked.useTool({ useAnimation: () => "dig" }, {
+    targetPosition: {
+      x: 0,
+      z: 0.8,
+    },
+    targetDistance: 0.535,
+  }), false);
+});

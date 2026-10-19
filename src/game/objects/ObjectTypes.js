@@ -153,6 +153,10 @@
  * @property {(item: import("./ground-cover/GroundCoverCollectible.js").GroundCoverCollectible) => boolean} [collectInventoryItem]
  * @property {(interaction: InteractionLike|null) => void} [setInteraction]
  * @typedef {object} HeroActionPayload
+ * @property {Record<string, string|number|boolean>} [toolContext]
+ * @property {number} [useDuration]
+ * @property {number[]} [impactTimes]
+ * @property {number} [impactIndex]
  * @property {Point3} [direction]
  * @property {Point3} [targetPosition]
  * @property {number} [remaining]

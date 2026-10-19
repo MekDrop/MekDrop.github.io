@@ -7,7 +7,7 @@ import { MAP_TILE_TYPE } from "../../../../../src/game/enum/MapTileType.js";
 import { MapGenerator } from "../../../../../src/game/generator/map/MapGenerator.js";
 import { TerrainBlockDefinitions } from "../../../../../src/game/objects/terrain/TerrainBlockDefinitions.js";
 import { CastleMapPreparation } from "../../../../../src/game/objects/castle/ground/CastleMapPreparation.js";
-import { treasureToolBackstep } from "../../../../../src/game/config/treasure.js";
+import { TREASURE_TOOL_MIN_DISTANCE, treasureToolBackstep } from "../../../../../src/game/config/treasure.js";
 
 const hooks = registerHooks({
   resolve: (specifier, context, nextResolve) => {
@@ -131,8 +131,9 @@ it("offers digging on the exposed castle lawn in mvcoupei_11og30n", async () => 
     Math.hypot(dx, dz) >= Math.cos(Math.PI / 6) - 1e-6, "only a small turn is needed after stepping back");
   assert.ok(Math.hypot(dx, dz) >= 0.6, "the hole is clear of the hero's feet");
   assert.ok(wallTarget.x + 0.31 < 10.5, "the entire hole stays outside the castle");
-  field.dig(wallTarget);
-  field.dig(wallTarget);
+  for (let stroke = 0; stroke < 8; stroke += 1) {
+    field.dig(wallTarget);
+  }
   for (let frame = 0; frame < 5; frame += 1) {
     update(0.1);
   }
@@ -312,7 +313,7 @@ it("keeps stop, resume, and fill available after digging from an offset landing"
       useTool: (selectedTool, options) => {
         assert.equal(selectedTool, tool);
         assert.equal(options.maxFacingAdjustment, 30);
-        assert.equal(options.minimumTargetDistance, 0.65);
+        assert.equal(options.minimumTargetDistance, TREASURE_TOOL_MIN_DISTANCE);
 
         return true;
       },
@@ -332,7 +333,9 @@ it("keeps stop, resume, and fill available after digging from an offset landing"
     hero.tool = tool;
     assert.equal(field.findInteraction({ hero })?.description.labelKey, "game.interaction.stop_digging");
     hero.tool = null;
-    field.dig(target);
+    for (let stroke = 1; stroke < 8; stroke += 1) {
+      field.dig(target);
+    }
     for (let frame = 0; frame < 5; frame += 1) {
       update(0.1);
     }
@@ -424,8 +427,15 @@ it("reveals the already instantiated chest and spawns its stored contents withou
     y: 2,
     z: -0.04,
   };
-  field.dig(target);
+  field.dig(target, {
+    x: 1,
+    z: 0,
+  });
   assert.equal(chest.enabled, true, "digging exposes the existing chest");
+  const pile = models.find(({ url }) => url.includes("excavated-earth.glb")).entity;
+  assert.ok(Math.abs(pile.getLocalPosition().x - target.x - 0.3) < 1e-6);
+  assert.ok(Math.abs(pile.getLocalPosition().z - target.z + 0.42) < 1e-6,
+    "spoil lands beside the hero for a rotated digging stance");
   assert.ok(Math.abs(chest.getLocalPosition().x - target.x) < 1e-6);
   assert.ok(Math.abs(chest.getLocalPosition().z - target.z) < 1e-6);
   const hole = models.find(({ url }) => url.includes("/hole.glb")).entity;
@@ -433,7 +443,9 @@ it("reveals the already instantiated chest and spawns its stored contents withou
   field.setIslandOffsets(0.2, -0.1);
   assert.ok(Math.abs(hole.getPosition().y - holeY - 0.2) < 1e-6);
   assert.equal(hole.parent, chest.parent);
-  field.dig(target);
+  for (let stroke = 1; stroke < 8; stroke += 1) {
+    assert.equal(field.dig(target), stroke === 7, "finish after working the whole rim");
+  }
   for (let frame = 0; frame < 25; frame += 1) {
     update(0.1);
   }

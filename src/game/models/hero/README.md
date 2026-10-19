@@ -1,5 +1,64 @@
 # Hero animation
 
+## Digging
+
+`Dig` contains eight 1.6-second strokes around the hole perimeter (12.8 seconds
+in total). Each plant occurs 0.6 seconds into its stroke. The hero stays in place,
+with planted ankle contacts, and changes torso bend, shovel angle and guiding-hand
+position to reach the far, near and side edges. Every stroke returns to the same
+carry pose. The treasure action applies one impact per stroke and completes after
+eight impacts; the cavity widens as work progresses.
+
+Each stroke plants at 0.60 seconds, picks up the authored soil load at 0.64,
+lifts it along an outward arc through 1.04, and tips the blade through 1.18.
+At 1.23 seconds the load becomes seven pooled Ammo clods; the empty shovel
+returns to carry by 1.60. The pickup and return use different paths.
+`ShovelSoil` owns fourteen reusable bodies and a private flat landing contact
+beside the hole. The spoil pile follows the hero's facing direction. Clods
+settle under gravity, shrink after 1.65 seconds and expire at two seconds;
+interruptions drop a carried load and tool destruction releases the pool.
+Filling and rock-blocked strikes do not produce fresh soil.
+
+Before summoning, the treasure interaction checks a short approach to a stance
+0.535 world units from the hole center. That distance matches the plant circle
+measured on the rendered hero; recalibrate it when changing hero or tool scale.
+The approach finishes before digging starts, and the feet stay planted during use.
+
+The shoulder roots remain at their original body attachments. Authored sleeves,
+elbow pivots and forearm cuffs form a continuous reaching chain; rounded wrist
+junctions keep the cuffs joined to the palms while the hands rotate on the shaft.
+Shoulder plates remain seated on the torso. Other clips explicitly restore the
+original sleeve, cuff and plate transforms.
+
+`SummonShovel` and `DismissShovel` connect Idle to the common carry pose.
+`FillHole` uses one reversed stroke. The closed fingers, wrist rotations and
+both arm chains are baked into the model. The shovel mounts to
+`Right white glove`, with its grip 0.07 source units below the wrist. Its D-grip,
+ash shaft, reinforced socket and cupped round-point blade are authored in the
+adjacent tool asset. Axe tools retain their existing attachment and clips.
+The shovel becomes visible 0.1 seconds into summoning.
+
+Use `/map/test_hero-dig?camera-test` and its Dig, Fill and Stop HUD buttons to
+check repeated cycles and transitions. Press E for the actual treasure interaction:
+the hole stays ahead of the hero. Verify the complete cycle with continuous
+360-degree camera rotations at normal height and from below. Check the shoulders,
+cuffs, palms, shaft, blade, legs and hanging cloth throughout the motion, rather
+than accepting wrist coordinates or a single view as proof of clearance.
+
+## Hanging tunic flap
+
+Only `Red lower tunic flap` uses cloth physics. The fitted tunic, belt and
+other clothing retain their authored rigid meshes. The flap has a thin,
+subdivided surface; its top seam follows the waist, while Ammo soft-body links,
+bending constraints, gravity and animated leg/boot colliders drive the free fabric.
+The attached gold piping follows the simulated panel. Removing the hero restores
+its original meshes and releases the simulation and collision bodies.
+
+The digging stance keeps the fixed seam ahead of the thighs, uses a shallow knee
+bend, and maintains both glove contacts on the shovel. Cloth contact simulation
+uses enlarged internal units for Ammo's sparse distance-field precision; rendering
+and authored model coordinates keep their original scale.
+
 ## Articulated gloves
 
 Both ivory gloves have five human-like digits: four tapered, three-joint fingers

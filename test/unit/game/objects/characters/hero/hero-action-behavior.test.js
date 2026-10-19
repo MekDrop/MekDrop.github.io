@@ -247,6 +247,26 @@ it("runs the full tool sequence inside the tool action state", () => {
   assert.equal(restarts, 2);
 });
 
+it("keeps the tool hidden until its summon pose is ready", () => {
+  const behavior = createBehavior();
+  const tool = {
+    summonDuration: 0.6,
+    summonVisibilityTime: 0.1,
+    visible: false,
+  };
+  behavior.toolAction = {
+    tool,
+    phase: "summon",
+    elapsed: 0,
+  };
+
+  behavior.update(1 / 60);
+  assert.equal(tool.visible, false);
+  behavior.update(0.1);
+  assert.equal(tool.visible, true);
+  assert.equal(behavior.payload.phase, "summon");
+});
+
 it("finishes backward tool positioning before summoning or digging", () => {
   for (const blocked of [false, true]) {
     const moves = [];
@@ -770,4 +790,34 @@ it("keeps approaching while the capsule makes progress across slow frames", () =
   assert.equal(behavior.animation, HERO_ANIMATION.RING_BELL);
   assert.equal(behavior.animationSpeed, 0, "the action clock samples the authored clip");
   behavior.finish();
+});
+it("applies each digging rim impact once, including across a slow frame", () => {
+  const behavior = createBehavior();
+  let impacts = 0;
+  behavior.toolAction = {
+    tool: {
+      useDuration: 1.6,
+      impactTime: 0.6,
+      dismissDuration: 0.6,
+    },
+    useAnimation: "Dig",
+    useDuration: 12.8,
+    impactTimes: Array.from({ length: 8 }, (_, index) => 0.6 + index * 1.6),
+    impactIndex: 0,
+    phase: "use",
+    elapsed: 0,
+    impacted: false,
+    stopAfterCycle: false,
+    onImpact: () => ++impacts === 8,
+  };
+  behavior.update(0.59);
+  assert.equal(impacts, 0);
+  behavior.update(5);
+  assert.equal(impacts, 4);
+  behavior.update(7);
+  assert.equal(impacts, 8);
+  assert.equal(behavior.payload.phase, "use");
+  behavior.update(0.22);
+  assert.equal(behavior.payload.phase, "dismiss");
+  assert.equal(impacts, 8);
 });

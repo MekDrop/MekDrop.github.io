@@ -1,4 +1,4 @@
-import { TREASURE_TOOL_MAX_TURN, TREASURE_TOOL_MIN_DISTANCE, treasureToolBackstep } from "../../config/treasure.js";
+import { TREASURE_DIG_STROKES, TREASURE_TOOL_MAX_TURN, TREASURE_TOOL_MIN_DISTANCE, treasureToolBackstep } from "../../config/treasure.js";
 import { TileType } from "../../generator/map/MapGenerator.js";
 import { GRASS_SURFACE_LIFT } from "../../config/terrain.js";
 import { COIN_TYPE } from "../../enum/CoinType.js";
@@ -32,6 +32,8 @@ import { IslandObjectRoots } from "../shared/IslandObjectRoots.js";
  * @property {number} z
  * @property {string} state
  * @property {number} elapsed
+ * @property {number} digStrokes
+ * @property {{x: number, z: number}} pileOffset
  * @property {import("playcanvas").Entity|null} hole
  * @property {import("playcanvas").Entity|null} earthPile
  * @property {import("playcanvas").Entity|null} filledPatch
@@ -494,8 +496,9 @@ export class BuriedTreasureField {
   /**
    *
    * @param {{x: number, y: number, z: number}} target
+   * @param {{x: number, z: number}|null} [facing]
    */
-  dig(target) {
+  dig(target, facing = null) {
     if (target?.kind === "blocked-dig") {
       return this.#revealBlockedDig(target);
     }
@@ -511,6 +514,14 @@ export class BuriedTreasureField {
       if (existingSite.state !== "digging") {
         return true;
       }
+      existingSite.digStrokes += 1;
+      if (existingSite.digStrokes < TREASURE_DIG_STROKES) {
+        const progress = (existingSite.digStrokes - 1) / (TREASURE_DIG_STROKES - 1);
+        this.#setExcavationScale(existingSite, HOLE_INITIAL_SCALE + (1 - HOLE_INITIAL_SCALE) * progress);
+
+        return false;
+      }
+      existingSite.expansionStartScale = existingSite.hole.getLocalScale().x;
       existingSite.state = "expanding";
       existingSite.elapsed = 0;
 
@@ -523,6 +534,8 @@ export class BuriedTreasureField {
 
     this.#dugTiles.add(target.id);
     const buriedChest = this.#buriedChests.get(target.id);
+    const forwardX = facing?.x ?? 0;
+    const forwardZ = facing?.z ?? 1;
     const site = {
       id: target.id,
       col: target.col,
@@ -531,6 +544,11 @@ export class BuriedTreasureField {
       y: target.y,
       z: target.z,
       state: "digging",
+      digStrokes: 1,
+      pileOffset: {
+        x: forwardZ * 0.42 + forwardX * 0.3,
+        z: -forwardX * 0.42 + forwardZ * 0.3,
+      },
       elapsed: 0,
       hole: null,
       earthPile: null,
@@ -1084,9 +1102,9 @@ export class BuriedTreasureField {
     site.earthPile = this.#modelLibrary.instantiate(earthModelUrl);
     site.earthPile.name = `Excavated earth pile ${site.id}`;
     site.earthPile.setLocalPosition(
-      site.x + 0.42,
+      site.x + site.pileOffset.x,
       site.y + 0.012,
-      site.z + 0.3,
+      site.z + site.pileOffset.z,
     );
     this.#islandRoots.addChild(site.earthPile, site);
     site.filledPatch = this.#modelLibrary.instantiate(filledEarthModelUrl);
@@ -1138,10 +1156,11 @@ export class BuriedTreasureField {
         castShadows: true,
         receiveShadows: false,
       });
+      const pile = site.earthPile.getLocalPosition();
       const start = {
-        x: site.x + 0.42 + (Math.random() - 0.5) * 0.22,
+        x: pile.x + (Math.random() - 0.5) * 0.22,
         y: site.y + 0.15 + Math.random() * 0.1,
-        z: site.z + 0.3 + (Math.random() - 0.5) * 0.18,
+        z: pile.z + (Math.random() - 0.5) * 0.18,
       };
       const end = {
         x: site.x + (Math.random() - 0.5) * 0.3,
@@ -1394,7 +1413,8 @@ export class BuriedTreasureField {
       site.elapsed = Math.min(HOLE_EXPAND_DURATION, site.elapsed + deltaTime);
       const progress = site.elapsed / HOLE_EXPAND_DURATION;
       const eased = progress * progress * (3 - 2 * progress);
-      const scale = HOLE_INITIAL_SCALE + (1 - HOLE_INITIAL_SCALE) * eased;
+      const startScale = site.expansionStartScale ?? HOLE_INITIAL_SCALE;
+      const scale = startScale + (1 - startScale) * eased;
       this.#setExcavationScale(site, scale);
       if (progress >= 1) {
         site.elapsed = 0;

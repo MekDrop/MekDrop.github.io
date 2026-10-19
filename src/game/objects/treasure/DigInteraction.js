@@ -89,8 +89,10 @@ export class DigInteraction {
       targetPosition: this.#target,
       maxFacingAdjustment: TREASURE_TOOL_MAX_TURN,
       minimumTargetDistance: TREASURE_TOOL_MIN_DISTANCE,
+      targetDistance: TREASURE_TOOL_MIN_DISTANCE,
+      context: { action: this.#target.kind === "blocked-dig" ? "blocked-dig" : "dig" },
       onImpact: () => {
-        const finished = this.#field.dig(this.#target);
+        const finished = this.#field.dig(this.#target, this.#hero.facingDirection);
         revealedBlockedDig =
           this.#target.kind === "blocked-dig" && finished;
         this.#onChange?.();

@@ -9,7 +9,6 @@ const HERO_BODY_PART_NAMES = new Set([
   "Short red tunic",
   "Golden waist trim",
   "Scarf upper fold",
-  "Red lower tunic flap",
   "Emerald pauldron",
   "Short blue sleeve",
   "Blue forearm cuff",
