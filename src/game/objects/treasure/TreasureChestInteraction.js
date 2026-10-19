@@ -56,11 +56,13 @@ export class TreasureChestInteraction {
   }
 
   interact() {
-    if (!this.canInteract || !this.#field.open(this.#target)) {
+    if (!this.canInteract) {
       return false;
     }
-    this.#onComplete?.();
-
-    return true;
+    return this.#hero.openChest({
+      targetPosition: this.#target,
+      onImpact: () => this.#field.open(this.#target),
+      onComplete: this.#onComplete,
+    });
   }
 }

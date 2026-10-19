@@ -145,6 +145,7 @@
  * @property {(deltaTime: number) => void} [advance]
  * @property {() => void} [cancel]
  * @typedef {object} HeroLike
+ * @property {(options: {targetPosition: Point3, onImpact: () => boolean, onComplete: () => void}) => boolean} [openChest]
  * @property {import("playcanvas").Entity} entity
  * @property {Point3} position
  * @property {Point3} facingDirection

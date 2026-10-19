@@ -1938,6 +1938,45 @@ export class Hero {
   }
 
   /**
+   * Face the lock, reach with both hands, lift the lid, and recover to idle.
+   * @param {{targetPosition: {x: number, y: number, z: number}, onImpact: () => boolean, onComplete: () => void}} options
+   * @returns {boolean}
+   */
+  openChest({ targetPosition, onImpact, onComplete }) {
+    if (!this.#acceptAction() || !this.#actionBehavior.canStart(HERO_ACTION.COLLECTING, {
+      grounded: this.#grounded,
+    })) {
+      return false;
+    }
+    this.#clearActionInput();
+    this.#queuedFacingDirection = null;
+    this.#facingYaw = Math.atan2(targetPosition.x - this.#position.x,
+      targetPosition.z - this.#position.z) * 180 / Math.PI;
+    this.#actionBehavior.collectAction = {
+      animation: HERO_ANIMATION.OPEN_CHEST,
+      duration: 1.8,
+      impactTime: 0.65,
+      elapsed: 0,
+      impacted: false,
+      positioning: this.#collectionPositioning({
+        pickupAction: {
+          targetDistance: 0.535,
+          maximumStep: 0.55,
+        },
+        targetPosition,
+        targetRadius: 0.3,
+        targetDistance: Math.hypot(targetPosition.x - this.#position.x,
+          targetPosition.z - this.#position.z),
+      }),
+      positioningElapsed: 0,
+      onImpact,
+      onComplete,
+    };
+
+    return true;
+  }
+
+  /**
    *
    * @param {number} category
    * @param {{targetPosition: {x: number, y: number, z: number}, targetRadius: number, tool: import("src/game/objects/characters/hero/tools/HeroTool.js").HeroTool, heldItem: boolean, onImpact: (impact: import("src/game/objects/ObjectTypes.js").HeroActionPayload) => void, onComplete: () => void}} options

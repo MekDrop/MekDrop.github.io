@@ -33,7 +33,7 @@ import { IslandObjectRoots } from "../shared/IslandObjectRoots.js";
  * @property {string} state
  * @property {number} elapsed
  * @property {number} digStrokes
- * @property {{x: number, z: number}} pileOffset
+ * @property {import("playcanvas").Vec2} pileOffset
  * @property {import("playcanvas").Entity|null} hole
  * @property {import("playcanvas").Entity|null} earthPile
  * @property {import("playcanvas").Entity|null} filledPatch
@@ -545,10 +545,7 @@ export class BuriedTreasureField {
       z: target.z,
       state: "digging",
       digStrokes: 1,
-      pileOffset: {
-        x: forwardZ * 0.42 + forwardX * 0.3,
-        z: -forwardX * 0.42 + forwardZ * 0.3,
-      },
+      pileOffset: this.#supportedPileOffset(target, forwardX, forwardZ),
       elapsed: 0,
       hole: null,
       earthPile: null,
@@ -928,10 +925,10 @@ export class BuriedTreasureField {
    * @param {number} x
    * @param {number} y
    * @param {number} z
+   * @param {number} [radius]
    * @returns {boolean}
    */
-  #canExcavateAt(x, y, z) {
-    const radius = HOLE_COLLISION_RADIUS + 0.01;
+  #canExcavateAt(x, y, z, radius = HOLE_COLLISION_RADIUS + 0.01) {
     const colOffset = (this.#mapData.cols - 1) / 2;
     const rowOffset = (this.#mapData.rows - 1) / 2;
     for (let row = Math.round(z - radius + rowOffset); row <= Math.round(z + radius + rowOffset); row += 1) {
@@ -953,6 +950,31 @@ export class BuriedTreasureField {
     }
 
     return true;
+  }
+
+  /**
+   * Keep the complete spoil mound on the same terrace as the excavation.
+   * @param {Point3} target
+   * @param {number} forwardX
+   * @param {number} forwardZ
+   * @returns {import("playcanvas").Vec2}
+   */
+  #supportedPileOffset(target, forwardX, forwardZ) {
+    const offset = new this.#pc.Vec2(
+      forwardZ * 0.42 + forwardX * 0.3,
+      -forwardX * 0.42 + forwardZ * 0.3,
+    );
+    for (const scale of [1, 0.75, 0.5, 0.25, 0]) {
+      for (let side = 0; side < 4; side += 1) {
+        if (this.#canExcavateAt(target.x + offset.x * scale, target.y,
+          target.z + offset.y * scale, 0.34)) {
+          return offset.mulScalar(scale);
+        }
+        offset.set(-offset.y, offset.x);
+      }
+    }
+
+    return new this.#pc.Vec2();
   }
 
   /**
@@ -1104,7 +1126,7 @@ export class BuriedTreasureField {
     site.earthPile.setLocalPosition(
       site.x + site.pileOffset.x,
       site.y + 0.012,
-      site.z + site.pileOffset.z,
+      site.z + site.pileOffset.y,
     );
     this.#islandRoots.addChild(site.earthPile, site);
     site.filledPatch = this.#modelLibrary.instantiate(filledEarthModelUrl);
@@ -1404,6 +1426,14 @@ export class BuriedTreasureField {
    * @param {number} deltaTime
    */
   #advanceSite(site, deltaTime) {
+    if (site.chest && this.#heroPosition) {
+      const dx = this.#heroPosition.x - site.x;
+      const dz = this.#heroPosition.z - site.z;
+      if (Math.hypot(dx, dz) > 0.001) {
+        // The authored lock faces +Z; keep that side toward the hero.
+        site.chest.setLocalEulerAngles(0, Math.atan2(dx, dz) * 180 / Math.PI, 0);
+      }
+    }
     if (site.state === "vanishing") {
       this.#advanceChestVanish(site, deltaTime);
 

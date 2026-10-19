@@ -1,5 +1,15 @@
 # Hero animation
 
+## Treasure chest opening
+
+`OpenChest` is a 1.8-second, non-looping two-handed reach and lift. The hero
+faces the chest and approaches a stance 0.535 metres from its centre. Hand
+contact at 0.65 seconds starts the chest's 0.62-second lid animation; both
+arms follow the rising front edge before releasing and returning to Idle.
+The normal collection action blocks movement until recovery finishes.
+Use `/map/test_treasure-opening?camera-test` and the four camera HUD buttons
+to inspect the actual dig-to-open interaction from every quarter turn.
+
 ## Idle breathing
 
 `Idle` and `BoredCursorLook` keep the animation rig at unit scale, with only

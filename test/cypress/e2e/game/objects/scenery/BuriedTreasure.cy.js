@@ -109,6 +109,11 @@ describe("Buried treasure", () => {
       };
     });
     pressKey("KeyE");
+    cy.window().should((window) => {
+      expect(window.gameMovementTest.state().animation).to.equal(
+        HERO_ANIMATION.OPEN_CHEST,
+      );
+    });
     cy.wait(700);
 
     cy.window().should((window) => {

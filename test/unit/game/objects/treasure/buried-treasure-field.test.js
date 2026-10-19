@@ -433,9 +433,9 @@ it("reveals the already instantiated chest and spawns its stored contents withou
   });
   assert.equal(chest.enabled, true, "digging exposes the existing chest");
   const pile = models.find(({ url }) => url.includes("excavated-earth.glb")).entity;
-  assert.ok(Math.abs(pile.getLocalPosition().x - target.x - 0.3) < 1e-6);
-  assert.ok(Math.abs(pile.getLocalPosition().z - target.z + 0.42) < 1e-6,
-    "spoil lands beside the hero for a rotated digging stance");
+  assert.ok(Math.abs(pile.getLocalPosition().x) + 0.34 <= 0.5);
+  assert.ok(Math.abs(pile.getLocalPosition().z) + 0.34 <= 0.5,
+    "spoil stays supported even when the preferred side extends beyond the only tile");
   assert.ok(Math.abs(chest.getLocalPosition().x - target.x) < 1e-6);
   assert.ok(Math.abs(chest.getLocalPosition().z - target.z) < 1e-6);
   const hole = models.find(({ url }) => url.includes("/hole.glb")).entity;
@@ -450,6 +450,17 @@ it("reveals the already instantiated chest and spawns its stored contents withou
     update(0.1);
   }
   assert.equal(field.canOpen(target.id), true);
+  for (const [x, z] of [[1, 0], [0, -1], [-1, 0], [0, 1]]) {
+    field.applyHeroPosition({
+      x: target.x + x,
+      y: target.y,
+      z: target.z + z,
+    });
+    update(0.016);
+    const lockDirection = chest.getRotation().transformVector(new pc.Vec3(0, 0, 1));
+    assert.ok(lockDirection.dot(new pc.Vec3(x, 0, z)) > 0.999,
+      "the authored lock side faces the hero from every side");
+  }
   assert.ok(cutRadius > 0.324 && cutRadius < 0.35,
     "the terrain cut clears the uneven cavity edge while staying beneath its soil rim");
   assert.ok(Math.abs(chest.getLocalPosition().y - target.y) < 1e-6,
