@@ -84,6 +84,20 @@ describe("anchored flower paper", () => {
         simulation.step(1 / 60, feet, Quat.IDENTITY);
         assert.ok(point(sheet.links[1], 0.075).distance(bent) < 1e-6, "paper must remain still beneath a stationary boot, including attachment solver noise");
       }
+      let islandOffset = 0;
+      const baseline = simulation.poses(sheet);
+      for (const deltaY of [0.004, 0.006, -0.003, -0.007]) {
+        islandOffset += deltaY;
+        simulation.translate(sheet, new Vec3(0, deltaY, 0));
+        const carried = simulation.poses(sheet);
+        for (let index = 0; index < carried.length; index++) {
+          const expected = baseline[index].position.clone().add(new Vec3(0, islandOffset, 0));
+          assert.ok(carried[index].position.distance(expected) < 1e-6,
+            "small island movements must carry every petal section with its stem");
+          assert.ok(Math.abs(carried[index].rotation.dot(baseline[index].rotation)) > 0.999999,
+            "island movement must preserve the existing fold");
+        }
+      }
       const untouched = point(neighbor.links[1], 0.075);
       assert.ok(bent.y < 0.09, `contacted tip should fold down: ${bent.y}`);
       assert.ok(bent.y > -0.01, "pressed paper must not sink through its support surface");

@@ -234,6 +234,22 @@ export class FlowerPaperSimulation {
   }
 
   /**
+   * Carry island motion without applying an impulse through the paper's springs.
+   * @param {ReturnType<FlowerPaperSimulation["add"]>} sheet
+   * @param {Vec3} delta
+   */
+  translate(sheet, delta) {
+    for (const body of [sheet.anchor, ...sheet.links]) {
+      const position = new Vec3(), rotation = new Quat();
+      body.getTransform(position, rotation);
+      body.setTransform(position.add(delta), rotation);
+      const transform = body.nativeBody.getWorldTransform();
+      body.nativeBody.setInterpolationWorldTransform(transform);
+      body.nativeBody.getMotionState().setWorldTransform(transform);
+    }
+  }
+
+  /**
    * Recover an exact render chain from Ammo angles. Solver penetration recovery
    * can briefly stretch a joint; forward kinematics keeps the paper seam sewn.
    * @param {ReturnType<FlowerPaperSimulation["add"]>} sheet

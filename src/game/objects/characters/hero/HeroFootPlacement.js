@@ -36,6 +36,10 @@ export class HeroFootPlacement {
    * @type {boolean}
    */
   #enabled = false;
+  /**
+   * @type {number}
+   */
+  #visualOffset = 0;
 
   /**
    *
@@ -88,9 +92,11 @@ export class HeroFootPlacement {
    *
    * @param {number} deltaTime
    * @param {boolean} enabled
+   * @param {number} [visualOffset] Island displacement already inherited by the whole model.
    */
-  update(deltaTime, enabled) {
+  update(deltaTime, enabled, visualOffset = 0) {
     this.#enabled = enabled;
+    this.#visualOffset = visualOffset;
     const maximumSurfaceHeight =
       this.#getHeroPosition().y + MAXIMUM_FOOT_LIFT;
     for (const foot of this.#feet) {
@@ -127,7 +133,7 @@ export class HeroFootPlacement {
       foot.wrapper.setPosition(
         wrapperPosition.x,
         wrapperPosition.y + foot.appliedLift +
-          this.#visualOffsetAt(solePosition.x, solePosition.z),
+          this.#visualOffsetAt(solePosition.x, solePosition.z) - this.#visualOffset,
         wrapperPosition.z,
       );
       foot.minimumClearance = contacts.length
@@ -347,6 +353,8 @@ export class HeroFootPlacement {
      */
       ([x, y, z]) => {
         const solePoint = transform.transformPoint(new this.#pc.Vec3(x, y, z));
+        // Raycasts remain in the stationary physics world, below the visual island motion.
+        solePoint.y -= this.#visualOffset;
         const surface = this.#surfaceAt(
           solePoint.x,
           solePoint.z,

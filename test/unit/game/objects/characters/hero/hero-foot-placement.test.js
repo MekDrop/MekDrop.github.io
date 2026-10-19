@@ -84,9 +84,15 @@ describe("hero foot placement physics contacts", () => {
     assert.deepEqual(placement.grassContacts, []);
   });
 
-  it("moves boot visuals with an island while physics contact stays fixed", () => {
+  it("moves the whole hero with an island without changing the stance on flat ground", () => {
     const left = createFoot("left", false);
     const right = createFoot("right", false);
+    const visualRoot = new pc.Entity("Hero island visuals");
+    const head = new pc.Entity("Hero head");
+    head.setLocalPosition(0, 1.4, 0);
+    visualRoot.addChild(head);
+    visualRoot.addChild(left.leg);
+    visualRoot.addChild(right.leg);
     let visualOffset = 0;
     const placement = new HeroFootPlacement({
       pc,
@@ -103,14 +109,22 @@ describe("hero foot placement physics contacts", () => {
 
     placement.update(1, true);
     const baseline = left.sole.getPosition().y;
+    const headBaseline = head.getPosition().y;
+    const lift = placement.state.left.appliedLift;
     const clearance = placement.state.left.minimumClearance;
-    visualOffset = 0.065;
-    placement.update(1, true);
-    assert.ok(Math.abs(left.sole.getPosition().y - baseline - 0.065) < 0.001);
-    assert.equal(placement.state.left.minimumClearance, clearance);
-    visualOffset = -0.045;
-    placement.update(1, true);
-    assert.ok(Math.abs(left.sole.getPosition().y - baseline + 0.045) < 0.001);
-    assert.equal(placement.state.left.minimumClearance, clearance);
+    for (const offset of [0.065, -0.045, 0, 0.065]) {
+      visualOffset = offset;
+      visualRoot.setLocalPosition(0, offset, 0);
+      placement.update(1, true, offset);
+      assert.ok(Math.abs(left.sole.getPosition().y - baseline - offset) < 0.001);
+      assert.ok(Math.abs(right.sole.getPosition().y - baseline - offset) < 0.001);
+      assert.ok(Math.abs(head.getPosition().y - headBaseline - offset) < 0.001);
+      assert.ok(Math.abs(placement.state.left.appliedLift - lift) < 0.00001);
+      assert.ok(Math.abs(placement.state.left.minimumClearance - clearance) < 0.00001);
+      assert.equal(placement.state.left.tiltDegrees, 0);
+    }
+    placement.update(1, false, visualOffset);
+    assert.ok(Math.abs(left.sole.getPosition().y - visualOffset) < 0.001);
+    assert.ok(Math.abs(head.getPosition().y - headBaseline - visualOffset) < 0.001);
   });
 });

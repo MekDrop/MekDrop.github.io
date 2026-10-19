@@ -673,6 +673,10 @@ export class Hero {
    */
   #visualIslandOffsets = [0, 0];
   /**
+   * @type {import("playcanvas").Entity|null}
+   */
+  #islandVisualRoot = null;
+  /**
    *
    * @type {HeroHairPhysics|null}
    */
@@ -808,6 +812,7 @@ export class Hero {
     this.#tools.set(ShovelTool.name, new ShovelTool({
       modelLibrary,
       app,
+      islandOffsetAt: this.#islandVisualOffsetAt.bind(this),
     }));
     this.#entity = new pc.Entity("Hero");
     const spawn = new HeroSpawn(mapData, collisionWorld, spawnCenter);
@@ -1141,6 +1146,18 @@ export class Hero {
    */
   setIslandVisualOffsets(near, far, offsets = [near, far]) {
     this.#visualIslandOffsets = offsets;
+    this.#syncIslandVisualPosition();
+    for (const tool of this.#tools.values()) {
+      tool.syncIslandOffsets?.();
+    }
+  }
+
+  #syncIslandVisualPosition() {
+    this.#islandVisualRoot?.setLocalPosition(
+      0,
+      this.#islandVisualOffsetAt(this.#position.x, this.#position.z),
+      0,
+    );
   }
 
   /**
@@ -2209,6 +2226,7 @@ export class Hero {
     this.#physics = null;
     this.#entity?.destroy();
     this.#entity = null;
+    this.#islandVisualRoot = null;
     this.#app = null;
     this.#headEntity = null;
     this.#mouthEntity = null;
@@ -2233,6 +2251,7 @@ export class Hero {
    */
   #update = (deltaTime) => {
     this.#step(Math.min(deltaTime, MAX_FRAME_TIME));
+    this.#syncIslandVisualPosition();
     this.#animate(deltaTime);
     this.#hairPhysics?.update();
     this.#clothPhysics?.update(deltaTime);
@@ -3236,7 +3255,8 @@ export class Hero {
     this.#stableGroundPosition = { ...this.#spawn };
     this.#physics.gravity = GRAVITY;
     this.#physics.resume(this.#position, this.#velocity);
-    this.#respawnEffect.begin(this.#facingYaw, this.#position.y);
+    this.#syncIslandVisualPosition();
+    this.#respawnEffect.begin(this.#facingYaw, this.#islandVisualRoot.getPosition().y);
     this.#gatewayRepelCooldown = 0;
     this.#restartAnimation = true;
     this.#resetBoredom();
@@ -3417,6 +3437,7 @@ export class Hero {
       deltaTime,
       this.#grounded &&
         this.#actionBehavior.allowsFootPlacement,
+      this.#islandVisualRoot?.getLocalPosition().y ?? 0,
     );
   }
 
@@ -3592,7 +3613,9 @@ export class Hero {
       HERO_MODEL_SCALE,
       HERO_MODEL_SCALE,
     );
-    this.#entity.addChild(this.#modelRoot);
+    this.#islandVisualRoot = new this.#pc.Entity("Hero island visuals");
+    this.#entity.addChild(this.#islandVisualRoot);
+    this.#islandVisualRoot.addChild(this.#modelRoot);
     this.#headEntity = this.#findModelEntity("Hero head");
     if (this.#headEntity) {
       this.#headEntity.enabled = !this.#firstPersonCameraEnabled;
@@ -3678,7 +3701,7 @@ export class Hero {
     });
     this.#respawnEffect = new HeroRespawnEffect({
       pc: this.#pc,
-      parent: this.#entity,
+      parent: this.#islandVisualRoot,
       modelRoot: this.#modelRoot,
       modelLibrary: this.#modelLibrary,
       modelUrl: Hero.modelUrl,
@@ -4252,7 +4275,7 @@ export class Hero {
    * @param {number} elapsed
    */
   #updateRespawnPresentation(progress, elapsed) {
-    this.#respawnEffect?.update(progress, elapsed, this.#position.y);
+    this.#respawnEffect?.update(progress, elapsed, this.#islandVisualRoot.getPosition().y);
   }
 
   #resetRespawnPresentation() {

@@ -4,7 +4,7 @@ import { splitPaperGeometry } from "./FlowerPaperGeometry.js";
 /**
  * @typedef {{name: string, geometry: ReturnType<typeof splitPaperGeometry>, sheet: ReturnType<FlowerPaperSimulation["add"]>|null, attachment: import("playcanvas").Vec3|null}} PaperPart
  * @typedef {{x: number, y: number, z: number, radius: number, compression: number}} PaperGrassContact
- * @typedef {{flower: ReturnType<import("./FlowerPhysics.js").FlowerPhysics["addFlower"]>, url: string, active: boolean, parts: PaperPart[], entity: import("playcanvas").Entity|null, mesh: import("playcanvas").Mesh|null, positions?: Float32Array, normals?: Float32Array, surface?: import("playcanvas").PhysicsBody, grassContact?: PaperGrassContact|null}} PaperFlowerState
+ * @typedef {{flower: ReturnType<import("./FlowerPhysics.js").FlowerPhysics["addFlower"]>, url: string, active: boolean, islandOffset?: number, parts: PaperPart[], entity: import("playcanvas").Entity|null, mesh: import("playcanvas").Mesh|null, positions?: Float32Array, normals?: Float32Array, surface?: import("playcanvas").PhysicsBody, grassContact?: PaperGrassContact|null}} PaperFlowerState
  */
 
 const ACTIVE_RADIUS = 2;
@@ -259,6 +259,7 @@ export class FlowerPaper {
       receiveShadows: false,
     });
     this.#entity.addChild(item.entity);
+    item.islandOffset = item.flower.offset;
     item.active = true;
     item.flower.paperActive = true;
   }
@@ -329,6 +330,30 @@ export class FlowerPaper {
       }
     }
     this.#stem.updateMatrices();
+  }
+
+  /**
+   * Apply the same island displacement as the stems before the next render.
+   */
+  syncIslandOffsets() {
+    for (const item of this.#flowers) {
+      if (!item.active) {
+        continue;
+      }
+      const offset = item.flower.offset;
+      const delta = offset - item.islandOffset;
+      if (delta === 0) {
+        continue;
+      }
+      for (const part of item.parts) {
+        if (part.sheet) {
+          this.#simulation.translate(part.sheet, new this.#pc.Vec3(0, delta, 0));
+        }
+      }
+      item.islandOffset = offset;
+      this.#simulation.moveSurface(item.surface, item.flower.anchor.getPosition());
+      this.#writeMesh(item, this.#stem.footPositions, this.#stem.footDirection);
+    }
   }
 
   /**

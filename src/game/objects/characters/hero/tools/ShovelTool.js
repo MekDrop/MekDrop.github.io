@@ -15,6 +15,10 @@ export class ShovelTool extends HeroTool {
    */
   #soil = null;
   /**
+   * @type {(x: number, z: number) => number}
+   */
+  #islandOffsetAt;
+  /**
    * @returns {Vec3}
    */
   get mountOffset() {
@@ -35,6 +39,7 @@ export class ShovelTool extends HeroTool {
         app: this.#app,
         owner,
         shovel: this.entity,
+        islandOffsetAt: this.#islandOffsetAt,
       });
     }
   }
@@ -45,6 +50,10 @@ export class ShovelTool extends HeroTool {
    */
   update(deltaTime, action) {
     this.#soil?.update(deltaTime, action?.tool === this ? action : null);
+  }
+
+  syncIslandOffsets() {
+    this.#soil?.syncIslandOffsets();
   }
 
   destroy() {
@@ -121,10 +130,11 @@ export class ShovelTool extends HeroTool {
 
   /**
    *
-   * @param {{modelLibrary: string, app: import("playcanvas").Application}} options
+   * @param {{modelLibrary: string, app: import("playcanvas").Application, islandOffsetAt?: (x: number, z: number) => number}} options
    * @param {string} options.modelLibrary
+   * @param {(x: number, z: number) => number} [options.islandOffsetAt]
    */
-  constructor({ modelLibrary, app }) {
+  constructor({ modelLibrary, app, islandOffsetAt = () => 0 }) {
     super({
       modelLibrary,
       modelUrl: ShovelTool.modelUrl,
@@ -132,6 +142,7 @@ export class ShovelTool extends HeroTool {
     });
 
     this.#app = app;
+    this.#islandOffsetAt = islandOffsetAt;
   }
 
   /**

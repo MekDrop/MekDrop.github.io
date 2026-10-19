@@ -371,6 +371,7 @@ export class GroundCover {
     for (const attachment of this.#islandAttachments) {
       attachment.apply(offsets[attachment.group] ?? 0);
     }
+    this.#flowerPaper.syncIslandOffsets();
     this.#flowerPhysics.updateMatrices();
   }
 

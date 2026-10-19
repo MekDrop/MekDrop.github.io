@@ -6,7 +6,7 @@ const RELEASE_TIME = 1.23;
 const CLOD_LIFETIME = 2;
 
 /**
- * @typedef {{root: import("playcanvas").Entity, visual: import("playcanvas").Entity, source: import("playcanvas").Entity, scale: Vec3, remaining: number}} ShovelClod
+ * @typedef {{root: import("playcanvas").Entity, visual: import("playcanvas").Entity, source: import("playcanvas").Entity, scale: Vec3, remaining: number, islandPosition: Vec3, islandOffset: number}} ShovelClod
  */
 
 /**
@@ -41,12 +41,25 @@ export class ShovelSoil {
    * @type {{x: number, y: number, z: number}|undefined}
    */
   #target;
+  /**
+   * @type {(x: number, z: number) => number}
+   */
+  #islandOffsetAt;
+  /**
+   * @type {Vec3|null}
+   */
+  #landingPosition = null;
+  /**
+   * @type {number}
+   */
+  #landingOffset = 0;
 
   /**
-   * @param {{app: import("playcanvas").Application, owner: import("playcanvas").Entity, shovel: import("playcanvas").Entity}} options
+   * @param {{app: import("playcanvas").Application, owner: import("playcanvas").Entity, shovel: import("playcanvas").Entity, islandOffsetAt?: (x: number, z: number) => number}} options
    */
-  constructor({ app, owner, shovel }) {
+  constructor({ app, owner, shovel, islandOffsetAt = () => 0 }) {
     this.#owner = owner;
+    this.#islandOffsetAt = islandOffsetAt;
     this.#load = shovel.findByName("Shovel soil load");
     this.#load.enabled = false;
     this.#ground = new Entity("Shovel soil landing surface", app);
@@ -103,6 +116,8 @@ export class ShovelSoil {
         source,
         scale,
         remaining: 0,
+        islandPosition: new Vec3(),
+        islandOffset: 0,
       });
     }
   }
@@ -112,6 +127,7 @@ export class ShovelSoil {
    * @param {import("src/game/objects/ObjectTypes.js").HeroActionPayload|null} action
    */
   update(deltaTime, action) {
+    this.syncIslandOffsets();
     for (const clod of this.#pool) {
       if (clod.remaining <= 0) {
         continue;
@@ -153,6 +169,35 @@ export class ShovelSoil {
       (clod) => clod.remaining > 0);
   }
 
+  syncIslandOffsets() {
+    if (this.#landingPosition && this.#ground.enabled) {
+      const offset = this.#islandOffsetAt(this.#landingPosition.x, this.#landingPosition.z);
+      ShovelSoil.#translateBody(this.#ground, offset - this.#landingOffset);
+      this.#landingOffset = offset;
+    }
+    for (const clod of this.#pool) {
+      if (clod.remaining <= 0) {
+        continue;
+      }
+      const offset = this.#islandOffsetAt(clod.islandPosition.x, clod.islandPosition.z);
+      ShovelSoil.#translateBody(clod.root, offset - clod.islandOffset);
+      clod.islandOffset = offset;
+    }
+  }
+
+  /**
+   * Translate the physics body without adding island motion to its throw velocity.
+   * @param {import("playcanvas").Entity} entity
+   * @param {number} delta
+   */
+  static #translateBody(entity, delta) {
+    if (delta === 0) {
+      return;
+    }
+    const position = entity.getPosition();
+    entity.rigidbody.teleport(position.x, position.y + delta, position.z);
+  }
+
   /**
    * @param {{x: number, y: number, z: number}|undefined} target
    * @param {boolean} [drop]
@@ -161,7 +206,10 @@ export class ShovelSoil {
     const right = this.#owner.getWorldTransform().transformVector(new Vec3(1, 0, 0)).normalize();
     const forward = this.#owner.getWorldTransform().transformVector(new Vec3(0, 0, 1)).normalize();
     const surface = target ?? this.#owner.getPosition();
-    this.#ground.setPosition(surface.x + right.x * 0.42 + forward.x * 0.3, surface.y - 0.2,
+    this.#landingPosition = new Vec3(surface.x, surface.y, surface.z);
+    this.#landingOffset = this.#islandOffsetAt(surface.x, surface.z);
+    this.#ground.setPosition(surface.x + right.x * 0.42 + forward.x * 0.3,
+      surface.y - 0.2 + (target ? this.#landingOffset : 0),
       surface.z + right.z * 0.42 + forward.z * 0.3);
     const rotation = this.#owner.getRotation();
     this.#ground.setRotation(rotation.x, rotation.y, rotation.z, rotation.w);
@@ -182,6 +230,8 @@ export class ShovelSoil {
         continue;
       }
       clod.remaining = CLOD_LIFETIME;
+      clod.islandPosition.copy(this.#landingPosition);
+      clod.islandOffset = this.#landingOffset;
       clod.visual.setLocalScale(clod.scale);
       clod.root.enabled = true;
       // The game's gravity can move these small clods through a contact surface
