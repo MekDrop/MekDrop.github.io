@@ -76,7 +76,9 @@ export class AbstractCastleProp {
         for (const mesh of render.meshInstances) {
           const material = mesh.material.clone();
           const wear = Math.min(1, Math.max(0, definition.weathering));
-          if (material.diffuse) {
+          // Textures already author the surface colour. Tinting them again made
+          // shared timber much darker than doors using the very same image.
+          if (material.diffuse && !material.diffuseMap) {
             material.diffuse.set(material.diffuse.r * (1 - wear * 0.48),
               material.diffuse.g * (1 - wear * 0.34), material.diffuse.b * (1 - wear * 0.18));
           }
