@@ -149,6 +149,34 @@ export class ObjectDataCache {
   }
 
   /**
+   * Async generators share baked storage and clone semantics with synchronous recipes.
+   * @template T
+   * @param {string} family
+   * @param {CacheValue} input
+   * @param {() => Promise<T>} generate
+   * @returns {Promise<T>}
+   */
+  static async resolveAsync(family, input, generate) {
+    const entries = this.data.version === 1 ? this.data.entries[family] : null;
+    if (!this.#recording && !entries) {
+      return generate();
+    }
+    const key = this.key(input);
+    if (!this.#recording && entries && Object.hasOwn(entries, key)) {
+      return structuredClone(entries[key]);
+    }
+    const result = await generate();
+    if (this.#recording) {
+      if (!this.#recording.has(family)) {
+        this.#recording.set(family, new Map());
+      }
+      this.#recording.get(family).set(key, structuredClone(result));
+    }
+
+    return result;
+  }
+
+  /**
    * CLI explicitly bypasses existing data while baking.
    */
   static beginRecording() {

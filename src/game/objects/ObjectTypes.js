@@ -103,6 +103,7 @@
  * @property {Array<Array<number>>} heightmap
  * @property {Array<Array<{shape?: string, overpassId?: string, bridgeGroundHeight?: number, renderMode?: string}>>} [tileMeta]
  * @property {Array<MapObjectDefinition>} [objects]
+ * @property {import("../cache/CompiledMapCache.js").CompiledMapLayout} [compiledMap]
  * @property {Array<RenderCommand>} [renderCommands]
  * @property {Array<{id?: string, sourceId?: string, branchStart?: number, kind?: string, cells: Array<RiverCell>, cascades: Array<RiverCascade>, waterfall: WaterfallDefinition}>} [riverData]
  * @property {PathOverpass} [overpassData]

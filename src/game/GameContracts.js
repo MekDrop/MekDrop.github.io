@@ -71,6 +71,7 @@
  * @property {number[][]} heightmap
  * @property {TileMetadata[][]} [tileMeta]
  * @property {GameObjectDefinition[]} [objects]
+ * @property {import("./cache/CompiledMapCache.js").CompiledMapLayout} [compiledMap]
  * @property {import("./objects/ObjectTypes.js").RenderCommand[]} [renderCommands]
  * @property {string} [mapName]
  * @property {CastleLayout} [castle]

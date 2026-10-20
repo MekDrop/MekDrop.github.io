@@ -117,6 +117,9 @@
 
 /**
  * @typedef {object} MapGenerationOptions
+ * @property {boolean} [compiledMapCache] Enable map-owned instance transform recipes.
+ * @property {boolean} [castlePlanCache] Enable baked compiled castle plans.
+ * @property {boolean} [roomLayoutCache] Enable baked room furnishing recipes.
  * @property {string} [mapName]
  * @property {number} [numPaths]
  * @property {number} [numRivers]

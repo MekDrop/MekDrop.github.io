@@ -10,7 +10,7 @@ import { writeCache } from "./object-cache/write-cache.mjs";
 
 const args = process.argv.slice(2);
 if (args.includes("--help")) {
-  console.log("Usage: npm run cache:objects -- [--object trees,bushes,books,bowls,roof,stairs,planters,wood-stacks] [--catalog file.json] [--maps directory]\nBakes all catalog variants plus saved-map definitions into type folders of SPA cache shards.\nBowl combinations are ordered; bowlMaxItems bounds their exhaustive enumeration (0..6).\nMissing/stale entries use runtime generators. Run again after changing sources or models.");
+  console.log("Usage: npm run cache:objects -- [--object trees,bushes,books,bowls,roof,stairs,planters,wood-stacks,rooms,castles,maps] [--catalog file.json] [--maps directory]\nBakes all catalog variants plus saved-map definitions into type folders of SPA cache shards.\nBowl combinations are ordered; bowlMaxItems bounds their exhaustive enumeration (0..6).\nMissing/stale entries use runtime generators. Run again after changing sources or models.");
   process.exit(0);
 }
 
@@ -32,9 +32,9 @@ for (let index = 0; index < args.length; index += 2) {
     throw new TypeError(`Unknown argument: ${args[index]}`);
   }
 }
-const selected = new Set(option("--object", "trees,bushes,books,bowls,roof,stairs,planters,wood-stacks").split(","));
+const selected = new Set(option("--object", "trees,bushes,books,bowls,roof,stairs,planters,wood-stacks,rooms,castles,maps").split(","));
 for (const name of selected) {
-  if (!["trees", "bushes", "books", "bowls", "roof", "stairs", "planters", "wood-stacks"].includes(name)) {
+  if (!["trees", "bushes", "books", "bowls", "roof", "stairs", "planters", "wood-stacks", "rooms", "castles", "maps"].includes(name)) {
     throw new TypeError(`Unknown cache object: ${name}`);
   }
 }
@@ -61,6 +61,7 @@ const { SpareTimberBundle } = await import("../src/game/objects/castle-props/spa
 const itemClasses = new Map([Apple, Bread, GreenVegetable, Book, Bowl].map((Type) => [Type.name, Type]));
 const definitions = [...(catalog.objects ?? [])];
 const mapFiles = [];
+const savedMaps = [];
 /**
  * @param {string} path
  */
@@ -71,6 +72,7 @@ async function readMaps(path) {
       await readMaps(file);
     } else if (entry.name.endsWith(".json")) {
       const map = JSON.parse(await readFile(file, "utf8"));
+      savedMaps.push(map);
       definitions.push(...(map.objects ?? []));
       mapFiles.push(relative(process.cwd(), file).replaceAll("\\", "/"));
     }
@@ -78,7 +80,7 @@ async function readMaps(path) {
 }
 await readMaps(resolve(option("--maps", "src/game/maps")));
 ObjectDataCache.beginRecording();
-if (selected.has("books") || selected.has("bowls") || (selected.has("stairs") || selected.has("planters") || selected.has("wood-stacks"))) {
+if (selected.has("maps") || selected.has("castles") || selected.has("rooms") || selected.has("books") || selected.has("bowls") || (selected.has("stairs") || selected.has("planters") || selected.has("wood-stacks"))) {
   const { expandCastles } = await import("./object-cache/expand-castles.mjs");
   definitions.push(...await expandCastles(definitions));
   for (const file of await readdir("src/game/generator/castle/plans")) {
@@ -307,6 +309,12 @@ if (selected.has("bowls") || selected.has("roof") || selected.has("planters") ||
     library.destroy();
     app.destroy();
   }
+}
+
+if (selected.has("maps")) {
+  const { compileMaps } = await import("./object-cache/compile-maps.mjs");
+  await compileMaps(savedMaps);
+  sources.add("scripts/object-cache/compile-maps.mjs");
 }
 
 const cache = ObjectDataCache.finishRecording();

@@ -20,7 +20,12 @@ it("isolates concurrent requests, propagates failures and terminates workers", a
   }
   globalThis.Worker = TestWorker;
   try {
-    const first = LevelLoader.load({ mapName: "first" });
+    const first = LevelLoader.load({
+      mapName: "first",
+      roomLayoutCache: false,
+      castlePlanCache: false,
+      compiledMapCache: false,
+    });
     const second = LevelLoader.load({ mapName: "second" });
     const map = {
       mapName: "second",
@@ -34,7 +39,12 @@ it("isolates concurrent requests, propagates failures and terminates workers", a
     workers[0].onmessage({ data: { error: failure } });
     await assert.rejects(first, (error) => error === failure);
     assert.equal(workers[0].terminated, true);
-    assert.deepEqual(workers[0].options, { mapName: "first" });
+    assert.deepEqual(workers[0].options, {
+      mapName: "first",
+      roomLayoutCache: false,
+      castlePlanCache: false,
+      compiledMapCache: false,
+    });
   } finally {
     globalThis.Worker = previousWorker;
   }

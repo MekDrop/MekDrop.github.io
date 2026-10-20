@@ -1,3 +1,4 @@
+import { CompiledMapCache } from "../../cache/CompiledMapCache.js";
 import { IslandCellOwnership } from "../../objects/shared/IslandCellOwnership.js";
 import { ExcavatedSurface } from "./ExcavatedSurface.js";
 import { SLOPE_DIRECTION } from "../../enum/SlopeDirection.js";
@@ -32,6 +33,10 @@ export class TerrainInstanceRenderer {
    * @type {Map}
    */
   #batches = new Map();
+  /**
+   * @type {import("../../cache/CompiledMapCache.js").CompiledMapLayout|null}
+   */
+  #compiledMap = null;
   /**
    *
    * @type {Array}
@@ -102,10 +107,13 @@ export class TerrainInstanceRenderer {
      * @type {pc.Material[]}
      */
     this.#materials = materials;
+    this.#compiledMap = mapData && CompiledMapCache.matches(mapData) ? mapData.compiledMap : null;
     if (mapData?.islandConnectorData) {
       this.#cols = mapData.cols;
       this.#rows = mapData.rows;
-      this.#islandCells = new IslandCellOwnership(mapData).groups;
+      this.#islandCells = this.#compiledMap
+        ? this.#compiledMap.islandCells.map(TerrainInstanceRenderer.#cachedCells)
+        : new IslandCellOwnership(mapData).groups;
       this.#islandRoots = this.#islandCells.map(/**
        *
        * @param {Set<string>} cells
@@ -188,21 +196,30 @@ export class TerrainInstanceRenderer {
     underlayMaterial = sideMaterial,
     pitch = 0,
   ) {
-    const pc = this.#pc;
-    const matrix = new pc.Mat4();
-    const rotation = new pc.Quat();
-    rotation.setFromEulerAngles(pitch, yaw, 0);
-    matrix.setTRS(new pc.Vec3(x, y, z), rotation, new pc.Vec3(sx, sy, sz));
-    const col = Math.round(x + (this.#cols - 1) / 2);
-    const row = Math.round(z + (this.#rows - 1) / 2);
-    const key = `${col},${row}`;
-    const group = this.#islandCells?.findIndex(/**
-     * @param {Set<string>} cells
-     */
-      (cells) => cells.has(key)) ?? -1;
+    const cached = this.#compiledMap?.transforms[[x, y, z, yaw, sx, sy, sz, pitch].join(",")];
+    let values;
+    let group;
+    if (cached) {
+      values = cached.matrix;
+      group = cached.group;
+    } else {
+      const pc = this.#pc;
+      const matrix = new pc.Mat4();
+      const rotation = new pc.Quat();
+      rotation.setFromEulerAngles(pitch, yaw, 0);
+      matrix.setTRS(new pc.Vec3(x, y, z), rotation, new pc.Vec3(sx, sy, sz));
+      const col = Math.round(x + (this.#cols - 1) / 2);
+      const row = Math.round(z + (this.#rows - 1) / 2);
+      const key = `${col},${row}`;
+      group = this.#islandCells?.findIndex(/**
+       * @param {Set<string>} cells
+       */
+        (cells) => cells.has(key)) ?? -1;
+      values = matrix.data;
+    }
     const materialBatch = `${group}|${topMaterial}|${sideMaterial}|${underlayMaterial}|${coverage}`;
     const data = this.#batches.get(materialBatch) ?? [];
-    for (const value of matrix.data) {
+    for (const value of values) {
       data.push(value);
     }
     this.#batches.set(materialBatch, data);
@@ -391,6 +408,14 @@ export class TerrainInstanceRenderer {
       this.#destroyMesh(mesh);
     }
     this.#meshes = null;
+  }
+
+  /**
+   * @param {string[]} cells
+   * @returns {Set<string>}
+   */
+  static #cachedCells(cells) {
+    return new Set(cells);
   }
 
   #createMeshes() {

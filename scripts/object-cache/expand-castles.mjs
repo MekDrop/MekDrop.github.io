@@ -24,6 +24,7 @@ export async function expandCastles(definitions) {
       position: castle.position ?? castle.buildPlan?.input?.position,
       doors: castle.doors ?? castle.buildPlan?.input?.doors,
       seed: castle.seed ?? castle.buildPlan?.input?.seed,
+      requestedStyle: castle.requestedStyle,
     };
     const key = ObjectDataCache.key({
       ...options,

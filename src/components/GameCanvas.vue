@@ -128,6 +128,10 @@ import { InteractionSuggestion } from "src/game/interaction/InteractionSuggestio
 import { GameCanvasPluginRegistry } from "src/game/plugins/game-canvas/index.js";
 import { reportGlobalException } from "src/boot/runtime-errors.js";
 import { useDebugStore } from "src/stores/debug-store.js";
+import { CastleGenerator } from "src/game/generator/castle/CastleGenerator.js";
+import { RoomLayoutCache } from "src/game/cache/RoomLayoutCache.js";
+import { ObjectDataCache } from "src/game/cache/ObjectDataCache.js";
+import { useCacheSettingsStore } from "src/stores/cache-settings-store.js";
 import { useGraphicsSettingsStore } from "src/stores/graphics-settings-store.js";
 import { useGameViewStore } from "src/stores/game-view-store.js";
 import { useHeroConfigurationStore } from "src/stores/hero-configuration-store.js";
@@ -175,6 +179,7 @@ const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 const graphicsSettingsStore = useGraphicsSettingsStore();
+const cacheSettingsStore = useCacheSettingsStore();
 const debugStore = useDebugStore();
 const gameViewStore = useGameViewStore();
 const heroConfigurationStore = useHeroConfigurationStore();
@@ -330,15 +335,26 @@ function requestedMapName() {
  * @param {string} mapName
  */
 async function createMap(mapName = null) {
+  RoomLayoutCache.enabled = cacheSettingsStore.roomLayoutCache;
+  CastleGenerator.cacheEnabled = cacheSettingsStore.castlePlanCache;
   if (!import.meta.env.DEV || !mapName?.startsWith("test_")) {
     mapFileLoader = null;
 
-    return LevelLoader.load(mapName ? { mapName } : undefined);
+    return LevelLoader.load({
+      mapName: mapName ?? undefined,
+      roomLayoutCache: cacheSettingsStore.roomLayoutCache,
+      castlePlanCache: cacheSettingsStore.castlePlanCache,
+      compiledMapCache: cacheSettingsStore.compiledMapCache,
+    });
   }
   const { MapFileLoader } = await import("src/game/MapFileLoader.js");
   mapFileLoader = MapFileLoader;
 
-  return GameMapLoader.load(await MapFileLoader.load(mapName));
+  await ObjectDataCache.preload();
+
+  return GameMapLoader.load(await MapFileLoader.load(mapName), Math.random, {
+    compiledMapCache: cacheSettingsStore.compiledMapCache,
+  });
 }
 
 /**

@@ -1,3 +1,5 @@
+import { CastleGenerator } from "./generator/castle/CastleGenerator.js";
+import { RoomLayoutCache } from "./cache/RoomLayoutCache.js";
 import { generateMap } from "./generator/map/MapGenerator.js";
 import { GameMapLoader } from "./GameMapLoader.js";
 import { ObjectDataCache } from "./cache/ObjectDataCache.js";
@@ -63,8 +65,12 @@ export class LevelLoader {
    * @param {import("./generator/map/MapGenerationTypes.js").MapGenerationOptions} options
    */
   static async #loadLocally(options) {
+    RoomLayoutCache.enabled = options?.roomLayoutCache ?? true;
+    CastleGenerator.cacheEnabled = options?.castlePlanCache ?? true;
     await ObjectDataCache.preload();
 
-    return GameMapLoader.load(await generateMap(options));
+    return GameMapLoader.load(await generateMap(options), Math.random, {
+      compiledMapCache: options?.compiledMapCache,
+    });
   }
 }

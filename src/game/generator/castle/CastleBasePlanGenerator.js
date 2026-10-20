@@ -1,3 +1,4 @@
+import { RoomLayoutCache } from "../../cache/RoomLayoutCache.js";
 import { FireplaceChimneyFootprint } from "../../objects/castle-props/fireplace/FireplaceChimneyFootprint.js";
 import { roomPropHeight, roomPropBottom } from "./rooms/RoomPropHeights.js";
 import { everyFiniteNumber } from "../../helpers/collections.js";
@@ -250,7 +251,7 @@ export class CastleBasePlanGenerator {
          * @param {import("./rooms/AbstractCastleRoomGenerator.js").RoomItem} item
          */
           item => FireplaceChimneyFootprint.bounds(item, spaces, 0));
-      for (const item of generator.furnish(furnishingRoom, {
+      for (const item of RoomLayoutCache.resolve(generator, furnishingRoom, {
         chimneys,
         seed: options.seed,
         wallThickness: plan.wallThickness * scale,
@@ -415,7 +416,7 @@ export class CastleBasePlanGenerator {
       const occupied = furniture.filter(/**
        * @param {import("./rooms/AbstractCastleRoomGenerator.js").RoomItem & {roomId:string,floorY:number}} item
        */ item => item.roomId === room.id && item.floorY === room.floorY);
-      for (const item of stairwell.furnish(room, {
+      for (const item of RoomLayoutCache.resolve(stairwell, room, {
         seed: Math.floor(this.#seedNumber(options.seed) / 2),
         stairs,
         openings,

@@ -1,3 +1,4 @@
+import { RoomLayoutCache } from "../../../cache/RoomLayoutCache.js";
 import { AbstractCastleGenerationStage } from "../AbstractCastleGenerationStage.js";
 import { RoomPlacementRules } from "../rooms/RoomPlacementRules.js";
 
@@ -23,7 +24,7 @@ export class RoomFurnishingStage extends AbstractCastleGenerationStage {
       if (!room) {
         continue;
       }
-      for (const item of generator.furnish(room)) {
+      for (const item of RoomLayoutCache.resolve(generator, room)) {
         if (!RoomPlacementRules.accepts(item, room, plan.furniture)) {
           continue;
         }
