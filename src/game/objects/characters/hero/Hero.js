@@ -20,7 +20,7 @@ import {
   MOVEMENT_FORWARD_COLLISION_OFFSET,
 } from "./HeroSurfaceRules.js";
 import { GRASS_SURFACE_LIFT } from "../../../config/terrain.js";
-import heroModelUrl from "../../../models/hero/hero.glb?url";
+import { HERO_MODEL_URLS, heroModelUrlFor } from "./hero-models.js";
 import { HeroRespawnEffect } from "./HeroRespawnEffect.js";
 import { HeroTeleportEffect } from "./HeroTeleportEffect.js";
 import { FOOT_SIDE } from "../../../enum/FootSide.js";
@@ -314,7 +314,7 @@ export class Hero {
    * @returns {string}
    */
   static get modelUrl() {
-    return heroModelUrl;
+    return heroModelUrlFor();
   }
 
   /**
@@ -323,7 +323,7 @@ export class Hero {
    */
   static get modelUrls() {
     return [
-      Hero.modelUrl,
+      ...Object.values(HERO_MODEL_URLS),
       AxeTool.modelUrl,
       KnifeTool.modelUrl,
       ShovelTool.modelUrl,
@@ -398,6 +398,16 @@ export class Hero {
    * @type {import("playcanvas").Entity}
    */
   #modelRoot;
+
+  /**
+   * @type {{heroModel?: string}|null}
+   */
+  #graphicsSettingsStore = null;
+
+  /**
+   * @type {string}
+   */
+  #modelUrl;
   /**
    *
    * @type {import("playcanvas").Entity}
@@ -758,6 +768,7 @@ export class Hero {
    * @param {(yaw: number) => void} options.onFacingChange
    * @param {(x: number, z: number) => void} options.onMovementInput
    * @param {HeroConfigurationStore} options.heroConfigurationStore
+   * @param {{heroModel?: string}|null} [options.graphicsSettingsStore]
    * @param {HeroPresentation} options.presentation
    * @param {import("src/game/collision/GroundCollisionWorld.js").GroundCollisionWorld} options.collisionWorld
    * @param {import("src/game/models/GameModelLibrary.js").GameModelLibrary} options.modelLibrary
@@ -776,6 +787,7 @@ export class Hero {
     onFacingChange,
     onMovementInput,
     heroConfigurationStore,
+    graphicsSettingsStore = null,
     presentation,
     collisionWorld,
     modelLibrary,
@@ -792,6 +804,8 @@ export class Hero {
     this.#onPositionChange = onPositionChange;
     this.#onFacingChange = onFacingChange;
     this.#heroConfigurationStore = heroConfigurationStore;
+    this.#graphicsSettingsStore = graphicsSettingsStore;
+    this.#modelUrl = heroModelUrlFor(graphicsSettingsStore?.heroModel);
     this.#onMovementInput = onMovementInput;
     this.#presentation = presentation;
     this.#collisionWorld = collisionWorld;
@@ -1822,7 +1836,7 @@ export class Hero {
     if (faceTarget && Math.hypot(targetX, targetZ) > 0.001) {
       const targetYaw = (Math.atan2(targetX, targetZ) * 180) / Math.PI;
       const adjustment = ((targetYaw - this.#facingYaw + 540) % 360) - 180;
-      if (Math.abs(adjustment) > maxFacingAdjustment + 0.000001) {
+      if (targetDistance <= 0 && Math.abs(adjustment) > maxFacingAdjustment + 0.000001) {
         return false;
       }
       this.#facingYaw = targetYaw;
@@ -1857,6 +1871,39 @@ export class Hero {
    * @returns {{startX:number,startZ:number,targetX:number,targetZ:number}|false|null}
    */
   #toolPositioning(target, minimumDistance, maxTurn, exactDistance = false) {
+    if (exactDistance) {
+      // A planted stroke needs level body support, unlike a walking step.
+      const candidates = [];
+      const nearestYaw = Math.atan2(target.x - this.#position.x, target.z - this.#position.z);
+      for (let index = 0; index < 360; index += 1) {
+        const yaw = nearestYaw + index * Math.PI / 180;
+        const targetX = target.x - Math.sin(yaw) * minimumDistance;
+        const targetZ = target.z - Math.cos(yaw) * minimumDistance;
+        const travel = Math.hypot(targetX - this.#position.x, targetZ - this.#position.z);
+        if (travel <= 0.85) {
+          candidates.push({
+            startX: this.#position.x,
+            startZ: this.#position.z,
+            targetX,
+            targetZ,
+            travel,
+          });
+        }
+      }
+      candidates.sort(Hero.#compareToolPositions);
+      for (const candidate of candidates) {
+        const destination = {
+          x: candidate.targetX,
+          y: this.#position.y,
+          z: candidate.targetZ,
+        };
+        if (this.#movementSurface.canEscapeAcross(this.#position, destination, this.#surfaceState)) {
+          return candidate.travel < 0.002 ? null : candidate;
+        }
+      }
+
+      return false;
+    }
     const dx = target.x - this.#position.x;
     const dz = target.z - this.#position.z;
     const distance = Math.hypot(dx, dz);
@@ -1873,13 +1920,6 @@ export class Hero {
     }
     let targetX = this.#position.x - facingX * adjustment;
     let targetZ = this.#position.z - facingZ * adjustment;
-    if (exactDistance) {
-      const reachX = target.x - targetX;
-      const reachZ = target.z - targetZ;
-      const reach = Math.hypot(reachX, reachZ);
-      targetX = target.x - reachX / reach * minimumDistance;
-      targetZ = target.z - reachZ / reach * minimumDistance;
-    }
     const travel = Math.hypot(targetX - this.#position.x, targetZ - this.#position.z);
     if (travel < 0.002) {
       return null;
@@ -1904,6 +1944,15 @@ export class Hero {
       targetX,
       targetZ,
     };
+  }
+
+  /**
+   * @param {{travel: number}} a
+   * @param {{travel: number}} b
+   * @returns {number}
+   */
+  static #compareToolPositions(a, b) {
+    return a.travel - b.travel;
   }
 
   /**
@@ -2250,6 +2299,7 @@ export class Hero {
    * @type {(deltaTime: number) => void}
    */
   #update = (deltaTime) => {
+    this.#syncModelSelection();
     this.#step(Math.min(deltaTime, MAX_FRAME_TIME));
     this.#syncIslandVisualPosition();
     this.#animate(deltaTime);
@@ -2260,6 +2310,29 @@ export class Hero {
     }
     this.#syncMood();
   };
+
+  #syncModelSelection() {
+    const nextUrl = heroModelUrlFor(this.#graphicsSettingsStore?.heroModel);
+    if (nextUrl === this.#modelUrl || !this.#grounded
+      || this.actionState.action !== HERO_ACTION.EXPLORING
+      || this.#emotionBehavior.state.kind !== HERO_MOOD.CALM) {
+      return;
+    }
+    this.#footPlacement?.destroy();
+    this.#footPlacement = null;
+    this.#hairPhysics?.destroy();
+    this.#clothPhysics?.destroy();
+    this.#respawnEffect?.destroy();
+    this.#animationPlayback.destroy();
+    for (const tool of this.#tools.values()) {
+      tool.destroy();
+    }
+    this.#tool = null;
+    this.#islandVisualRoot.destroy();
+    this.#modelUrl = nextUrl;
+    this.#createModel();
+    this.#restartAnimation = true;
+  }
 
   /**
    *
@@ -3605,7 +3678,7 @@ export class Hero {
   }
 
   #createModel() {
-    this.#modelRoot = this.#modelLibrary.instantiate(Hero.modelUrl);
+    this.#modelRoot = this.#modelLibrary.instantiate(this.#modelUrl);
     this.#modelRoot.name = "Hero model instance";
     this.#modelRoot.setLocalEulerAngles(0, this.#facingYaw, 0);
     this.#modelRoot.setLocalScale(
@@ -3630,12 +3703,8 @@ export class Hero {
     this.#mouthEntity = this.#findModelEntity("Mouth");
     this.#leftEyeEntity = this.#findModelEntity("Eye");
     this.#rightEyeEntity = this.#findModelEntity("Eye.001");
-    this.#faceMorphs = [
-      this.#mouthEntity, this.#leftEyeEntity, this.#rightEyeEntity,
-      this.#findModelEntity("Left cyan eyebrow"),
-      this.#findModelEntity("Right cyan eyebrow"),
-    ]
-      .flatMap(Hero.#getEntityMeshInstances)
+    this.#faceMorphs = this.#modelRoot.findComponents("render")
+      .flatMap(Hero.#getRenderMeshInstances)
       .map(Hero.#getMeshMorphInstance)
       .filter(Hero.#hasHappyPatMorph);
     this.#leftArmEntity = this.#findModelEntity("Left arm");
@@ -3653,48 +3722,50 @@ export class Hero {
     const animationTracks = this.#animationPlayback.initialize(
       this.#modelRoot,
       this.#modelLibrary,
-      Hero.modelUrl,
+      this.#modelUrl,
     );
-    this.#footPlacement = new HeroFootPlacement({
-      pc: this.#pc,
-      /**
-       *
-       * @param {number} x
-       * @param {number} z
-       * @param {number} maximumHeight
-       */
-      surfaceAt: this.#surfaceAt.bind(this),
-      getHeroPosition: this.#getHeroPosition.bind(this),
-      /**
-       * @param {number} x
-       * @param {number} z
-       */
-      visualOffsetAt: this.#visualOffsetAt.bind(this),
-      left: {
-        side: "left",
-        leg: this.#findModelEntity("Left leg"),
-        sole: this.#findModelEntity("Boot sole"),
-        cuff: this.#findModelEntity("Boot cuff"),
-        tiltingParts: [
-          "Boot shaft",
-          "Boot front strap",
-          "Left ankle",
-        ].map(
-          this.#findLeftFootTiltingPart.bind(this),
-        ),
-      },
-      right: {
-        side: "right",
-        leg: this.#findModelEntity("Right leg"),
-        sole: this.#findModelEntity("Boot sole.001"),
-        cuff: this.#findModelEntity("Boot cuff.001"),
-        tiltingParts: [
-          "Boot shaft.001",
-          "Boot front strap.001",
-          "Right ankle",
-        ].map(this.#findRightFootTiltingPart.bind(this)),
-      },
-    });
+    if (this.#findModelEntity("Boot cuff") && this.#findModelEntity("Boot cuff.001")) {
+      this.#footPlacement = new HeroFootPlacement({
+        pc: this.#pc,
+        /**
+         *
+         * @param {number} x
+         * @param {number} z
+         * @param {number} maximumHeight
+         */
+        surfaceAt: this.#surfaceAt.bind(this),
+        getHeroPosition: this.#getHeroPosition.bind(this),
+        /**
+         * @param {number} x
+         * @param {number} z
+         */
+        visualOffsetAt: this.#visualOffsetAt.bind(this),
+        left: {
+          side: "left",
+          leg: this.#findModelEntity("Left leg"),
+          sole: this.#findModelEntity("Boot sole"),
+          cuff: this.#findModelEntity("Boot cuff"),
+          tiltingParts: [
+            "Boot shaft",
+            "Boot front strap",
+            "Left ankle",
+          ].map(
+            this.#findLeftFootTiltingPart.bind(this),
+          ),
+        },
+        right: {
+          side: "right",
+          leg: this.#findModelEntity("Right leg"),
+          sole: this.#findModelEntity("Boot sole.001"),
+          cuff: this.#findModelEntity("Boot cuff.001"),
+          tiltingParts: [
+            "Boot shaft.001",
+            "Boot front strap.001",
+            "Right ankle",
+          ].map(this.#findRightFootTiltingPart.bind(this)),
+        },
+      });
+    }
     this.#clothPhysics = new HeroClothPhysics({
       pc: this.#pc,
       modelRoot: this.#modelRoot,
@@ -3704,7 +3775,7 @@ export class Hero {
       parent: this.#islandVisualRoot,
       modelRoot: this.#modelRoot,
       modelLibrary: this.#modelLibrary,
-      modelUrl: Hero.modelUrl,
+      modelUrl: this.#modelUrl,
       modelScale: HERO_MODEL_SCALE,
       startHeight: RESPAWN_START_HEIGHT,
       respawnAnimation: animationTracks.get(HERO_ANIMATION.RESPAWN),
@@ -4348,10 +4419,10 @@ export class Hero {
 
   /**
    *
-   * @param {import("playcanvas").Entity} entity
+   * @param {import("playcanvas").RenderComponent} render
    */
-  static #getEntityMeshInstances(entity) {
-    return entity?.render?.meshInstances ?? [];
+  static #getRenderMeshInstances(render) {
+    return render.meshInstances;
   }
 
   /**

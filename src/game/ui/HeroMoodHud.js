@@ -79,6 +79,7 @@ export class HeroMoodHud extends GamePanelHud {
     this.#icon = new pc.Entity("Hero mood icon");
     this.#icon.addComponent("element", {
       type: pc.ELEMENTTYPE_IMAGE,
+      fitMode: pc.FITMODE_CONTAIN,
       anchor: new pc.Vec4(0, 1, 0, 1),
       pivot: new pc.Vec2(0.5, 0),
       width: 48,
@@ -137,10 +138,9 @@ export class HeroMoodHud extends GamePanelHud {
     // six transparent pixels below the glyph rather than adding a head radius.
     this.#icon.setLocalPosition(mood.screen.x / cssScale,
       -(mood.screen.y + 6 * scale - wave * (this.#kind === HERO_MOOD.ANGRY ? 0 : 8) - leave * 10) / cssScale, 0);
-    // Size the UI element in screen pixels; entity transforms must not resize it.
-    this.#icon.element.width = 48 * scale / cssScale;
-    this.#icon.element.height = 40 * scale / cssScale;
-    this.#icon.setLocalScale(1, 1, 1);
+    // Keep the image geometry fixed and grow both axes with one transform.
+    const iconScale = scale / cssScale;
+    this.#icon.setLocalScale(iconScale, iconScale, 1);
     this.#icon.setLocalEulerAngles(0, 0, reduced ? 0 : -wave * (this.#kind === HERO_MOOD.ANGRY ? 12 : 0) - leave * 12);
     this.#icon.element.opacity = (reduced ? 1 : Math.min(1, this.#elapsed / 0.182)) * (1 - leave);
   }

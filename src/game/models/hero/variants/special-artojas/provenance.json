@@ -1,0 +1,59 @@
+{
+  "name": "special-artojas",
+  "provider": "Tripo Studio",
+  "jobId": "446a4fc2-6f6a-4c0c-80a9-88abf25f7c61",
+  "sourcePage": "https://studio.tripo3d.ai/workspace/generate/446a4fc2-6f6a-4c0c-80a9-88abf25f7c61",
+  "model": "H3.1 – Best Quality",
+  "operation": "image-to-3d + Mixamo humanoid auto-rig",
+  "credits": {
+    "generation": 30,
+    "rigging": 20,
+    "total": 50
+  },
+  "reference": {
+    "file": "reference.png",
+    "sha256": "2c316c04da9feb53b74b8d6059a99f2689cd95359799ccac682a006cf96cf384",
+    "provider": "OpenAI built-in imagegen",
+    "role": "Selected angular portrait concept from this conversation"
+  },
+  "providerSource": {
+    "staticSha256": "a39320b93f13043b8f97cd3a7f22245461566fb2120938ceb4fabccb28f6c426",
+    "riggedSha256": "540293a9087051f166aa172f0cdbfe1b598ace29f431fdbe50be23d2b4ff5285"
+  },
+  "transformation": {
+    "height": 2.645,
+    "sole": 0,
+    "skeletonRotationDegrees": 90,
+    "skinRepair": "Provider assigned 3315 of 3321 vertices to Hips. Replaced with normalized semantic head, torso, arm, wrist, thigh, shin and ankle weights; up to four influences.",
+    "coreClips": [
+      "Idle",
+      "Walk",
+      "Run",
+      "PatAnnoyed"
+    ],
+    "facialShapes": [
+      "HappyPat",
+      "AngryPat",
+      "AnnoyedPat",
+      "Blink"
+    ],
+    "otherClips": "Retargeted from the production hero GLB; advanced gameplay contacts remain uncalibrated.",
+    "faceRevision": 2,
+    "faceDeformation": "HappyPat visibly widens the textured lips, lifts corners and cheeks, and squints the eyes. Maximum facial displacement 0.065516 model units.",
+    "groundCorrection": "Raised the mesh and rest skeleton by 0.187508404 model units so the neutral sole is zero."
+  },
+  "output": {
+    "blend": "special-artojas.blend",
+    "glb": "special-artojas.glb",
+    "triangles": 4726,
+    "joints": 57,
+    "sha256": "75df18aeec6664020ef732fe381c69ab487cbdfd2ca8d4eb0a9ad3fbdbde4b18"
+  },
+  "license": "Generated in the user-controlled Tripo account under its provider/account terms. No new license accepted.",
+  "validation": {
+    "staticAssetTests": "4 passed, including ground alignment and meaningful mouth-corner displacement from the exported sparse morph accessor.",
+    "freshBlenderImport": true,
+    "runtime": "Verified actual petting gesture sets HappyPat from 0 to 1 in the production WebGPU model; captured distinct neutral/happy renders and refreshed the neutral preview.",
+    "preview": "Captured from the production WebGPU renderer, 512 x 512 RGBA with transparent scenery-free background."
+  }
+}

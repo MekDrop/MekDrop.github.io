@@ -42,6 +42,7 @@ it("tracks mood, projection, growth, reduced motion and visibility without DOM i
   try {
     const pc = {
       Entity,
+      FITMODE_CONTAIN: "contain",
       Vec2: class {},
       Vec4: class {},
     };
@@ -59,6 +60,7 @@ it("tracks mood, projection, growth, reduced motion and visibility without DOM i
       getMood: () => mood,
     });
     const icon = hud.entity.children[0];
+    assert.equal(icon.element.fitMode, "contain");
     hud.update(0.016);
     assert.equal(icon.enabled, false);
     mood = {
@@ -74,23 +76,23 @@ it("tracks mood, projection, growth, reduced motion and visibility without DOM i
     assert.equal(icon.enabled, true);
     assert.equal(icon.element.texture.name, "Hero mood happy");
     assert.deepEqual(icon.position, [123, -(234 + 6 * 1.9), 0]);
-    assert.deepEqual(icon.scale, [1, 1, 1]);
-    assert.equal(icon.element.width, 48 * 1.9);
-    assert.equal(icon.element.height, 40 * 1.9);
+    assert.deepEqual(icon.scale, [1.9, 1.9, 1]);
+    assert.equal(icon.element.width * icon.scale[0], 48 * 1.9);
+    assert.equal(icon.element.height * icon.scale[1], 40 * 1.9);
     // Zoom changes the projected hero radius, never the icon's screen size.
     for (const radius of [5, 80, 10]) {
       mood.screen.radius = radius;
       hud.update(0);
       const glyphBottom = -icon.position[1] - 6 * 1.9;
       assert.ok(Math.abs(234 - glyphBottom) < 1e-10);
-      assert.equal(icon.element.width, 48 * 1.9);
-      assert.equal(icon.element.height, 40 * 1.9);
+      assert.equal(icon.element.width * icon.scale[0], 48 * 1.9);
+      assert.equal(icon.element.height * icon.scale[1], 40 * 1.9);
     }
     // HUD scaling also preserves the CSS pixel size.
     hud.entity.screen.scale = 4;
     hud.update(0);
-    assert.equal(icon.element.width * 2, 48 * 1.9);
-    assert.equal(icon.element.height * 2, 40 * 1.9);
+    assert.equal(icon.element.width * icon.scale[0] * 2, 48 * 1.9);
+    assert.equal(icon.element.height * icon.scale[1] * 2, 40 * 1.9);
     hud.entity.screen.scale = 2;
     hud.update(0);
     assert.deepEqual(icon.rotation, [0, 0, 0]);
@@ -105,6 +107,18 @@ it("tracks mood, projection, growth, reduced motion and visibility without DOM i
     assert.ok(icon.element.opacity < 1);
     hud.update(0.07);
     assert.equal(icon.element.texture.name, "Hero mood angry");
+    // Every animated frame preserves the texture's 6:5 proportions, including
+    // growth, entry, exit and rotation for each mood.
+    for (const kind of ["happy", "agitated", "angry"]) {
+      mood.kind = kind;
+      for (let frame = 0; frame < 60; frame += 1) {
+        mood.reactionProgress = frame / 59;
+        hud.update(1 / 60);
+        assert.equal(icon.element.width, 48);
+        assert.equal(icon.element.height, 40);
+        assert.equal(icon.scale[0], icon.scale[1]);
+      }
+    }
     mood.screen = null;
     hud.update(0.016);
     assert.equal(icon.enabled, false);

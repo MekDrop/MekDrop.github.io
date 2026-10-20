@@ -33,7 +33,7 @@ import { IslandObjectRoots } from "../shared/IslandObjectRoots.js";
  * @property {string} state
  * @property {number} elapsed
  * @property {number} digStrokes
- * @property {import("playcanvas").Vec2} pileOffset
+ * @property {import("playcanvas").Vec2|null} pileOffset
  * @property {import("playcanvas").Entity|null} hole
  * @property {import("playcanvas").Entity|null} earthPile
  * @property {import("playcanvas").Entity|null} filledPatch
@@ -514,6 +514,15 @@ export class BuriedTreasureField {
       if (existingSite.state !== "digging") {
         return true;
       }
+      if (facing) {
+        existingSite.pileOffset = this.#supportedPileOffset(existingSite, facing.x, facing.z);
+        existingSite.earthPile.enabled = existingSite.pileOffset !== null;
+        existingSite.earthPile.setLocalPosition(
+          existingSite.x + (existingSite.pileOffset?.x ?? 0),
+          existingSite.y + 0.012,
+          existingSite.z + (existingSite.pileOffset?.y ?? 0),
+        );
+      }
       existingSite.digStrokes += 1;
       if (existingSite.digStrokes < TREASURE_DIG_STROKES) {
         const progress = (existingSite.digStrokes - 1) / (TREASURE_DIG_STROKES - 1);
@@ -957,24 +966,21 @@ export class BuriedTreasureField {
    * @param {Point3} target
    * @param {number} forwardX
    * @param {number} forwardZ
-   * @returns {import("playcanvas").Vec2}
+   * @returns {import("playcanvas").Vec2|null}
    */
   #supportedPileOffset(target, forwardX, forwardZ) {
     const offset = new this.#pc.Vec2(
       forwardZ * 0.42 + forwardX * 0.3,
       -forwardX * 0.42 + forwardZ * 0.3,
     );
-    for (const scale of [1, 0.75, 0.5, 0.25, 0]) {
-      for (let side = 0; side < 4; side += 1) {
-        if (this.#canExcavateAt(target.x + offset.x * scale, target.y,
-          target.z + offset.y * scale, 0.34)) {
-          return offset.mulScalar(scale);
-        }
-        offset.set(-offset.y, offset.x);
-      }
+    if (this.#canExcavateAt(target.x + offset.x, target.y,
+      target.z + offset.y, 0.34)) {
+      return offset;
     }
 
-    return new this.#pc.Vec2();
+    // Without supported ground on the throw side, soil spills away rather
+    // than forming a mound inside the cavity or underneath its chest.
+    return null;
   }
 
   /**
@@ -1123,10 +1129,11 @@ export class BuriedTreasureField {
     this.#islandRoots.addChild(site.hole, site);
     site.earthPile = this.#modelLibrary.instantiate(earthModelUrl);
     site.earthPile.name = `Excavated earth pile ${site.id}`;
+    site.earthPile.enabled = site.pileOffset !== null;
     site.earthPile.setLocalPosition(
-      site.x + site.pileOffset.x,
+      site.x + (site.pileOffset?.x ?? 0),
       site.y + 0.012,
-      site.z + site.pileOffset.y,
+      site.z + (site.pileOffset?.y ?? 0),
     );
     this.#islandRoots.addChild(site.earthPile, site);
     site.filledPatch = this.#modelLibrary.instantiate(filledEarthModelUrl);

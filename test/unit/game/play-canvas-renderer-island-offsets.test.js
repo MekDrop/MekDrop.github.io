@@ -5,7 +5,7 @@ import { SCENE_OBJECT_TYPE } from "../../../src/game/enum/SceneObjectType.js";
 
 const source = readFileSync(new URL("../../../src/game/PlayCanvasRenderer.js", import.meta.url), "utf8");
 const start = source.indexOf("  #updateIslandConnectorMotion(deltaTime) {");
-const end = source.indexOf("  #updateFloatingIslandMotion", start);
+const end = source.indexOf("  #inventoryFullIndicatorScreenPosition", start);
 const method = source.slice(start, end).replace(/\s*\/\*\*[\s\S]*?\*\/\s*$/, "");
 const Driver = new Function("SCENE_OBJECT_TYPE", `return class {
   #islandConnectorMotion; #camera; #mapData; #terrainRenderer;

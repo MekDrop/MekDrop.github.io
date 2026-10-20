@@ -1,0 +1,1193 @@
+{
+  "grid": [
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  ],
+  "heightmap": [
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  ],
+  "tileMeta": [
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ]
+  ],
+  "cols": 13,
+  "rows": 11,
+  "numPaths": 0,
+  "pipeData": [],
+  "mergeZones": [],
+  "trunkStart": null,
+  "mapName": "test_special-artojas",
+  "layoutSignature": "test_special-artojas",
+  "objects": [
+    {
+      "id": "hero-spawn",
+      "object": "SpawnPoint",
+      "position": {
+        "x": 0,
+        "y": 2.14,
+        "z": 0
+      }
+    },
+    {
+      "id": "garden-0",
+      "object": "Vegetation",
+      "variant": "oak",
+      "kind": "tree",
+      "rotation": 0,
+      "tile": {
+        "col": 2,
+        "row": 2
+      },
+      "position": {
+        "x": -4,
+        "y": 2.004,
+        "z": -3
+      }
+    },
+    {
+      "id": "garden-1",
+      "object": "Vegetation",
+      "variant": "pine",
+      "kind": "tree",
+      "rotation": 67,
+      "tile": {
+        "col": 5,
+        "row": 2
+      },
+      "position": {
+        "x": -1,
+        "y": 2.004,
+        "z": -3
+      }
+    },
+    {
+      "id": "garden-2",
+      "object": "Vegetation",
+      "variant": "tall-tree",
+      "kind": "tree",
+      "rotation": 134,
+      "tile": {
+        "col": 9,
+        "row": 2
+      },
+      "position": {
+        "x": 3,
+        "y": 2.004,
+        "z": -3
+      }
+    },
+    {
+      "id": "garden-3",
+      "object": "Vegetation",
+      "variant": "sapling",
+      "kind": "tree",
+      "rotation": 201,
+      "tile": {
+        "col": 11,
+        "row": 3
+      },
+      "position": {
+        "x": 5,
+        "y": 2.004,
+        "z": -2
+      }
+    },
+    {
+      "id": "garden-4",
+      "object": "Vegetation",
+      "variant": "pine",
+      "kind": "tree",
+      "rotation": 268,
+      "tile": {
+        "col": 1,
+        "row": 5
+      },
+      "position": {
+        "x": -5,
+        "y": 2.004,
+        "z": 0
+      }
+    },
+    {
+      "id": "garden-5",
+      "object": "Vegetation",
+      "variant": "sapling",
+      "kind": "tree",
+      "rotation": 335,
+      "tile": {
+        "col": 2,
+        "row": 8
+      },
+      "position": {
+        "x": -4,
+        "y": 2.004,
+        "z": 3
+      }
+    },
+    {
+      "id": "garden-6",
+      "object": "Vegetation",
+      "variant": "oak",
+      "kind": "tree",
+      "rotation": 42,
+      "tile": {
+        "col": 10,
+        "row": 8
+      },
+      "position": {
+        "x": 4,
+        "y": 2.004,
+        "z": 3
+      }
+    },
+    {
+      "id": "garden-7",
+      "object": "Vegetation",
+      "variant": "round-bush",
+      "kind": "bush",
+      "rotation": 109,
+      "tile": {
+        "col": 11,
+        "row": 6
+      },
+      "position": {
+        "x": 5,
+        "y": 2.004,
+        "z": 1
+      }
+    },
+    {
+      "id": "garden-8",
+      "object": "Vegetation",
+      "variant": "wide-bush",
+      "kind": "bush",
+      "rotation": 176,
+      "tile": {
+        "col": 3,
+        "row": 3
+      },
+      "position": {
+        "x": -3,
+        "y": 2.004,
+        "z": -2
+      }
+    },
+    {
+      "id": "garden-9",
+      "object": "Vegetation",
+      "variant": "round-bush",
+      "kind": "bush",
+      "rotation": 243,
+      "tile": {
+        "col": 8,
+        "row": 3
+      },
+      "position": {
+        "x": 2,
+        "y": 2.004,
+        "z": -2
+      }
+    },
+    {
+      "id": "garden-10",
+      "object": "Vegetation",
+      "variant": "round-bush",
+      "kind": "bush",
+      "rotation": 310,
+      "tile": {
+        "col": 3,
+        "row": 7
+      },
+      "position": {
+        "x": -3,
+        "y": 2.004,
+        "z": 2
+      }
+    },
+    {
+      "id": "garden-11",
+      "object": "Vegetation",
+      "variant": "wide-bush",
+      "kind": "bush",
+      "rotation": 17,
+      "tile": {
+        "col": 8,
+        "row": 8
+      },
+      "position": {
+        "x": 2,
+        "y": 2.004,
+        "z": 3
+      }
+    },
+    {
+      "id": "garden-ground-cover",
+      "object": "GroundCover",
+      "placements": [
+        {
+          "col": 4,
+          "row": 3,
+          "variant": "daisy-patch",
+          "offsetX": 0,
+          "offsetZ": 0,
+          "rotation": 0,
+          "scale": 1,
+          "phase": 0
+        },
+        {
+          "col": 6,
+          "row": 3,
+          "variant": "pink-flower-patch",
+          "offsetX": 0,
+          "offsetZ": 0,
+          "rotation": 43,
+          "scale": 1,
+          "phase": 0.7
+        },
+        {
+          "col": 7,
+          "row": 3,
+          "variant": "blue-flower-patch",
+          "offsetX": 0,
+          "offsetZ": 0,
+          "rotation": 86,
+          "scale": 1,
+          "phase": 1.4
+        },
+        {
+          "col": 10,
+          "row": 4,
+          "variant": "buttercup-patch",
+          "offsetX": 0,
+          "offsetZ": 0,
+          "rotation": 129,
+          "scale": 1,
+          "phase": 2.0999999999999996
+        },
+        {
+          "col": 2,
+          "row": 4,
+          "variant": "clover-patch",
+          "offsetX": 0,
+          "offsetZ": 0,
+          "rotation": 172,
+          "scale": 1,
+          "phase": 2.8
+        },
+        {
+          "col": 3,
+          "row": 5,
+          "variant": "forest-mushroom-cluster",
+          "offsetX": 0,
+          "offsetZ": 0,
+          "rotation": 215,
+          "scale": 1,
+          "phase": 3.5
+        },
+        {
+          "col": 9,
+          "row": 5,
+          "variant": "daisy-patch",
+          "offsetX": 0,
+          "offsetZ": 0,
+          "rotation": 258,
+          "scale": 1,
+          "phase": 4.199999999999999
+        },
+        {
+          "col": 2,
+          "row": 6,
+          "variant": "pink-flower-patch",
+          "offsetX": 0,
+          "offsetZ": 0,
+          "rotation": 301,
+          "scale": 1,
+          "phase": 4.8999999999999995
+        },
+        {
+          "col": 4,
+          "row": 7,
+          "variant": "blue-flower-patch",
+          "offsetX": 0,
+          "offsetZ": 0,
+          "rotation": 344,
+          "scale": 1,
+          "phase": 5.6
+        },
+        {
+          "col": 6,
+          "row": 7,
+          "variant": "buttercup-patch",
+          "offsetX": 0,
+          "offsetZ": 0,
+          "rotation": 27,
+          "scale": 1,
+          "phase": 6.3
+        },
+        {
+          "col": 8,
+          "row": 7,
+          "variant": "clover-patch",
+          "offsetX": 0,
+          "offsetZ": 0,
+          "rotation": 70,
+          "scale": 1,
+          "phase": 7
+        },
+        {
+          "col": 10,
+          "row": 7,
+          "variant": "forest-mushroom-cluster",
+          "offsetX": 0,
+          "offsetZ": 0,
+          "rotation": 113,
+          "scale": 1,
+          "phase": 7.699999999999999
+        },
+        {
+          "col": 5,
+          "row": 8,
+          "variant": "daisy-patch",
+          "offsetX": 0,
+          "offsetZ": 0,
+          "rotation": 156,
+          "scale": 1,
+          "phase": 8.399999999999999
+        },
+        {
+          "col": 7,
+          "row": 8,
+          "variant": "pink-flower-patch",
+          "offsetX": 0,
+          "offsetZ": 0,
+          "rotation": 199,
+          "scale": 1,
+          "phase": 9.1
+        }
+      ]
+    }
+  ],
+  "animationViewport": {
+    "zoom": 2.2,
+    "rotation": 0,
+    "panX": -1,
+    "panZ": -1
+  },
+  "testControls": {
+    "panels": [
+      {
+        "title": "Hero model",
+        "x": 16,
+        "y": 140,
+        "buttons": [
+          {
+            "label": "heroe (default)",
+            "script": "import('/src/stores/graphics-settings-store.js').then(m => { m.useGraphicsSettingsStore().heroModel = 'heroe'; });"
+          },
+          {
+            "label": "special-artojas",
+            "script": "import('/src/stores/graphics-settings-store.js').then(m => { m.useGraphicsSettingsStore().heroModel = 'special-artojas'; });"
+          }
+        ]
+      }
+    ]
+  }
+}

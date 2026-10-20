@@ -9,13 +9,17 @@ const start = source.indexOf("  useTool(");
 const method = source.slice(start, source.indexOf("\n  /**", start));
 const positioningStart = source.indexOf("  #toolPositioning(");
 const positioningMethod = source.slice(positioningStart, source.indexOf("\n  /**", positioningStart));
-const HeroDriver = new Function("HERO_ACTION", "treasureToolBackstep", `return class {
+const HeroDriver = new Function("HERO_ACTION", "treasureToolBackstep", `return class Hero {
+  static #compareToolPositions(a, b) { return a.travel - b.travel; }
   #position = { x: 0, z: 0 };
   #facingYaw = 15;
   #grounded = true;
   #actionBehavior = { canStart: () => true };
   #acceptAction() { return true; }
   blocked = false;
+  safePosition = () => true;
+  #surfaceState = {};
+  #movementSurface = { canEscapeAcross: (from, to) => !this.blocked && this.safePosition(to) };
   #canOccupyCollectionPosition() { return !this.blocked; }
   get facingYaw() { return this.#facingYaw; }
   get action() { return this.#actionBehavior.toolAction; }
@@ -168,4 +172,33 @@ it("aligns a tool's fixed reach before starting its planted stroke", () => {
     },
     targetDistance: 0.535,
   }), false);
+});
+
+it("moves to the nearest safe side when the direct digging correction is blocked", () => {
+  const hero = new HeroDriver();
+  hero.safePosition = (position) => position.x >= 0.15;
+  assert.equal(hero.useTool({ useAnimation: () => "dig" }, {
+    targetPosition: {
+      x: 0,
+      z: 0.2,
+    },
+    targetDistance: 0.535,
+    maxFacingAdjustment: 30,
+  }), true);
+  const step = hero.action.positioning;
+  assert.ok(step.targetX >= 0.15 && step.targetX < 0.16);
+  assert.ok(Math.abs(Math.hypot(step.targetX, step.targetZ - 0.2) - 0.535) < 1e-6);
+});
+
+it("checks support even when already at digging reach", () => {
+  const hero = new HeroDriver();
+  hero.blocked = true;
+  assert.equal(hero.useTool({ useAnimation: () => "dig" }, {
+    targetPosition: {
+      x: 0,
+      z: 0.535,
+    },
+    targetDistance: 0.535,
+  }), false);
+  assert.equal(hero.action, undefined);
 });

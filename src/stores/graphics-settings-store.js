@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 import { ref } from "vue";
 import { GRAPHICS_DRIVER } from "src/game/enum/GraphicsDriver.js";
 import { POWER_PREFERENCE } from "src/game/enum/PowerPreference.js";
+import { HERO_MODEL } from "src/game/enum/HeroModel.js";
 
 export const useGraphicsSettingsStore = defineStore("graphics-settings", () => {
   // Graphics device options (applied when the renderer is created).
@@ -18,6 +19,9 @@ export const useGraphicsSettingsStore = defineStore("graphics-settings", () => {
   const shadows = ref(true);
   const shadowResolution = ref(2048);
 
+  // Applied to the live hero when its current action has finished.
+  const heroModel = ref(HERO_MODEL.HEROE);
+
   return {
     driver,
     antialias,
@@ -27,5 +31,6 @@ export const useGraphicsSettingsStore = defineStore("graphics-settings", () => {
     anisotropy,
     shadows,
     shadowResolution,
+    heroModel,
   };
 });

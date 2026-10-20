@@ -392,10 +392,19 @@ it("moves the spoil pile away from a lower neighboring terrace", () => {
     z: 1,
   });
   const pile = models.find((entity) => entity.name.startsWith("Excavated earth pile"));
-  assert.ok(pile.getLocalPosition().z + 0.34 <= 0.5,
-    "the entire mound stays behind the cliff edge");
+  assert.equal(pile.enabled, false,
+    "an unsupported throw must not form a mound inside the hole");
+  field.dig({
+    kind: "dig",
+    id: "2:2",
+  }, {
+    x: 0,
+    z: -1,
+  });
+  assert.ok(pile.getLocalPosition().x < 0 && pile.getLocalPosition().z < 0,
+    "resuming from the opposite side updates the pile to match the new throw");
   assert.ok(Math.abs(Math.hypot(pile.getLocalPosition().x, pile.getLocalPosition().z) - Math.hypot(0.42, 0.3)) < 1e-6,
-    "use another side before moving the mound closer to the cavity");
+    "supported piles retain their full separation from the cavity");
   field.destroy();
 });
 
@@ -474,6 +483,7 @@ it("reveals the already instantiated chest and spawns its stored contents withou
   });
   assert.equal(chest.enabled, true, "digging exposes the existing chest");
   const pile = models.find(({ url }) => url.includes("excavated-earth.glb")).entity;
+  assert.equal(pile.enabled, false, "a cramped single tile cannot put its pile beneath the chest");
   assert.ok(Math.abs(pile.getLocalPosition().x) + 0.34 <= 0.5);
   assert.ok(Math.abs(pile.getLocalPosition().z) + 0.34 <= 0.5,
     "spoil stays supported even when the preferred side extends beyond the only tile");

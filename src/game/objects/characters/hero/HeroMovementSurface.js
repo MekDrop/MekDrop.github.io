@@ -201,7 +201,7 @@ export class HeroMovementSurface {
     // Keep the escape on the current connected level. Check the whole body
     // footprint at short intervals, excluding water, holes and unsafe slopes.
     const distance = Math.hypot(to.x - from.x, to.z - from.z);
-    const steps = Math.ceil(distance / 0.15);
+    const steps = Math.max(1, Math.ceil(distance / 0.15));
     for (let step = 1; step <= steps; step += 1) {
       const x = from.x + (to.x - from.x) * step / steps;
       const z = from.z + (to.z - from.z) * step / steps;

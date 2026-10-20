@@ -24,7 +24,6 @@ import { Overpass } from "./objects/path/Overpass.js";
 import { GroundCover } from "./objects/ground-cover/index.js";
 import {
   CubeCloudField,
-  FloatingIslandMotion,
   IslandConnectorMotion,
 } from "./objects/scenery/index.js";
 import { BuriedTreasureField } from "./objects/treasure/index.js";
@@ -261,11 +260,6 @@ export class PlayCanvasRenderer {
    * @type {HeroVisibilityController|null}
    */
   #heroVisibility = null;
-  /**
-   *
-   * @type {FloatingIslandMotion|null}
-   */
-  #floatingIslandMotion = null;
 
   /**
    * @type {IslandConnectorMotion|null}
@@ -275,31 +269,6 @@ export class PlayCanvasRenderer {
    * @type {boolean}
    */
   #firstPersonIslandOffsetsApplied = false;
-  /**
-   *
-   * @type {playCanvas.Vec3|null}
-   */
-  #floatingCameraLocalOffset = null;
-  /**
-   *
-   * @type {playCanvas.Vec3|null}
-   */
-  #floatingCloudOffset = null;
-  /**
-   *
-   * @type {number}
-   */
-  #floatingCameraOffsetX = 0;
-  /**
-   *
-   * @type {number}
-   */
-  #floatingCameraOffsetY = 0;
-  /**
-   *
-   * @type {boolean}
-   */
-  #floatingCameraOffsetApplied = false;
   /**
    * @returns {GroundCover|null}
    */
@@ -539,8 +508,6 @@ export class PlayCanvasRenderer {
       return;
     }
     const pc = this.#pc;
-    this.#floatingCameraLocalOffset = new pc.Vec3();
-    this.#floatingCloudOffset = new pc.Vec3();
 
     onProgress?.("graphics");
     const graphicsDevice = await pc.createGraphicsDevice(this.canvas, {
@@ -1728,9 +1695,6 @@ export class PlayCanvasRenderer {
     this.#clearScene();
     this.#mapRoot = new this.#pc.Entity("Voxel map");
     this.#app.root.addChild(this.#mapRoot);
-    this.#floatingIslandMotion = new FloatingIslandMotion({
-      zoom: this.#camera.zoom,
-    });
     this.#islandConnectorMotion = this.#mapData.islandConnectorData
       ? new IslandConnectorMotion()
       : null;
@@ -1967,6 +1931,7 @@ export class PlayCanvasRenderer {
       onFacingChange: this.#handleHeroFacingChange,
       onMovementInput: this.#onMovementInput.bind(this),
       heroConfigurationStore: this.#heroConfigurationStore,
+      graphicsSettingsStore: this.#graphicsSettingsStore,
       presentation: {
         get lifeHud() {
           return getHud(HeroLifeHud);
@@ -2169,7 +2134,6 @@ export class PlayCanvasRenderer {
     this.#updateHeroCameraReturn(deltaTime);
     this.#scene?.update(deltaTime);
     this.#updateIslandConnectorMotion(deltaTime);
-    this.#updateFloatingIslandMotion(deltaTime);
   }
 
   /**
@@ -2204,75 +2168,6 @@ export class PlayCanvasRenderer {
       offsets.groups,
     );
     this.#firstPersonIslandOffsetsApplied = firstPerson;
-  }
-
-  /**
-   *
-   * @param {number} deltaTime
-   */
-  #updateFloatingIslandMotion(deltaTime) {
-    if (
-      !this.#floatingIslandMotion ||
-      !this.#camera?.camera ||
-      !this.#cloudField?.entity
-    ) {
-      return;
-    }
-    if (this.#camera.firstPersonEnabled) {
-      this.#setFloatingCameraOffset(0, 0);
-
-      return;
-    }
-    const offset = this.#floatingIslandMotion.update(deltaTime);
-    // Express the motion in screen pixels so the hover remains consistent
-    // without adding a full-screen filter over thin geometry.
-    const worldUnitsPerPixel =
-      (2 * this.#camera.camera.orthoHeight) /
-      Math.max(1, this.canvas.clientHeight);
-    this.#setFloatingCameraOffset(
-      -offset.x * worldUnitsPerPixel,
-      -offset.y * worldUnitsPerPixel,
-    );
-  }
-
-  /**
-   *
-   * @param {number} x
-   * @param {number} y
-   */
-  #setFloatingCameraOffset(x, y) {
-    if (!this.#camera) {
-      return;
-    }
-    if (this.#floatingCameraOffsetApplied) {
-      this.#camera.translateLocal(
-        -this.#floatingCameraOffsetX,
-        -this.#floatingCameraOffsetY,
-        0,
-      );
-    }
-    this.#floatingCameraOffsetX = x;
-    this.#floatingCameraOffsetY = y;
-    this.#floatingCameraLocalOffset.set(
-      this.#floatingCameraOffsetX,
-      this.#floatingCameraOffsetY,
-      0,
-    );
-    this.#camera
-      .getRotation()
-      .transformVector(
-        this.#floatingCameraLocalOffset,
-        this.#floatingCloudOffset,
-      );
-    this.#camera.translateLocal(
-      this.#floatingCameraOffsetX,
-      this.#floatingCameraOffsetY,
-      0,
-    );
-    this.#floatingCameraOffsetApplied = true;
-    if (this.#cloudField) {
-      this.#cloudField.floatingOffset = this.#floatingCloudOffset;
-    }
   }
 
   #inventoryFullIndicatorScreenPosition() {
@@ -2671,7 +2566,6 @@ export class PlayCanvasRenderer {
         this.#camera.panZ = constrainedPan.z;
       }
     }
-    this.#floatingCameraOffsetApplied = false;
     const hero = this.hero;
     if (hero) {
       hero.firstPersonCameraEnabled = this.#camera.firstPersonEnabled;
@@ -2688,9 +2582,6 @@ export class PlayCanvasRenderer {
         this.#updateCastlesForHero(hero?.position ?? update.position);
       }
     } else {
-      if (this.#floatingIslandMotion) {
-        this.#floatingIslandMotion.zoom = this.#camera.zoom;
-      }
       if (this.#groundCover) {
         this.#groundCover.zoom = this.#camera.zoom;
       }
@@ -2704,10 +2595,6 @@ export class PlayCanvasRenderer {
         zoom: this.#camera.zoom,
       });
     }
-    this.#setFloatingCameraOffset(
-      this.#floatingCameraOffsetX,
-      this.#floatingCameraOffsetY,
-    );
     this.#updateHeroIdleLookTarget();
     this.#notifyViewportChange();
   }
@@ -3135,11 +3022,7 @@ export class PlayCanvasRenderer {
     this.#sceneObjects.destroyType(SCENE_OBJECT_TYPE.CASTLE);
     this.#heroVisibility?.destroy();
     this.#heroVisibility = null;
-    this.#floatingIslandMotion = null;
     this.#islandConnectorMotion = null;
-    this.#floatingCameraOffsetX = 0;
-    this.#floatingCameraOffsetY = 0;
-    this.#floatingCameraOffsetApplied = false;
     this.#interactionProviders = [];
     this.#inventoryScene?.clearWorldItems();
     this.#sceneObjects.destroyType(SCENE_OBJECT_TYPE.HERO);
@@ -3395,7 +3278,7 @@ export class PlayCanvasRenderer {
   }
 
   #getMoodScreenPosition() {
-    return this.#heroPatScreenPosition(0.6);
+    return this.#heroPatScreenPosition(0.12);
   }
 
   #getInventoryFullScreenPosition() {
