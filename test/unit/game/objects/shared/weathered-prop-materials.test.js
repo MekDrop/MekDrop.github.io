@@ -121,3 +121,22 @@ test("distinct source materials stay separate even when they have the same name"
   first.destroy();
   second.destroy();
 });
+
+test("identical finishes survive until their last owner is destroyed", () => {
+  const source = material();
+  const first = fixture(source, 0.6);
+  const second = fixture(source, 0.6);
+  const shared = first.meshes[0].material;
+  assert.equal(second.meshes[0].material, shared);
+  let destroyed = 0;
+  shared.destroy = () => destroyed++;
+  first.prop.destroy();
+  assert.equal(destroyed, 0);
+  assert.equal(second.meshes[0].material.gloss, 0.2 - 0.6 * 0.15);
+  second.prop.destroy();
+  assert.equal(destroyed, 1);
+  const next = fixture(source, 0.6);
+  assert.notEqual(next.meshes[0].material, shared);
+  next.prop.destroy();
+  source.destroy();
+});

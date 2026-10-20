@@ -492,7 +492,9 @@ export class PlayCanvasRenderer {
     if (this.#graphicsSettingsStore.driver === GRAPHICS_DRIVER.WEBGL2) {
       return [pc.DEVICETYPE_WEBGL2];
     }
-    return [pc.DEVICETYPE_WEBGPU, pc.DEVICETYPE_WEBGL2];
+    // Dense maps currently submit faster through WebGL2. Explicit driver
+    // selections above still take precedence, with WebGPU available as fallback.
+    return [pc.DEVICETYPE_WEBGL2, pc.DEVICETYPE_WEBGPU];
   }
 
   /**
@@ -2159,8 +2161,8 @@ export class PlayCanvasRenderer {
       : this.#islandConnectorMotion.update(deltaTime, count);
     this.#terrainRenderer?.setIslandOffsets(offsets.near, offsets.far, offsets.groups);
     this.#bridgeRailingKit?.setIslandOffsets(offsets.near, offsets.far, offsets.groups);
-    for (const object of this.#sceneObjects) {
-      object.setIslandOffsets?.(offsets.near, offsets.far, offsets.groups);
+    for (const object of this.#sceneObjects.getWithMethod("setIslandOffsets")) {
+      object.setIslandOffsets(offsets.near, offsets.far, offsets.groups);
     }
     this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO)?.setIslandVisualOffsets(
       offsets.near,

@@ -20,20 +20,34 @@ export function addGeneratedVoxelPhysics({
   }
   const collider = new pc.Entity(`${name} physics collider`);
   collider.addComponent("collision", { type: "compound" });
+  parent.addChild(collider);
+  const world = collider.collision.system.physicsWorld;
+  const scale = collider.getWorldTransform().getScale();
+  const shapes = [];
+  // The engine owns the compound body. Its immutable box shapes do not need
+  // thousands of child entities that follow the island through the scene graph.
+  collider.once("destroy", () => {
+    for (const shape of shapes) {
+      world.destroyShape(shape);
+    }
+  });
   for (const voxel of voxels) {
-    const part = new pc.Entity(`${name} physics voxel`);
-    part.setLocalPosition(voxel.x, voxel.y, voxel.z);
-    part.addComponent("collision", {
+    const shape = world.createShape({
       type: "box",
       halfExtents: new pc.Vec3(
-        voxel.width / 2,
-        voxel.height / 2,
-        voxel.depth / 2,
+        voxel.width / 2 * scale.x,
+        voxel.height / 2 * scale.y,
+        voxel.depth / 2 * scale.z,
       ),
     });
-    collider.addChild(part);
+    shapes.push(shape);
+    world.addCompoundChild(
+      collider.collision.shape,
+      shape,
+      new pc.Vec3(voxel.x * scale.x, voxel.y * scale.y, voxel.z * scale.z),
+      pc.Quat.IDENTITY,
+    );
   }
-  parent.addChild(collider);
   collider.addComponent("rigidbody", {
     type: "static",
     friction,

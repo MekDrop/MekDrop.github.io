@@ -84,6 +84,7 @@ html.game-viewport--dragging * {
 </style>
 
 <script setup>
+import { GRAPHICS_DRIVER } from "src/game/enum/GraphicsDriver.js";
 import {
   computed,
   nextTick,
@@ -777,7 +778,8 @@ async function init() {
         void mapRouteLoadPromise.catch(reportRuntimeError);
       },
     );
-    showGraphicsFallbackDialog.value = graphicsBackend.value === "webgl2";
+    showGraphicsFallbackDialog.value = graphicsBackend.value === GRAPHICS_DRIVER.WEBGL2 &&
+      graphicsSettingsStore.driver === GRAPHICS_DRIVER.WEBGPU;
     gameCommandRegistry = createGameCommandRegistry({ target: window });
     gameCommandRegistry.install();
     gameReady.value = true;

@@ -10,11 +10,21 @@ export function cacheRigidBatchBounds(batch) {
   }
   installed.add(batch);
   let snapshot = null;
+  let consecutiveChanges = 0;
+  let bypassFrames = 0;
   const update = batch.updateBoundingBox.bind(batch);
   batch.updateBoundingBox = /**
    * Updates immediately when any member moves, scales, or changes geometry.
    */
     () => {
+      // Moving batches should not scan every matrix twice per frame.
+      if (bypassFrames > 0) {
+        bypassFrames--;
+        update();
+
+        return;
+      }
+      const probing = consecutiveChanges >= 2;
       const meshes = batch.origMeshInstances;
       let changed = !snapshot || snapshot.length !== meshes.length * 22;
       // Mesh bounds are JavaScript doubles, even when matrices use float32.
@@ -43,8 +53,12 @@ export function cacheRigidBatchBounds(batch) {
           snapshot[offset + 16 + component] = value;
         }
       }
-      if (changed) {
+      if (changed || probing) {
         update();
+      }
+      consecutiveChanges = changed ? consecutiveChanges + 1 : 0;
+      if (consecutiveChanges >= 2) {
+        bypassFrames = 29;
       }
     };
 }

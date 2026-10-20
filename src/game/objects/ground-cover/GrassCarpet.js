@@ -1,3 +1,4 @@
+import { GrassInstanceData } from "./GrassInstanceData.js";
 import { GrassEdgeMesh } from "./GrassEdgeMesh.js";
 import { IslandCellOwnership } from "../shared/IslandCellOwnership.js";
 import meadowGrassModelUrl from "../../models/ground-cover/meadow-grass.glb?url";
@@ -65,6 +66,11 @@ export class GrassCarpet {
     * }>}
    */
   #batches = [];
+
+  /**
+   * @type {import("playcanvas").VertexFormat}
+   */
+  #instanceFormat;
 
   /**
    * @type {import("playcanvas").Entity[]|null}
@@ -157,7 +163,11 @@ export class GrassCarpet {
       }
     }
 
+    this.#instanceFormat = GrassInstanceData.createFormat(pc, device);
     this.#material = new pc.StandardMaterial();
+    this.#material.shaderChunksVersion = pc.version.split(".").slice(0, 2).join(".");
+    this.#material.setAttribute("instance_grassBoundary", pc.SEMANTIC_ATTR8);
+    this.#material.setAttribute("instance_grassJoins", pc.SEMANTIC_ATTR9);
     this.#material.name = "Short living grass";
     this.#material.gloss = 0;
     this.#material.useMetalness = true;
@@ -224,7 +234,7 @@ export class GrassCarpet {
         (cells) => cells.has(`${col},${row}`)) ?? -1;
       // Share clumps across larger patches without changing their transforms.
       const patch = `${Math.floor(col / 12)},${Math.floor(row / 12)}`;
-      const key = `${group}:${patch}:${Boolean(placement.fringe)}:${placement.detail}:${placement.broadleaf}:${placement.boundaryExtension}:${placement.edgeJoins ?? [0, 0]}`;
+      const key = `${group}:${patch}:${Boolean(placement.fringe)}:${placement.detail}:${placement.broadleaf}`;
       const chunk = chunks.get(key) ?? {
         group,
         fringe: Boolean(placement.fringe),
@@ -242,7 +252,9 @@ export class GrassCarpet {
         rotation,
         scale.set(placement.width, placement.height, placement.fringe ? 1 : placement.width),
       );
-      chunk.matrices.push(...matrix.data);
+      GrassInstanceData.append(
+        chunk.matrices, matrix.data, placement.boundaryExtension, placement.edgeJoins ?? [0, 0],
+      );
       chunk.placements.push(placement);
       chunks.set(key, chunk);
       if (++count % 256 === 0) {
@@ -252,7 +264,7 @@ export class GrassCarpet {
     for (const [key, chunk] of chunks) {
       const modelUrl = chunk.broadleaf ? cloverModelUrl : meadowGrassModelUrl;
       const batch = chunk.fringe
-        ? GrassEdgeMesh.batch(pc, device, this.#edgeMesh, this.#material, chunk.matrices)
+        ? GrassEdgeMesh.batch(pc, device, this.#edgeMesh, this.#material, chunk.matrices, this.#instanceFormat)
         : modelLibrary.instantiateMergedBatch(
           modelUrl,
           chunk.matrices,
@@ -262,6 +274,7 @@ export class GrassCarpet {
             castShadows: false,
             receiveShadows: true,
             dynamic: true,
+            instanceFormat: this.#instanceFormat,
           },
         );
       // Instanced models otherwise have only the source clump's bounds. Bound
@@ -399,7 +412,7 @@ export class GrassCarpet {
       const data =
         storage instanceof Float32Array ? storage : new Float32Array(storage);
       for (const index of indices) {
-        data[index * 16 + 13] = -10000;
+        data[index * GrassInstanceData.stride + 13] = -10000;
       }
       vertexBuffer.unlock();
     }

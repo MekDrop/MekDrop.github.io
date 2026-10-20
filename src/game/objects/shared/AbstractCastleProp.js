@@ -1,5 +1,6 @@
 import { IslandObjectRoots } from "./IslandObjectRoots.js";
 import { addAuthoredMeshPhysics } from "./AuthoredMeshPhysics.js";
+import { RigidModelBatch } from "../../rendering/RigidModelBatch.js";
 import { DynamicRenderBatch } from "../../rendering/DynamicRenderBatch.js";
 
 /**
@@ -7,6 +8,14 @@ import { DynamicRenderBatch } from "../../rendering/DynamicRenderBatch.js";
  * @abstract
  */
 export class AbstractCastleProp {
+  /**
+   * @type {WeakMap<import("playcanvas").Material, Map<string, {material: import("playcanvas").Material, owners: number}>>}
+   */
+  static #weatheredMaterials = new WeakMap();
+  /**
+   * @type {Array<function(): void>}
+   */
+  #releaseWeatheredMaterials = [];
   /**
    * Decorative floor coverings rely on the castle floor for physical support.
    * @returns {boolean}
@@ -72,7 +81,7 @@ export class AbstractCastleProp {
     this.prepareModel(model, false);
     this.#visual.addChild(model);
     if (definition.weathering) {
-      // Keep identical parts batchable, while each prop owns its weathered finish.
+      // Share immutable finishes; customized props explicitly clone their material.
       /**
        * @type {Map<import("playcanvas").Material, import("playcanvas").Material>}
        */
@@ -85,23 +94,42 @@ export class AbstractCastleProp {
             mesh.material = existing;
             continue;
           }
-          const material = source.clone();
           const wear = Math.min(1, Math.max(0, definition.weathering));
-          // Textures already author the surface colour. Tinting them again made
-          // shared timber much darker than doors using the very same image.
-          if (material.diffuse && !material.diffuseMap) {
-            material.diffuse.set(material.diffuse.r * (1 - wear * 0.48),
-              material.diffuse.g * (1 - wear * 0.34), material.diffuse.b * (1 - wear * 0.18));
+          const gloss = source.glossInvert
+            ? Math.max(source.gloss, 0.8 + wear * 0.15)
+            : Math.min(source.gloss, 0.2 - wear * 0.15);
+          // Textured finishes only change roughness. Saturated roughness values
+          // can be identical even when authored wear differs.
+          const key = JSON.stringify([source.diffuseMap ? 0 : wear, gloss]);
+          let finishes = AbstractCastleProp.#weatheredMaterials.get(source);
+          if (!finishes) {
+            finishes = new Map();
+            AbstractCastleProp.#weatheredMaterials.set(source, finishes);
           }
-          // glTF imports use roughness, the inverse of engine glossiness.
-          // Preserve authored metalness and maps as the surface wears.
-          material.gloss = material.glossInvert
-            ? Math.max(material.gloss, 0.8 + wear * 0.15)
-            : Math.min(material.gloss, 0.2 - wear * 0.15);
-          material.update();
-          mesh.material = material;
-          weatheredMaterials.set(source, material);
-          this.#instanceMaterials.push(material);
+          let entry = finishes.get(key);
+          if (!entry) {
+            const material = source.clone();
+            if (material.diffuse && !material.diffuseMap) {
+              material.diffuse.set(material.diffuse.r * (1 - wear * 0.48),
+                material.diffuse.g * (1 - wear * 0.34), material.diffuse.b * (1 - wear * 0.18));
+            }
+            material.gloss = gloss;
+            material.update();
+            entry = {
+              material,
+              owners: 0,
+            };
+            finishes.set(key, entry);
+          }
+          entry.owners++;
+          this.#releaseWeatheredMaterials.push(() => {
+            if (--entry.owners === 0) {
+              finishes.delete(key);
+              entry.material.destroy();
+            }
+          });
+          mesh.material = entry.material;
+          weatheredMaterials.set(source, entry.material);
         }
       }
     }
@@ -173,10 +201,15 @@ export class AbstractCastleProp {
     this.#visual.rigidbody?.syncEntityToBody();
   }
   onSceneReady() {
+    if (this.#renderBatch) {
+      return;
+    }
+    const app = this.#pc.Application.getApplication();
+    RigidModelBatch.merge(this.#pc, app, this.#visual.children[0]);
     // Batch after parenting and subclass material/part customization. Dynamic
     // batches retain the transforms used when islands move vertically.
     this.#renderBatch ??= new DynamicRenderBatch(
-      this.#pc.Application.getApplication(),
+      app,
       this.#visual,
       this.#pc.BUFFER_STATIC,
     );
@@ -186,6 +219,10 @@ export class AbstractCastleProp {
     this.#renderBatch = null;
     this.#entity.destroy();
     this.#collisionGraph?.destroy();
+    for (const release of this.#releaseWeatheredMaterials) {
+      release();
+    }
+    this.#releaseWeatheredMaterials = [];
     for (const material of this.#instanceMaterials) {
       material.destroy();
     }

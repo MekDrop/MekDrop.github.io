@@ -12,12 +12,22 @@ export function cacheRigidBatchPalette(batch) {
   }
   installed.add(skin);
   let snapshot = null;
+  let consecutiveChanges = 0;
+  let bypassFrames = 0;
   const update = skin.updateMatrixPalette.bind(skin);
   skin.updateMatrixPalette = /**
    * @param {import("playcanvas").GraphNode} root
    * @param {number} index
    */
     (root, index) => {
+      // Moving batches should not scan every matrix twice per frame.
+      if (bypassFrames > 0) {
+        bypassFrames--;
+        update(root, index);
+
+        return;
+      }
+      const probing = consecutiveChanges >= 2;
       const nodes = [root, ...skin.bones];
       let changed = !snapshot || snapshot.length !== nodes.length * 16;
       if (changed) {
@@ -33,8 +43,12 @@ export function cacheRigidBatchPalette(batch) {
           snapshot[offset + component] = matrix[component];
         }
       }
-      if (changed) {
+      if (changed || probing) {
         update(root, index);
+      }
+      consecutiveChanges = changed ? consecutiveChanges + 1 : 0;
+      if (consecutiveChanges >= 2) {
+        bypassFrames = 29;
       }
     };
 }

@@ -1,6 +1,3 @@
-
-import Ammo from "sync-ammo/dist/ammo.module.js";
-
 /**
  * @typedef {{instance: import("playcanvas").MeshInstance, original: import("playcanvas").Mesh, originalMaterial: import("playcanvas").Material, material: import("playcanvas").Material, mesh: import("playcanvas").Mesh, positions: number[], indices: number[], mapping: number[], offsets?: import("playcanvas").Vec3[]}} HeroClothBinding
  * @typedef {{body: import("sync-ammo/dist/ammo").btSoftBody|null, nodes: import("playcanvas").Vec3[], bindings: HeroClothBinding[], pins: Array<{index: number, local: import("playcanvas").Vec3, entity: import("playcanvas").Entity}>, decorations: HeroClothBinding[]}} HeroClothGarment
@@ -29,6 +26,10 @@ export class HeroClothPhysics {
    * @type {typeof import("playcanvas")}
    */
   #pc;
+  /**
+   * @type {typeof globalThis.Ammo}
+   */
+  #ammo;
   /**
    * @type {import("playcanvas").Entity}
    */
@@ -67,19 +68,20 @@ export class HeroClothPhysics {
    */
   constructor({ pc, modelRoot }) {
     this.#pc = pc;
+    this.#ammo = globalThis.Ammo;
     this.#root = modelRoot;
     this.#inverse = new pc.Mat4();
     this.#point = new pc.Vec3();
     this.#previousPosition = modelRoot.getPosition().clone();
-    const configuration = this.#own(new Ammo.btSoftBodyRigidBodyCollisionConfiguration());
-    const dispatcher = this.#own(new Ammo.btCollisionDispatcher(configuration));
-    const broadphase = this.#own(new Ammo.btDbvtBroadphase());
-    const solver = this.#own(new Ammo.btSequentialImpulseConstraintSolver());
-    const softSolver = this.#own(new Ammo.btDefaultSoftBodySolver());
-    this.#world = this.#own(new Ammo.btSoftRigidDynamicsWorld(
+    const configuration = this.#own(new this.#ammo.btSoftBodyRigidBodyCollisionConfiguration());
+    const dispatcher = this.#own(new this.#ammo.btCollisionDispatcher(configuration));
+    const broadphase = this.#own(new this.#ammo.btDbvtBroadphase());
+    const solver = this.#own(new this.#ammo.btSequentialImpulseConstraintSolver());
+    const softSolver = this.#own(new this.#ammo.btDefaultSoftBodySolver());
+    this.#world = this.#own(new this.#ammo.btSoftRigidDynamicsWorld(
       dispatcher, broadphase, solver, configuration, softSolver,
     ));
-    const gravity = this.#own(new Ammo.btVector3(0, -9.8 * PHYSICS_SCALE, 0));
+    const gravity = this.#own(new this.#ammo.btVector3(0, -9.8 * PHYSICS_SCALE, 0));
     this.#world.setGravity(gravity);
     this.#world.getWorldInfo().set_m_gravity(gravity);
     this.#inverse.copy(modelRoot.getWorldTransform()).invert();
@@ -126,25 +128,25 @@ export class HeroClothPhysics {
     const matrix = this.#relative(entity);
     const scale = matrix.getScale();
     const extents = bounds.halfExtents;
-    const half = this.#own(new Ammo.btVector3(
+    const half = this.#own(new this.#ammo.btVector3(
       (Math.abs(extents.x * scale.x) + LEG_CLEARANCE) * PHYSICS_SCALE,
       (Math.abs(extents.y * scale.y) + LEG_CLEARANCE) * PHYSICS_SCALE,
       (Math.abs(extents.z * scale.z) + LEG_CLEARANCE) * PHYSICS_SCALE,
     ));
-    const shape = this.#own(new Ammo.btBoxShape(half));
+    const shape = this.#own(new this.#ammo.btBoxShape(half));
     shape.setMargin(0.005 * PHYSICS_SCALE);
-    const transform = this.#own(new Ammo.btTransform());
+    const transform = this.#own(new this.#ammo.btTransform());
     transform.setIdentity();
     const center = matrix.transformPoint(bounds.center);
     const orientation = new this.#pc.Quat().setFromMat4(matrix);
-    const position = this.#own(new Ammo.btVector3(center.x * PHYSICS_SCALE, center.y * PHYSICS_SCALE, center.z * PHYSICS_SCALE));
-    const rotation = this.#own(new Ammo.btQuaternion(orientation.x, orientation.y, orientation.z, orientation.w));
+    const position = this.#own(new this.#ammo.btVector3(center.x * PHYSICS_SCALE, center.y * PHYSICS_SCALE, center.z * PHYSICS_SCALE));
+    const rotation = this.#own(new this.#ammo.btQuaternion(orientation.x, orientation.y, orientation.z, orientation.w));
     transform.setOrigin(position);
     transform.setRotation(rotation);
-    const motion = this.#own(new Ammo.btDefaultMotionState(transform));
-    const inertia = this.#own(new Ammo.btVector3(0, 0, 0));
-    const info = this.#own(new Ammo.btRigidBodyConstructionInfo(0, motion, shape, inertia));
-    const body = this.#own(new Ammo.btRigidBody(info));
+    const motion = this.#own(new this.#ammo.btDefaultMotionState(transform));
+    const inertia = this.#own(new this.#ammo.btVector3(0, 0, 0));
+    const info = this.#own(new this.#ammo.btRigidBodyConstructionInfo(0, motion, shape, inertia));
+    const body = this.#own(new this.#ammo.btRigidBody(info));
     body.setCollisionFlags(2);
     body.setActivationState(4);
     const collider = {
@@ -275,14 +277,14 @@ export class HeroClothPhysics {
       }
       garment.bindings.push(binding);
     }
-    const body = new Ammo.btSoftBody(this.#world.getWorldInfo());
+    const body = new this.#ammo.btSoftBody(this.#world.getWorldInfo());
     garment.body = body;
-    const vector = new Ammo.btVector3(0, 0, 0);
+    const vector = new this.#ammo.btVector3(0, 0, 0);
     for (const position of garment.nodes) {
       vector.setValue(position.x * PHYSICS_SCALE, position.y * PHYSICS_SCALE, position.z * PHYSICS_SCALE);
       body.appendNode(vector, 1);
     }
-    Ammo.destroy(vector);
+    this.#ammo.destroy(vector);
     const material = body.appendMaterial();
     material.set_m_kLST(0.97);
     material.set_m_kAST(0.95);
@@ -433,7 +435,7 @@ export class HeroClothPhysics {
   destroy() {
     for (const garment of this.#garments) {
       this.#world.removeSoftBody(garment.body);
-      Ammo.destroy(garment.body);
+      this.#ammo.destroy(garment.body);
       for (const binding of [...garment.bindings, ...garment.decorations]) {
         binding.instance.mesh = binding.original;
         binding.instance.material = binding.originalMaterial;
@@ -445,7 +447,7 @@ export class HeroClothPhysics {
       this.#world.removeRigidBody(collider.body);
     }
     for (const object of this.#owned.reverse()) {
-      Ammo.destroy(object);
+      this.#ammo.destroy(object);
     }
     this.#garments = [];
     this.#colliders = [];

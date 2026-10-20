@@ -54,10 +54,12 @@ export class GrassEdgeMesh {
    * @param {import("playcanvas").Mesh} mesh
    * @param {import("playcanvas").Material} material
    * @param {number[]} matrices
+   * @param {import("playcanvas").VertexFormat|null} instanceFormat
    */
-  static batch(pc, device, mesh, material, matrices) {
+  static batch(pc, device, mesh, material, matrices, instanceFormat = null) {
     const vertexBuffer = new pc.VertexBuffer(device,
-      pc.VertexFormat.getDefaultInstancingFormat(device), matrices.length / 16,
+      instanceFormat ?? pc.VertexFormat.getDefaultInstancingFormat(device),
+      matrices.length / (instanceFormat ? instanceFormat.size / Float32Array.BYTES_PER_ELEMENT : 16),
       {
         data: new Float32Array(matrices),
         usage: pc.BUFFER_DYNAMIC,

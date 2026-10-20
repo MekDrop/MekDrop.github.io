@@ -44,3 +44,38 @@ it("reuses bounds but invalidates them for movement, ancestor scaling and mesh c
   batch.updateBoundingBox();
   assert.equal(updates, 5);
 });
+
+it("keeps moving batches current, then returns to stationary caching", () => {
+  const node = new GraphNode("moving prop");
+  let actual = null;
+  let updates = 0;
+  const refresh = () => {
+    actual = node.getWorldTransform().data[12]; updates++;
+  };
+  const batch = {
+    dynamic: true,
+    origMeshInstances: [{
+      node,
+      mesh: {aabb: new BoundingBox()},
+    }],
+    updateBoundingBox: refresh,
+  };
+  cacheRigidBatchBounds(batch);
+  const update = () => batch.updateBoundingBox();
+  for (let frame = 0; frame < 100; frame++) {
+    node.setLocalPosition(frame % 7, 0, 0);
+    update();
+    assert.equal(actual, frame % 7);
+  }
+  for (let frame = 0; frame < 100; frame++) {
+    update();
+  }
+  const settled = updates;
+  for (let frame = 0; frame < 60; frame++) {
+    update();
+  }
+  assert.equal(updates, settled);
+  node.setLocalPosition(17, 0, 0);
+  update();
+  assert.equal(actual, 17);
+});

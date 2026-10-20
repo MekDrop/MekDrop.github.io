@@ -1,5 +1,10 @@
 uniform float uGrassEdge;
+#ifdef INSTANCING
+attribute vec2 instance_grassJoins;
+#define uGrassEdgeJoins instance_grassJoins
+#else
 uniform vec2 uGrassEdgeJoins;
+#endif
 varying vec2 vGrassTilePosition;
 varying vec2 vGrassEdgeGrain;
 uniform float uGrassTime;
@@ -8,7 +13,12 @@ uniform float uGrassLodReveal;
 uniform vec2 uGrassWindDirection;
 uniform float uGrassWindStrength;
 uniform vec2 uGrassGridOffset;
+#ifdef INSTANCING
+attribute vec4 instance_grassBoundary;
+#define uGrassBoundaryExtension instance_grassBoundary
+#else
 uniform vec4 uGrassBoundaryExtension;
+#endif
 uniform vec4 uGrassImpressions[8];
 uniform vec4 uGrassImpressionShapes[8];
 uniform vec4 uGrassSurfaces[4];

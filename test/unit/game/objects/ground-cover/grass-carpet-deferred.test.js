@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { registerHooks } from "node:module";
 import { it } from "node:test";
 import * as engine from "playcanvas";
+import { GrassInstanceData } from "../../../../../src/game/objects/ground-cover/GrassInstanceData.js";
 import { GRASS_SURFACE_LIFT } from "../../../../../src/game/config/terrain.js";
 
 const hooks = registerHooks({
@@ -66,6 +67,7 @@ function fixture(deferDecoration) {
     StandardMaterial: class {
       shaderChunks = { glsl: new Map() };
       setParameter() {}
+      setAttribute() {}
       update() {}
       destroy() {}
     },
@@ -123,7 +125,7 @@ it("defers grass batches, preserves early support queries, and remembers early e
   let hidden = 0;
   for (const { vertexBuffer } of deferred.batches) {
     const data = vertexBuffer.lock();
-    for (let index = 13; index < data.length; index += 16) {
+    for (let index = 13; index < data.length; index += GrassInstanceData.stride) {
       hidden += Number(data[index] === -10000);
     }
   }

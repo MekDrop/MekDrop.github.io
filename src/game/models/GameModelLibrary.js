@@ -165,6 +165,7 @@ export class GameModelLibrary {
    * @param {boolean} options.castShadows
    * @param {boolean} options.receiveShadows
    * @param {boolean} options.dynamic
+   * @param {pc.VertexFormat|null} options.instanceFormat Optional interleaved float32 instance layout.
    */
   instantiateMergedBatch(
     url,
@@ -176,6 +177,7 @@ export class GameModelLibrary {
       castShadows = true,
       receiveShadows = castShadows,
       dynamic = false,
+      instanceFormat = null,
     } = {},
   ) {
     const mergedModel = this.#mergedModelFor(url, linearVertexColors);
@@ -185,10 +187,10 @@ export class GameModelLibrary {
 
     const vertexBuffer = new this.#pc.VertexBuffer(
       this.#app.graphicsDevice,
-      this.#pc.VertexFormat.getDefaultInstancingFormat(
+      instanceFormat ?? this.#pc.VertexFormat.getDefaultInstancingFormat(
         this.#app.graphicsDevice,
       ),
-      matrices.length / 16,
+      matrices.length / (instanceFormat ? instanceFormat.size / Float32Array.BYTES_PER_ELEMENT : 16),
       {
         data: new Float32Array(matrices),
         usage: dynamic ? this.#pc.BUFFER_DYNAMIC : this.#pc.BUFFER_STATIC,

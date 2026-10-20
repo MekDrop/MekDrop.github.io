@@ -55,3 +55,39 @@ it("leaves static batches alone", () => {
   });
   assert.equal(skin.updateMatrixPalette, update);
 });
+
+it("keeps moving batches current, then returns to stationary caching", () => {
+  const node = new GraphNode("moving prop");
+  let actual = null;
+  let updates = 0;
+  const refresh = () => {
+    actual = node.getWorldTransform().data[12]; updates++;
+  };
+  const batch = {
+    dynamic: true,
+    meshInstance: {
+      skinInstance: {
+        bones: [node],
+        updateMatrixPalette: refresh,
+      },
+    },
+  };
+  cacheRigidBatchPalette(batch);
+  const update = () => batch.meshInstance.skinInstance.updateMatrixPalette(node, 0);
+  for (let frame = 0; frame < 100; frame++) {
+    node.setLocalPosition(frame % 7, 0, 0);
+    update();
+    assert.equal(actual, frame % 7);
+  }
+  for (let frame = 0; frame < 100; frame++) {
+    update();
+  }
+  const settled = updates;
+  for (let frame = 0; frame < 60; frame++) {
+    update();
+  }
+  assert.equal(updates, settled);
+  node.setLocalPosition(17, 0, 0);
+  update();
+  assert.equal(actual, 17);
+});

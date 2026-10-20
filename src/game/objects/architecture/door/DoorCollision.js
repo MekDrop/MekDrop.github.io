@@ -122,6 +122,11 @@ export function createDoorCollision(pc, door) {
     });
     part.addComponent("rigidbody", {
       type: "kinematic",
+      // Moving environment solids need dynamic contacts and picking, but not
+      // passive contact manifolds against static castle masonry.
+      group: pc.BODYGROUP_STATIC,
+      // Rope and debris already ignore moving doors through their own masks.
+      mask: pc.BODYMASK_ALL & ~pc.BODYGROUP_USER_5,
       friction: 0,
       restitution: 0,
     });

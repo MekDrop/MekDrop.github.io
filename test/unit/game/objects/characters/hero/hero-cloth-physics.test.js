@@ -1,7 +1,16 @@
 import assert from "node:assert/strict";
-import { it } from "node:test";
+import { afterEach, beforeEach, it } from "node:test";
+import Ammo from "sync-ammo/dist/ammo.module.js";
 import * as playCanvas from "playcanvas";
 import { HeroClothPhysics } from "../../../../../../src/game/objects/characters/hero/HeroClothPhysics.js";
+
+const previousAmmo = globalThis.Ammo;
+beforeEach(() => {
+  globalThis.Ammo = Ammo;
+});
+afterEach(() => {
+  globalThis.Ammo = previousAmmo;
+});
 
 class TestMesh {
   clear() {}

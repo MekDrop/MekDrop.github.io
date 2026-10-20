@@ -46,7 +46,7 @@ export class DynamicRenderBatch {
     }
     let group = groups.get(this.#groupKey);
     if (!group) {
-      const batchGroup = app.batcher.addGroup(`${DynamicRenderBatch.name}-${this.#groupKey}`, dynamic, 16);
+      const batchGroup = app.batcher.addGroup(`${DynamicRenderBatch.name}-${this.#groupKey}`, dynamic, 32);
       group = {
         id: batchGroup.id,
         members: 0,
@@ -79,7 +79,7 @@ export class DynamicRenderBatch {
       }
     }
     // Generate once after all scene objects have joined. The engine separates
-    // incompatible materials and keeps spatial bounds at the existing 16m size.
+    // incompatible materials and keeps spatial bounds at the 32m patch size.
     app.batcher.markGroupDirty(group.id);
   }
 
