@@ -2,6 +2,7 @@ import { RoomPlacementRules } from "./rooms/RoomPlacementRules.js";
 import { CastleGenerationScheduler } from "./CastleGenerationScheduler.js";
 import { CastleBasePlanGenerator } from "./CastleBasePlanGenerator.js";
 import { StairwellRoomGenerator } from "./rooms/stairwell/StairwellRoomGenerator.js";
+import { SpiralStairStorage } from "./rooms/stairwell/SpiralStairStorage.js";
 import { CastleBasePlanInvalidError } from "../../errors/castle/index.js";
 import { createCastlePlannedFloorAreas } from "../../objects/castle/structure/CastlePlannedFloorAreas.js";
 import { castleStraightStairSurfaces } from "../../objects/castle/stairs/CastleStraightStairs.js";
@@ -1381,7 +1382,8 @@ export class CastleAuthoredBuildPlan {
       geometry,
       metadata: {
         runtime: {
-          authoredObjects: (envelope.objects ?? []).map(/**
+          authoredObjects: [...(envelope.objects ?? []), ...SpiralStairStorage.furnish(envelope.roundTower,
+            authored.mirrored ? (gate.axis === "z" ? "x" : "z") : null)].map(/**
            *
            * @param {import("../../objects/ObjectTypes.js").MapObjectDefinition} item
            */
