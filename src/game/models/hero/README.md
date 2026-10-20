@@ -113,11 +113,27 @@ the hole stays ahead of the hero. Verify the complete cycle with continuous
 cuffs, palms, shaft, blade, legs and hanging cloth throughout the motion, rather
 than accepting wrist coordinates or a single view as proof of clearance.
 
+## Waist belt
+
+The leather belt is a continuous thin strap around the tunic's chamfered waist,
+with front, side and back surfaces. Its inner contour follows the measured
+tunic bevel, including the full corner chamfer, instead of bridging the corners. A shallow open brass frame and tongue sit
+on the front strap; the strap remains visible through the buckle. The adjacent
+leather keeper holds the closure against the waist. All parts share the torso's
+authored animation parent.
+
 ## Hanging tunic flap
+
+The blue chest panel follows the tunic's side and upper bevels. Its gold edging
+uses adjacent faces of the same sheet, with shared vertices and no overlapping
+blue polygons beneath the gold, preventing depth fighting and floating strips. The lower
+red panel and its edging are also single-surface fabric. The panel extends up
+beneath the belt and overlaps the fitted tunic. Ammo pins that entire upper
+band directly to the fitted tunic, independently of the animated flap hinge.
 
 Only `Red lower tunic flap` uses cloth physics. The fitted tunic, belt and
 other clothing retain their authored rigid meshes. The flap has a thin,
-subdivided surface; its top seam follows the waist, while Ammo soft-body links,
+subdivided surface; its sewn upper band follows the torso, while Ammo soft-body links,
 bending constraints, gravity and animated leg/boot colliders drive the free fabric.
 The attached gold piping follows the simulated panel. Removing the hero restores
 its original meshes and releases the simulation and collision bodies.

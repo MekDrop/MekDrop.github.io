@@ -89,7 +89,9 @@ export class HeroClothPhysics {
         this.#addCollider(entity);
       }
     }
-    this.#addGarment("Red lower tunic flap", null, [
+    // The upper fabric overlaps the fitted tunic beneath the belt. Secure that
+    // entire band to the torso, rather than suspending it from an animated hinge.
+    this.#addGarment("Red lower tunic flap", 0.14, [
       "Left tunic flap piping", "Right tunic flap piping", "Tunic hem facing",
     ]);
   }
@@ -235,6 +237,8 @@ export class HeroClothPhysics {
     };
     const keys = new Map();
     const triangles = [];
+    const attachment = this.#root.findByName("Short red tunic") ?? entity;
+    const attachmentInverse = this.#relative(attachment).invert();
     for (const instance of entity.render.meshInstances) {
       const binding = this.#copyMesh(instance);
       binding.mapping = [];
@@ -259,8 +263,8 @@ export class HeroClothPhysics {
           if (local.y >= threshold - 0.0001) {
             garment.pins.push({
               index,
-              local,
-              entity: instance.node,
+              local: attachmentInverse.transformPoint(position),
+              entity: attachment,
             });
           }
         }

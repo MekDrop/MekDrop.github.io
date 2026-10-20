@@ -106,7 +106,7 @@ it("cloth links retain garment length and a moving leg pushes the fabric outward
   const mesh = new TestMesh();
   const positions = [];
   const indices = [];
-  const rows = [-0.4, -0.3, -0.2, -0.15, 0, 0.3];
+  const rows = [-0.4, -0.3, -0.2, -0.15, 0, 0.2, 0.3];
   for (const y of rows) {
     for (const x of [-0.18, -0.06, 0.06, 0.18]) {
       positions.push(x, y, 0);
@@ -160,11 +160,28 @@ it("cloth links retain garment length and a moving leg pushes the fabric outward
     assert.ok(Math.min(...result.filter((_, i) => i % 3 === 1)) > -0.46, "fabric must not free-fall away from its attachment");
     assert.ok(Math.max(...result.filter((_, i) => i % 3 === 2)) > 0.04, "the moving leg must deflect the fabric");
     for (let i = 0; i < positions.length; i += 3) {
-      if (positions[i + 1] < 0.29) {
+      if (positions[i + 1] < 0.14) {
         continue;
       }
       assert.ok(Math.abs(result[i] - positions[i]) < 0.0001);
       assert.ok(Math.abs(result[i + 1] - positions[i + 1]) < 0.0001);
+    }
+    // An authored flap hinge can move independently during action clips. Its
+    // sewn upper band must stay on the fitted tunic instead of following it.
+    garment.position.z += 0.2;
+    fitted.position.y += 0.07;
+    for (let frame = 0; frame < 60; frame++) {
+      physics.update(1 / 120);
+    }
+    const attached = garment.render.meshInstances[0].mesh.positions;
+    for (let i = 0; i < positions.length; i += 3) {
+      if (positions[i + 1] < 0.14) {
+        continue;
+      }
+      assert.ok(Math.abs(attached[i + 1] - positions[i + 1] - 0.07) < 0.0001,
+        "the sewn band follows the fitted tunic");
+      assert.ok(Math.abs(attached[i + 2] + 0.2) < 0.0001,
+        "the sewn band stays attached when the flap hinge moves outward");
     }
   } finally {
     physics.destroy();
