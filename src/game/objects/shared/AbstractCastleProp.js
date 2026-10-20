@@ -72,9 +72,20 @@ export class AbstractCastleProp {
     this.prepareModel(model, false);
     this.#visual.addChild(model);
     if (definition.weathering) {
+      // Keep identical parts batchable, while each prop owns its weathered finish.
+      /**
+       * @type {Map<import("playcanvas").Material, import("playcanvas").Material>}
+       */
+      const weatheredMaterials = new Map();
       for (const render of model.findComponents("render")) {
         for (const mesh of render.meshInstances) {
-          const material = mesh.material.clone();
+          const source = mesh.material;
+          const existing = weatheredMaterials.get(source);
+          if (existing) {
+            mesh.material = existing;
+            continue;
+          }
+          const material = source.clone();
           const wear = Math.min(1, Math.max(0, definition.weathering));
           // Textures already author the surface colour. Tinting them again made
           // shared timber much darker than doors using the very same image.
@@ -89,6 +100,7 @@ export class AbstractCastleProp {
             : Math.min(material.gloss, 0.2 - wear * 0.15);
           material.update();
           mesh.material = material;
+          weatheredMaterials.set(source, material);
           this.#instanceMaterials.push(material);
         }
       }
