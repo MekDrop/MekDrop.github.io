@@ -1,9 +1,10 @@
-import { TREASURE_DIG_STROKES, TREASURE_TOOL_MAX_TURN, TREASURE_TOOL_MIN_DISTANCE, treasureToolBackstep } from "../../config/treasure.js";
+import { TREASURE_DIG_STROKES, TREASURE_FILL_SCOOPS, TREASURE_FILL_STROKES, TREASURE_TOOL_MAX_TURN, TREASURE_TOOL_MIN_DISTANCE, treasureToolBackstep } from "../../config/treasure.js";
 import { TileType } from "../../generator/map/MapGenerator.js";
 import { GRASS_SURFACE_LIFT } from "../../config/terrain.js";
 import { COIN_TYPE } from "../../enum/CoinType.js";
 import { MOVEMENT_REFUSAL } from "../../enum/MovementRefusal.js";
 import { TREASURE_CHEST_ANIMATION } from "../../enum/TreasureChestAnimation.js";
+import { TREASURE_HOLE_ANIMATION } from "../../enum/TreasureHoleAnimation.js";
 import { colorFromHex } from "../../helpers/colors.js";
 import coinModelUrl from "../../models/treasure/coin.glb?url";
 import chestModelUrl from "../../models/treasure/treasure-chest.glb?url";
@@ -33,7 +34,18 @@ import { IslandObjectRoots } from "../shared/IslandObjectRoots.js";
  * @property {string} state
  * @property {number} elapsed
  * @property {number} digStrokes
+ * @property {number} fillProgress
+ * @property {number} [fillStrokes]
+ * @property {number} [fillStartProgress]
+ * @property {number} [fillTargetProgress]
+ * @property {number} [fillElapsed]
+ * @property {number} [fillRemovedProgress]
+ * @property {boolean} [leveling]
+ * @property {number} [rimElapsed]
+ * @property {number} [rimAnimationDuration]
+ * @property {import("playcanvas").AnimComponentLayer} [rimAnimationLayer]
  * @property {import("playcanvas").Vec2|null} pileOffset
+ * @property {number} [facingYaw]
  * @property {import("playcanvas").Entity|null} hole
  * @property {import("playcanvas").Entity|null} earthPile
  * @property {import("playcanvas").Entity|null} filledPatch
@@ -59,16 +71,6 @@ import { IslandObjectRoots } from "../shared/IslandObjectRoots.js";
  * @property {number} rotation
  */
 
-/**
- * @typedef {object} FillClod
- * @property {import("playcanvas").Entity} entity
- * @property {Point3} start
- * @property {Point3} end
- * @property {Point3} control
- * @property {number} delay
- * @property {number} elapsed
- * @property {number} scale
- */
 
 const MINIMUM_FACING_DOT = Math.cos((50 * Math.PI) / 180);
 const MINIMUM_TOOL_FACING_DOT = Math.cos(TREASURE_TOOL_MAX_TURN * Math.PI / 180);
@@ -88,9 +90,9 @@ const COIN_COLLECTION_DURATION = 0.68;
 const COIN_SKY_FLIGHT_DURATION = 0.72;
 const COIN_SKY_STAGGER = 0.035;
 const COIN_SKY_HEIGHT = 1.75;
-const FILL_CLOD_COUNT = 9;
-const FILL_CLOD_DURATION = 0.52;
-const FILL_CLOD_STAGGER = 0.035;
+const FILL_SETTLE_DELAY = 0.12;
+const FILL_SETTLE_DURATION = 0.24;
+const RIM_LEVEL_DURATION = 2;
 const COIN_DEFINITIONS = new Map([
   [COIN_TYPE.GOLD, {
     color: 0xffc84a,
@@ -235,19 +237,9 @@ export class BuriedTreasureField {
   #coins = [];
   /**
    *
-   * @type {Array<FillClod>}
-   */
-  #fillClods = [];
-  /**
-   *
    * @type {Map}
    */
   #materials = new Map();
-  /**
-   *
-   * @type {typeof import("playcanvas")}
-   */
-  #soilMaterial;
   /**
    *
    * @type {{x: number, y: number, z: number}}
@@ -515,6 +507,7 @@ export class BuriedTreasureField {
         return true;
       }
       if (facing) {
+        existingSite.hole.setLocalEulerAngles(0, Math.atan2(facing.x, facing.z) * 180 / Math.PI, 0);
         existingSite.pileOffset = this.#supportedPileOffset(existingSite, facing.x, facing.z);
         existingSite.earthPile.enabled = existingSite.pileOffset !== null;
         existingSite.earthPile.setLocalPosition(
@@ -554,6 +547,7 @@ export class BuriedTreasureField {
       state: "digging",
       digStrokes: 1,
       pileOffset: this.#supportedPileOffset(target, forwardX, forwardZ),
+      facingYaw: Math.atan2(forwardX, forwardZ) * 180 / Math.PI,
       elapsed: 0,
       hole: null,
       earthPile: null,
@@ -601,20 +595,126 @@ export class BuriedTreasureField {
     if (!site) {
       return true;
     }
-    this.#spawnFillClods(site);
-    site.fillProgress = Math.min(1, site.fillProgress + 0.5);
-    this.#applyFillProgress(site);
-    if (site.fillProgress >= 1) {
-      site.hole.enabled = false;
-      site.earthPile.enabled = false;
-      site.state = "filled";
-      this.#onTerrainExcavated?.(site, 0);
-
-      return true;
+    if ((site.fillTargetProgress ?? 0) > site.fillProgress) {
+      return site.fillTargetProgress >= 1;
     }
+    site.fillStartProgress = site.fillProgress;
+    site.fillStrokes = Math.min(TREASURE_FILL_STROKES, (site.fillStrokes ?? 0) + 1);
+    site.fillTargetProgress = site.fillStrokes / TREASURE_FILL_STROKES;
+    site.fillElapsed = 0;
     site.state = "filling";
 
-    return false;
+    return site.fillTargetProgress >= 1;
+  }
+
+  /**
+   * Remove soil only while the blade is inside the source mound.
+   * @param {Point3 & {id: string}} target
+   */
+  scoopFillSoil(target) {
+    const site = this.#sites.find(/**
+     *
+     * @param {TreasureSite} candidate
+     */
+      (candidate) => candidate.id === target.id);
+    if (!site || !this.canFill(target.id)) {
+      return;
+    }
+    site.fillRemovedProgress = Math.min(1, ((site.fillStrokes ?? 0) + 1) / TREASURE_FILL_SCOOPS);
+    this.#applyPileProgress(site);
+  }
+
+  /**
+   * Restore a carried scoop when filling is interrupted before release.
+   * @param {Point3 & {id: string}} target
+   */
+  returnFillSoil(target) {
+    const site = this.#sites.find(/**
+     *
+     * @param {TreasureSite} candidate
+     */
+      (candidate) => candidate.id === target.id);
+    if (!site) {
+      return;
+    }
+    site.fillRemovedProgress = Math.min(1, (site.fillStrokes ?? 0) / TREASURE_FILL_SCOOPS);
+    site.leveling = false;
+    this.#applyPileProgress(site);
+  }
+
+  /**
+   * @param {string} id
+   * @returns {boolean}
+   */
+  isFillRimStage(id) {
+    return this.#sites.some(/**
+     * @param {TreasureSite} site
+     */
+      (site) => site.id === id && site.fillStrokes === TREASURE_FILL_SCOOPS);
+  }
+
+  /**
+   * Play the authored rim collapse while the blade pushes soil inward.
+   * @param {Point3 & {id: string}} target
+   */
+  levelFillRim(target) {
+    const site = this.#sites.find(/**
+     * @param {TreasureSite} candidate
+     */
+      (candidate) => candidate.id === target.id);
+    if (!site || !this.isFillRimStage(target.id)) {
+      return;
+    }
+    if (!site.rimAnimationLayer) {
+      const track = this.#modelLibrary.getAnimationTracks(holeModelUrl, [TREASURE_HOLE_ANIMATION.LEVEL])
+        .get(TREASURE_HOLE_ANIMATION.LEVEL);
+      site.hole.addComponent("anim", { activate: true });
+      site.hole.anim.addAnimationState(TREASURE_HOLE_ANIMATION.LEVEL, track, 1, false);
+      site.hole.anim.baseLayer.play(TREASURE_HOLE_ANIMATION.LEVEL);
+      site.hole.anim.speed = 0;
+      site.rimAnimationLayer = site.hole.anim.baseLayer;
+      site.rimAnimationDuration = track.duration;
+      site.rimElapsed = 0;
+      site.rimAnimationLayer.activeStateCurrentTime = 0;
+      site.hole.anim.update(0);
+    }
+    site.leveling = true;
+  }
+
+  /**
+   * @param {TreasureSite} site
+   * @param {number} deltaTime
+   */
+  #advanceRimLeveling(site, deltaTime) {
+    if (!site.leveling) {
+      return;
+    }
+    site.rimElapsed = Math.min(RIM_LEVEL_DURATION, site.rimElapsed + deltaTime);
+    const progress = site.rimElapsed / RIM_LEVEL_DURATION;
+    site.rimAnimationLayer.activeStateCurrentTime = progress * site.rimAnimationDuration;
+    site.hole.anim.update(0);
+    if (site.fillStrokes === TREASURE_FILL_SCOOPS) {
+      // Soil arrives during blade contact, and holds while the shovel lifts
+      // and reaches for the next edge. Match the authored rim's three scrapes.
+      let transferred = 0;
+      for (const [start, end] of [[0, 0.34], [0.82, 1.2], [1.66, 2]]) {
+        const amount = Math.min(1, Math.max(0, (site.rimElapsed - start) / (end - start)));
+        transferred += amount * amount * (3 - 2 * amount) / 3;
+      }
+      site.fillProgress = (TREASURE_FILL_SCOOPS + 0.88 * transferred) / TREASURE_FILL_STROKES;
+      this.#applyFillProgress(site);
+    }
+    site.leveling = progress < 1;
+  }
+
+  /**
+   * @param {TreasureSite} site
+   */
+  #applyPileProgress(site) {
+    const remaining = Math.max(0, 1 - site.fillRemovedProgress);
+    const scale = Math.cbrt(remaining);
+    site.earthPile.setLocalScale(scale, scale, scale);
+    site.earthPile.enabled = remaining > 0 && site.pileOffset !== null;
   }
 
   /**
@@ -772,13 +872,10 @@ export class BuriedTreasureField {
     this.#sites = [];
     this.#buriedChests.clear();
     this.#coins = [];
-    this.#fillClods = [];
     for (const material of this.#materials.values()) {
       material.destroy();
     }
-    this.#soilMaterial?.destroy();
     this.#materials.clear();
-    this.#soilMaterial = null;
     this.#pc = null;
   }
 
@@ -1120,6 +1217,7 @@ export class BuriedTreasureField {
   #createHole(site) {
     site.hole = this.#modelLibrary.instantiate(holeModelUrl);
     site.hole.name = `Excavated treasure hole ${site.id}`;
+    site.hole.setLocalEulerAngles(0, site.facingYaw ?? 0, 0);
     site.hole.setLocalScale(
       HOLE_INITIAL_SCALE,
       HOLE_INITIAL_SCALE,
@@ -1160,60 +1258,9 @@ export class BuriedTreasureField {
    * @param {TreasureSite} site
    */
   #applyFillProgress(site) {
-    const remaining = 1 - site.fillProgress;
-    const holeScale = HOLE_INITIAL_SCALE + (1 - HOLE_INITIAL_SCALE) * remaining;
-    const pileScale = Math.max(0.12, remaining);
-    const patchScale = 0.45 + site.fillProgress * 0.55;
-    site.hole.setLocalScale(holeScale, holeScale, holeScale);
-    site.earthPile.setLocalScale(pileScale, pileScale, pileScale);
-    site.filledPatch.enabled = true;
-    site.filledPatch.setLocalScale(patchScale, patchScale, patchScale);
-  }
-
-  /**
-   *
-   * @param {TreasureSite} site
-   */
-  #spawnFillClods(site) {
-    for (let index = 0; index < FILL_CLOD_COUNT; index += 1) {
-      const entity = new this.#pc.Entity(
-        `Filling soil clod ${site.id}:${index}`,
-      );
-      entity.addComponent("render", {
-        type: "sphere",
-        material: this.#soilMaterial,
-        castShadows: true,
-        receiveShadows: false,
-      });
-      const pile = site.earthPile.getLocalPosition();
-      const start = {
-        x: pile.x + (Math.random() - 0.5) * 0.22,
-        y: site.y + 0.15 + Math.random() * 0.1,
-        z: pile.z + (Math.random() - 0.5) * 0.18,
-      };
-      const end = {
-        x: site.x + (Math.random() - 0.5) * 0.3,
-        y: site.y + 0.035,
-        z: site.z + (Math.random() - 0.5) * 0.24,
-      };
-      const scale = 0.045 + Math.random() * 0.035;
-      entity.setLocalPosition(start.x, start.y, start.z);
-      entity.setLocalScale(scale, scale * 0.72, scale);
-      this.#islandRoots.addChild(entity, site);
-      this.#fillClods.push({
-        entity,
-        start,
-        end,
-        control: {
-          x: (start.x + end.x) / 2,
-          y: site.y + 0.46 + Math.random() * 0.2,
-          z: (start.z + end.z) / 2,
-        },
-        delay: index * FILL_CLOD_STAGGER,
-        elapsed: 0,
-        scale,
-      });
-    }
+    site.filledPatch.enabled = site.fillProgress > 0;
+    site.filledPatch.setLocalPosition(site.x, site.y + 0.014 - 0.3 * (1 - site.fillProgress), site.z);
+    site.filledPatch.setLocalScale(1, 1, 1);
   }
 
   /**
@@ -1331,7 +1378,6 @@ export class BuriedTreasureField {
   }
 
   #createMaterials() {
-    this.#soilMaterial = this.#createMaterial("Flying fill soil", 0x6f3214, 0);
     for (const [type, definition] of COIN_DEFINITIONS) {
       const material = this.#createMaterial(
         `${type} treasure coin`,
@@ -1375,57 +1421,7 @@ export class BuriedTreasureField {
         this.#coins.splice(index, 1);
       }
     }
-    for (let index = this.#fillClods.length - 1; index >= 0; index -= 1) {
-      if (this.#advanceFillClod(this.#fillClods[index], frameTime)) {
-        this.#fillClods.splice(index, 1);
-      }
-    }
   };
-
-  /**
-   *
-   * @param {number} clod
-   * @param {number} deltaTime
-   */
-  #advanceFillClod(clod, deltaTime) {
-    clod.elapsed += deltaTime;
-    if (clod.elapsed < clod.delay) {
-      return false;
-    }
-    const progress = Math.min(
-      1,
-      (clod.elapsed - clod.delay) / FILL_CLOD_DURATION,
-    );
-    const remaining = 1 - progress;
-    const position = {
-      x:
-        clod.start.x * remaining ** 2 +
-        clod.control.x * 2 * remaining * progress +
-        clod.end.x * progress ** 2,
-      y:
-        clod.start.y * remaining ** 2 +
-        clod.control.y * 2 * remaining * progress +
-        clod.end.y * progress ** 2,
-      z:
-        clod.start.z * remaining ** 2 +
-        clod.control.z * 2 * remaining * progress +
-        clod.end.z * progress ** 2,
-    };
-    clod.entity.setLocalPosition(position.x, position.y, position.z);
-    const scale = clod.scale * (1 - progress * 0.35);
-    clod.entity.setLocalScale(scale, scale * 0.72, scale);
-    clod.entity.setLocalEulerAngles(
-      progress * 360,
-      progress * 540,
-      progress * 180,
-    );
-    if (progress < 1) {
-      return false;
-    }
-    clod.entity.destroy();
-
-    return true;
-  }
 
   /**
    *
@@ -1433,6 +1429,24 @@ export class BuriedTreasureField {
    * @param {number} deltaTime
    */
   #advanceSite(site, deltaTime) {
+    this.#advanceRimLeveling(site, deltaTime);
+    if (site.state === "filling" && site.fillProgress < site.fillTargetProgress) {
+      site.fillElapsed += deltaTime;
+      // The shovel releases Ammo clods over the cavity. Raise the surface
+      // after their short fall, independently of the hero dismissing the tool.
+      const arrival = Math.min(1, Math.max(0,
+        (site.fillElapsed - FILL_SETTLE_DELAY) / FILL_SETTLE_DURATION));
+      site.fillProgress = site.fillStartProgress +
+        (site.fillTargetProgress - site.fillStartProgress) * arrival;
+      this.#applyFillProgress(site);
+      if (site.fillProgress >= 1) {
+        site.hole.enabled = false;
+        site.earthPile.enabled = false;
+        site.state = "filled";
+        this.#onTerrainExcavated?.(site, 0);
+        this.#onInteractionChange?.();
+      }
+    }
     if (site.chest && this.#heroPosition) {
       const dx = this.#heroPosition.x - site.x;
       const dz = this.#heroPosition.z - site.z;

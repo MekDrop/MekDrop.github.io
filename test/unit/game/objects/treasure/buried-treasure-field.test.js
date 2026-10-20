@@ -271,7 +271,20 @@ it("keeps digging out of castle cutouts while preserving outdoor grass", () => {
 
 it("keeps stop, resume, and fill available after digging from an offset landing", () => {
   class HeadlessEntity extends pc.Entity {
-    addComponent() {
+    /**
+     * @param {string} type
+     */
+    addComponent(type) {
+      if (type === "anim") {
+        this.anim = {
+          baseLayer: {
+            activeStateCurrentTime: 0,
+            play: () => {},
+          },
+          addAnimationState: () => {},
+          update: () => {},
+        };
+      }
       return null;
     }
   }
@@ -289,7 +302,10 @@ it("keeps stop, resume, and fill available after digging from an offset landing"
         heightmap: Array.from({ length: 5 }, () => Array(5).fill(0)),
         objects: [],
       },
-      modelLibrary: { instantiate: (url) => new pc.Entity(url) },
+      modelLibrary: {
+        instantiate: (url) => new HeadlessEntity(url),
+        getAnimationTracks: () => new Map([["LevelHole", { duration: 1 }]]),
+      },
       app: {
         on: (event, callback) => {
           update = callback;
@@ -350,10 +366,64 @@ it("keeps stop, resume, and fill available after digging from an offset landing"
     hero.tool = tool;
     assert.equal(field.findInteraction({ hero })?.description.labelKey, "game.interaction.stop_filling");
     hero.tool = null;
+    field.scoopFillSoil(fill.description);
+    field.returnFillSoil(fill.description);
+    const restoredPile = field.entity.findByName(`Excavated earth pile ${target.id}`);
+    assert.equal(restoredPile.getLocalScale().x, 1, "cancelled pickup restores its soil");
+    field.scoopFillSoil(fill.description);
     assert.equal(field.fill(fill.description), false);
     assert.equal(field.findInteraction({ hero })?.description.labelKey, "game.interaction.fill_hole");
+    const hole = field.entity.findByName(`Excavated treasure hole ${target.id}`);
+    const pile = field.entity.findByName(`Excavated earth pile ${target.id}`);
+    const patch = field.entity.findByName(`Filled earth patch ${target.id}`);
+    // These entities have no Application root in this headless fixture.
+    field.entity._notifyHierarchyStateChanged(field.entity, true);
+    assert.equal(patch.enabled, false, "soil has not reached the hole at launch");
+    assert.equal(hole.getLocalScale().x, 1, "preserve the cavity footprint");
+    update(0.1);
+    assert.ok(pile.getLocalScale().x < 1, "the source pile loses departing soil");
+    assert.equal(patch.enabled, false, "soil must travel before filling the cavity");
+    for (let frame = 0; frame < 8; frame += 1) {
+      update(0.1);
+    }
+    assert.equal(patch.enabled, true);
+    assert.equal(hole.enabled, true, "the first stroke fills one third of the hole");
+    assert.ok(Math.abs(patch.getLocalPosition().y - target.y - 0.014 + 0.2) < 1e-6);
+    field.scoopFillSoil(fill.description);
+    assert.equal(field.fill(fill.description), false, "a second stroke still needs one more scoop");
+    for (let frame = 0; frame < 9; frame += 1) {
+      update(0.1);
+    }
+    assert.equal(hole.enabled, true, "the hole stays open after two scoops");
+    assert.equal(pile.enabled, false, "two scoops empty the source pile");
+    assert.ok(Math.abs(patch.getLocalPosition().y - target.y - 0.014 + 0.1) < 1e-6);
+    assert.equal(field.isFillRimStage(target.id), true);
+    field.levelFillRim(fill.description);
+    update(0.1);
+    update(0.1);
+    const rimTime = hole.anim.baseLayer.activeStateCurrentTime;
+    assert.ok(rimTime > 0 && rimTime < 1, "the authored rim moves while the blade pushes");
+    assert.ok(patch.getLocalPosition().y > target.y - 0.086, "the rim adds soil to the cavity");
+    field.returnFillSoil(fill.description);
+    update(0.1);
+    assert.equal(hole.anim.baseLayer.activeStateCurrentTime, rimTime, "interrupting stops rim movement");
+    field.levelFillRim(fill.description);
+    update(0.1);
+    assert.ok(hole.anim.baseLayer.activeStateCurrentTime > rimTime, "resume keeps the previous rim pose");
+    update(0.1);
+    const settledAfterFirstScrape = patch.getLocalPosition().y;
+    update(0.2);
+    assert.equal(patch.getLocalPosition().y, settledAfterFirstScrape,
+      "soil holds while the blade lifts between edge scrapes");
     assert.equal(field.fill(fill.description), true);
+    assert.equal(field.canFill(target.id), true, "keep the hole until the last soil lands");
+    for (let frame = 0; frame < 9; frame += 1) {
+      update(0.1);
+    }
     assert.equal(field.canFill(target.id), false);
+    assert.equal(hole.enabled, false);
+    assert.equal(pile.enabled, false);
+    assert.ok(Math.abs(patch.getLocalPosition().y - target.y - 0.014) < 1e-6);
     field.destroy();
   }
 });

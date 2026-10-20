@@ -61,10 +61,10 @@ export class HeroToolActionState extends HeroRuntimeActionState {
       action.elapsed >= impactTimes[action.impactIndex]) {
       action.impacted = true;
       action.impactIndex += 1;
-      action.stopAfterCycle = action.onImpact?.() === true;
+      action.stopAfterCycle = action.onImpact?.(action) === true;
     }
     const duration = action.stopAfterCycle
-      ? action.impactIndex * action.tool.useDuration
+      ? action.impactIndex * (action.strokeDuration ?? action.tool.useDuration)
       : (action.useDuration ?? action.tool.useDuration);
     if (action.elapsed < duration) {
       return;
@@ -73,6 +73,10 @@ export class HeroToolActionState extends HeroRuntimeActionState {
       action.elapsed = 0;
       action.impacted = false;
       action.impactIndex = 0;
+      action.useAnimation = action.tool.useAnimation(action.toolContext);
+      action.useDuration = action.tool.useDurationFor?.(action.toolContext) ?? action.tool.useDuration;
+      action.strokeDuration = action.tool.strokeDurationFor?.(action.toolContext) ?? action.tool.useDuration;
+      action.impactTimes = action.tool.impactTimes?.(action.toolContext) ?? [action.tool.impactTime];
       feedback.restartAnimation();
 
       return;

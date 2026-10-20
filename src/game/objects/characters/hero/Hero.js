@@ -1799,6 +1799,7 @@ export class Hero {
    * @param {Record<string, string|number|boolean>} options.context
    * @param {(impact: import("src/game/objects/ObjectTypes.js").HeroActionPayload) => void} options.onImpact
    * @param {() => void} options.onComplete
+   * @param {() => void} [options.onScoop]
    */
   useTool(
     tool,
@@ -1810,6 +1811,7 @@ export class Hero {
       targetDistance = 0,
       context = {},
       onImpact,
+      onScoop,
       onComplete,
     },
   ) {
@@ -1826,7 +1828,7 @@ export class Hero {
     }
 
     const positioning = minimumTargetDistance > 0 || targetDistance > 0
-      ? this.#toolPositioning(targetPosition, targetDistance || minimumTargetDistance, maxFacingAdjustment, targetDistance > 0)
+      ? this.#toolPositioning(targetPosition, targetDistance || minimumTargetDistance, maxFacingAdjustment, targetDistance > 0, ["fill", "level-hole"].includes(context.action))
       : null;
     if (positioning === false) {
       return false;
@@ -1847,6 +1849,7 @@ export class Hero {
       targetPosition: { ...targetPosition },
       toolContext: { ...context },
       useDuration: tool.useDurationFor?.(context) ?? tool.useDuration,
+      strokeDuration: tool.strokeDurationFor?.(context) ?? tool.useDuration,
       impactTimes: tool.impactTimes?.(context) ?? [tool.impactTime],
       impactIndex: 0,
       phase: "summon",
@@ -1856,6 +1859,7 @@ export class Hero {
       positioning,
       positioningElapsed: 0,
       onImpact,
+      onScoop,
       onComplete,
     };
 
@@ -1868,9 +1872,10 @@ export class Hero {
    * @param {number} minimumDistance
    * @param {number} maxTurn
    * @param {boolean} [exactDistance]
+   * @param {boolean} [allowOccupiedStance]
    * @returns {{startX:number,startZ:number,targetX:number,targetZ:number}|false|null}
    */
-  #toolPositioning(target, minimumDistance, maxTurn, exactDistance = false) {
+  #toolPositioning(target, minimumDistance, maxTurn, exactDistance = false, allowOccupiedStance = false) {
     if (exactDistance) {
       // A planted stroke needs level body support, unlike a walking step.
       const candidates = [];
@@ -1892,6 +1897,11 @@ export class Hero {
       }
       candidates.sort(Hero.#compareToolPositions);
       for (const candidate of candidates) {
+        // The grounded hero already occupies this stance. Sweeping a capsule
+        // across the adjacent open hole can reject even a zero-length move.
+        if (allowOccupiedStance && candidate.travel < 0.002) {
+          return null;
+        }
         const destination = {
           x: candidate.targetX,
           y: this.#position.y,

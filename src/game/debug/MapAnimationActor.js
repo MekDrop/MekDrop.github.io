@@ -232,7 +232,7 @@ export class MapAnimationActor {
               (target) => target.name === morph),
         );
     }
-    if (animation === HERO_ANIMATION.FILL_HOLE) {
+    if ([HERO_ANIMATION.FILL_HOLE, HERO_ANIMATION.LEVEL_HOLE].includes(animation)) {
       this.#tool = new ShovelTool({ modelLibrary });
     } else if (AXE_ANIMATIONS.has(animation)) {
       this.#tool = new AxeTool({ modelLibrary });

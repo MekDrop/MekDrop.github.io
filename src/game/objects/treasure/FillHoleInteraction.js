@@ -89,9 +89,10 @@ export class FillHoleInteraction {
       maxFacingAdjustment: TREASURE_TOOL_MAX_TURN,
       minimumTargetDistance: TREASURE_TOOL_MIN_DISTANCE,
       targetDistance: TREASURE_TOOL_MIN_DISTANCE,
-      context: { action: "fill" },
+      context: { action: this.#field.isFillRimStage(this.#target.id) ? "level-hole" : "fill" },
       onImpact: this.#onImpact.bind(this),
-      onComplete: this.#onComplete,
+      onScoop: this.#onScoop.bind(this),
+      onComplete: this.#complete.bind(this),
     });
     if (accepted) {
       this.#onChange?.();
@@ -99,10 +100,29 @@ export class FillHoleInteraction {
     return accepted;
   }
 
-  #onImpact() {
+  /**
+   * @param {import("src/game/objects/ObjectTypes.js").HeroActionPayload} action
+   */
+  #onImpact(action) {
     const finished = this.#field.fill(this.#target);
+    if (action && this.#field.isFillRimStage(this.#target.id)) {
+      action.toolContext.action = "level-hole";
+    }
     this.#onChange?.();
 
     return finished;
+  }
+
+  #onScoop() {
+    if (this.#field.isFillRimStage(this.#target.id)) {
+      this.#field.levelFillRim(this.#target);
+    } else {
+      this.#field.scoopFillSoil(this.#target);
+    }
+  }
+
+  #complete() {
+    this.#field.returnFillSoil(this.#target);
+    this.#onComplete?.();
   }
 }

@@ -2,6 +2,12 @@ export const TREASURE_TOOL_MAX_TURN = 30;
 // Calibrated to the planted circle in the rendered hero's eight-stroke Dig clip.
 export const TREASURE_TOOL_MIN_DISTANCE = 0.535;
 export const TREASURE_DIG_STROKES = 8;
+export const TREASURE_FILL_SCOOPS = 2;
+export const TREASURE_FILL_STROKES = TREASURE_FILL_SCOOPS + 1;
+export const SHOVEL_FILL_SCOOP_TIME = 0.4;
+export const SHOVEL_FILL_RELEASE_TIME = 1.03;
+export const SHOVEL_LEVEL_DURATION = 3.2;
+export const SHOVEL_LEVEL_IMPACT_TIME = 2.56;
 
 /**
  * Distance to back straight away from a nearby tile before aiming at its center.

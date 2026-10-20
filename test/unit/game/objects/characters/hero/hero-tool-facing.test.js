@@ -27,6 +27,25 @@ const HeroDriver = new Function("HERO_ACTION", "treasureToolBackstep", `return c
   ${positioningMethod}
 }`)(HERO_ACTION, treasureToolBackstep);
 
+it("fills from an occupied stance beside a hole without sweeping into its collision", () => {
+  for (const action of ["fill", "level-hole"]) {
+    const hero = new HeroDriver();
+    hero.blocked = true;
+    const animation = action === "fill" ? "FillHole" : "LevelHole";
+    assert.equal(hero.useTool({ useAnimation: () => animation }, {
+      targetPosition: {
+        x: 0,
+        z: 0.535,
+      },
+      minimumTargetDistance: 0.535,
+      targetDistance: 0.535,
+      context: { action },
+    }), true);
+    assert.equal(hero.action.positioning, null);
+    assert.equal(hero.action.useAnimation, animation);
+  }
+});
+
 it("preserves facing for tool actions that opt out of turning", () => {
   const hero = new HeroDriver();
   assert.equal(hero.useTool({ useAnimation: () => "dig" }, {

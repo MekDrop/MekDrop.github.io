@@ -30,6 +30,7 @@ export const HERO_ANIMATION = Object.freeze({
   SUMMON_SHOVEL: "SummonShovel",
   DISMISS_SHOVEL: "DismissShovel",
   FILL_HOLE: "FillHole",
+  LEVEL_HOLE: "LevelHole",
   CHOP_MIDDLE: "ChopMiddle",
   CHOP_HIGH: "ChopHigh",
   PICK_FLOWER: "PickFlower",

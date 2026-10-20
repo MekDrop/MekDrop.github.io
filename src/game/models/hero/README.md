@@ -85,7 +85,23 @@ returns to carry by 1.60. The pickup and return use different paths.
 beside the hole. The spoil pile follows the hero's facing direction. Clods
 settle under gravity, shrink after 1.65 seconds and expire at two seconds;
 interruptions drop a carried load and tool destruction releases the pool.
-Filling and rock-blocked strikes do not produce fresh soil.
+Rock-blocked strikes do not produce fresh soil. Filling scoops existing soil
+at 0.40 seconds, carries the authored load on the blade, and tips it into the
+cavity at 1.03 seconds. The falling soil uses the same pooled Ammo bodies;
+it starts at the blade rather than flying from the mound. The pile loses
+volume at pickup, and the filled surface rises after the short drop.
+Filling uses two scoops from the mound, then a `LevelHole` stroke that pushes
+the remaining raised rim into the cavity and presses it flat. This 3.2-second
+finish reaches the right, left, and far edges in turn and scrapes each toward
+the centre before tamping. Each rim sector deforms during its matching scrape.
+  The shaft angles toward each contact rather than remaining upright. Soil
+  arrival pauses between scrapes, and the cavity lip folds below the filled
+  surface along with the rim. The filled-earth footprint covers the excavation
+  so the last tamp does not leave a dark edge that disappears at completion.
+The finishing stroke
+carries no fresh load. Its authored rim animation follows blade contact; the
+cavity closes only after the edge soil has settled.
+Interrupting a carried scoop restores it to the pile.
 
 Before summoning, the treasure interaction checks a short approach to a stance
 0.535 world units from the hole center. That distance matches the plant circle
@@ -99,7 +115,9 @@ Shoulder plates remain seated on the torso. Other clips explicitly restore the
 original sleeve, cuff and plate transforms.
 
 `SummonShovel` and `DismissShovel` connect Idle to the common carry pose.
-`FillHole` uses one reversed stroke. The closed fingers, wrist rotations and
+`FillHole` uses a baked scoop, lift, carry, tip, and empty return sequence.
+Both hands remain on the shaft as the blade enters the near face of the pile
+and travels over the cavity. The closed fingers, wrist rotations and
 both arm chains are baked into the model. The shovel mounts to
 `Right white glove`, with its grip 0.07 source units below the wrist. Its D-grip,
 ash shaft, reinforced socket and cupped round-point blade are authored in the

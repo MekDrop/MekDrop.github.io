@@ -2,7 +2,7 @@ import { Vec3 } from "playcanvas";
 import shovelModelUrl from "../../../../models/hero/tools/shovel.glb?url";
 import { HERO_ANIMATION } from "../../../../enum/HeroAnimation.js";
 import { HeroTool } from "./HeroTool.js";
-import { TREASURE_DIG_STROKES } from "../../../../config/treasure.js";
+import { SHOVEL_FILL_RELEASE_TIME, SHOVEL_LEVEL_DURATION, SHOVEL_LEVEL_IMPACT_TIME, TREASURE_DIG_STROKES } from "../../../../config/treasure.js";
 import { ShovelSoil } from "./ShovelSoil.js";
 
 export class ShovelTool extends HeroTool {
@@ -102,7 +102,15 @@ export class ShovelTool extends HeroTool {
    * @returns {number}
    */
   useDurationFor(context = {}) {
-    return this.useDuration * (context.action === "fill" ? 1 : TREASURE_DIG_STROKES);
+    return this.strokeDurationFor(context) * (["fill", "level-hole"].includes(context.action) ? 1 : TREASURE_DIG_STROKES);
+  }
+
+  /**
+   * @param {{action?: string}} context
+   * @returns {number}
+   */
+  strokeDurationFor(context = {}) {
+    return context.action === "level-hole" ? SHOVEL_LEVEL_DURATION : this.useDuration;
   }
 
   /**
@@ -110,7 +118,13 @@ export class ShovelTool extends HeroTool {
    * @returns {number[]}
    */
   impactTimes(context = {}) {
-    const count = context.action === "fill" ? 1 : TREASURE_DIG_STROKES;
+    if (context.action === "level-hole") {
+      return [SHOVEL_LEVEL_IMPACT_TIME];
+    }
+    if (context.action === "fill") {
+      return [SHOVEL_FILL_RELEASE_TIME];
+    }
+    const count = TREASURE_DIG_STROKES;
 
     return Array.from({ length: count }, /**
      *
@@ -166,6 +180,9 @@ export class ShovelTool extends HeroTool {
    * @param {{action?: string}} context
    */
   useAnimation(context = {}) {
+    if (context.action === "level-hole") {
+      return HERO_ANIMATION.LEVEL_HOLE;
+    }
     return context.action === "fill"
       ? HERO_ANIMATION.FILL_HOLE
       : HERO_ANIMATION.DIG;
