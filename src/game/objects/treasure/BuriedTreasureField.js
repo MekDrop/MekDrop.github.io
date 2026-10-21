@@ -53,6 +53,7 @@ import { IslandObjectRoots } from "../shared/IslandObjectRoots.js";
  * @property {import("playcanvas").Entity|null} filledPatch
  * @property {import("playcanvas").Entity|null} chest
  * @property {Array<import("playcanvas").Material>} chestMaterials
+ * @property {Array<{material: import("playcanvas").StandardMaterial, meshInstance: import("playcanvas").MeshInstance, cavity: boolean}>} [holeFadeMaterials]
  * @property {Array<string>} contents
  * @property {Array<import("playcanvas").Entity>} rocks
  */
@@ -871,6 +872,9 @@ export class BuriedTreasureField {
       for (const material of site.chestMaterials) {
         material.destroy();
       }
+      for (const entry of site.holeFadeMaterials ?? []) {
+        entry.material.destroy();
+      }
     }
     this.#entity?.destroy();
     this.#entity = null;
@@ -1237,6 +1241,23 @@ export class BuriedTreasureField {
    */
   #createHole(site) {
     site.hole = this.#modelLibrary.instantiate(holeModelUrl);
+    site.holeFadeMaterials = [];
+    for (const render of site.hole.findComponents("render")) {
+      for (const meshInstance of render.meshInstances) {
+        const material = meshInstance.material.clone();
+        // Fade the existing opaque surface and its shadow together. Dithering
+        // avoids translucent cavity layers accumulating into a dark outline.
+        material.opacityDither = this.#pc.DITHER_BAYER8;
+        material.opacityShadowDither = this.#pc.DITHER_BAYER8;
+        material.update();
+        meshInstance.material = material;
+        site.holeFadeMaterials.push({
+          material,
+          meshInstance,
+          cavity: render.entity.name === "Excavated cavity",
+        });
+      }
+    }
     site.hole.name = `Excavated treasure hole ${site.id}`;
     site.hole.setLocalEulerAngles(0, site.facingYaw ?? 0, 0);
     site.hole.setLocalScale(
@@ -1284,6 +1305,14 @@ export class BuriedTreasureField {
     site.filledPatch.enabled = site.fillProgress > 0;
     site.filledPatch.setLocalPosition(site.x, site.y + 0.014 - 0.3 * (1 - soilProgress), site.z);
     site.filledPatch.setLocalScale(1, 1, 1);
+    const rimProgress = Math.min(1, Math.max(0,
+      (site.fillProgress * TREASURE_FILL_STROKES - TREASURE_FILL_SCOOPS) /
+      (TREASURE_FILL_STROKES - TREASURE_FILL_SCOOPS)));
+    for (const entry of site.holeFadeMaterials ?? []) {
+      const progress = entry.cavity ? Math.max(0, (soilProgress - 0.5) * 2) : rimProgress;
+      const eased = progress * progress * (3 - 2 * progress);
+      entry.meshInstance.setParameter("material_opacity", 1 - eased);
+    }
     const cavity = site.hole.findByName("Excavated cavity");
     if (cavity) {
       cavity.enabled = soilProgress < 1;
