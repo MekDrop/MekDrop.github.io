@@ -290,7 +290,11 @@ it("keeps stop, resume, and fill available after digging from an offset landing"
   }
   for (const x of [-0.4, 2]) {
     let update;
+    let fillDepth = null;
     const field = new BuriedTreasureField({
+      onTerrainExcavated: (position, radius, depth = null) => {
+        fillDepth = depth;
+      },
       pc: {
         ...pc,
         Entity: HeadlessEntity,
@@ -377,21 +381,21 @@ it("keeps stop, resume, and fill available after digging from an offset landing"
     const cavity = new pc.Entity("Excavated cavity");
     hole.addChild(cavity);
     const pile = field.entity.findByName(`Excavated earth pile ${target.id}`);
-    const patch = field.entity.findByName(`Filled earth patch ${target.id}`);
+    assert.equal(field.entity.findByName(`Filled earth patch ${target.id}`), null, "fill belongs to the terrain cube");
     // These entities have no Application root in this headless fixture.
     field.entity._notifyHierarchyStateChanged(field.entity, true);
-    assert.equal(patch.enabled, false, "soil has not reached the hole at launch");
+    assert.equal(fillDepth, null, "soil has not reached the hole at launch");
     assert.equal(hole.getLocalScale().x, 1, "preserve the cavity footprint");
     update(0.1);
     assert.ok(pile.getLocalScale().x < 1, "the source pile loses departing soil");
-    assert.equal(patch.enabled, false, "soil must travel before filling the cavity");
+    assert.equal(fillDepth, null, "soil must travel before filling the cavity");
     for (let frame = 0; frame < 8; frame += 1) {
       update(0.1);
     }
-    assert.equal(patch.enabled, true);
+    assert.notEqual(fillDepth, null);
     assert.equal(hole.enabled, true, "the first scoop leaves the rim visible");
     assert.equal(cavity.enabled, true, "the partially filled cavity remains visible");
-    assert.ok(Math.abs(patch.getLocalPosition().y - target.y - 0.014 + 0.15) < 1e-6);
+    assert.ok(Math.abs(fillDepth + 0.15) < 1e-6);
     field.scoopFillSoil(fill.description);
     assert.equal(field.fill(fill.description), false, "a second stroke still needs one more scoop");
     for (let frame = 0; frame < 9; frame += 1) {
@@ -400,7 +404,7 @@ it("keeps stop, resume, and fill available after digging from an offset landing"
     assert.equal(hole.enabled, true, "the rim remains available for leveling");
     assert.equal(cavity.enabled, false, "the inner wall merges into the fill after two scoops");
     assert.equal(pile.enabled, false, "two scoops empty the source pile");
-    assert.ok(Math.abs(patch.getLocalPosition().y - target.y - 0.014) < 1e-6,
+    assert.ok(Math.abs(fillDepth) < 1e-6,
       "the soil reaches ground level before rim leveling begins");
     assert.equal(field.isFillRimStage(target.id), true);
     field.levelFillRim(fill.description);
@@ -408,7 +412,7 @@ it("keeps stop, resume, and fill available after digging from an offset landing"
     update(0.1);
     const rimTime = hole.anim.baseLayer.activeStateCurrentTime;
     assert.ok(rimTime > 0 && rimTime < 1, "the authored rim moves while the blade pushes");
-    assert.ok(Math.abs(patch.getLocalPosition().y - target.y - 0.014) < 1e-6,
+    assert.ok(Math.abs(fillDepth) < 1e-6,
       "rim leveling keeps the already filled center at ground level");
     field.returnFillSoil(fill.description);
     update(0.1);
@@ -417,9 +421,9 @@ it("keeps stop, resume, and fill available after digging from an offset landing"
     update(0.1);
     assert.ok(hole.anim.baseLayer.activeStateCurrentTime > rimTime, "resume keeps the previous rim pose");
     update(0.1);
-    const settledAfterFirstScrape = patch.getLocalPosition().y;
+    const settledAfterFirstScrape = fillDepth;
     update(0.2);
-    assert.equal(patch.getLocalPosition().y, settledAfterFirstScrape,
+    assert.equal(fillDepth, settledAfterFirstScrape,
       "soil holds while the blade lifts between edge scrapes");
     assert.equal(field.fill(fill.description), true);
     assert.equal(field.canFill(target.id), true, "keep the hole until the last soil lands");
@@ -429,7 +433,7 @@ it("keeps stop, resume, and fill available after digging from an offset landing"
     assert.equal(field.canFill(target.id), false);
     assert.equal(hole.enabled, false);
     assert.equal(pile.enabled, false);
-    assert.ok(Math.abs(patch.getLocalPosition().y - target.y - 0.014) < 1e-6);
+    assert.ok(Math.abs(fillDepth) < 1e-6);
     const neighbor = {
       kind: "dig",
       id: "1:3",

@@ -2047,6 +2047,8 @@ export class PlayCanvasRenderer {
        *
        * @param {pc.Vec3} position
        * @param {number} radius
+       * @param {number|null} [fillDepth] Filled soil height relative to the cube top.
+       * @param {Array<Array<number>>|null} [outline] Authored XZ surface perimeter.
        */
       onTerrainExcavated: this.#onTerrainExcavated.bind(this),
     });
@@ -3332,13 +3334,15 @@ export class PlayCanvasRenderer {
    *
    * @param {pc.Vec3} position
    * @param {number} radius
+   * @param {number|null} [fillDepth] Filled soil height relative to the cube top.
+   * @param {Array<Array<number>>|null} [outline] Authored XZ surface perimeter.
    */
-  #onTerrainExcavated(position, radius) {
+  #onTerrainExcavated(position, radius, fillDepth = null, outline = null) {
     return this.#sceneObjects.getAll(SCENE_OBJECT_TYPE.MAP_OBJECT).forEach(
       /**
            * @param {import("src/game/GameContracts.js").GameObjectContract} object
            */
-      (object) => object.onTerrainExcavated?.(position, radius));
+      (object) => object.onTerrainExcavated?.(position, radius, fillDepth, outline));
   }
 
   /**

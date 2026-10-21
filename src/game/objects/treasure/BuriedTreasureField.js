@@ -1,3 +1,4 @@
+import { FILLED_EARTH_OUTLINE } from "./FilledEarthOutline.js";
 import { TREASURE_DIG_STROKES, TREASURE_FILL_SCOOPS, TREASURE_FILL_STROKES, TREASURE_TOOL_MAX_TURN, TREASURE_TOOL_MIN_DISTANCE, treasureToolBackstep } from "../../config/treasure.js";
 import { TileType } from "../../generator/map/MapGenerator.js";
 import { GRASS_SURFACE_LIFT } from "../../config/terrain.js";
@@ -9,7 +10,6 @@ import { colorFromHex } from "../../helpers/colors.js";
 import coinModelUrl from "../../models/treasure/coin.glb?url";
 import chestModelUrl from "../../models/treasure/treasure-chest.glb?url";
 import earthModelUrl from "../../models/treasure/excavated-earth.glb?url";
-import filledEarthModelUrl from "../../models/treasure/filled-earth.glb?url";
 import holeModelUrl from "../../models/treasure/hole.glb?url";
 import riverStoneAngularModelUrl from "../../models/water/river-stone-angular.glb?url";
 import riverStoneFlatModelUrl from "../../models/water/river-stone-flat.glb?url";
@@ -50,7 +50,6 @@ import { IslandObjectRoots } from "../shared/IslandObjectRoots.js";
  * @property {number} [facingYaw]
  * @property {import("playcanvas").Entity|null} hole
  * @property {import("playcanvas").Entity|null} earthPile
- * @property {import("playcanvas").Entity|null} filledPatch
  * @property {import("playcanvas").Entity|null} chest
  * @property {Array<import("playcanvas").Material>} chestMaterials
  * @property {Array<{material: import("playcanvas").StandardMaterial, meshInstance: import("playcanvas").MeshInstance, cavity: boolean}>} [holeFadeMaterials]
@@ -148,7 +147,6 @@ export class BuriedTreasureField {
       coinModelUrl,
       holeModelUrl,
       earthModelUrl,
-      filledEarthModelUrl,
       riverStoneModelUrl,
       riverStoneFlatModelUrl,
       riverStoneAngularModelUrl,
@@ -260,7 +258,7 @@ export class BuriedTreasureField {
   #onInteractionChange;
   /**
    *
-   * @type {(position: {x: number, y: number, z: number}, radius: number) => void}
+   * @type {(position: {x: number, y: number, z: number}, radius: number, fillDepth?: number|null) => void}
    */
   #onTerrainExcavated;
   /**
@@ -271,14 +269,14 @@ export class BuriedTreasureField {
 
   /**
    *
-   * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, mapData: import("src/game/objects/ObjectTypes.js").GameMapData, modelLibrary: string, onCollectCoin: (coinType: string, amount: number) => void, onInteractionChange: (interaction: import("src/game/objects/ObjectTypes.js").InteractionLike|null) => void, onTerrainExcavated: (position: {x: number, y: number, z: number}, radius: number) => void}} options
+   * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, mapData: import("src/game/objects/ObjectTypes.js").GameMapData, modelLibrary: string, onCollectCoin: (coinType: string, amount: number) => void, onInteractionChange: (interaction: import("src/game/objects/ObjectTypes.js").InteractionLike|null) => void, onTerrainExcavated: (position: {x: number, y: number, z: number}, radius: number, fillDepth?: number|null) => void}} options
    * @param {typeof import("playcanvas")} options.pc
    * @param {import("playcanvas").Application} options.app
    * @param {import("src/game/objects/ObjectTypes.js").GameMapData} options.mapData
    * @param {string} options.modelLibrary
    * @param {(coinType: string, amount: number) => void} options.onCollectCoin
    * @param {(interaction: import("src/game/objects/ObjectTypes.js").InteractionLike|null) => void} options.onInteractionChange
-   * @param {(position: {x: number, y: number, z: number}, radius: number) => void} options.onTerrainExcavated
+   * @param {(position: {x: number, y: number, z: number}, radius: number, fillDepth?: number|null) => void} options.onTerrainExcavated
    */
   constructor({
     pc,
@@ -557,7 +555,6 @@ export class BuriedTreasureField {
       elapsed: 0,
       hole: null,
       earthPile: null,
-      filledPatch: null,
       chest: null,
       chestAnimationLayer: null,
       chestAnimationDuration: 0,
@@ -1196,7 +1193,6 @@ export class BuriedTreasureField {
       elapsed: 0,
       hole: this.#modelLibrary.instantiate(holeModelUrl),
       earthPile: null,
-      filledPatch: null,
       chest: null,
       chestAnimationLayer: null,
       chestAnimationDuration: 0,
@@ -1277,11 +1273,6 @@ export class BuriedTreasureField {
       site.z + (site.pileOffset?.y ?? 0),
     );
     this.#islandRoots.addChild(site.earthPile, site);
-    site.filledPatch = this.#modelLibrary.instantiate(filledEarthModelUrl);
-    site.filledPatch.name = `Filled earth patch ${site.id}`;
-    site.filledPatch.setLocalPosition(site.x, site.y + 0.014, site.z);
-    site.filledPatch.enabled = false;
-    this.#islandRoots.addChild(site.filledPatch, site);
     this.#setExcavationScale(site, HOLE_INITIAL_SCALE);
   }
 
@@ -1302,9 +1293,8 @@ export class BuriedTreasureField {
   #applyFillProgress(site) {
     // The two scoops fill the cavity; the final stroke only levels its rim.
     const soilProgress = Math.min(1, site.fillProgress * TREASURE_FILL_STROKES / TREASURE_FILL_SCOOPS);
-    site.filledPatch.enabled = site.fillProgress > 0;
-    site.filledPatch.setLocalPosition(site.x, site.y + 0.014 - 0.3 * (1 - soilProgress), site.z);
-    site.filledPatch.setLocalScale(1, 1, 1);
+    this.#onTerrainExcavated?.(site, HOLE_SURFACE_CUT_RADIUS,
+      site.fillProgress > 0 ? -0.3 * (1 - soilProgress) : null, FILLED_EARTH_OUTLINE);
     const rimProgress = Math.min(1, Math.max(0,
       (site.fillProgress * TREASURE_FILL_STROKES - TREASURE_FILL_SCOOPS) /
       (TREASURE_FILL_STROKES - TREASURE_FILL_SCOOPS)));
@@ -1523,7 +1513,7 @@ export class BuriedTreasureField {
         site.hole.enabled = false;
         site.earthPile.enabled = false;
         site.state = "filled";
-        this.#onTerrainExcavated?.(site, 0);
+        this.#onTerrainExcavated?.(site, HOLE_SURFACE_CUT_RADIUS, 0, FILLED_EARTH_OUTLINE);
         this.#onInteractionChange?.();
       }
     }

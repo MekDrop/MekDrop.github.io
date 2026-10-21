@@ -143,13 +143,15 @@ export class Grass extends Earth {
   /**
    * @param {import("../ObjectTypes.js").Point3} position
    * @param {number} radius
+   * @param {number|null} [fillDepth] Filled soil height relative to the cube top.
+   * @param {Array<Array<number>>|null} [outline] Authored XZ surface perimeter.
    */
-  onTerrainExcavated(position, radius) {
+  onTerrainExcavated(position, radius, fillDepth = null, outline = null) {
     if (this.#ownsSurface) {
       if (radius > 0) {
         this.#runtime.canopy.carpet.clearAt(position, Math.min(0.4, radius + 0.08));
       }
-      this.#runtime.instanceRenderer.excavateSurface(position, radius);
+      this.#runtime.instanceRenderer.excavateSurface(position, radius, fillDepth, outline);
     }
   }
   /**

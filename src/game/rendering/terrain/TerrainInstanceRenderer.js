@@ -312,6 +312,7 @@ export class TerrainInstanceRenderer {
             parent,
             material: this.#materials.get(material),
             halfSize: matrices[offset] / 2,
+            soil: !material.startsWith("grass"),
           });
           this.#surfaceInstances.set(key, surfaces);
         }
@@ -336,11 +337,13 @@ export class TerrainInstanceRenderer {
    * Opens only the top face; cube walls and adjacent terrain stay intact.
    * @param {{x: number, y: number, z: number}} position
    * @param {number} radius
+   * @param {number|null} [fillDepth] Filled soil height relative to the cube top.
+   * @param {Array<Array<number>>|null} [outline] Authored XZ surface perimeter.
    */
-  excavateSurface(position, radius) {
+  excavateSurface(position, radius, fillDepth = null, outline = null) {
     const surfaces = this.#surfaceInstances.get(`${position.x},${position.y.toFixed(4)},${position.z}`) ?? [];
     for (const record of surfaces) {
-      this.#excavateSurfaceRecord(record, position, radius);
+      this.#excavateSurfaceRecord(record, position, radius, fillDepth, outline);
     }
   }
 
@@ -349,8 +352,10 @@ export class TerrainInstanceRenderer {
    * @param {{buffer: import("playcanvas").VertexBuffer, index: number, y: number, parent: import("playcanvas").Entity, material: import("playcanvas").Material, halfSize: number, entity?: import("playcanvas").Entity, mesh?: import("playcanvas").Mesh}} record
    * @param {{x: number, y: number, z: number}} position
    * @param {number} radius
+   * @param {number|null} [fillDepth] Filled soil height relative to the cube top.
+   * @param {Array<Array<number>>|null} [outline] Authored XZ surface perimeter.
    */
-  #excavateSurfaceRecord(record, position, radius) {
+  #excavateSurfaceRecord(record, position, radius, fillDepth, outline) {
     const storage = record.buffer.lock();
     const data = storage instanceof Float32Array ? storage : new Float32Array(storage);
     data[record.index * 16 + 13] = radius > 0 ? -10000 : record.y;
@@ -362,7 +367,7 @@ export class TerrainInstanceRenderer {
       return;
     }
     if (!record.entity) {
-      record.mesh = ExcavatedSurface.createMesh(this.#pc, this.#app.graphicsDevice, record.halfSize, radius);
+      record.mesh = ExcavatedSurface.createMesh(this.#pc, this.#app.graphicsDevice, record.halfSize, radius, null, false, outline);
       record.entity = new this.#pc.Entity("Excavated cube surface");
       record.entity.setLocalPosition(position.x, position.y, position.z);
       record.entity.addComponent("render", {
@@ -370,8 +375,19 @@ export class TerrainInstanceRenderer {
       });
       record.parent.addChild(record.entity);
     } else {
-      ExcavatedSurface.updateMesh(record.mesh, record.halfSize, radius);
+      ExcavatedSurface.updateMesh(record.mesh, record.halfSize, radius, null, false, outline);
       record.entity.enabled = true;
+    }
+    if (!record.soil && fillDepth !== null) {
+      if (!record.fillMesh) {
+        record.fillMesh = ExcavatedSurface.createMesh(this.#pc, this.#app.graphicsDevice, record.halfSize, radius, fillDepth, true, outline);
+        const meshInstance = new this.#pc.MeshInstance(record.fillMesh, this.#materials.get("earth"));
+        const soil = new this.#pc.Entity("Cube soil face");
+        soil.addComponent("render", { meshInstances: [meshInstance] });
+        record.entity.addChild(soil);
+      } else {
+        ExcavatedSurface.updateMesh(record.fillMesh, record.halfSize, radius, fillDepth, true, outline);
+      }
     }
   }
 
@@ -379,6 +395,7 @@ export class TerrainInstanceRenderer {
     for (const record of Array.from(this.#surfaceInstances.values()).flat()) {
       record.entity?.destroy();
       record.mesh?.destroy();
+      record.fillMesh?.destroy();
     }
     this.#surfaceInstances.clear();
     for (const entity of this.#entities) {
