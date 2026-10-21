@@ -424,9 +424,64 @@ it("keeps stop, resume, and fill available after digging from an offset landing"
     assert.equal(hole.enabled, false);
     assert.equal(pile.enabled, false);
     assert.ok(Math.abs(patch.getLocalPosition().y - target.y - 0.014) < 1e-6);
+    const neighbor = {
+      kind: "dig",
+      id: "1:3",
+      col: 3,
+      row: 1,
+      x: 1,
+      y: 0.004,
+      z: -1,
+    };
+    field.dig(neighbor);
+    field.entity._notifyHierarchyStateChanged(field.entity, true);
+    const neighboringPile = field.entity.findByName(`Excavated earth pile ${neighbor.id}`);
+    assert.equal(neighboringPile.enabled, true,
+      "filled ground supports the next excavation's spoil without allowing another dig");
+    assert.equal(field.canDig(target.id), false);
     field.destroy();
   }
 });
+
+for (const surface of ["path", "decorated grass"]) {
+  it(`keeps spoil on its throw side beside ${surface}`, () => {
+    const grid = Array.from({ length: 5 }, () => Array(5).fill(MAP_TILE_TYPE.GRASS));
+    if (surface === "path") {
+      grid[2][3] = MAP_TILE_TYPE.PATH;
+    }
+    const field = new BuriedTreasureField({
+      pc,
+      mapData: {
+        cols: 5,
+        rows: 5,
+        grid,
+        heightmap: Array.from({ length: 5 }, () => Array(5).fill(0)),
+        objects: [],
+        groundCoverData: surface === "decorated grass" ? [{
+          col: 3,
+          row: 2,
+        }] : [],
+      },
+      modelLibrary: { instantiate: (url) => new pc.Entity(url) },
+      app: { on: () => ({ off: () => {} }) },
+    });
+    field.dig({
+      kind: "dig",
+      id: "2:2",
+      col: 2,
+      row: 2,
+      x: 0,
+      y: 0.004,
+      z: 0,
+    });
+    field.entity._notifyHierarchyStateChanged(field.entity, true);
+    const pile = field.entity.findByName("Excavated earth pile 2:2");
+    assert.equal(pile.enabled, true);
+    assert.equal(pile.getLocalPosition().x, 0.42);
+    assert.equal(pile.getLocalPosition().z, 0.3);
+    field.destroy();
+  });
+}
 
 it("moves the spoil pile away from a lower neighboring terrace", () => {
   const models = [];
@@ -462,8 +517,13 @@ it("moves the spoil pile away from a lower neighboring terrace", () => {
     z: 1,
   });
   const pile = models.find((entity) => entity.name.startsWith("Excavated earth pile"));
-  assert.equal(pile.enabled, false,
-    "an unsupported throw must not form a mound inside the hole");
+  field.entity._notifyHierarchyStateChanged(field.entity, true);
+  assert.equal(pile.enabled, true,
+    "an unsupported throw places the mound on the opposite side");
+  assert.equal(pile.getLocalPosition().x, -0.42);
+  assert.equal(pile.getLocalPosition().z, -0.3);
+  assert.ok(pile.getLocalPosition().z + 0.34 <= 0.5,
+    "the complete mound remains on the supported terrace");
   field.dig({
     kind: "dig",
     id: "2:2",

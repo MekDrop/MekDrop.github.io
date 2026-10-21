@@ -1027,14 +1027,15 @@ export class BuriedTreasureField {
   }
 
   /**
-   * Require support for the complete hole footprint, including adjacent tile fragments.
+   * Require support for the complete footprint, including adjacent tile fragments.
    * @param {number} x
    * @param {number} y
    * @param {number} z
    * @param {number} [radius]
+   * @param {boolean} [forPile] Allow solid surfaces that cannot be excavated.
    * @returns {boolean}
    */
-  #canExcavateAt(x, y, z, radius = HOLE_COLLISION_RADIUS + 0.01) {
+  #canExcavateAt(x, y, z, radius = HOLE_COLLISION_RADIUS + 0.01, forPile = false) {
     const colOffset = (this.#mapData.cols - 1) / 2;
     const rowOffset = (this.#mapData.rows - 1) / 2;
     for (let row = Math.round(z - radius + rowOffset); row <= Math.round(z + radius + rowOffset); row += 1) {
@@ -1049,7 +1050,7 @@ export class BuriedTreasureField {
         const cover = this.#riverSourceCovers.get(this.#tileKey(col, row));
         const height = cover?.y ?? this.#mapData.heightmap[row]?.[col] + GRASS_SURFACE_LIFT;
         if (!Number.isFinite(height) || Math.abs(height - y) > 0.05 ||
-          !this.#isDiggable(col, row, x, z)) {
+          !this.#isDiggable(col, row, x, z, forPile)) {
           return false;
         }
       }
@@ -1071,12 +1072,18 @@ export class BuriedTreasureField {
       -forwardX * 0.42 + forwardZ * 0.3,
     );
     if (this.#canExcavateAt(target.x + offset.x, target.y,
-      target.z + offset.y, 0.34)) {
+      target.z + offset.y, 0.34, true)) {
       return offset;
     }
 
-    // Without supported ground on the throw side, soil spills away rather
-    // than forming a mound inside the cavity or underneath its chest.
+    // Keep the same separation from the cavity on the opposite side.
+    offset.mulScalar(-1);
+    if (this.#canExcavateAt(target.x + offset.x, target.y,
+      target.z + offset.y, 0.34, true)) {
+      return offset;
+    }
+
+    // Neither side supports the mound; do not place it inside the cavity.
     return null;
   }
 
@@ -1086,8 +1093,9 @@ export class BuriedTreasureField {
    * @param {number} row
    * @param {number} x
    * @param {number} z
+   * @param {boolean} [forPile]
    */
-  #isDiggable(col, row, x, z) {
+  #isDiggable(col, row, x, z, forPile = false) {
     if (
       row < 0 ||
       row >= this.#mapData.rows ||
@@ -1124,15 +1132,23 @@ export class BuriedTreasureField {
       (site) => site.id === key && site.state === "digging",
     );
 
+    /**
+     * @param {TreasureSite} site
+     */
+    const filledSupport = (site) => site.id === key && site.state === "filled";
+
+    // Spoil can rest on filled excavations and decorative ground cover even
+    // though those tiles cannot be selected for another excavation.
     return (
       (this.#mapData.grid[row][col] === TileType.GRASS ||
+        (forPile && this.#mapData.grid[row][col] === TileType.PATH) ||
         (metadata?.exposedTerrain === true &&
           [TileType.CASTLE_WALL, TileType.CASTLE_TOWER].includes(this.#mapData.grid[row][col]))) &&
       (this.#mapData.tileMeta?.[row]?.[col]?.shape ?? "FLAT") === "FLAT" &&
       Number.isFinite(this.#mapData.heightmap[row][col]) &&
-      (unfinished || !this.#dugTiles.has(key)) &&
+      (unfinished || !this.#dugTiles.has(key) || (forPile && this.#sites.some(filledSupport))) &&
       !this.#vegetationTileCounts.has(key) &&
-      !this.#groundCoverTileCounts.has(key) &&
+      (forPile || !this.#groundCoverTileCounts.has(key)) &&
       !this.#stoneTiles.has(key)
     );
   }
