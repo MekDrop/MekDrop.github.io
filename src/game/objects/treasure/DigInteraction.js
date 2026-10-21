@@ -112,6 +112,7 @@ export class DigInteraction {
 
           return finished;
         },
+      onSoilReleased: () => this.#field.depositDigSoil(this.#target),
       onComplete: () => {
         if (revealedBlockedDig) {
           this.#hero.reactToBlockedDig();

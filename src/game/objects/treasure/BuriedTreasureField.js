@@ -33,6 +33,8 @@ import { IslandObjectRoots } from "../shared/IslandObjectRoots.js";
  * @property {number} z
  * @property {string} state
  * @property {number} elapsed
+ * @property {number} [depositedStrokes]
+ * @property {number} [soilArrivalDelay]
  * @property {number} digStrokes
  * @property {number} fillProgress
  * @property {number} [fillStrokes]
@@ -1246,6 +1248,7 @@ export class BuriedTreasureField {
     this.#islandRoots.addChild(site.hole, site);
     site.earthPile = this.#modelLibrary.instantiate(earthModelUrl);
     site.earthPile.name = `Excavated earth pile ${site.id}`;
+    site.earthPile.setLocalScale(0, 0, 0);
     site.earthPile.enabled = site.pileOffset !== null;
     site.earthPile.setLocalPosition(
       site.x + (site.pileOffset?.x ?? 0),
@@ -1268,7 +1271,6 @@ export class BuriedTreasureField {
    */
   #setExcavationScale(site, scale) {
     site.hole.setLocalScale(scale, scale, scale);
-    site.earthPile.setLocalScale(scale, scale, scale);
     this.#onTerrainExcavated?.(site, HOLE_SURFACE_CUT_RADIUS * scale);
   }
 
@@ -1449,11 +1451,35 @@ export class BuriedTreasureField {
   };
 
   /**
+   * Let thrown dirt reach the mound before adding its volume.
+   * @param {{id: string}} target
+   */
+  depositDigSoil(target) {
+    const site = this.#sites.find(/**
+     * @param {TreasureSite} entry
+     */
+      (entry) => entry.id === target.id);
+    if (site && site.state !== "filled") {
+      site.soilArrivalDelay = 0.4;
+    }
+  }
+
+  /**
    *
    * @param {TreasureSite} site
    * @param {number} deltaTime
    */
   #advanceSite(site, deltaTime) {
+    if (site.soilArrivalDelay > 0) {
+      site.soilArrivalDelay = Math.max(0, site.soilArrivalDelay - deltaTime);
+      if (site.soilArrivalDelay === 0 && site.pileOffset !== null) {
+        site.depositedStrokes = Math.min(site.digStrokes, (site.depositedStrokes ?? 0) + 1);
+        const scale = HOLE_INITIAL_SCALE + (1 - HOLE_INITIAL_SCALE) *
+          (site.depositedStrokes - 1) / (TREASURE_DIG_STROKES - 1);
+        site.earthPile.setLocalScale(scale, scale, scale);
+      }
+    }
+
     this.#advanceRimLeveling(site, deltaTime);
     if (site.state === "filling" && site.fillProgress < site.fillTargetProgress) {
       site.fillElapsed += deltaTime;

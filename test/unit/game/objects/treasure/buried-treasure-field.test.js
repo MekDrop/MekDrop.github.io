@@ -676,3 +676,58 @@ it("reveals the already instantiated chest and spawns its stored contents withou
   assert.deepEqual(models.filter(({ url }) => url.includes("/coin.glb")).map(({ entity }) => entity.name),
     ["gold treasure coin", "silver treasure coin", "copper treasure coin"]);
 });
+
+it("grows spoil only after released dirt arrives, independently of cavity growth", () => {
+  let update;
+  const field = new BuriedTreasureField({
+    pc,
+    mapData: {
+      cols: 5,
+      rows: 5,
+      grid: Array.from({ length: 5 }, () => Array(5).fill(MAP_TILE_TYPE.GRASS)),
+      heightmap: Array.from({ length: 5 }, () => Array(5).fill(0)),
+      objects: [],
+    },
+    modelLibrary: { instantiate: (url) => new pc.Entity(url) },
+    app: {
+      on: (event, callback) => {
+        update = callback;
+
+        return { off: () => {} };
+      },
+    },
+  });
+  const target = {
+    kind: "dig",
+    id: "2:2",
+    col: 2,
+    row: 2,
+    x: 0,
+    y: 0.004,
+    z: 0,
+  };
+  field.dig(target);
+  const pile = field.entity.findByName("Excavated earth pile 2:2");
+  const hole = field.entity.findByName("Excavated treasure hole 2:2");
+  assert.equal(pile.getLocalScale().x, 0, "digging does not deposit dirt");
+  field.depositDigSoil(target);
+  update(0.1);
+  update(0.1);
+  assert.equal(pile.getLocalScale().x, 0, "dirt is still airborne");
+  update(0.1);
+  update(0.1);
+  update(0.1);
+  const depositedScale = pile.getLocalScale().x;
+  assert.ok(depositedScale > 0);
+  field.dig(target);
+  assert.ok(hole.getLocalScale().x > depositedScale);
+  assert.equal(pile.getLocalScale().x, depositedScale);
+  update(0.5);
+  assert.equal(pile.getLocalScale().x, depositedScale, "waiting without a throw adds no dirt");
+  field.depositDigSoil(target);
+  for (let frame = 0; frame < 5; frame += 1) {
+    update(0.1);
+  }
+  assert.ok(pile.getLocalScale().x > depositedScale);
+  field.destroy();
+});

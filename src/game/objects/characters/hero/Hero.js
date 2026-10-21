@@ -1800,6 +1800,7 @@ export class Hero {
    * @param {(impact: import("src/game/objects/ObjectTypes.js").HeroActionPayload) => void} options.onImpact
    * @param {() => void} options.onComplete
    * @param {() => void} [options.onScoop]
+   * @param {() => void} [options.onSoilReleased]
    */
   useTool(
     tool,
@@ -1812,6 +1813,7 @@ export class Hero {
       context = {},
       onImpact,
       onScoop,
+      onSoilReleased,
       onComplete,
     },
   ) {
@@ -1860,6 +1862,7 @@ export class Hero {
       positioningElapsed: 0,
       onImpact,
       onScoop,
+      onSoilReleased,
       onComplete,
     };
 

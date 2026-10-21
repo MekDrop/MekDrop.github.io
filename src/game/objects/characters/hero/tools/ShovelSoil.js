@@ -197,6 +197,9 @@ export class ShovelSoil {
         this.#release(action.targetPosition, false, filling, action.toolContext);
         this.#load.enabled = false;
         this.#released = true;
+        if (digging) {
+          action.onSoilReleased?.();
+        }
       }
     }
     this.#ground.enabled = this.#pool.some(/**

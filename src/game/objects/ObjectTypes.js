@@ -157,6 +157,7 @@
  * @property {(interaction: InteractionLike|null) => void} [setInteraction]
  * @typedef {object} HeroActionPayload
  * @property {() => void} [onScoop]
+ * @property {() => void} [onSoilReleased]
  * @property {string} [phase]
  * @property {number} [cutStartTime]
  * @property {number} [liftStartTime]
