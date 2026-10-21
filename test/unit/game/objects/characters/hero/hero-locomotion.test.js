@@ -100,3 +100,27 @@ it("actions interrupt braking and ordinary walking does not play a running stop"
   }), null);
   assert.equal(gait.state, "idle");
 });
+
+it("clears a cancelled braking state's timer before entering it again", () => {
+  const gait = new HeroLocomotion();
+  const sprint = {
+    ...motion,
+    running: true,
+    speed: 3.4,
+  };
+  const stop = {
+    ...motion,
+    moving: false,
+    speed: 0,
+    phase: 0.7,
+  };
+  gait.update(0.016, sprint);
+  gait.update(0.3, stop);
+  gait.reset();
+  assert.equal(gait.running, false);
+  assert.equal(gait.stopping, false);
+  gait.update(0.016, sprint);
+  assert.equal(gait.update(0.2, stop), "RunStopRight");
+  assert.equal(gait.update(0.2, stop), "RunStopRight");
+  assert.equal(gait.update(0.03, stop), "Idle");
+});

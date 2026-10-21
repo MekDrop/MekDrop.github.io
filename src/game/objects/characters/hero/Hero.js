@@ -1,5 +1,6 @@
 import { HeroStairCameraHeight } from "./HeroStairCameraHeight.js";
-import { HeroLocomotion, RUN_STOP_DURATION } from "./HeroLocomotion.js";
+import { HeroLocomotion } from "./HeroLocomotion.js";
+import { RUN_STOP_DURATION } from "./states/locomotion/HeroStoppingLocomotionState.js";
 import { HeroSpawn } from "./HeroSpawn.js";
 import {
   HeroAnimationPlayback,

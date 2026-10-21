@@ -1,85 +1,124 @@
-import { HERO_ANIMATION } from "../../../enum/HeroAnimation.js";
+import { StateMachine } from "yuka";
 import { HERO_LOCOMOTION_STATE } from "../../../enum/HeroLocomotionState.js";
-
-export const RUN_STOP_DURATION = 0.42;
+import { HeroIdleLocomotionState } from "./states/locomotion/HeroIdleLocomotionState.js";
+import { HeroWalkingLocomotionState } from "./states/locomotion/HeroWalkingLocomotionState.js";
+import { HeroAcceleratingLocomotionState } from "./states/locomotion/HeroAcceleratingLocomotionState.js";
+import { HeroRunningLocomotionState } from "./states/locomotion/HeroRunningLocomotionState.js";
+import { HeroSlowingLocomotionState } from "./states/locomotion/HeroSlowingLocomotionState.js";
+import { HeroStoppingLocomotionState } from "./states/locomotion/HeroStoppingLocomotionState.js";
 
 /**
- * Selects ground gait from actual speed, retaining a complete braking step.
+ * @typedef {{enabled:boolean,moving:boolean,running:boolean,speed:number,walkSpeed:number,runSpeed:number,phase:number}} HeroLocomotionMotion
+ */
+
+/**
+ * Independent Yuka ground-gait layer alongside the hero's action and emotion states.
  */
 export class HeroLocomotion {
   /**
-   * @type {string}
+   * @type {StateMachine}
    */
-  #state = HERO_LOCOMOTION_STATE.IDLE;
+  #stateMachine;
+  /**
+   * @type {Map<string, import("./states/locomotion/AbstractHeroLocomotionState.js").AbstractHeroLocomotionState>}
+   */
+  #states = new Map();
+  /**
+   * @type {HeroLocomotionMotion|null}
+   */
+  #motion = null;
   /**
    * @type {number}
    */
-  #stopElapsed = 0;
-  /**
-   * @type {string}
-   */
-  #stopAnimation = HERO_ANIMATION.RUN_STOP_LEFT;
+  #deltaTime = 0;
 
+  constructor() {
+    this.#stateMachine = new StateMachine(this);
+    for (const state of [
+      new HeroIdleLocomotionState(),
+      new HeroWalkingLocomotionState(),
+      new HeroAcceleratingLocomotionState(),
+      new HeroRunningLocomotionState(),
+      new HeroSlowingLocomotionState(),
+      new HeroStoppingLocomotionState(),
+    ]) {
+      this.#states.set(state.kind, state);
+      this.#stateMachine.add(state.constructor.name, state);
+    }
+    this.reset();
+  }
+
+  /**
+   * @returns {import("./states/locomotion/AbstractHeroLocomotionState.js").AbstractHeroLocomotionState}
+   */
+  get currentState() {
+    return this.#stateMachine.currentState;
+  }
+
+  /**
+   * @returns {string}
+   */
   get state() {
-    return this.#state;
+    return this.currentState.kind;
+  }
+
+  get motion() {
+    return this.#motion;
+  }
+
+  get deltaTime() {
+    return this.#deltaTime;
   }
 
   /**
    * @returns {boolean}
    */
   get running() {
-    return [HERO_LOCOMOTION_STATE.ACCELERATING, HERO_LOCOMOTION_STATE.RUNNING,
-      HERO_LOCOMOTION_STATE.SLOWING].includes(this.#state);
+    return this.currentState.running;
   }
 
   /**
    * @returns {boolean}
    */
   get stopping() {
-    return this.#state === HERO_LOCOMOTION_STATE.STOPPING;
+    return this.currentState instanceof HeroStoppingLocomotionState;
   }
 
   reset() {
-    this.#state = HERO_LOCOMOTION_STATE.IDLE;
-    this.#stopElapsed = 0;
+    this.changeState(HERO_LOCOMOTION_STATE.IDLE);
+    this.#motion = null;
+    this.#deltaTime = 0;
+  }
+
+  /**
+   * @param {string} kind
+   */
+  changeState(kind) {
+    const next = this.#states.get(kind);
+    if (this.currentState !== next) {
+      this.#stateMachine.changeTo(next.constructor.name);
+    }
+  }
+
+  updateState() {
+    this.#stateMachine.update();
   }
 
   /**
    * @param {number} deltaTime
-   * @param {{enabled:boolean,moving:boolean,running:boolean,speed:number,walkSpeed:number,runSpeed:number,phase:number}} motion
+   * @param {HeroLocomotionMotion} motion
    * @returns {string|null}
    */
-  update(deltaTime, { enabled, moving, running, speed, walkSpeed, runSpeed, phase }) {
-    if (!enabled) {
+  update(deltaTime, motion) {
+    if (!motion.enabled) {
       this.reset();
 
       return null;
     }
-    if (!moving && this.running) {
-      this.#state = HERO_LOCOMOTION_STATE.STOPPING;
-      this.#stopElapsed = 0;
-      this.#stopAnimation = phase < 0.5 ? HERO_ANIMATION.RUN_STOP_LEFT : HERO_ANIMATION.RUN_STOP_RIGHT;
-    }
-    if (!moving && this.#state === HERO_LOCOMOTION_STATE.STOPPING) {
-      this.#stopElapsed += deltaTime;
-      if (this.#stopElapsed < RUN_STOP_DURATION) {
-        return this.#stopAnimation;
-      }
-    }
-    this.#stopElapsed = 0;
-    if (speed <= 0.08) {
-      this.#state = HERO_LOCOMOTION_STATE.IDLE;
+    this.#motion = motion;
+    this.#deltaTime = deltaTime;
+    this.updateState();
 
-      return HERO_ANIMATION.IDLE;
-    }
-    if (speed > walkSpeed * 1.08) {
-      this.#state = !running ? HERO_LOCOMOTION_STATE.SLOWING
-        : speed < runSpeed * 0.95 ? HERO_LOCOMOTION_STATE.ACCELERATING : HERO_LOCOMOTION_STATE.RUNNING;
-
-      return HERO_ANIMATION.RUN;
-    }
-    this.#state = HERO_LOCOMOTION_STATE.WALKING;
-
-    return HERO_ANIMATION.WALK;
+    return this.currentState.animation;
   }
 }

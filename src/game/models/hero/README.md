@@ -17,7 +17,10 @@ node transforms. The source scene enables `keepConstantAnimationChannels` so
 exports retain the hip translations even when their values are constant.
 Dropping those channels lets preceding actions supply an incompatible offset.
 
-`HeroLocomotion` selects walking, acceleration, running, slowing and stopping
+`HeroLocomotion` runs an independent Yuka state machine with classes under
+`states/locomotion/` for idle, walking, acceleration, running, slowing and stopping.
+The stopping state owns its braking timer and supporting-foot animation; action
+interruptions exit this layer and reset it to idle. It selects these gaits
 from actual velocity and input intent. Releasing run while still moving keeps
 the running gait during deceleration, then blends into walking at walking speed.
 Walk/run blends preserve the supporting-leg phase. Releasing movement from a
