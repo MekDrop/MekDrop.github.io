@@ -22,10 +22,7 @@ import { HeroPatGesture } from "./controls/HeroPatGesture.js";
 import { KnifeTool, ShovelTool } from "./objects/characters/hero/tools/index.js";
 import { Overpass } from "./objects/path/Overpass.js";
 import { GroundCover } from "./objects/ground-cover/index.js";
-import {
-  CubeCloudField,
-  IslandConnectorMotion,
-} from "./objects/scenery/index.js";
+import { CubeCloudField, IslandConnectorMotion } from "./objects/scenery/index.js";
 import { BuriedTreasureField } from "./objects/treasure/index.js";
 import { ScenePointerInteraction } from "./objects/shared/ScenePointerInteraction.js";
 import { TileType } from "./generator/map/MapGenerator.js";
@@ -262,13 +259,13 @@ export class PlayCanvasRenderer {
   #heroVisibility = null;
 
   /**
-   * @type {IslandConnectorMotion|null}
-   */
-  #islandConnectorMotion = null;
-  /**
    * @type {boolean}
    */
-  #firstPersonIslandOffsetsApplied = false;
+  #islandOffsetsApplied = false;
+  /**
+   * @type {IslandConnectorMotion}
+   */
+  #islandConnectorMotion = new IslandConnectorMotion();
   /**
    * @returns {GroundCover|null}
    */
@@ -732,7 +729,7 @@ export class PlayCanvasRenderer {
    * @param {import("./GameContracts.js").GameMapData} mapData
    */
   render(mapData) {
-    this.#firstPersonIslandOffsetsApplied = false;
+    this.#islandOffsetsApplied = false;
     let initialViewport = null;
     if (!this.#mapData) {
       this.#gameViewStore.updateViewport(this.#gameViewStore.$state);
@@ -1015,7 +1012,7 @@ export class PlayCanvasRenderer {
     this.#camera.returnTransition = null;
     this.#camera.orbitPivot = null;
     this.#camera.manuallyMoved = nextEnabled;
-    this.#firstPersonIslandOffsetsApplied = false;
+    this.#islandOffsetsApplied = false;
     this.#shadowBudget.limited = nextEnabled;
     const sunlight = this.#app.root.findByName("Sunlight");
     if (sunlight?.light) {
@@ -1697,9 +1694,8 @@ export class PlayCanvasRenderer {
     this.#clearScene();
     this.#mapRoot = new this.#pc.Entity("Voxel map");
     this.#app.root.addChild(this.#mapRoot);
-    this.#islandConnectorMotion = this.#mapData.islandConnectorData
-      ? new IslandConnectorMotion()
-      : null;
+    this.#islandOffsetsApplied = false;
+    this.#islandConnectorMotion = new IslandConnectorMotion(this.#mapData);
 
     this.#bridgeRailingKit = new BridgeRailingKit({
       pc: this.#pc,
@@ -2142,23 +2138,27 @@ export class PlayCanvasRenderer {
    * @param {number} deltaTime
    */
   #updateIslandConnectorMotion(deltaTime) {
-    if (!this.#islandConnectorMotion) {
-      return;
-    }
-    const firstPerson = this.#camera?.firstPersonEnabled;
-    // First-person islands stay at zero offset. Reapplying that transform to
-    // every object dirties the hierarchy and rewrites flower instance buffers.
-    if (firstPerson && this.#firstPersonIslandOffsetsApplied) {
+    if (!this.#mapData.islandConnectorData) {
       return;
     }
     const count = this.#mapData.islandConnectorData.islands?.length ?? 2;
-    const offsets = this.#camera?.firstPersonEnabled
+    const firstPerson = this.#camera.firstPersonEnabled;
+    const hero = this.hero;
+    const focus = hero && !this.#camera.manuallyMoved
+      ? new this.#pc.Vec2(hero.position.x, hero.position.z)
+      : new this.#pc.Vec2(this.#camera.panX, this.#camera.panZ);
+    const offsets = firstPerson
       ? {
         near: 0,
         far: 0,
         groups: new Array(count).fill(0),
       }
-      : this.#islandConnectorMotion.update(deltaTime, count);
+      : this.#islandConnectorMotion.update(deltaTime, count, this.#camera.zoom, focus);
+    const grounded = firstPerson;
+    // Avoid rewriting static instance buffers once the close view has settled.
+    if (grounded && this.#islandOffsetsApplied) {
+      return;
+    }
     this.#terrainRenderer?.setIslandOffsets(offsets.near, offsets.far, offsets.groups);
     this.#bridgeRailingKit?.setIslandOffsets(offsets.near, offsets.far, offsets.groups);
     for (const object of this.#sceneObjects.getWithMethod("setIslandOffsets")) {
@@ -2169,7 +2169,7 @@ export class PlayCanvasRenderer {
       offsets.far,
       offsets.groups,
     );
-    this.#firstPersonIslandOffsetsApplied = firstPerson;
+    this.#islandOffsetsApplied = grounded;
   }
 
   #inventoryFullIndicatorScreenPosition() {
@@ -3024,7 +3024,7 @@ export class PlayCanvasRenderer {
     this.#sceneObjects.destroyType(SCENE_OBJECT_TYPE.CASTLE);
     this.#heroVisibility?.destroy();
     this.#heroVisibility = null;
-    this.#islandConnectorMotion = null;
+    this.#islandOffsetsApplied = false;
     this.#interactionProviders = [];
     this.#inventoryScene?.clearWorldItems();
     this.#sceneObjects.destroyType(SCENE_OBJECT_TYPE.HERO);
