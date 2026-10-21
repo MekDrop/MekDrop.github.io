@@ -1274,9 +1274,15 @@ export class BuriedTreasureField {
    * @param {TreasureSite} site
    */
   #applyFillProgress(site) {
+    // The two scoops fill the cavity; the final stroke only levels its rim.
+    const soilProgress = Math.min(1, site.fillProgress * TREASURE_FILL_STROKES / TREASURE_FILL_SCOOPS);
     site.filledPatch.enabled = site.fillProgress > 0;
-    site.filledPatch.setLocalPosition(site.x, site.y + 0.014 - 0.3 * (1 - site.fillProgress), site.z);
+    site.filledPatch.setLocalPosition(site.x, site.y + 0.014 - 0.3 * (1 - soilProgress), site.z);
     site.filledPatch.setLocalScale(1, 1, 1);
+    const cavity = site.hole.findByName("Excavated cavity");
+    if (cavity) {
+      cavity.enabled = soilProgress < 1;
+    }
   }
 
   /**

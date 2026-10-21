@@ -374,6 +374,8 @@ it("keeps stop, resume, and fill available after digging from an offset landing"
     assert.equal(field.fill(fill.description), false);
     assert.equal(field.findInteraction({ hero })?.description.labelKey, "game.interaction.fill_hole");
     const hole = field.entity.findByName(`Excavated treasure hole ${target.id}`);
+    const cavity = new pc.Entity("Excavated cavity");
+    hole.addChild(cavity);
     const pile = field.entity.findByName(`Excavated earth pile ${target.id}`);
     const patch = field.entity.findByName(`Filled earth patch ${target.id}`);
     // These entities have no Application root in this headless fixture.
@@ -387,23 +389,27 @@ it("keeps stop, resume, and fill available after digging from an offset landing"
       update(0.1);
     }
     assert.equal(patch.enabled, true);
-    assert.equal(hole.enabled, true, "the first stroke fills one third of the hole");
-    assert.ok(Math.abs(patch.getLocalPosition().y - target.y - 0.014 + 0.2) < 1e-6);
+    assert.equal(hole.enabled, true, "the first scoop leaves the rim visible");
+    assert.equal(cavity.enabled, true, "the partially filled cavity remains visible");
+    assert.ok(Math.abs(patch.getLocalPosition().y - target.y - 0.014 + 0.15) < 1e-6);
     field.scoopFillSoil(fill.description);
     assert.equal(field.fill(fill.description), false, "a second stroke still needs one more scoop");
     for (let frame = 0; frame < 9; frame += 1) {
       update(0.1);
     }
-    assert.equal(hole.enabled, true, "the hole stays open after two scoops");
+    assert.equal(hole.enabled, true, "the rim remains available for leveling");
+    assert.equal(cavity.enabled, false, "the inner wall merges into the fill after two scoops");
     assert.equal(pile.enabled, false, "two scoops empty the source pile");
-    assert.ok(Math.abs(patch.getLocalPosition().y - target.y - 0.014 + 0.1) < 1e-6);
+    assert.ok(Math.abs(patch.getLocalPosition().y - target.y - 0.014) < 1e-6,
+      "the soil reaches ground level before rim leveling begins");
     assert.equal(field.isFillRimStage(target.id), true);
     field.levelFillRim(fill.description);
     update(0.1);
     update(0.1);
     const rimTime = hole.anim.baseLayer.activeStateCurrentTime;
     assert.ok(rimTime > 0 && rimTime < 1, "the authored rim moves while the blade pushes");
-    assert.ok(patch.getLocalPosition().y > target.y - 0.086, "the rim adds soil to the cavity");
+    assert.ok(Math.abs(patch.getLocalPosition().y - target.y - 0.014) < 1e-6,
+      "rim leveling keeps the already filled center at ground level");
     field.returnFillSoil(fill.description);
     update(0.1);
     assert.equal(hole.anim.baseLayer.activeStateCurrentTime, rimTime, "interrupting stops rim movement");
