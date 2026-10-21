@@ -1,3 +1,4 @@
+import { SurfaceSpatialIndex } from "../../shared/SurfaceSpatialIndex.js";
 import { createCastleMasonryVoxels } from "./CastleMasonryPhysics.js";
 import { NpcObstacleProbe } from "../../shared/NpcObstacleProbe.js";
 import { addGeneratedVoxelPhysics } from "../../shared/GeneratedVoxelPhysics.js";
@@ -178,6 +179,10 @@ export class CastleEntityBuilder {
    * @type {Array<{x: number, y: number, z: number, halfX: number, halfY: number, halfZ: number}>}
    */
   #cameraCollisionBlocks = [];
+  /**
+   * @type {SurfaceSpatialIndex<{x:number,y:number,z:number,halfX:number,halfY:number,halfZ:number}>}
+   */
+  #cameraCollisionIndex = new SurfaceSpatialIndex();
   /**
    *
    * @type {Array<Door>}
@@ -393,7 +398,7 @@ export class CastleEntityBuilder {
       return this.#animatedDoors.some(/**
        * @param {Door} door
        */ (door) => door.blocksCameraAt(x, elevation + 0.4, z, radius)) ||
-        this.#cameraCollisionBlocks.some(/**
+        [...this.#cameraCollisionIndex.query(x, z, radius)].some(/**
          * @param {{x: number, y: number, z: number, halfX: number, halfY: number, halfZ: number}} block
          */ (block) => {
             if (block.y + block.halfY <= elevation + Math.max(0.02, stepClearance) + 0.000001 || block.y - block.halfY >= elevation + 0.8) {
@@ -437,7 +442,7 @@ export class CastleEntityBuilder {
     ) {
       return true;
     }
-    return this.#cameraCollisionBlocks.some(/**
+    return [...this.#cameraCollisionIndex.query(x, z, radius)].some(/**
      *
      * @param {{x: number, y: number, z: number, halfX: number, halfY: number, halfZ: number}} block
      */
@@ -589,6 +594,7 @@ export class CastleEntityBuilder {
     this.#carpetTexture = null;
     this.#groundCollisionColumns = [];
     this.#cameraCollisionBlocks = [];
+    this.#cameraCollisionIndex = new SurfaceSpatialIndex();
   }
 
   /**
@@ -600,7 +606,7 @@ export class CastleEntityBuilder {
   #intersectsGroundColumns(x, z, radius) {
     const radiusSquared = radius * radius;
     if (this.#buildPlan?.layout.basePlanId) {
-      return this.#cameraCollisionBlocks.some(/**
+      return [...this.#cameraCollisionIndex.query(x, z, radius)].some(/**
        * @param {{x:number,y:number,z:number,halfX:number,halfY:number,halfZ:number}} block
        */
         (block) => block.y + block.halfY > this.#position.elevation + 0.25 &&
@@ -904,6 +910,14 @@ export class CastleEntityBuilder {
         open: window.open,
         facing: (alongX ? Math.cos(window.yaw * Math.PI / 180) : Math.sin(window.yaw * Math.PI / 180)) >= 0 ? 1 : -1,
       }, this.#materials.get("castleStoneMid"));
+    }
+    for (const block of this.#cameraCollisionBlocks) {
+      this.#cameraCollisionIndex.add(block, {
+        minX: block.x - block.halfX,
+        maxX: block.x + block.halfX,
+        minZ: block.z - block.halfZ,
+        maxZ: block.z + block.halfZ,
+      });
     }
     const batches = new Map();
     for (const box of windows.cutBoxes(geometry.boxes, 0.002)) {

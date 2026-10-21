@@ -1,3 +1,4 @@
+import { SurfaceSpatialIndex } from "../../shared/SurfaceSpatialIndex.js";
 import { CastleFloorFinish } from "../structure/CastleFloorFinish.js";
 import { MAX_SAFE_STEP_DOWN, STEP_CLEARANCE } from "../../characters/hero/HeroSurfaceRules.js";
 import { spiralStairRise } from "../../shared/SpiralStairCollision.js";
@@ -88,6 +89,10 @@ export class CastleResidentialLayout {
    * @type {Array<{id: string, minX: number, maxX: number, minZ: number, maxZ: number, floorY: number}>}
    */
   #walkableAreas = [];
+  /**
+   * @type {SurfaceSpatialIndex<{id:string,minX:number,maxX:number,minZ:number,maxZ:number,floorY:number}>|null}
+   */
+  #floorIndex = null;
   /**
    * @type {{floorY: number, access: ResidentialPoint, partition: ResidentialPoint, locked: boolean}}
    */
@@ -938,7 +943,13 @@ export class CastleResidentialLayout {
       return stairHeight;
     }
     const local = this.toLocal(x, z);
-    for (const area of this.#walkableAreas) {
+    if (!this.#floorIndex) {
+      this.#floorIndex = new SurfaceSpatialIndex();
+      for (const area of this.#walkableAreas) {
+        this.#floorIndex.add(area, area);
+      }
+    }
+    for (const area of this.#floorIndex.query(local.x, local.z)) {
       if (area.floorY < this.#origin.y && !this.canEnterBasement(actor)) {
         continue;
       }

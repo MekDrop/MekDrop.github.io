@@ -1,18 +1,15 @@
 /**
- * @typedef {{surfaceHeightAt: (x: number, z: number, radius: number) => number|null}} SurfaceProvider
- */
-
-/**
- * Finds stationary surface providers near an X/Z query without scanning the map.
+ * Finds stationary geometry near an X/Z query without scanning the map.
+ * @template T
  */
 export class SurfaceSpatialIndex {
   /**
-   * @type {Map<string, Set<SurfaceProvider>>}
+   * @type {Map<string, Set<T>>}
    */
   #cells = new Map();
 
   /**
-   * @param {SurfaceProvider} item
+   * @param {T} item
    * @param {{minX: number, maxX: number, minZ: number, maxZ: number}} bounds
    */
   add(item, bounds) {
@@ -33,7 +30,7 @@ export class SurfaceSpatialIndex {
    * @param {number} x
    * @param {number} z
    * @param {number} radius
-   * @returns {Set<SurfaceProvider>}
+   * @returns {Set<T>}
    */
   query(x, z, radius = 0) {
     const items = new Set();

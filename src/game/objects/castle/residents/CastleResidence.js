@@ -1,3 +1,4 @@
+import { SurfaceSpatialIndex } from "../../shared/SurfaceSpatialIndex.js";
 import { castleStraightStairAssemblies, castleStraightStairBlocksCamera } from "../stairs/CastleStraightStairs.js";
 import { CastleFloorFinish } from "../structure/CastleFloorFinish.js";
 import { createSpiralStairCollision, spiralStairRise } from "../../shared/SpiralStairCollision.js";
@@ -41,6 +42,10 @@ export class CastleResidence {
    * @type {Array<{x: number, y: number, z: number, width: number, height: number, depth: number, floorSupport?: boolean}>}
    */
   #solids = [];
+  /**
+   * @type {SurfaceSpatialIndex<{x:number,y:number,z:number,width:number,height:number,depth:number,floorSupport?:boolean}>}
+   */
+  #solidIndex = new SurfaceSpatialIndex();
   /**
    * @type {Array<import("playcanvas").Entity>}
    */
@@ -119,6 +124,7 @@ export class CastleResidence {
         voxels: this.#solids,
         friction: 0.6,
       });
+      this.#indexSolids();
 
       return;
     }
@@ -135,6 +141,7 @@ export class CastleResidence {
       voxels: this.#solids,
       friction: 0.6,
     });
+    this.#indexSolids();
   }
 
   /**
@@ -205,7 +212,9 @@ export class CastleResidence {
           // Keep their support record without adding another visible slab.
           const threshold = area.id.endsWith("Threshold");
           const wood = timber && !threshold && !area.id.endsWith(":straightLanding");
-          const panel = wood ? null : models.instantiate(stoneUrl);
+          // Authored masonry already supplies this slab; avoid constructing an
+          // unparented model hierarchy that would immediately be discarded.
+          const panel = wood || plan.basePlanId ? null : models.instantiate(stoneUrl);
           const x = (minX + maxX) / 2;
           const z = (minZ + maxZ) / 2;
           const y = area.floorY - plan.origin.y;
@@ -341,7 +350,7 @@ export class CastleResidence {
     }
     const y = elevation - this.#layout.origin.y;
 
-    return this.#solids.some(
+    return [...this.#solidIndex.query(local.x, local.z, radius)].some(
       /**
        * @param {{x: number, y: number, z: number, width: number, height: number, depth: number, floorSupport?: boolean}} solid
        */
@@ -362,12 +371,26 @@ export class CastleResidence {
       /**
        * @param {import("../stairs/CastleStraightStairs.js").StraightStairGeometry} stair
        */
-      stair => castleStraightStairBlocksCamera(stair,x,y,z,radius)) || this.#solids.some(
+      stair => castleStraightStairBlocksCamera(stair,x,y,z,radius)) || [...this.#solidIndex.query(local.x, local.z, radius)].some(
       /**
        * @param {{x: number, y: number, z: number, width: number, height: number, depth: number, floorSupport?: boolean}} solid
        */
       (solid) => Math.hypot(Math.max(Math.abs(local.x - solid.x) - solid.width / 2, 0), Math.max(Math.abs(y - this.#layout.origin.y - solid.y) - solid.height / 2, 0), Math.max(Math.abs(local.z - solid.z) - solid.depth / 2, 0)) <= radius,
     );
+  }
+
+  /**
+   * Index local collision bounds after all floors and stair supports exist.
+   */
+  #indexSolids() {
+    for (const solid of this.#solids) {
+      this.#solidIndex.add(solid, {
+        minX: solid.x - solid.width / 2,
+        maxX: solid.x + solid.width / 2,
+        minZ: solid.z - solid.depth / 2,
+        maxZ: solid.z + solid.depth / 2,
+      });
+    }
   }
 
   destroy() {
@@ -388,6 +411,7 @@ export class CastleResidence {
     }
     this.#stairProfileMeshes = [];
     this.#solids = [];
+    this.#solidIndex = new SurfaceSpatialIndex();
   }
 
   /**

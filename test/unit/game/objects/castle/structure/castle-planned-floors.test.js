@@ -32,6 +32,42 @@ class Entity {
   addComponent() {}
 }
 
+it("does not instantiate discarded slabs when authored masonry owns the floor", async () => {
+  const plan = await CastleGenerator.generate({
+    position: {
+      x: -14,
+      z: -8,
+      width: 28,
+      depth: 16,
+      elevation: 3,
+    },
+    doors: [{
+      side: "NORTH",
+      offset: 13,
+      width: 2,
+    }],
+    seed: 1,
+  });
+  assert.ok(plan.metadata.runtime.residential.basePlanId);
+  const builder = new FloorBuilder(new CastleResidentialLayout(plan));
+  const instantiated = [];
+  builder.build(plan, {
+    instantiate: (url) => {
+      const entity = Object.assign(new Entity(), { url });
+      instantiated.push(entity);
+
+      return entity;
+    },
+  }, {
+    Entity,
+    Color: class {},
+  });
+  assert.ok(instantiated.length > 0, "timber finishes still exist");
+  for (const entity of instantiated) {
+    assert.ok(builder.children.includes(entity), "every constructed floor model is used");
+  }
+});
+
 it("keeps continuous timber above masonry in the panel's seams and corners", () => {
   const buffer = readFileSync(new URL("../../../../../../src/game/models/castle/residential/floor-panel.glb", import.meta.url));
   const gltf = JSON.parse(buffer.subarray(20, 20 + buffer.readUInt32LE(12)));

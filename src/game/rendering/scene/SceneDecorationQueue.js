@@ -118,7 +118,9 @@ export class SceneDecorationQueue {
       return;
     }
     try {
-      const deadline = performance.now() + 4;
+      // Loading owns the frame: use most of a 60 Hz frame for preparation,
+      // while still painting the loading screen between bounded chunks.
+      const deadline = performance.now() + 12;
       do {
         if (!this.#active) {
           this.#active = this.#jobs.shift()?.() ?? null;

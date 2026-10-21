@@ -30,6 +30,30 @@ function mockTimers(t, timers, fallbacks = []) {
   });
 }
 
+it("uses the loading frame budget for several small jobs before yielding", async (t) => {
+  const frames = [];
+  const timers = [];
+  mockFrames(t, frames);
+  mockTimers(t, timers);
+  let now = 0;
+  t.mock.method(performance, "now", () => now += 4);
+  const calls = [];
+  const queue = new SceneDecorationQueue(assert.fail);
+  for (let index = 0; index < 4; index++) {
+    queue.add(() => {
+      calls.push(index);
+    });
+  }
+  const completion = queue.start();
+  frames.shift()();
+  timers.shift()();
+  assert.deepEqual(calls, [0, 1, 2]);
+  frames.shift()();
+  timers.shift()();
+  assert.equal(await completion, true);
+  assert.deepEqual(calls, [0, 1, 2, 3]);
+});
+
 it("yields between loading frames, pauses, and cancels stale work", (t) => {
   const frames = [];
   const timers = [];
@@ -37,7 +61,7 @@ it("yields between loading frames, pauses, and cancels stale work", (t) => {
   let now = 0;
   mockTimers(t, timers);
   mockFrames(t, frames);
-  t.mock.method(performance, "now", () => now += 5);
+  t.mock.method(performance, "now", () => now += 13);
   const queue = new SceneDecorationQueue((error) => calls.push(error));
   queue.add(function* () {
     calls.push("grass-start");
@@ -81,7 +105,7 @@ it("keeps loading pending until every decoration finishes and releases canceled 
   mockFrames(t, frames);
   mockTimers(t, timers);
   let now = 0;
-  t.mock.method(performance, "now", () => now += 5);
+  t.mock.method(performance, "now", () => now += 13);
   const queue = new SceneDecorationQueue(assert.fail);
   let decorated = false;
   queue.add(function* () {
