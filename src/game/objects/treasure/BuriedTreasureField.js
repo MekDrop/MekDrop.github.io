@@ -508,7 +508,7 @@ export class BuriedTreasureField {
       }
       if (facing) {
         existingSite.hole.setLocalEulerAngles(0, Math.atan2(facing.x, facing.z) * 180 / Math.PI, 0);
-        existingSite.pileOffset = this.#supportedPileOffset(existingSite, facing.x, facing.z);
+        existingSite.pileOffset = this.pileOffsetFor(existingSite, facing);
         existingSite.earthPile.enabled = existingSite.pileOffset !== null;
         existingSite.earthPile.setLocalPosition(
           existingSite.x + (existingSite.pileOffset?.x ?? 0),
@@ -546,7 +546,10 @@ export class BuriedTreasureField {
       z: target.z,
       state: "digging",
       digStrokes: 1,
-      pileOffset: this.#supportedPileOffset(target, forwardX, forwardZ),
+      pileOffset: this.pileOffsetFor(target, {
+        x: forwardX,
+        z: forwardZ,
+      }),
       facingYaw: Math.atan2(forwardX, forwardZ) * 180 / Math.PI,
       elapsed: 0,
       hole: null,
@@ -1062,11 +1065,12 @@ export class BuriedTreasureField {
   /**
    * Keep the complete spoil mound on the same terrace as the excavation.
    * @param {Point3} target
-   * @param {number} forwardX
-   * @param {number} forwardZ
+   * @param {{x: number, z: number}} facing
    * @returns {import("playcanvas").Vec2|null}
    */
-  #supportedPileOffset(target, forwardX, forwardZ) {
+  pileOffsetFor(target, facing) {
+    const forwardX = facing.x;
+    const forwardZ = facing.z;
     const offset = new this.#pc.Vec2(
       forwardZ * 0.42 + forwardX * 0.3,
       -forwardX * 0.42 + forwardZ * 0.3,
@@ -1076,7 +1080,6 @@ export class BuriedTreasureField {
       return offset;
     }
 
-    // Keep the same separation from the cavity on the opposite side.
     offset.mulScalar(-1);
     if (this.#canExcavateAt(target.x + offset.x, target.y,
       target.z + offset.y, 0.34, true)) {

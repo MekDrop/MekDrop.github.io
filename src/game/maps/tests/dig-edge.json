@@ -355,6 +355,11 @@
   "mergeZones": [],
   "trunkStart": null,
   "mapName": "test_dig-edge",
+  "heroSpawn": {
+    "x": 0,
+    "y": 2.04,
+    "z": 0.465
+  },
   "layoutSignature": "test_dig-edge",
   "objects": [
     {
@@ -363,7 +368,7 @@
       "position": {
         "x": 0,
         "y": 2.14,
-        "z": 0
+        "z": 0.465
       }
     }
   ],
@@ -380,6 +385,10 @@
         "x": 16,
         "y": 140,
         "buttons": [
+          {
+            "label": "Dig with shovel",
+            "script": "import('/src/game/objects/treasure/DigInteraction.js').then(({DigInteraction}) => { const field = [...objects].find(object => object.constructor.name === 'BuriedTreasureField'); for (const hero of objects.getAll('hero')) { new DigInteraction({field,hero,tool:hero.tools.get('ShovelTool'),target:{kind:'dig',id:'4:4',col:4,row:4,x:0,y:2.004,z:1}}).interact(); } });"
+          },
           {
             "label": "One dig stroke",
             "script": "const field = [...objects].find(object => object.constructor.name === \"BuriedTreasureField\"); field.dig({kind:\"dig\",id:\"4:4\",col:4,row:4,x:0,y:2.004,z:1}, {x:0,z:1});"

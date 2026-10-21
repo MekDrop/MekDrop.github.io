@@ -39,7 +39,12 @@ export class HeroAnimationPlayback {
    * @returns {Map<string, import("playcanvas").AnimTrack>}
    */
   initialize(modelRoot, modelLibrary, modelUrl) {
-    const tracks = modelLibrary.getAnimationTracks(modelUrl, HERO_ANIMATION_NAMES);
+    const tracks = modelLibrary.getAnimationTracks(modelUrl,
+      HERO_ANIMATION_NAMES.filter(HeroAnimationPlayback.#requiredAnimation));
+    // Uncalibrated character variants may only provide the original tool clip.
+    if (!tracks.has(HERO_ANIMATION.DIG_OPPOSITE)) {
+      tracks.set(HERO_ANIMATION.DIG_OPPOSITE, tracks.get(HERO_ANIMATION.DIG));
+    }
     modelRoot.addComponent("anim", { activate: true });
     this.#animation = modelRoot.anim;
     for (const [name, track] of tracks) {
@@ -88,5 +93,13 @@ export class HeroAnimationPlayback {
   destroy() {
     this.#animation = null;
     this.#state = null;
+  }
+
+  /**
+   * @param {string} name
+   * @returns {boolean}
+   */
+  static #requiredAnimation(name) {
+    return name !== HERO_ANIMATION.DIG_OPPOSITE;
   }
 }

@@ -91,14 +91,27 @@ export class DigInteraction {
       minimumTargetDistance: TREASURE_TOOL_MIN_DISTANCE,
       targetDistance: TREASURE_TOOL_MIN_DISTANCE,
       context: { action: this.#target.kind === "blocked-dig" ? "blocked-dig" : "dig" },
-      onImpact: () => {
-        const finished = this.#field.dig(this.#target, this.#hero.facingDirection);
-        revealedBlockedDig =
-          this.#target.kind === "blocked-dig" && finished;
-        this.#onChange?.();
+      onImpact: /**
+       * @param {import("src/game/objects/ObjectTypes.js").HeroActionPayload} action
+       */
+        (action) => {
+          const facing = this.#hero.facingDirection;
+          const finished = this.#field.dig(this.#target, facing);
+          if (this.#target.kind !== "blocked-dig") {
+            const offset = this.#field.pileOffsetFor(this.#target, facing);
+            action.toolContext.pileOffsetX = offset?.x ?? facing.z * 0.42 + facing.x * 0.3;
+            action.toolContext.pileOffsetZ = offset?.y ?? -facing.x * 0.42 + facing.z * 0.3;
+            action.toolContext.oppositeThrow = Boolean(offset &&
+            offset.x * (facing.z * 0.42 + facing.x * 0.3) +
+            offset.y * (-facing.x * 0.42 + facing.z * 0.3) < 0);
+            action.useAnimation = this.#tool.useAnimation(action.toolContext);
+          }
+          revealedBlockedDig =
+            this.#target.kind === "blocked-dig" && finished;
+          this.#onChange?.();
 
-        return finished;
-      },
+          return finished;
+        },
       onComplete: () => {
         if (revealedBlockedDig) {
           this.#hero.reactToBlockedDig();

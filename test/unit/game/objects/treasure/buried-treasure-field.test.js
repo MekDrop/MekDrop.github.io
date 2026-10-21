@@ -489,7 +489,7 @@ for (const surface of ["path", "decorated grass"]) {
   });
 }
 
-it("moves the spoil pile away from a lower neighboring terrace", () => {
+it("moves spoil to the supported side at a lower neighboring terrace", () => {
   const models = [];
   const field = new BuriedTreasureField({
     pc,
@@ -537,6 +537,7 @@ it("moves the spoil pile away from a lower neighboring terrace", () => {
     x: 0,
     z: -1,
   });
+  assert.equal(pile.enabled, true, "a supported throw forms a mound when digging resumes");
   assert.ok(pile.getLocalPosition().x < 0 && pile.getLocalPosition().z < 0,
     "resuming from the opposite side updates the pile to match the new throw");
   assert.ok(Math.abs(Math.hypot(pile.getLocalPosition().x, pile.getLocalPosition().z) - Math.hypot(0.42, 0.3)) < 1e-6,

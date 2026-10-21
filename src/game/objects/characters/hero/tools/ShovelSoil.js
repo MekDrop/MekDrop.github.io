@@ -152,7 +152,7 @@ export class ShovelSoil {
       clod.visual.setLocalScale(clod.scale.clone().mulScalar(Math.min(1, clod.remaining / 0.35)));
       clod.root.enabled = clod.remaining > 0;
     }
-    const digging = action?.phase === "use" && action.useAnimation === HERO_ANIMATION.DIG &&
+    const digging = action?.phase === "use" && [HERO_ANIMATION.DIG, HERO_ANIMATION.DIG_OPPOSITE].includes(action.useAnimation) &&
       action.toolContext?.action !== "blocked-dig";
     const filling = action?.phase === "use" && action.useAnimation === HERO_ANIMATION.FILL_HOLE;
     const leveling = action?.phase === "use" && action.useAnimation === HERO_ANIMATION.LEVEL_HOLE;
@@ -194,7 +194,7 @@ export class ShovelSoil {
       }
       if (!this.#released && time >= releaseTime && this.#load.enabled) {
         this.#setLoadAmount(1);
-        this.#release(action.targetPosition, false, filling);
+        this.#release(action.targetPosition, false, filling, action.toolContext);
         this.#load.enabled = false;
         this.#released = true;
       }
@@ -249,16 +249,19 @@ export class ShovelSoil {
    * @param {{x: number, y: number, z: number}|undefined} target
    * @param {boolean} [drop]
    * @param {boolean} [filling]
+   * @param {Record<string, string|number|boolean>} [context]
    */
-  #release(target, drop = false, filling = false) {
+  #release(target, drop = false, filling = false, context = {}) {
     const right = this.#owner.getWorldTransform().transformVector(new Vec3(1, 0, 0)).normalize();
     const forward = this.#owner.getWorldTransform().transformVector(new Vec3(0, 0, 1)).normalize();
     const surface = target ?? this.#owner.getPosition();
+    const offsetX = typeof context.pileOffsetX === "number" ? context.pileOffsetX : right.x * 0.42 + forward.x * 0.3;
+    const offsetZ = typeof context.pileOffsetZ === "number" ? context.pileOffsetZ : right.z * 0.42 + forward.z * 0.3;
     this.#landingPosition = new Vec3(surface.x, surface.y, surface.z);
     this.#landingOffset = this.#islandOffsetAt(surface.x, surface.z);
-    this.#ground.setPosition(surface.x + (filling ? 0 : right.x * 0.42 + forward.x * 0.3),
+    this.#ground.setPosition(surface.x + (filling ? 0 : offsetX),
       surface.y - (filling ? 0.3 : 0.2) + (target ? this.#landingOffset : 0),
-      surface.z + (filling ? 0 : right.z * 0.42 + forward.z * 0.3));
+      surface.z + (filling ? 0 : offsetZ));
     const rotation = this.#owner.getRotation();
     this.#ground.setRotation(rotation.x, rotation.y, rotation.z, rotation.w);
     this.#ground.enabled = true;
@@ -294,8 +297,13 @@ export class ShovelSoil {
       clod.root.rigidbody.linearVelocity = filling
         ? new Vec3((surface.x - position.x) * 3, -0.3, (surface.z - position.z) * 3)
         : drop ? new Vec3(0, 0, 0)
-          : right.clone().mulScalar(0.7 + spread * 0.025)
-            .add(forward.clone().mulScalar(0.35)).add(new Vec3(0, 0.45 + Math.abs(spread) * 0.02, 0));
+          : context.oppositeThrow ? new Vec3(
+            (surface.x + offsetX - position.x) / 0.4,
+            0.45 + Math.abs(spread) * 0.02,
+            (surface.z + offsetZ - position.z) / 0.4,
+          )
+            : right.clone().mulScalar(0.7 + spread * 0.025)
+              .add(forward.clone().mulScalar(0.35)).add(new Vec3(0, 0.45 + Math.abs(spread) * 0.02, 0));
       clod.root.rigidbody.angularVelocity = new Vec3(2 + spread, 3 - spread, 2);
     }
   }

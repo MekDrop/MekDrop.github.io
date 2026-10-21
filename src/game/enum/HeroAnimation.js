@@ -26,6 +26,7 @@ export const HERO_ANIMATION = Object.freeze({
   DISMISS_AXE: "DismissAxe",
   CHOP_LOW: "ChopLow",
   DIG: "Dig",
+  DIG_OPPOSITE: "DigOpposite",
   OPEN_CHEST: "OpenChest",
   SUMMON_SHOVEL: "SummonShovel",
   DISMISS_SHOVEL: "DismissShovel",

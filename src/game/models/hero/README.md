@@ -77,6 +77,12 @@ position to reach the far, near and side edges. Every stroke returns to the same
 carry pose. The treasure action applies one impact per stroke and completes after
 eight impacts; the cavity widens as work progresses.
 
+`DigOpposite` preserves the planted contacts and changes the carry and release
+to the supported mound across the hole when a terrace edge blocks the normal
+throw side. The interaction selects the clip at contact without resetting the
+stroke clock. Released soil uses that same mound offset. Character variants
+without calibrated opposite throws retain their existing digging clip.
+
 Each stroke plants at 0.60 seconds, picks up the authored soil load at 0.64,
 lifts it along an outward arc through 1.04, and tips the blade through 1.18.
 At 1.23 seconds the load becomes seven pooled Ammo clods; the empty shovel

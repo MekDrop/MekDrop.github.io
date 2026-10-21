@@ -3490,6 +3490,10 @@ export class Hero {
       animation = this.#selectIdleAnimation(deltaTime);
     }
     this.#animationPlayback.play(animation, animationSpeed, this.#restartAnimation);
+    if ([HERO_ANIMATION.DIG, HERO_ANIMATION.DIG_OPPOSITE].includes(animation) && this.#actionBehavior.toolAction?.phase === "use") {
+      // Switching the throw side at contact must retain the current stroke time.
+      this.#modelRoot.anim.baseLayer.activeStateCurrentTime = this.#actionBehavior.toolAction.elapsed;
+    }
     if (this.#actionBehavior.bellAction?.pulling) {
       this.#modelRoot.anim.baseLayer.activeStateCurrentTime = Math.min(2.199, this.#actionBehavior.bellAction.elapsed);
     }

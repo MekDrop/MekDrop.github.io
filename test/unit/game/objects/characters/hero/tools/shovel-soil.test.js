@@ -86,6 +86,27 @@ it("carries released dirt and its landing surface with their original island wit
     soil.update(2.1, null);
     assert.equal(clod.enabled, false);
     assert.equal(ground.enabled, false);
+    action.useAnimation = HERO_ANIMATION.DIG_OPPOSITE;
+    action.toolContext = {
+      oppositeThrow: true,
+      pileOffsetX: -0.42,
+      pileOffsetZ: -0.3,
+    };
+    owner.setPosition(0, offset, 0);
+    action.elapsed = 0.7;
+    soil.update(0, action);
+    assert.equal(load.enabled, true, "the alternate stroke carries soil");
+    action.elapsed = 1.24;
+    soil.update(0, action);
+    assert.equal(clod.enabled, true, "the alternate stroke releases soil");
+    assert.ok(Math.abs(ground.getPosition().x - (2 - 0.42)) < 1e-6);
+    assert.ok(Math.abs(ground.getPosition().z - (3 - 0.3)) < 1e-6);
+    const destination = new Vec3(2 - 0.42, 0, 3 - 0.3);
+    const projected = clod.getPosition().clone().add(clod.rigidbody.linearVelocity.clone().mulScalar(0.4));
+    assert.ok(Math.abs(projected.x - destination.x) < 1e-6);
+    assert.ok(Math.abs(projected.z - destination.z) < 1e-6);
+    soil.update(2.1, null);
+    action.toolContext = {};
     let scoops = 0;
     action.useAnimation = HERO_ANIMATION.FILL_HOLE;
     action.toolContext.action = "fill";
