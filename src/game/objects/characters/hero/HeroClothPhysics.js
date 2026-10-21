@@ -1,14 +1,14 @@
 /**
  * @typedef {{instance: import("playcanvas").MeshInstance, original: import("playcanvas").Mesh, originalMaterial: import("playcanvas").Material, material: import("playcanvas").Material, mesh: import("playcanvas").Mesh, positions: number[], indices: number[], mapping: number[], offsets?: import("playcanvas").Vec3[]}} HeroClothBinding
- * @typedef {{body: import("sync-ammo/dist/ammo").btSoftBody|null, nodes: import("playcanvas").Vec3[], bindings: HeroClothBinding[], pins: Array<{index: number, local: import("playcanvas").Vec3, entity: import("playcanvas").Entity}>, decorations: HeroClothBinding[]}} HeroClothGarment
- * @typedef {{entity: import("playcanvas").Entity, center: import("playcanvas").Vec3, body: import("sync-ammo/dist/ammo").btRigidBody, motion: import("sync-ammo/dist/ammo").btDefaultMotionState, transform: import("sync-ammo/dist/ammo").btTransform, position: import("sync-ammo/dist/ammo").btVector3, rotation: import("sync-ammo/dist/ammo").btQuaternion}} HeroClothCollider
+ * @typedef {{body: import("sync-ammo/dist/ammo").btSoftBody|null, nodes: import("playcanvas").Vec3[], bindings: HeroClothBinding[], pins: Array<{index: number, local: import("playcanvas").Vec3, entity: import("playcanvas").Entity, previous: import("playcanvas").Vec3, target: import("playcanvas").Vec3}>, decorations: HeroClothBinding[]}} HeroClothGarment
+ * @typedef {{entity: import("playcanvas").Entity, center: import("playcanvas").Vec3, previousPosition: import("playcanvas").Vec3, targetPosition: import("playcanvas").Vec3, previousRotation: import("playcanvas").Quat, targetRotation: import("playcanvas").Quat, interpolatedRotation: import("playcanvas").Quat, body: import("sync-ammo/dist/ammo").btRigidBody, motion: import("sync-ammo/dist/ammo").btDefaultMotionState, transform: import("sync-ammo/dist/ammo").btTransform, position: import("sync-ammo/dist/ammo").btVector3, rotation: import("sync-ammo/dist/ammo").btQuaternion}} HeroClothCollider
  */
 
 // Ammo's sparse signed-distance contacts lose detail at this small model scale.
 // Simulate in larger units, scaling positions, gravity and margins together.
 const PHYSICS_SCALE = 20;
 const COLLISION_MARGIN = 0.018;
-const LEG_CLEARANCE = 0.025;
+const LEG_CLEARANCE = 0.055;
 const FIXED_STEP = 1 / 120;
 const LEG_PARTS = [
   "Thick trouser leg", "Thick trouser leg.001",
@@ -91,9 +91,9 @@ export class HeroClothPhysics {
         this.#addCollider(entity);
       }
     }
-    // The upper fabric overlaps the fitted tunic beneath the belt. Secure that
-    // entire band to the torso, rather than suspending it from an animated hinge.
-    this.#addGarment("Red lower tunic flap", 0.14, [
+    // Sew the top edge to the fitted torso. Pinning the rows below the seam
+    // prevents them from yielding when a bent thigh enters that space.
+    this.#addGarment("Red lower tunic flap", null, [
       "Left tunic flap piping", "Right tunic flap piping", "Tunic hem facing",
     ]);
   }
@@ -152,6 +152,11 @@ export class HeroClothPhysics {
     const collider = {
       entity,
       center: bounds.center.clone(),
+      previousPosition: center.clone(),
+      targetPosition: center.clone(),
+      previousRotation: orientation.clone(),
+      targetRotation: orientation.clone(),
+      interpolatedRotation: orientation.clone(),
       body,
       motion,
       transform,
@@ -165,11 +170,11 @@ export class HeroClothPhysics {
 
   /**
    * @param {HeroClothCollider} collider
+   * @param {number} [amount]
    */
-  #syncCollider(collider) {
-    const matrix = this.#relative(collider.entity);
-    const position = matrix.transformPoint(collider.center);
-    const rotation = new this.#pc.Quat().setFromMat4(matrix);
+  #syncCollider(collider, amount = 1) {
+    const position = this.#point.lerp(collider.previousPosition, collider.targetPosition, amount);
+    const rotation = collider.interpolatedRotation.slerp(collider.previousRotation, collider.targetRotation, amount);
     collider.position.setValue(position.x * PHYSICS_SCALE, position.y * PHYSICS_SCALE, position.z * PHYSICS_SCALE);
     collider.rotation.setValue(rotation.x, rotation.y, rotation.z, rotation.w);
     collider.transform.setOrigin(collider.position);
@@ -267,6 +272,8 @@ export class HeroClothPhysics {
               index,
               local: attachmentInverse.transformPoint(position),
               entity: attachment,
+              previous: position.clone(),
+              target: position.clone(),
             });
           }
         }
@@ -362,27 +369,56 @@ export class HeroClothPhysics {
       return;
     }
     this.#inverse.copy(this.#root.getWorldTransform()).invert();
-    for (const collider of this.#colliders) {
-      this.#syncCollider(collider);
-      this.#world.updateSingleAabb(collider.body);
-    }
     const reset = this.#previousPosition.distance(this.#root.getPosition()) > 1;
     this.#previousPosition.copy(this.#root.getPosition());
+    for (const collider of this.#colliders) {
+      collider.previousPosition.copy(collider.targetPosition);
+      collider.previousRotation.copy(collider.targetRotation);
+      const matrix = this.#relative(collider.entity);
+      matrix.transformPoint(collider.center, collider.targetPosition);
+      collider.targetRotation.setFromMat4(matrix);
+      if (reset) {
+        collider.previousPosition.copy(collider.targetPosition);
+        collider.previousRotation.copy(collider.targetRotation);
+      }
+    }
     for (const garment of this.#garments) {
-      const nodes = garment.body.get_m_nodes();
       for (const pin of garment.pins) {
-        const target = this.#relative(pin.entity).transformPoint(pin.local);
-        const node = nodes.at(pin.index);
-        node.get_m_x().setValue(target.x * PHYSICS_SCALE, target.y * PHYSICS_SCALE, target.z * PHYSICS_SCALE);
-        node.get_m_q().setValue(target.x * PHYSICS_SCALE, target.y * PHYSICS_SCALE, target.z * PHYSICS_SCALE);
-        node.get_m_v().setValue(0, 0, 0);
+        this.#relative(pin.entity).transformPoint(pin.local, pin.target);
+        if (reset) {
+          pin.previous.copy(pin.target);
+        }
       }
       if (reset) {
         this.#resetGarment(garment);
       }
     }
-    this.#world.stepSimulation(elapsed, 6, FIXED_STEP);
+    // Animated kinematic colliders must sweep through the intermediate poses.
+    // Holding the final pose for all substeps lets a fast shin tunnel through
+    // the fabric before Ammo has a chance to resolve a contact.
+    const steps = Math.ceil(elapsed / FIXED_STEP);
+    for (let step = 1; step <= steps; step++) {
+      const amount = step / steps;
+      for (const collider of this.#colliders) {
+        this.#syncCollider(collider, amount);
+        this.#world.updateSingleAabb(collider.body);
+      }
+      for (const garment of this.#garments) {
+        const nodes = garment.body.get_m_nodes();
+        for (const pin of garment.pins) {
+          const target = this.#point.lerp(pin.previous, pin.target, amount);
+          const node = nodes.at(pin.index);
+          node.get_m_x().setValue(target.x * PHYSICS_SCALE, target.y * PHYSICS_SCALE, target.z * PHYSICS_SCALE);
+          node.get_m_q().setValue(target.x * PHYSICS_SCALE, target.y * PHYSICS_SCALE, target.z * PHYSICS_SCALE);
+          node.get_m_v().setValue(0, 0, 0);
+        }
+      }
+      this.#world.stepSimulation(elapsed / steps, 0);
+    }
     for (const garment of this.#garments) {
+      for (const pin of garment.pins) {
+        pin.previous.copy(pin.target);
+      }
       for (const binding of [...garment.bindings, ...garment.decorations]) {
         this.#writeMesh(garment, binding);
       }

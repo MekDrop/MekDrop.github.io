@@ -1,4 +1,5 @@
 import { HeroStairCameraHeight } from "./HeroStairCameraHeight.js";
+import { HeroLocomotion, RUN_STOP_DURATION } from "./HeroLocomotion.js";
 import { HeroSpawn } from "./HeroSpawn.js";
 import {
   HeroAnimationPlayback,
@@ -74,9 +75,17 @@ import { HeroLadderClimb } from "./HeroLadderClimb.js";
  */
 
 const MAX_FRAME_TIME = 0.1;
-const MOVE_SPEED = 4.2;
-const RUN_SPEED = 6.3;
+const MOVE_SPEED = 1.8;
+const RUN_SPEED = 3.4;
+// Jump reach is independent of the slower, stride-calibrated ground gait.
+const JUMP_MOVE_SPEED = 4.2;
+const JUMP_RUN_SPEED = 6.3;
+// Planted boot travel per second in the authored clips, at the runtime model scale.
+const WALK_CLIP_SPEED = (0.60 * HERO_MODEL_SCALE) / ((2 / 3) * 0.42);
+const RUN_CLIP_SPEED = (0.68 * HERO_MODEL_SCALE) / (0.625 * 0.30);
 const GROUND_ACCELERATION = 24;
+const RUN_ACCELERATION = 8;
+const RUN_BRAKING = 8.5;
 const AIR_ACCELERATION = 10;
 const BRAKING = 30;
 const GRAVITY = -22;
@@ -609,6 +618,10 @@ export class Hero {
    * @type {HeroAnimationPlayback}
    */
   #animationPlayback = new HeroAnimationPlayback();
+  /**
+   * @type {HeroLocomotion}
+   */
+  #locomotion = new HeroLocomotion();
   /**
    *
    * @type {boolean}
@@ -1467,6 +1480,7 @@ export class Hero {
   }
 
   #clearActionInput() {
+    this.#locomotion.reset();
     this.#input.x = 0;
     this.#input.y = 0;
     this.#running = false;
@@ -1595,7 +1609,7 @@ export class Hero {
 
   /**
    *
-   * @returns {{direction: {x: number, z: number}, speed: number, running: boolean}}
+   * @returns {{direction: {x: number, z: number}, speed: number, running: boolean, gait: string}}
    */
   get movementState() {
     const speed = Math.hypot(this.#velocity.x, this.#velocity.z);
@@ -1609,8 +1623,8 @@ export class Hero {
           }
           : this.facingDirection,
       speed,
-      running: (this.#running || this.#angryEscapeBehavior.active)
-        && this.#grounded && speed > 0.08,
+      running: this.#locomotion.running && this.#grounded && speed > 0.08,
+      gait: this.#locomotion.state,
     };
   }
 
@@ -2461,21 +2475,25 @@ export class Hero {
       this.#velocity,
     );
     const moving = Math.hypot(desired.x, desired.z) > 0.001;
-    const acceleration = moving
+    const speed = Math.hypot(this.#velocity.x, this.#velocity.z);
+    const easingRun = this.#grounded && !this.#actionBehavior.dodgeAction &&
+      ((!moving && (this.#locomotion.running || this.#locomotion.stopping)) ||
+        (speed > this.stats.walkSpeed && !this.#running));
+    const acceleration = easingRun ? RUN_BRAKING : moving
       ? this.#grounded
-        ? GROUND_ACCELERATION
+        ? this.#running ? RUN_ACCELERATION : GROUND_ACCELERATION
         : AIR_ACCELERATION
       : BRAKING;
-    this.#velocity.x = this.#approach(
-      this.#velocity.x,
-      desired.x,
-      acceleration * deltaTime,
-    );
-    this.#velocity.z = this.#approach(
-      this.#velocity.z,
-      desired.z,
-      acceleration * deltaTime,
-    );
+    if (this.#grounded && !this.#actionBehavior.dodgeAction) {
+      // Apply the same acceleration magnitude in cardinal and diagonal travel.
+      const change = Math.hypot(desired.x - this.#velocity.x, desired.z - this.#velocity.z);
+      const blend = change > 0 ? Math.min(1, acceleration * deltaTime / change) : 1;
+      this.#velocity.x += (desired.x - this.#velocity.x) * blend;
+      this.#velocity.z += (desired.z - this.#velocity.z) * blend;
+    } else {
+      this.#velocity.x = this.#approach(this.#velocity.x, desired.x, acceleration * deltaTime);
+      this.#velocity.z = this.#approach(this.#velocity.z, desired.z, acceleration * deltaTime);
+    }
     if (this.#partCollidersSuspended && !this.#capsuleSupportOnly && !this.#actionBehavior.bellAction) {
       this.#velocity.x = 0;
       this.#velocity.z = 0;
@@ -2530,9 +2548,12 @@ export class Hero {
         z: 0,
       };
     }
+    const jumping = !this.#grounded || this.#jumpBufferRemaining > 0;
+    const walkSpeed = jumping ? JUMP_MOVE_SPEED : MOVE_SPEED;
+    const runSpeed = jumping ? JUMP_RUN_SPEED : RUN_SPEED;
     const speed = this.#buffs.modifyStat(
       HERO_STAT.MOVEMENT_SPEED,
-      this.#running ? RUN_SPEED : MOVE_SPEED,
+      this.#running ? runSpeed : walkSpeed,
     );
 
     return {
@@ -3457,6 +3478,16 @@ export class Hero {
 
     let animation;
     let animationSpeed = 1;
+    const gait = this.#locomotion.update(deltaTime, {
+      enabled: !actionAnimation && !showingBlockedPush &&
+        (this.#grounded || this.#coyoteRemaining > 0) && this.#movementAnimationHoldRemaining === 0,
+      moving: this.#hasMovementInput,
+      running: this.#running || this.#angryEscapeBehavior.active,
+      speed: horizontalSpeed,
+      walkSpeed: this.stats.walkSpeed,
+      runSpeed: this.stats.runSpeed,
+      phase: this.#animationPlayback.phase,
+    });
     if (actionAnimation) {
       animation = actionAnimation;
       animationSpeed = LADDER_TOP_ANIMATIONS.has(animation) ? 0 : this.#climbMotion ? this.#climbMotion.speed * 2.8 : this.#actionBehavior.animationSpeed;
@@ -3473,14 +3504,12 @@ export class Hero {
     ) {
       animation = HERO_ANIMATION.IDLE;
       this.#resetBoredom();
-    } else if (horizontalSpeed > 0.08) {
-      const running = this.#running || this.#angryEscapeBehavior.active;
-      animation = running ? HERO_ANIMATION.RUN : HERO_ANIMATION.WALK;
-      const expectedSpeed = running ? RUN_SPEED : MOVE_SPEED;
-      animationSpeed = Math.max(
-        0.75,
-        Math.min(1.25, horizontalSpeed / expectedSpeed),
-      );
+    } else if (gait && gait !== HERO_ANIMATION.IDLE) {
+      animation = gait;
+      if ([HERO_ANIMATION.WALK, HERO_ANIMATION.RUN].includes(gait)) {
+        const expectedSpeed = gait === HERO_ANIMATION.RUN ? RUN_CLIP_SPEED : WALK_CLIP_SPEED;
+        animationSpeed = horizontalSpeed / expectedSpeed;
+      }
       this.#resetBoredom();
     } else if (this.#emotionBehavior.state.kind !== HERO_MOOD.CALM) {
       animation = HERO_ANIMATION.IDLE;
@@ -3492,7 +3521,9 @@ export class Hero {
     } else {
       animation = this.#selectIdleAnimation(deltaTime);
     }
-    this.#animationPlayback.play(animation, animationSpeed, this.#restartAnimation);
+    this.#animationPlayback.play(animation, animationSpeed, this.#restartAnimation,
+      this.#actionBehavior.dodgeAction?.duration ??
+      ([HERO_ANIMATION.RUN_STOP_LEFT, HERO_ANIMATION.RUN_STOP_RIGHT].includes(animation) ? RUN_STOP_DURATION : null));
     if ([HERO_ANIMATION.DIG, HERO_ANIMATION.DIG_OPPOSITE].includes(animation) && this.#actionBehavior.toolAction?.phase === "use") {
       // Switching the throw side at contact must retain the current stroke time.
       this.#modelRoot.anim.baseLayer.activeStateCurrentTime = this.#actionBehavior.toolAction.elapsed;
@@ -3761,25 +3792,11 @@ export class Hero {
           side: "left",
           leg: this.#findModelEntity("Left leg"),
           sole: this.#findModelEntity("Boot sole"),
-          cuff: this.#findModelEntity("Boot cuff"),
-          tiltingParts: [
-            "Boot shaft",
-            "Boot front strap",
-            "Left ankle",
-          ].map(
-            this.#findLeftFootTiltingPart.bind(this),
-          ),
         },
         right: {
           side: "right",
           leg: this.#findModelEntity("Right leg"),
           sole: this.#findModelEntity("Boot sole.001"),
-          cuff: this.#findModelEntity("Boot cuff.001"),
-          tiltingParts: [
-            "Boot shaft.001",
-            "Boot front strap.001",
-            "Right ankle",
-          ].map(this.#findRightFootTiltingPart.bind(this)),
         },
       });
     }
@@ -4089,6 +4106,13 @@ export class Hero {
    * @param {number} crossedLedge
    */
   #completeDodge(crossedLedge) {
+    if (!this.#hasMovementInput) {
+      // The impulse ends with the dodge. Do not turn its remaining velocity into
+      // a several-times-speed walking cycle while preserving sideways facing.
+      this.#velocity.x = 0;
+      this.#velocity.z = 0;
+      this.#physics.velocity = this.#velocity;
+    }
     if (crossedLedge) {
       const riverRouteEntry = this.#riverRouteEntryAt(
         this.#position.x,
@@ -4478,22 +4502,6 @@ export class Hero {
    */
   #visualOffsetAt(x, z) {
     return this.#islandVisualOffsetAt(x, z);
-  }
-
-  /**
-   *
-   * @param {string} name
-   */
-  #findLeftFootTiltingPart(name) {
-    return this.#findModelEntity(name);
-  }
-
-  /**
-   *
-   * @param {string} name
-   */
-  #findRightFootTiltingPart(name) {
-    return this.#findModelEntity(name);
   }
 
   /**

@@ -32,6 +32,33 @@ function createFoot(side, tiltSole = true) {
 }
 
 describe("hero foot placement physics contacts", () => {
+  it("aligns boot meshes without reparenting or moving the animated ankle", () => {
+    const left = createFoot("left");
+    const ankle = new pc.Entity("Left ankle");
+    left.leg.addChild(ankle);
+    ankle.setLocalPosition(0, 0.4, 0.2);
+    ankle.setLocalEulerAngles(20, 0, 0);
+    ankle.addChild(left.sole);
+    const position = ankle.getPosition().clone();
+    const rotation = ankle.getLocalRotation().clone();
+    const placement = new HeroFootPlacement({
+      pc,
+      surfaceAt: () => ({
+        height: 0,
+        normal: new pc.Vec3(0.3, 1, 0).normalize(),
+      }),
+      getHeroPosition: () => new pc.Vec3(),
+      left,
+      right: createFoot("right"),
+    });
+    placement.update(1, true);
+    assert.equal(ankle.parent.name, "Left leg surface adjustment");
+    assert.ok(ankle.getLocalRotation().equals(rotation));
+    assert.ok(Math.abs(ankle.getPosition().x - position.x) < 0.00001);
+    assert.ok(Math.abs(ankle.getPosition().z - position.z) < 0.00001);
+    assert.equal(left.sole.parent.name, "left boot surface tilt");
+  });
+
   it("lifts and tilts boots from physics raycast hits", () => {
     const raycasts = [];
     const placement = new HeroFootPlacement({

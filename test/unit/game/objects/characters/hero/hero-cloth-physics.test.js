@@ -169,12 +169,23 @@ it("cloth links retain garment length and a moving leg pushes the fabric outward
     assert.ok(Math.min(...result.filter((_, i) => i % 3 === 1)) > -0.46, "fabric must not free-fall away from its attachment");
     assert.ok(Math.max(...result.filter((_, i) => i % 3 === 2)) > 0.04, "the moving leg must deflect the fabric");
     for (let i = 0; i < positions.length; i += 3) {
-      if (positions[i + 1] < 0.14) {
+      if (positions[i + 1] < 0.29) {
         continue;
       }
       assert.ok(Math.abs(result[i] - positions[i]) < 0.0001);
       assert.ok(Math.abs(result[i + 1] - positions[i + 1]) < 0.0001);
     }
+    // A raised thigh must also be able to displace fabric just below the seam.
+    // This row used to be pinned to the torso, making contact resolution impossible.
+    leg.position.y = 0.1;
+    for (let frame = 0; frame < 90; frame++) {
+      leg.position.z = 0.12 + 0.06 * Math.sin(frame / 5);
+      physics.update(1 / 30);
+    }
+    const raised = garment.render.meshInstances[0].mesh.positions;
+    const nearSeam = positions.findIndex((value, i) => i % 3 === 1 && value === 0.2) - 1;
+    assert.ok(Math.abs(raised[nearSeam + 2]) > 0.02,
+      "fabric below the sewn edge must yield to a raised thigh");
     // An authored flap hinge can move independently during action clips. Its
     // sewn upper band must stay on the fitted tunic instead of following it.
     garment.position.z += 0.2;
@@ -184,17 +195,16 @@ it("cloth links retain garment length and a moving leg pushes the fabric outward
     }
     const attached = garment.render.meshInstances[0].mesh.positions;
     for (let i = 0; i < positions.length; i += 3) {
-      if (positions[i + 1] < 0.14) {
+      if (positions[i + 1] < 0.29) {
         continue;
       }
       assert.ok(Math.abs(attached[i + 1] - positions[i + 1] - 0.07) < 0.0001,
-        "the sewn band follows the fitted tunic");
+        "the sewn edge follows the fitted tunic");
       assert.ok(Math.abs(attached[i + 2] + 0.2) < 0.0001,
-        "the sewn band stays attached when the flap hinge moves outward");
+        "the sewn edge stays attached when the flap hinge moves outward");
     }
   } finally {
     physics.destroy();
     assert.equal(garment.render.meshInstances[0].mesh, mesh, "teardown restores the authored mesh");
   }
 });
-

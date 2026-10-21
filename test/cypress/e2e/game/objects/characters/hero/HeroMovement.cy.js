@@ -5,10 +5,12 @@ import { GRASS_SURFACE_LIFT } from "../../../../../../../src/game/config/terrain
 const RESPAWN_CAMERA_DRAG_DISTANCE = 100000;
 
 function loadScenario(scenario) {
-  cy.window().then((window) => {
+  cy.window().then({ timeout: 120000 }, async (window) => {
     window.gameMovementTest.moveForward(false);
 
-    return window.gameMovementTest.loadScenario(scenario);
+    await window.gameMovementTest.loadScenario(scenario);
+    // Each fixture's movement inputs assume its initial camera orientation.
+    window.gameCameraTest.setRotation(0);
   });
 }
 
@@ -162,6 +164,7 @@ describe("Hero movement on a predefined terrain map", { testIsolation: false }, 
       expect(state.grounded).to.equal(true);
       expect(state.animation).to.equal(HERO_ANIMATION.IDLE);
       expect(state.position.y).to.be.closeTo(2 + GRASS_SURFACE_LIFT, 0.03);
+      expect(state.movement.speed).to.be.lessThan(0.01);
       expect(Math.abs(state.facing.x)).to.be.lessThan(0.3);
       expect(state.facing.z).to.be.greaterThan(0.8);
     });
@@ -205,8 +208,17 @@ describe("Hero movement on a predefined terrain map", { testIsolation: false }, 
     cy.window().then((window) => {
       target = window;
     });
+    let settledSince = null;
     expectState((state) => {
-      expect(state.grounded).to.equal(true);
+      // A new hero initially reports grounded before its first physics step.
+      // Start observing walking only after the spawn has actually settled.
+      if (!state.grounded || state.animation !== HERO_ANIMATION.IDLE) {
+        settledSince = null;
+      } else {
+        settledSince ??= Date.now();
+      }
+      expect(settledSince).not.to.equal(null);
+      expect(Date.now() - settledSince).to.be.greaterThan(500);
     });
     expectState((state) => {
       // Royal activity rotates the camera on the approach. Keep walking north
@@ -221,7 +233,7 @@ describe("Hero movement on a predefined terrain map", { testIsolation: false }, 
       expect(state.grounded).to.equal(true);
       expect(usedWalkAnimation).to.equal(true);
       expect(usedJumpAnimation).to.equal(false);
-    });
+    }, 30000);
     stopMoving();
   });
 
@@ -454,6 +466,10 @@ describe("Hero movement on a predefined terrain map", { testIsolation: false }, 
   it("walks out of a raised-terrain pocket along an open direction", () => {
     let blockedPosition;
     loadScenario("raised-pocket");
+    expectState((state) => {
+      expect(state.position.y).to.be.closeTo(1 + GRASS_SURFACE_LIFT, 0.03);
+      expect(state.grounded).to.equal(true);
+    });
     move(0, -1);
     expectState((state) => {
       expect(state.animation).to.equal(HERO_ANIMATION.BLOCKED_PUSH);

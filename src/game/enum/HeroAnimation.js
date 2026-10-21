@@ -7,6 +7,8 @@ export const HERO_ANIMATION = Object.freeze({
   CLIMB_TOP: "ClimbTop",
   CLIMB_TOP_RIGHT: "ClimbTopRight",
   RUN: "Run",
+  RUN_STOP_LEFT: "RunStopLeft",
+  RUN_STOP_RIGHT: "RunStopRight",
   JUMP: "Jump",
   FALL_DEATH: "FallDeath",
   LAVA_FAREWELL: "LavaFarewell",

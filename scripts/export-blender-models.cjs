@@ -13,7 +13,7 @@ const exportExpression = [
   "import bpy, os",
   "source_size = int(os.environ['BLENDER_SOURCE_SIZE'])",
   `[scene.__setitem__('${sourceSizeKey}', source_size) for scene in bpy.data.scenes]`,
-  "result = bpy.ops.export_scene.gltf(filepath=os.environ['BLENDER_EXPORT_OUTPUT'], export_format='GLB', export_extras=True, export_merge_animation='NLA_TRACK')",
+  "result = bpy.ops.export_scene.gltf(filepath=os.environ['BLENDER_EXPORT_OUTPUT'], export_format='GLB', export_extras=True, export_merge_animation='NLA_TRACK', export_optimize_animation_keep_anim_object=bool(bpy.context.scene.get('keepConstantAnimationChannels', False)))",
   "assert 'FINISHED' in result, result",
 ].join("; ");
 

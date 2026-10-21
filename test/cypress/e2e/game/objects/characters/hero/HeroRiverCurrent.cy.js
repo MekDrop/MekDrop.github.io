@@ -15,6 +15,7 @@ describe("Hero carried by river currents", () => {
     cy.get('.background-canvas[data-game-ready="true"]', { timeout: 30000 }).should("be.visible");
     cy.window().its("gameMovementTest").should("exist");
     cy.window().then((window) => {
+      window.gameCameraTest.setRotation(0);
       window.gameMovementTest.jump();
       window.gameMovementTest.move(1, -1);
     });

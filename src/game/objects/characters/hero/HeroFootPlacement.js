@@ -163,37 +163,26 @@ export class HeroFootPlacement {
   /**
    *
    * @param {string} name
-   * @param {{side: import("playcanvas").Entity, leg: import("playcanvas").Entity, sole: import("playcanvas").Entity, cuff: number, tiltingParts: Array<import("playcanvas").Entity>}} options
-   * @param {import("playcanvas").Entity} options.side
+   * @param {{side: string, leg: import("playcanvas").Entity, sole: import("playcanvas").Entity}} options
+   * @param {string} options.side
    * @param {import("playcanvas").Entity} options.leg
    * @param {import("playcanvas").Entity} options.sole
-   * @param {number} options.cuff
-   * @param {Array<import("playcanvas").Entity>} options.tiltingParts
    */
-  #createFoot(name, { side, leg, sole, cuff, tiltingParts }) {
+  #createFoot(name, { side, leg, sole }) {
     const visualChildren = [...leg.children];
     const wrapper = new this.#pc.Entity(name);
     leg.addChild(wrapper);
     for (const child of visualChildren) {
       wrapper.addChild(child);
     }
-    const cuffPosition = cuff.getLocalPosition().clone();
+    // Keep authored ankle positions and rotations in the animation hierarchy.
+    // Surface alignment may rotate the boot meshes, never the joint's lever arm.
+    const bootParent = sole.parent;
+    const bootParts = [...bootParent.children];
     const tilt = new this.#pc.Entity(`${side} boot surface tilt`);
-    tilt.setLocalPosition(cuffPosition);
-    // Pivot under the knee so the boot keeps its ankle offset and pose.
-    cuff.parent.addChild(tilt);
-    for (const part of tiltingParts) {
-      const position = part.getLocalPosition().clone();
-      const rotation = part.getLocalRotation().clone();
-      const scale = part.getLocalScale().clone();
+    bootParent.addChild(tilt);
+    for (const part of bootParts) {
       tilt.addChild(part);
-      part.setLocalPosition(
-        position.x - cuffPosition.x,
-        position.y - cuffPosition.y,
-        position.z - cuffPosition.z,
-      );
-      part.setLocalRotation(rotation);
-      part.setLocalScale(scale);
     }
 
     return {

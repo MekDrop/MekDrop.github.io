@@ -1,5 +1,40 @@
 # Hero animation
 
+## Locomotion
+
+`Walk` retains the previous running cycle as the walking reference: two-thirds
+of a second with a 42% planted stance per foot. `Run` is a 0.625-second cycle
+with a 30% stance, a visible flight phase, forward lean and bent-elbow pumping.
+The planted ankle travels 0.60 and 0.68 authored units respectively. Both clips articulate the hip,
+knee and ankle, lift the returning boot, and close exactly at the loop seam.
+Runtime playback rate follows actual horizontal speed and the model scale.
+Ground speeds are 1.8 units/second walking and 3.4 running; jump reach and
+directional dodge impulses retain their separate travel speeds.
+The walking reference keeps its relaxed arm swing and upright torso.
+Walk and Run use Idle's pelvis origin (zero) and hip height (0.71 authored
+units). Compare posture against the evaluated Idle clip, not the GLB's static
+node transforms. The source scene enables `keepConstantAnimationChannels` so
+exports retain the hip translations even when their values are constant.
+Dropping those channels lets preceding actions supply an incompatible offset.
+
+`HeroLocomotion` selects walking, acceleration, running, slowing and stopping
+from actual velocity and input intent. Releasing run while still moving keeps
+the running gait during deceleration, then blends into walking at walking speed.
+Walk/run blends preserve the supporting-leg phase. Releasing movement from a
+run plays `RunStopLeft` or `RunStopRight` for a 0.42-second braking step before
+Idle; new movement immediately interrupts it. Ground acceleration and braking
+have the same magnitude for cardinal and diagonal movement.
+
+Surface alignment wraps boot geometry below the ankle. It must not rotate
+or reparent the animated ankle: that changes the leg's lever arm and causes
+sliding even when the exported clip has correct planted contacts.
+
+Use `/map/test_locomotion?camera-test` for close movement review with the
+production HUD controls. Exported-contact and loop-seam checks live in
+`test/unit/game/models/hero/locomotion-animation.test.js`.
+Motion references: [Death's Door gameplay](https://www.youtube.com/watch?v=27SQLtu8ayg&t=270s)
+and [Finji's TUNIC trailer](https://www.youtube.com/watch?v=lyLkt19pUWE&t=24s).
+
 ## Flower pickup
 
 `PickFlower` is a 1.5-second one-knee kneel, right-hand pinch, lift and recovery.
@@ -152,12 +187,13 @@ The blue chest panel follows the tunic's side and upper bevels. Its gold edging
 uses adjacent faces of the same sheet, with shared vertices and no overlapping
 blue polygons beneath the gold, preventing depth fighting and floating strips. The lower
 red panel and its edging are also single-surface fabric. The panel extends up
-beneath the belt and overlaps the fitted tunic. Ammo pins that entire upper
-band directly to the fitted tunic, independently of the animated flap hinge.
+beneath the belt and overlaps the fitted tunic. Ammo pins only the sewn top
+edge directly to the fitted tunic, independently of the animated flap hinge.
+Rows below that seam remain free so a raised thigh can push them outward.
 
 Only `Red lower tunic flap` uses cloth physics. The fitted tunic, belt and
 other clothing retain their authored rigid meshes. The flap has a thin,
-subdivided surface; its sewn upper band follows the torso, while Ammo soft-body links,
+subdivided surface; its sewn edge follows the torso, while Ammo soft-body links,
 bending constraints, gravity and animated leg/boot colliders drive the free fabric.
 The attached gold piping follows the simulated panel. Removing the hero restores
 its original meshes and releases the simulation and collision bodies.
@@ -166,6 +202,9 @@ The digging stance keeps the fixed seam ahead of the thighs, uses a shallow knee
 bend, and maintains both glove contacts on the shovel. Cloth contact simulation
 uses enlarged internal units for Ammo's sparse distance-field precision; rendering
 and authored model coordinates keep their original scale.
+Animated colliders and seam attachments interpolate through each physics substep
+to avoid tunnelling during fast leg swings. Walk and run keep the pelvis high
+enough that the fixed seam remains outside the thighs throughout the cycle.
 
 ## Articulated gloves
 

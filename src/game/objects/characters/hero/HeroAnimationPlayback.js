@@ -2,6 +2,8 @@ import { HERO_ANIMATION } from "../../../enum/HeroAnimation.js";
 
 const ANIMATION_BLEND_TIME = 0.14;
 const HERO_ANIMATION_NAMES = Object.freeze(Object.values(HERO_ANIMATION));
+const RUN_STOP_ANIMATIONS = new Set([HERO_ANIMATION.RUN_STOP_LEFT, HERO_ANIMATION.RUN_STOP_RIGHT]);
+const GAITS = new Set([HERO_ANIMATION.WALK, HERO_ANIMATION.RUN]);
 export const LADDER_TOP_ANIMATIONS = new Set([
   HERO_ANIMATION.CLIMB_TOP,
   HERO_ANIMATION.CLIMB_TOP_RIGHT,
@@ -27,9 +29,22 @@ export class HeroAnimationPlayback {
    * @type {string|null}
    */
   #state = null;
+  /**
+   * @type {Map<string, number>}
+   */
+  #durations = new Map();
 
   get state() {
     return this.#state;
+  }
+
+  /**
+   * @returns {number}
+   */
+  get phase() {
+    const duration = this.#durations.get(this.#state);
+
+    return duration > 0 ? (this.#animation.baseLayer.activeStateCurrentTime % duration) / duration : 0;
   }
 
   /**
@@ -45,6 +60,11 @@ export class HeroAnimationPlayback {
     if (!tracks.has(HERO_ANIMATION.DIG_OPPOSITE)) {
       tracks.set(HERO_ANIMATION.DIG_OPPOSITE, tracks.get(HERO_ANIMATION.DIG));
     }
+    for (const name of RUN_STOP_ANIMATIONS) {
+      if (!tracks.has(name)) {
+        tracks.set(name, tracks.get(HERO_ANIMATION.IDLE));
+      }
+    }
     modelRoot.addComponent("anim", { activate: true });
     this.#animation = modelRoot.anim;
     for (const [name, track] of tracks) {
@@ -52,6 +72,7 @@ export class HeroAnimationPlayback {
         continue;
       }
       this.#animation.addAnimationState(name, track, 1, LOOPING_ANIMATIONS.has(name));
+      this.#durations.set(name, track.duration);
     }
     this.#animation.baseLayer.play(HERO_ANIMATION.IDLE);
     this.#state = HERO_ANIMATION.IDLE;
@@ -64,13 +85,14 @@ export class HeroAnimationPlayback {
    * @param {string} name
    * @param {number} speed
    * @param {boolean} restart
+   * @param {number|null} [duration]
    */
-  play(name, speed, restart) {
+  play(name, speed, restart, duration = null) {
     const animation = this.#animation;
     if (!animation) {
       return;
     }
-    animation.speed = speed;
+    animation.speed = duration > 0 ? this.#durations.get(name) / duration : speed;
     animation.baseLayer.playing = !LADDER_TOP_ANIMATIONS.has(name);
     if (
       restart ||
@@ -86,13 +108,17 @@ export class HeroAnimationPlayback {
     if (this.#state === name) {
       return;
     }
-    animation.baseLayer.transition(name, ANIMATION_BLEND_TIME);
+    // Keep the same supporting leg when changing between the two cyclic gaits.
+    const phase = GAITS.has(name) && GAITS.has(this.#state) ? this.phase : null;
+    const blendTime = phase !== null ? 0.22 : RUN_STOP_ANIMATIONS.has(name) ? 0.08 : ANIMATION_BLEND_TIME;
+    animation.baseLayer.transition(name, blendTime, phase);
     this.#state = name;
   }
 
   destroy() {
     this.#animation = null;
     this.#state = null;
+    this.#durations.clear();
   }
 
   /**
@@ -100,6 +126,7 @@ export class HeroAnimationPlayback {
    * @returns {boolean}
    */
   static #requiredAnimation(name) {
-    return name !== HERO_ANIMATION.DIG_OPPOSITE;
+    return !RUN_STOP_ANIMATIONS.has(name) &&
+      name !== HERO_ANIMATION.DIG_OPPOSITE;
   }
 }
