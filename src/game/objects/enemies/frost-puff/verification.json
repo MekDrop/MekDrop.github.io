@@ -1,0 +1,194 @@
+{
+  "schemaVersion": 1,
+  "completion": "partial_assets_verified_runtime_acceptance_blocked",
+  "enemy": "FrostPuff",
+  "registered": true,
+  "testMap": "src/game/maps/tests/enemy-frost-puff.json",
+  "intendedTestRoute": "/map/test_enemy-frost-puff",
+  "testRoutePlayable": false,
+  "checks": [
+    {
+      "command": "node --test test/unit/game/objects/enemies/frost-puff/frost-puff.test.js",
+      "result": "passed",
+      "passed": 14,
+      "failed": 0,
+      "evidenceBoundary": "Actual Yuka transitions, PlayCanvas transforms, shared Enemy status/movement logic, and production MapTestControls dispatcher. Physics velocity sinks and raycast stubs; no GPU, Ammo contact, animation or image claims."
+    },
+    {
+      "command": "node node_modules/eslint/bin/eslint.js src/game/objects/enemies/frost-puff test/unit/game/objects/enemies/frost-puff --fix",
+      "result": "passed"
+    },
+    {
+      "command": "git diff --check -- src/game/objects/enemies/frost-puff src/game/models/enemies/frost-puff src/game/maps/tests/enemy-frost-puff.json test/unit/game/objects/enemies/frost-puff",
+      "result": "passed",
+      "evidenceBoundary": "Git diff --check does not inspect untracked files. ESLint separately inspected the newly created JavaScript."
+    },
+    {
+      "command": "node --test test/unit/game/objects/enemies/frost-puff/frost-puff.test.js",
+      "result": "passed",
+      "passed": 14,
+      "failed": 0,
+      "finalRecheck": true
+    },
+    {
+      "command": "Blender 5.2.1 fresh GLB import and five samples per clip",
+      "result": "passed",
+      "clips": 16,
+      "maximumLoopSeamVertexErrorMetres": 1.999200562387517e-7,
+      "evidence": "src/game/objects/enemies/frost-puff/evidence/fresh-import-clips.json"
+    },
+    {
+      "command": "Inspect final GLB bytes and source-size extras",
+      "result": "passed",
+      "magic": "glTF",
+      "embeddedClips": 16,
+      "skinJoints": 14,
+      "sourceBlendSizeBytes": 3477487,
+      "actualBlendSizeBytes": 3477487,
+      "glbBytes": 2952448
+    }
+  ],
+  "states": [
+    "FrostPuffPursueState",
+    "FrostPuffCastState",
+    "FrostPuffBurstState",
+    "FrostPuffStartledState",
+    "FrostPuffHitState",
+    "FrostPuffStunnedState",
+    "FrostPuffRecoverState",
+    "FrostPuffCarriedState",
+    "FrostPuffAirborneState",
+    "FrostPuffDeathState",
+    "FrostPuffClipTestState"
+  ],
+  "verifiedEmbeddedClips": [
+    {
+      "name": "hover_idle",
+      "durationSeconds": 2,
+      "verifiedBy": "fresh GLB import; five timeline samples; offline contact-sheet review",
+      "actualGamePlaybackVerified": false
+    },
+    {
+      "name": "hover_move",
+      "durationSeconds": 1,
+      "verifiedBy": "fresh GLB import; five timeline samples; offline contact-sheet review",
+      "actualGamePlaybackVerified": false
+    },
+    {
+      "name": "hover_turn",
+      "durationSeconds": 0.5,
+      "verifiedBy": "fresh GLB import; five timeline samples; offline contact-sheet review",
+      "actualGamePlaybackVerified": false
+    },
+    {
+      "name": "frost_windup",
+      "durationSeconds": 0.4,
+      "verifiedBy": "fresh GLB import; five timeline samples; offline contact-sheet review",
+      "actualGamePlaybackVerified": false
+    },
+    {
+      "name": "frost_cast",
+      "durationSeconds": 0.22,
+      "verifiedBy": "fresh GLB import; five timeline samples; offline contact-sheet review",
+      "actualGamePlaybackVerified": false
+    },
+    {
+      "name": "frost_recover",
+      "durationSeconds": 0.38,
+      "verifiedBy": "fresh GLB import; five timeline samples; offline contact-sheet review",
+      "actualGamePlaybackVerified": false
+    },
+    {
+      "name": "burst_charge",
+      "durationSeconds": 0.32,
+      "verifiedBy": "fresh GLB import; five timeline samples; offline contact-sheet review",
+      "actualGamePlaybackVerified": false
+    },
+    {
+      "name": "burst_release",
+      "durationSeconds": 0.48,
+      "verifiedBy": "fresh GLB import; five timeline samples; offline contact-sheet review",
+      "actualGamePlaybackVerified": false
+    },
+    {
+      "name": "startled_drift",
+      "durationSeconds": 1,
+      "verifiedBy": "fresh GLB import; five timeline samples; offline contact-sheet review",
+      "actualGamePlaybackVerified": false
+    },
+    {
+      "name": "hit",
+      "durationSeconds": 0.25,
+      "verifiedBy": "fresh GLB import; five timeline samples; offline contact-sheet review",
+      "actualGamePlaybackVerified": false
+    },
+    {
+      "name": "stun",
+      "durationSeconds": 1,
+      "verifiedBy": "fresh GLB import; five timeline samples; offline contact-sheet review",
+      "actualGamePlaybackVerified": false
+    },
+    {
+      "name": "recover",
+      "durationSeconds": 0.45,
+      "verifiedBy": "fresh GLB import; five timeline samples; offline contact-sheet review",
+      "actualGamePlaybackVerified": false
+    },
+    {
+      "name": "carry_panic",
+      "durationSeconds": 0.8,
+      "verifiedBy": "fresh GLB import; five timeline samples; offline contact-sheet review",
+      "actualGamePlaybackVerified": false
+    },
+    {
+      "name": "airborne_tumble",
+      "durationSeconds": 0.7,
+      "verifiedBy": "fresh GLB import; five timeline samples; offline contact-sheet review",
+      "actualGamePlaybackVerified": false
+    },
+    {
+      "name": "land_burst",
+      "durationSeconds": 0.8,
+      "verifiedBy": "fresh GLB import; five timeline samples; offline contact-sheet review",
+      "actualGamePlaybackVerified": false
+    },
+    {
+      "name": "death",
+      "durationSeconds": 1.1,
+      "verifiedBy": "fresh GLB import; five timeline samples; offline contact-sheet review",
+      "actualGamePlaybackVerified": false
+    }
+  ],
+  "generatedAssets": [
+    "src/game/models/enemies/frost-puff/tripo-original.glb.bin"
+  ],
+  "refinedAssets": [
+    "src/game/models/enemies/frost-puff/frost-puff.blend",
+    "src/game/models/enemies/frost-puff/frost-puff.glb"
+  ],
+  "previewPresent": false,
+  "referenceReview": {
+    "infoPngViewed": true,
+    "identity": "Main left portrait: floating white angular ice-block head, azure slanted brows, black recessed eyes, cyan/blue crystal spikes and floating shards.",
+    "actualAssetComparison": "Inspected original and refined multiview renders against info.png; details in reference-match.json and evidence/refined-multiview.png."
+  },
+  "blockers": [
+    "Actual browser test-route attempts repeatedly rendered an empty q-app with no canvas, including a fresh tab at /map/test_enemy-frost-puff and the explicit /en-US/map/test_enemy-frost-puff route. Earlier shared-checkout ESLint overlays were transient; the final empty-app boot cause was not established. No router, renderer, sibling enemy or global server setting was modified.",
+    "Actual game playback, per-clip controls, runtime blend transitions, hover forces, Ammo contacts, carry/throw/landing and transparent production preview still pending.",
+    "Production Hero has applyBuff for fixed hero buffs but no shared applyStatus receiver. Frost effects currently affect capability-compatible actors; actual hero freeze integration remains incomplete. No out-of-scope hero/shared files modified.",
+    "Opening-following uses local Ammo ray probes rather than complete maze navigation; actual castle opening pursuit and royal-arrival lifecycle require real-map acceptance."
+  ],
+  "activationGate": "Valid leaf registration now exists. Complete actual-game checks and preview, and resolve the existing Hero status-capability gap before declaring the full enemy complete.",
+  "scope": "Own object, model metadata, saved test map and mirrored unit-test directories only; no shared enemy, factory, renderer or normal map/spawn edits.",
+  "providerReceipt": "src/game/objects/enemies/frost-puff/provider-receipt.json",
+  "assetEvidenceDirectory": "src/game/objects/enemies/frost-puff/evidence",
+  "runtimeAttempts": {
+    "browser": "Opera via cua_repl",
+    "urls": [
+      "http://localhost:9000/map/test_enemy-frost-puff",
+      "http://localhost:9000/en-US/map/test_enemy-frost-puff"
+    ],
+    "result": "blank application root; no game canvas; no production capture possible",
+    "previewImageCreated": false
+  }
+}

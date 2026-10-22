@@ -1,0 +1,250 @@
+{
+  "schemaVersion": 1,
+  "status": "fresh_import_and_offline_visual_checks_passed_actual_game_pending",
+  "asset": "src/game/models/enemies/frost-puff/frost-puff.glb",
+  "modelPresent": true,
+  "supportedStates": [
+    "FrostPuffPursueState",
+    "FrostPuffCastState",
+    "FrostPuffBurstState",
+    "FrostPuffStartledState",
+    "FrostPuffHitState",
+    "FrostPuffStunnedState",
+    "FrostPuffRecoverState",
+    "FrostPuffCarriedState",
+    "FrostPuffAirborneState",
+    "FrostPuffDeathState",
+    "FrostPuffClipTestState"
+  ],
+  "clips": [
+    {
+      "name": "hover_idle",
+      "durationSeconds": 2,
+      "plannedDurationSeconds": 2,
+      "looping": true,
+      "supportedStates": [
+        "FrostPuffPursueState",
+        "FrostPuffClipTestState"
+      ],
+      "eventTimesSeconds": {},
+      "freshImportSampled": true,
+      "actualGamePlaybackVerified": false
+    },
+    {
+      "name": "hover_move",
+      "durationSeconds": 1,
+      "plannedDurationSeconds": 1,
+      "looping": true,
+      "supportedStates": [
+        "FrostPuffPursueState",
+        "FrostPuffClipTestState"
+      ],
+      "eventTimesSeconds": {},
+      "freshImportSampled": true,
+      "actualGamePlaybackVerified": false
+    },
+    {
+      "name": "hover_turn",
+      "durationSeconds": 0.5,
+      "plannedDurationSeconds": 0.5,
+      "looping": false,
+      "supportedStates": [
+        "FrostPuffPursueState",
+        "FrostPuffClipTestState"
+      ],
+      "eventTimesSeconds": {},
+      "freshImportSampled": true,
+      "actualGamePlaybackVerified": false
+    },
+    {
+      "name": "frost_windup",
+      "durationSeconds": 0.4,
+      "plannedDurationSeconds": 0.4,
+      "looping": false,
+      "supportedStates": [
+        "FrostPuffCastState",
+        "FrostPuffClipTestState"
+      ],
+      "eventTimesSeconds": {},
+      "freshImportSampled": true,
+      "actualGamePlaybackVerified": false
+    },
+    {
+      "name": "frost_cast",
+      "durationSeconds": 0.22,
+      "plannedDurationSeconds": 0.22,
+      "looping": false,
+      "supportedStates": [
+        "FrostPuffCastState",
+        "FrostPuffClipTestState"
+      ],
+      "eventTimesSeconds": {
+        "contact": 0
+      },
+      "freshImportSampled": true,
+      "actualGamePlaybackVerified": false
+    },
+    {
+      "name": "frost_recover",
+      "durationSeconds": 0.38,
+      "plannedDurationSeconds": 0.38,
+      "looping": false,
+      "supportedStates": [
+        "FrostPuffCastState",
+        "FrostPuffClipTestState"
+      ],
+      "eventTimesSeconds": {},
+      "freshImportSampled": true,
+      "actualGamePlaybackVerified": false
+    },
+    {
+      "name": "burst_charge",
+      "durationSeconds": 0.32,
+      "plannedDurationSeconds": 0.32,
+      "looping": false,
+      "supportedStates": [
+        "FrostPuffBurstState",
+        "FrostPuffClipTestState"
+      ],
+      "eventTimesSeconds": {},
+      "freshImportSampled": true,
+      "actualGamePlaybackVerified": false
+    },
+    {
+      "name": "burst_release",
+      "durationSeconds": 0.48,
+      "plannedDurationSeconds": 0.48,
+      "looping": false,
+      "supportedStates": [
+        "FrostPuffBurstState",
+        "FrostPuffClipTestState"
+      ],
+      "eventTimesSeconds": {
+        "contact": 0
+      },
+      "freshImportSampled": true,
+      "actualGamePlaybackVerified": false
+    },
+    {
+      "name": "startled_drift",
+      "durationSeconds": 1,
+      "plannedDurationSeconds": 1,
+      "looping": true,
+      "supportedStates": [
+        "FrostPuffStartledState",
+        "FrostPuffClipTestState"
+      ],
+      "eventTimesSeconds": {},
+      "freshImportSampled": true,
+      "actualGamePlaybackVerified": false
+    },
+    {
+      "name": "hit",
+      "durationSeconds": 0.25,
+      "plannedDurationSeconds": 0.25,
+      "looping": false,
+      "supportedStates": [
+        "FrostPuffHitState",
+        "FrostPuffClipTestState"
+      ],
+      "eventTimesSeconds": {},
+      "freshImportSampled": true,
+      "actualGamePlaybackVerified": false
+    },
+    {
+      "name": "stun",
+      "durationSeconds": 1,
+      "plannedDurationSeconds": 1,
+      "looping": true,
+      "supportedStates": [
+        "FrostPuffStunnedState",
+        "FrostPuffClipTestState"
+      ],
+      "eventTimesSeconds": {},
+      "freshImportSampled": true,
+      "actualGamePlaybackVerified": false
+    },
+    {
+      "name": "recover",
+      "durationSeconds": 0.45,
+      "plannedDurationSeconds": 0.45,
+      "looping": false,
+      "supportedStates": [
+        "FrostPuffRecoverState",
+        "FrostPuffClipTestState"
+      ],
+      "eventTimesSeconds": {},
+      "freshImportSampled": true,
+      "actualGamePlaybackVerified": false
+    },
+    {
+      "name": "carry_panic",
+      "durationSeconds": 0.8,
+      "plannedDurationSeconds": 0.8,
+      "looping": true,
+      "supportedStates": [
+        "FrostPuffCarriedState",
+        "FrostPuffClipTestState"
+      ],
+      "eventTimesSeconds": {},
+      "freshImportSampled": true,
+      "actualGamePlaybackVerified": false
+    },
+    {
+      "name": "airborne_tumble",
+      "durationSeconds": 0.7,
+      "plannedDurationSeconds": 0.7,
+      "looping": true,
+      "supportedStates": [
+        "FrostPuffAirborneState",
+        "FrostPuffClipTestState"
+      ],
+      "eventTimesSeconds": {},
+      "freshImportSampled": true,
+      "actualGamePlaybackVerified": false
+    },
+    {
+      "name": "land_burst",
+      "durationSeconds": 0.8,
+      "plannedDurationSeconds": 0.8,
+      "looping": false,
+      "supportedStates": [
+        "FrostPuffBurstState",
+        "FrostPuffClipTestState"
+      ],
+      "eventTimesSeconds": {
+        "contact": 0
+      },
+      "freshImportSampled": true,
+      "actualGamePlaybackVerified": false
+    },
+    {
+      "name": "death",
+      "durationSeconds": 1.1,
+      "plannedDurationSeconds": 1.1,
+      "looping": false,
+      "supportedStates": [
+        "FrostPuffDeathState",
+        "FrostPuffClipTestState"
+      ],
+      "eventTimesSeconds": {},
+      "freshImportSampled": true,
+      "actualGamePlaybackVerified": false
+    }
+  ],
+  "checks": {
+    "tripoModelGenerated": true,
+    "frontSideRearReferenceComparison": true,
+    "gameCameraReferenceComparison": false,
+    "rigWeightsUvsMaterials": true,
+    "freshGlbImportAllClips": true,
+    "perClipStartMiddleEndAndContacts": true,
+    "loopSeamsAndBlends": false,
+    "carryThrowLandingPhysics": false,
+    "interruptionsDeathAndTimeScaleRuntime": false,
+    "transparentProductionPreview": false
+  },
+  "offlineEvidenceDirectory": "src/game/objects/enemies/frost-puff/evidence",
+  "offlineVisualReviewed": true,
+  "loopSeamsNumericallyChecked": true
+}

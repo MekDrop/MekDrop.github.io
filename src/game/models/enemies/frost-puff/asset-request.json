@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "status": "initial_generated_and_locally_refined",
+  "provider": "Tripo3D",
+  "sourceDesign": "src/game/objects/enemies/frost-puff/info.png",
+  "sourceSha256": "6458f008d6e88526264eba800f307e1a3eb3230329968d7e22894ffe9b25b749",
+  "cleanPortraitRequired": true,
+  "cleanPortraitStatus": "created_and_uploaded_to_authorized_Tripo_destination",
+  "portraitRegionPixels": {
+    "x": 16,
+    "y": 158,
+    "width": 492,
+    "height": 570
+  },
+  "prompt": "Single angular floating white ice creature, chunky beveled ice-block head, no torso or limbs. Angry narrow black eye recesses, thick vivid azure-blue slanted eyebrows, pale white ice blocks with cool blue shaded undersides. Large faceted cyan and blue crystal spikes projecting around crown and sides, several small floating crystal shards around the head. Match the main character portrait, readable angular cubist silhouette, transparent icy blue edges, matte white ice faces, no writing, no scenery, no secondary characters. Game-ready low-poly mesh with UVs and materials, one reusable creature asset.",
+  "negativePrompt": "text, logo, infographic, wooden sign, castle, floor, human, crab, fire creature, blue golem, extra face, limbs, humanoid body, round snowball",
+  "intendedCli": "tripo make <clean-portrait.png> --for game-mobile --seed 421022 --param face_limit=8000 --out <new-provider-source-directory> --name frost-puff --json --yes --no-open",
+  "parameters": {
+    "scenario": "game-mobile",
+    "modelSeed": 421022,
+    "faceLimit": 8000,
+    "texture": true,
+    "pbr": true
+  },
+  "submittedParameters": {
+    "sourceImage": "src/game/objects/enemies/frost-puff/source-portrait.png",
+    "model": "H3.1 – Best Quality",
+    "mode": "HD Model",
+    "geometryAndTexture": true,
+    "generateInParts": false,
+    "eightKTexture": false,
+    "privacy": "Private"
+  },
+  "intendedDimensionsMetres": {
+    "bodyWidth": 0.9,
+    "bodyHeight": 0.9,
+    "shardEnvelopeWidth": 1.35
+  },
+  "rig": "bespoke floating root, body, left/right brow and crystal controls; no humanoid autorig",
+  "outputs": {
+    "blend": "src/game/models/enemies/frost-puff/frost-puff.blend",
+    "glb": "src/game/models/enemies/frost-puff/frost-puff.glb"
+  },
+  "sourcePreservation": "Keep the original provider output separate and unmodified until validation passes.",
+  "authorizedAttempts": "Initial plus one replacement only for material visual mismatch; prefer local refinement.",
+  "creditCeiling": "User authorized any; no fixed cap. No credit purchase authorized.",
+  "license": "Generated through existing user Tripo Studio account; no new agreement accepted. Subject to account/provider terms; no SPDX license asserted.",
+  "submissionNotes": "Image-only web generation; CLI prompt, negative prompt, seed and face-limit spec were not submitted. No API generation was attempted."
+}

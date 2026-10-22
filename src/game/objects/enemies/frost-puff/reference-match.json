@@ -1,0 +1,15 @@
+{
+  "source": "src/game/objects/enemies/frost-puff/info.png",
+  "derivative": "src/game/objects/enemies/frost-puff/source-portrait.png",
+  "providerComparison": "src/game/objects/enemies/frost-puff/evidence/provider-multiview.png",
+  "refinedComparison": "src/game/objects/enemies/frost-puff/evidence/refined-multiview.png",
+  "findings": [
+    "Matches the main portrait identity: block-built white floating head, black recessed narrow eyes, bright blue downturned brows, faceted cyan/blue crystals.",
+    "Preserved all 4265 source triangles, UV seams and provider custom normals; analysis-only graph identifies 13 rigid islands for weights.",
+    "Reduced normal-map strength to 0.18 to keep broad ice faces readable without exaggerated surface noise. Uniform scale 1.35 gives crystal envelope 1.35 x 1.1834 x 0.9725 metres.",
+    "Rear and top white-block construction are inferred by Tripo because the design sheet supplies no independent turnaround.",
+    "Crystal placement and small surface bevels are approximate, with some source asymmetry retained; no second paid generation was justified.",
+    "The GLB faces +Z; the production model wrapper applies a 180-degree yaw to align with the semantic -Z forward."
+  ],
+  "gameCameraComparisonVerified": false
+}

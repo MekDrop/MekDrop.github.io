@@ -1,0 +1,1449 @@
+{
+  "source": "fresh GLB import",
+  "blender": "5.2.1 LTS",
+  "rigBones": 14,
+  "weightedVertices": 3176,
+  "vertices": 3176,
+  "clips": [
+    {
+      "name": "hover_idle",
+      "durationSeconds": 2.0,
+      "sampledPoses": [
+        {
+          "fraction": 0,
+          "frame": 0.0,
+          "geometryHash": "7b8c0c5768b7d0157d71dea629952f3eae41205aa3773ee554013f24f3ee4b6d",
+          "min": [
+            -0.675000011920929,
+            -0.4862273931503296,
+            -3.001878212671727e-08
+          ],
+          "max": [
+            0.675000011920929,
+            0.4862273633480072,
+            1.1833922863006592
+          ]
+        },
+        {
+          "fraction": 0.25,
+          "frame": 50.0,
+          "geometryHash": "e68e0c5c131f280d42c8956284d071eb9a7b21497f8486f103731a93df027212",
+          "min": [
+            -0.6816569566726685,
+            -0.5015361309051514,
+            0.037385232746601105
+          ],
+          "max": [
+            0.6813164353370667,
+            0.4839063882827759,
+            1.2053922414779663
+          ]
+        },
+        {
+          "fraction": 0.5,
+          "frame": 100.0,
+          "geometryHash": "7b8c0c5768b7d0157d71dea629952f3eae41205aa3773ee554013f24f3ee4b6d",
+          "min": [
+            -0.675000011920929,
+            -0.4862273931503296,
+            -3.001878212671727e-08
+          ],
+          "max": [
+            0.675000011920929,
+            0.4862273633480072,
+            1.1833922863006592
+          ]
+        },
+        {
+          "fraction": 0.75,
+          "frame": 150.0,
+          "geometryHash": "b4f51008e41860980411774715f2d0506f9d458acc28923b4be8652961c6eed7",
+          "min": [
+            -0.6686900854110718,
+            -0.47056150436401367,
+            -0.039735421538352966
+          ],
+          "max": [
+            0.668422281742096,
+            0.4884525239467621,
+            1.1613922119140625
+          ]
+        },
+        {
+          "fraction": 1,
+          "frame": 200.0,
+          "geometryHash": "7b8c0c5768b7d0157d71dea629952f3eae41205aa3773ee554013f24f3ee4b6d",
+          "min": [
+            -0.675000011920929,
+            -0.4862273931503296,
+            -3.001878212671727e-08
+          ],
+          "max": [
+            0.675000011920929,
+            0.4862273633480072,
+            1.1833922863006592
+          ]
+        }
+      ],
+      "loopSeamMaxVertexErrorMetres": 0.0,
+      "distinctSampledPoses": 3,
+      "images": [
+        "tmp\\frost-puff\\clip-validation\\hover_idle_000.png",
+        "tmp\\frost-puff\\clip-validation\\hover_idle_025.png",
+        "tmp\\frost-puff\\clip-validation\\hover_idle_050.png",
+        "tmp\\frost-puff\\clip-validation\\hover_idle_075.png",
+        "tmp\\frost-puff\\clip-validation\\hover_idle_100.png"
+      ]
+    },
+    {
+      "name": "hover_move",
+      "durationSeconds": 1.0,
+      "sampledPoses": [
+        {
+          "fraction": 0,
+          "frame": 0.0,
+          "geometryHash": "bcba022641c48ece0f0c66104a4945e8ac3a7f3846b88d14b4077ee241eea180",
+          "min": [
+            -0.675000011920929,
+            -0.46772366762161255,
+            -0.029983241111040115
+          ],
+          "max": [
+            0.675000011920929,
+            0.4504748284816742,
+            1.2275725603103638
+          ]
+        },
+        {
+          "fraction": 0.25,
+          "frame": 25.0,
+          "geometryHash": "5e628c8f56d63d7a27baac426152c322b14432a12ad338aaf7e073f987433517",
+          "min": [
+            -0.6853652000427246,
+            -0.47609084844589233,
+            -0.010574892163276672
+          ],
+          "max": [
+            0.6832922101020813,
+            0.4449784755706787,
+            1.245572566986084
+          ]
+        },
+        {
+          "fraction": 0.5,
+          "frame": 50.0,
+          "geometryHash": "bcba022641c48ece0f0c66104a4945e8ac3a7f3846b88d14b4077ee241eea180",
+          "min": [
+            -0.675000011920929,
+            -0.46772366762161255,
+            -0.029983241111040115
+          ],
+          "max": [
+            0.675000011920929,
+            0.4504748284816742,
+            1.2275725603103638
+          ]
+        },
+        {
+          "fraction": 0.75,
+          "frame": 75.0,
+          "geometryHash": "8a98fb9ce4555fb3cdf008d6f2c6eb08f8259a231b5eb10b8c2afdb0e6b8e912",
+          "min": [
+            -0.6650120615959167,
+            -0.45878368616104126,
+            -0.06909944117069244
+          ],
+          "max": [
+            0.6659852862358093,
+            0.4553483724594116,
+            1.2095725536346436
+          ]
+        },
+        {
+          "fraction": 1,
+          "frame": 100.0,
+          "geometryHash": "bcba022641c48ece0f0c66104a4945e8ac3a7f3846b88d14b4077ee241eea180",
+          "min": [
+            -0.675000011920929,
+            -0.46772366762161255,
+            -0.029983241111040115
+          ],
+          "max": [
+            0.675000011920929,
+            0.4504748284816742,
+            1.2275725603103638
+          ]
+        }
+      ],
+      "loopSeamMaxVertexErrorMetres": 0.0,
+      "distinctSampledPoses": 3,
+      "images": [
+        "tmp\\frost-puff\\clip-validation\\hover_move_000.png",
+        "tmp\\frost-puff\\clip-validation\\hover_move_025.png",
+        "tmp\\frost-puff\\clip-validation\\hover_move_050.png",
+        "tmp\\frost-puff\\clip-validation\\hover_move_075.png",
+        "tmp\\frost-puff\\clip-validation\\hover_move_100.png"
+      ]
+    },
+    {
+      "name": "hover_turn",
+      "durationSeconds": 0.5,
+      "sampledPoses": [
+        {
+          "fraction": 0,
+          "frame": 0.0,
+          "geometryHash": "7b8c0c5768b7d0157d71dea629952f3eae41205aa3773ee554013f24f3ee4b6d",
+          "min": [
+            -0.675000011920929,
+            -0.4862273931503296,
+            -3.001878212671727e-08
+          ],
+          "max": [
+            0.675000011920929,
+            0.4862273633480072,
+            1.1833922863006592
+          ]
+        },
+        {
+          "fraction": 0.25,
+          "frame": 12.5,
+          "geometryHash": "7f1aab7721b6045a286b7523cdd45ac6083ff648918182a9449165a859368f10",
+          "min": [
+            -0.7334700226783752,
+            -0.48301586508750916,
+            0.033195897936820984
+          ],
+          "max": [
+            0.7009950280189514,
+            0.4381899833679199,
+            1.2049357891082764
+          ]
+        },
+        {
+          "fraction": 0.5,
+          "frame": 25.0,
+          "geometryHash": "e21676df5ee2912be5eed1c8b84b1b90a60b860527f43ca78c11ca635a66f7e6",
+          "min": [
+            -0.6931419968605042,
+            -0.4983028173446655,
+            -3.001878212671727e-08
+          ],
+          "max": [
+            0.6949148178100586,
+            0.4926881492137909,
+            1.1833922863006592
+          ]
+        },
+        {
+          "fraction": 0.75,
+          "frame": 37.5,
+          "geometryHash": "d11c5e9322b65040254ca0b1c52d69bfccd0e2847f73b8a74837ed55250328f8",
+          "min": [
+            -0.6568761467933655,
+            -0.48100876808166504,
+            -0.06424965709447861
+          ],
+          "max": [
+            0.692308247089386,
+            0.4450400769710541,
+            1.1810373067855835
+          ]
+        },
+        {
+          "fraction": 1,
+          "frame": 50.0,
+          "geometryHash": "7b8c0c5768b7d0157d71dea629952f3eae41205aa3773ee554013f24f3ee4b6d",
+          "min": [
+            -0.675000011920929,
+            -0.4862273931503296,
+            -3.001878212671727e-08
+          ],
+          "max": [
+            0.675000011920929,
+            0.4862273633480072,
+            1.1833922863006592
+          ]
+        }
+      ],
+      "loopSeamMaxVertexErrorMetres": null,
+      "distinctSampledPoses": 4,
+      "images": [
+        "tmp\\frost-puff\\clip-validation\\hover_turn_000.png",
+        "tmp\\frost-puff\\clip-validation\\hover_turn_025.png",
+        "tmp\\frost-puff\\clip-validation\\hover_turn_050.png",
+        "tmp\\frost-puff\\clip-validation\\hover_turn_075.png",
+        "tmp\\frost-puff\\clip-validation\\hover_turn_100.png"
+      ]
+    },
+    {
+      "name": "frost_windup",
+      "durationSeconds": 0.4,
+      "sampledPoses": [
+        {
+          "fraction": 0,
+          "frame": 0.0,
+          "geometryHash": "7b8c0c5768b7d0157d71dea629952f3eae41205aa3773ee554013f24f3ee4b6d",
+          "min": [
+            -0.675000011920929,
+            -0.4862273931503296,
+            -3.001878212671727e-08
+          ],
+          "max": [
+            0.675000011920929,
+            0.4862273633480072,
+            1.1833922863006592
+          ]
+        },
+        {
+          "fraction": 0.25,
+          "frame": 10.0,
+          "geometryHash": "3d319b4a55422290472dddffaba5a36285732d2bc67e8c3e6faadfeb7c4cd3b8",
+          "min": [
+            -0.6609711050987244,
+            -0.48992109298706055,
+            0.024338439106941223
+          ],
+          "max": [
+            0.6593502759933472,
+            0.4888911843299866,
+            1.1682143211364746
+          ]
+        },
+        {
+          "fraction": 0.5,
+          "frame": 20.0,
+          "geometryHash": "db5b7c96c2f18f642fa6067cedb6e22aa01b6f9fd1d188d699db3dc4133f8890",
+          "min": [
+            -0.6470776796340942,
+            -0.4920251667499542,
+            0.038205720484256744
+          ],
+          "max": [
+            0.6438588500022888,
+            0.49018463492393494,
+            1.152191400527954
+          ]
+        },
+        {
+          "fraction": 0.75,
+          "frame": 30.0,
+          "geometryHash": "b2ab73ed511e42f0bdc41e93108bfaf660fc3bb400d781b32aee1aef8d573a8d",
+          "min": [
+            -0.6333194971084595,
+            -0.4925927221775055,
+            0.05308273434638977
+          ],
+          "max": [
+            0.6285258531570435,
+            0.4901566207408905,
+            1.135380744934082
+          ]
+        },
+        {
+          "fraction": 1,
+          "frame": 40.0,
+          "geometryHash": "6149b34691813d8947f2620d788247a77b633c92fb450f2d78c12789ffe2d7c0",
+          "min": [
+            -0.6196965575218201,
+            -0.49168044328689575,
+            0.06891309469938278
+          ],
+          "max": [
+            0.6133511066436768,
+            0.48885831236839294,
+            1.1238903999328613
+          ]
+        }
+      ],
+      "loopSeamMaxVertexErrorMetres": null,
+      "distinctSampledPoses": 5,
+      "images": [
+        "tmp\\frost-puff\\clip-validation\\frost_windup_000.png",
+        "tmp\\frost-puff\\clip-validation\\frost_windup_025.png",
+        "tmp\\frost-puff\\clip-validation\\frost_windup_050.png",
+        "tmp\\frost-puff\\clip-validation\\frost_windup_075.png",
+        "tmp\\frost-puff\\clip-validation\\frost_windup_100.png"
+      ]
+    },
+    {
+      "name": "frost_cast",
+      "durationSeconds": 0.22,
+      "sampledPoses": [
+        {
+          "fraction": 0,
+          "frame": 0.0,
+          "geometryHash": "cdf129384949a2cba62fe816ff098ef0012f6a0326a6b7fb22317ecbb755972b",
+          "min": [
+            -0.7453727722167969,
+            -0.5069930553436279,
+            -0.1567593216896057
+          ],
+          "max": [
+            0.7550148963928223,
+            0.4494357705116272,
+            1.2690690755844116
+          ]
+        },
+        {
+          "fraction": 0.25,
+          "frame": 5.5,
+          "geometryHash": "2a8fecbc98fd6ece83a14163e4811d7ece956c8d0ffde118f43341ca3fc314a1",
+          "min": [
+            -0.7275354266166687,
+            -0.5092197060585022,
+            -0.14460274577140808
+          ],
+          "max": [
+            0.7347278594970703,
+            0.44458508491516113,
+            1.2672295570373535
+          ]
+        },
+        {
+          "fraction": 0.5,
+          "frame": 11.0,
+          "geometryHash": "b25efb7e9bae5485411be72dae269eba98ff574ddac43563adf46251a851922b",
+          "min": [
+            -0.7098610401153564,
+            -0.4974724054336548,
+            -0.10119690746068954
+          ],
+          "max": [
+            0.7146296501159668,
+            0.43473607301712036,
+            1.2568167448043823
+          ]
+        },
+        {
+          "fraction": 0.75,
+          "frame": 16.5,
+          "geometryHash": "15a9a306b9e320d80381dc2117ebc86ba9ff9e34326794fbff25dac394e7485d",
+          "min": [
+            -0.6923491954803467,
+            -0.4733045697212219,
+            -0.054122816771268845
+          ],
+          "max": [
+            0.6947203278541565,
+            0.46011725068092346,
+            1.2292194366455078
+          ]
+        },
+        {
+          "fraction": 1,
+          "frame": 22.0,
+          "geometryHash": "0e1679cdb1454829d10fe24c18f6f30e9308025db8c679c220a8612acd09bccc",
+          "min": [
+            -0.675000011920929,
+            -0.45638471841812134,
+            -0.019585438072681427
+          ],
+          "max": [
+            0.675000011920929,
+            0.4644147455692291,
+            1.2118967771530151
+          ]
+        }
+      ],
+      "loopSeamMaxVertexErrorMetres": null,
+      "distinctSampledPoses": 5,
+      "images": [
+        "tmp\\frost-puff\\clip-validation\\frost_cast_000.png",
+        "tmp\\frost-puff\\clip-validation\\frost_cast_025.png",
+        "tmp\\frost-puff\\clip-validation\\frost_cast_050.png",
+        "tmp\\frost-puff\\clip-validation\\frost_cast_075.png",
+        "tmp\\frost-puff\\clip-validation\\frost_cast_100.png"
+      ]
+    },
+    {
+      "name": "frost_recover",
+      "durationSeconds": 0.38,
+      "sampledPoses": [
+        {
+          "fraction": 0,
+          "frame": 0.0,
+          "geometryHash": "0e1679cdb1454829d10fe24c18f6f30e9308025db8c679c220a8612acd09bccc",
+          "min": [
+            -0.675000011920929,
+            -0.45638471841812134,
+            -0.019585438072681427
+          ],
+          "max": [
+            0.675000011920929,
+            0.4644147455692291,
+            1.2118967771530151
+          ]
+        },
+        {
+          "fraction": 0.25,
+          "frame": 9.5,
+          "geometryHash": "e6fe233d4a987c5286046b86e117b080a5e0f67fa76f40161d0116085b9a899c",
+          "min": [
+            -0.683509886264801,
+            -0.469657301902771,
+            -0.013942725956439972
+          ],
+          "max": [
+            0.6850471496582031,
+            0.4769260883331299,
+            1.2136390209197998
+          ]
+        },
+        {
+          "fraction": 0.5,
+          "frame": 19.0,
+          "geometryHash": "f7b27270772c0a213f5346ea8084a627fa1181ca284cb20666c48f277b8686f7",
+          "min": [
+            -0.6870450377464294,
+            -0.48090028762817383,
+            -0.008590232580900192
+          ],
+          "max": [
+            0.6892204284667969,
+            0.4851524531841278,
+            1.2101629972457886
+          ]
+        },
+        {
+          "fraction": 0.75,
+          "frame": 28.5,
+          "geometryHash": "bb15cf5f1d244202a4032197ea404ced36b680bcf84deb5a34fba0de9b1ca348",
+          "min": [
+            -0.683509886264801,
+            -0.4859258532524109,
+            -0.003979694098234177
+          ],
+          "max": [
+            0.6850471496582031,
+            0.48706990480422974,
+            1.1993838548660278
+          ]
+        },
+        {
+          "fraction": 1,
+          "frame": 38.0,
+          "geometryHash": "7b8c0c5768b7d0157d71dea629952f3eae41205aa3773ee554013f24f3ee4b6d",
+          "min": [
+            -0.675000011920929,
+            -0.4862273931503296,
+            -3.001878212671727e-08
+          ],
+          "max": [
+            0.675000011920929,
+            0.4862273633480072,
+            1.1833922863006592
+          ]
+        }
+      ],
+      "loopSeamMaxVertexErrorMetres": null,
+      "distinctSampledPoses": 5,
+      "images": [
+        "tmp\\frost-puff\\clip-validation\\frost_recover_000.png",
+        "tmp\\frost-puff\\clip-validation\\frost_recover_025.png",
+        "tmp\\frost-puff\\clip-validation\\frost_recover_050.png",
+        "tmp\\frost-puff\\clip-validation\\frost_recover_075.png",
+        "tmp\\frost-puff\\clip-validation\\frost_recover_100.png"
+      ]
+    },
+    {
+      "name": "burst_charge",
+      "durationSeconds": 0.32,
+      "sampledPoses": [
+        {
+          "fraction": 0,
+          "frame": 0.0,
+          "geometryHash": "7b8c0c5768b7d0157d71dea629952f3eae41205aa3773ee554013f24f3ee4b6d",
+          "min": [
+            -0.675000011920929,
+            -0.4862273931503296,
+            -3.001878212671727e-08
+          ],
+          "max": [
+            0.675000011920929,
+            0.4862273633480072,
+            1.1833922863006592
+          ]
+        },
+        {
+          "fraction": 0.25,
+          "frame": 8.0,
+          "geometryHash": "a12bc65415fbd1c669a0c285e1fda900c22d1a4bab57201ac6bead67d571f682",
+          "min": [
+            -0.6369136571884155,
+            -0.45555150508880615,
+            0.03400015830993652
+          ],
+          "max": [
+            0.6333822011947632,
+            0.4559578597545624,
+            1.1684739589691162
+          ]
+        },
+        {
+          "fraction": 0.5,
+          "frame": 16.0,
+          "geometryHash": "8accb0e112903d1dafc386d7c838151635e83f25867f9ef0af014715e640c2de",
+          "min": [
+            -0.5999304056167603,
+            -0.4258542060852051,
+            0.0670739933848381
+          ],
+          "max": [
+            0.5930600762367249,
+            0.42664021253585815,
+            1.1535556316375732
+          ]
+        },
+        {
+          "fraction": 0.75,
+          "frame": 24.0,
+          "geometryHash": "c3e720472598618ab8cbe0a88e3f05b8205b6611247cd7f1f0c29b7a5d4aefac",
+          "min": [
+            -0.5640506744384766,
+            -0.399922251701355,
+            0.09922181069850922
+          ],
+          "max": [
+            0.5540348291397095,
+            0.39827507734298706,
+            1.1386375427246094
+          ]
+        },
+        {
+          "fraction": 1,
+          "frame": 32.0,
+          "geometryHash": "f072e3f63101ee18af2b8772a0a559231a2d1d171a71280a6d86d9f8bad4f4f0",
+          "min": [
+            -0.5292741656303406,
+            -0.38793548941612244,
+            0.13044357299804688
+          ],
+          "max": [
+            0.5163065195083618,
+            0.3708626925945282,
+            1.1237190961837769
+          ]
+        }
+      ],
+      "loopSeamMaxVertexErrorMetres": null,
+      "distinctSampledPoses": 5,
+      "images": [
+        "tmp\\frost-puff\\clip-validation\\burst_charge_000.png",
+        "tmp\\frost-puff\\clip-validation\\burst_charge_025.png",
+        "tmp\\frost-puff\\clip-validation\\burst_charge_050.png",
+        "tmp\\frost-puff\\clip-validation\\burst_charge_075.png",
+        "tmp\\frost-puff\\clip-validation\\burst_charge_100.png"
+      ]
+    },
+    {
+      "name": "burst_release",
+      "durationSeconds": 0.48,
+      "sampledPoses": [
+        {
+          "fraction": 0,
+          "frame": 0.0,
+          "geometryHash": "8375e19935ef0c95155f0e051d98fe50bc6c2876d9ae704ebc8dc2a16aa80106",
+          "min": [
+            -0.9358401298522949,
+            -0.7040016651153564,
+            -0.1868695318698883
+          ],
+          "max": [
+            0.9680820107460022,
+            0.7020657658576965,
+            1.446703314781189
+          ]
+        },
+        {
+          "fraction": 0.25,
+          "frame": 12.0,
+          "geometryHash": "cf16fab5b9fa54740bfd1b09b0483a38462ff493a88444ca7a171eb71534e7f7",
+          "min": [
+            -0.8403621315956116,
+            -0.5904867649078369,
+            -0.13829268515110016
+          ],
+          "max": [
+            0.8644883632659912,
+            0.6022262573242188,
+            1.362229347229004
+          ]
+        },
+        {
+          "fraction": 0.5,
+          "frame": 24.0,
+          "geometryHash": "167287bd26ca0a01f86c1f8bd1c59280f2ff9a169b37ba08fc48824058bd25f1",
+          "min": [
+            -0.796087920665741,
+            -0.589968204498291,
+            -0.08605343103408813
+          ],
+          "max": [
+            0.8139716386795044,
+            0.5882588624954224,
+            1.297683835029602
+          ]
+        },
+        {
+          "fraction": 0.75,
+          "frame": 36.0,
+          "geometryHash": "c4745264d91ddea5534f8e45be8298e35ce84dafe3c56f9288ce6f64910b5fd8",
+          "min": [
+            -0.7316118478775024,
+            -0.5635323524475098,
+            -0.02910018339753151
+          ],
+          "max": [
+            0.7403982281684875,
+            0.5593745708465576,
+            1.2235651016235352
+          ]
+        },
+        {
+          "fraction": 1,
+          "frame": 48.0,
+          "geometryHash": "7b8c0c5768b7d0157d71dea629952f3eae41205aa3773ee554013f24f3ee4b6d",
+          "min": [
+            -0.675000011920929,
+            -0.4862273931503296,
+            -3.001878212671727e-08
+          ],
+          "max": [
+            0.675000011920929,
+            0.4862273633480072,
+            1.1833922863006592
+          ]
+        }
+      ],
+      "loopSeamMaxVertexErrorMetres": null,
+      "distinctSampledPoses": 5,
+      "images": [
+        "tmp\\frost-puff\\clip-validation\\burst_release_000.png",
+        "tmp\\frost-puff\\clip-validation\\burst_release_025.png",
+        "tmp\\frost-puff\\clip-validation\\burst_release_050.png",
+        "tmp\\frost-puff\\clip-validation\\burst_release_075.png",
+        "tmp\\frost-puff\\clip-validation\\burst_release_100.png"
+      ]
+    },
+    {
+      "name": "startled_drift",
+      "durationSeconds": 1.0,
+      "sampledPoses": [
+        {
+          "fraction": 0,
+          "frame": 0.0,
+          "geometryHash": "4c5b226d27861cb5f6afab378c1e0bf3b8b6a0e08d2a8513c3e861ecd7e5d33a",
+          "min": [
+            -0.7231782078742981,
+            -0.5956391096115112,
+            -0.034779176115989685
+          ],
+          "max": [
+            0.7318634986877441,
+            0.5867164134979248,
+            1.1962488889694214
+          ]
+        },
+        {
+          "fraction": 0.25,
+          "frame": 25.0,
+          "geometryHash": "882fce043158c621f766e1fa7479296b1d9faa00804563fd898ec05cf27cd8fe",
+          "min": [
+            -0.7031046748161316,
+            -0.5624601244926453,
+            0.01610422134399414
+          ],
+          "max": [
+            0.7081761956214905,
+            0.5564541816711426,
+            1.2169684171676636
+          ]
+        },
+        {
+          "fraction": 0.5,
+          "frame": 50.0,
+          "geometryHash": "6ee3be408e8df049f6981c46c7e9111ebdd9e10dbca982b10d2783e225f58574",
+          "min": [
+            -0.6830301284790039,
+            -0.554641842842102,
+            -0.004794883541762829
+          ],
+          "max": [
+            0.6844806671142578,
+            0.5484888553619385,
+            1.1573851108551025
+          ]
+        },
+        {
+          "fraction": 0.75,
+          "frame": 75.0,
+          "geometryHash": "a3ef5fd01924461fcd3123374707d2d787d95980f95ad707e53954f76219b815",
+          "min": [
+            -0.7031046748161316,
+            -0.5869008302688599,
+            -0.05476667359471321
+          ],
+          "max": [
+            0.7081761956214905,
+            0.577846884727478,
+            1.1356630325317383
+          ]
+        },
+        {
+          "fraction": 1,
+          "frame": 100.0,
+          "geometryHash": "4c5b226d27861cb5f6afab378c1e0bf3b8b6a0e08d2a8513c3e861ecd7e5d33a",
+          "min": [
+            -0.7231782078742981,
+            -0.5956391096115112,
+            -0.034779176115989685
+          ],
+          "max": [
+            0.7318634986877441,
+            0.5867164134979248,
+            1.1962488889694214
+          ]
+        }
+      ],
+      "loopSeamMaxVertexErrorMetres": 0.0,
+      "distinctSampledPoses": 4,
+      "images": [
+        "tmp\\frost-puff\\clip-validation\\startled_drift_000.png",
+        "tmp\\frost-puff\\clip-validation\\startled_drift_025.png",
+        "tmp\\frost-puff\\clip-validation\\startled_drift_050.png",
+        "tmp\\frost-puff\\clip-validation\\startled_drift_075.png",
+        "tmp\\frost-puff\\clip-validation\\startled_drift_100.png"
+      ]
+    },
+    {
+      "name": "hit",
+      "durationSeconds": 0.25,
+      "sampledPoses": [
+        {
+          "fraction": 0,
+          "frame": 0.0,
+          "geometryHash": "1d982b662ea4d535f74ae6fc00cf0100172dd77708fa16d4fdb54f6d327558eb",
+          "min": [
+            -0.675000011920929,
+            -0.5657162666320801,
+            0.0019728196784853935
+          ],
+          "max": [
+            0.675000011920929,
+            0.5584036111831665,
+            1.138727068901062
+          ]
+        },
+        {
+          "fraction": 0.25,
+          "frame": 6.25,
+          "geometryHash": "318c7bd1622528b00b1f0a03984960f427cf6f2cd66916b3d179c787d2752838",
+          "min": [
+            -0.7360154390335083,
+            -0.6042687892913818,
+            0.06383882462978363
+          ],
+          "max": [
+            0.7076311707496643,
+            0.5923287272453308,
+            1.118650197982788
+          ]
+        },
+        {
+          "fraction": 0.5,
+          "frame": 12.5,
+          "geometryHash": "cf8d38369bf8532b1f9a143f8e01af129c362c63893f95f6e5aa9850ba952daa",
+          "min": [
+            -0.7072005867958069,
+            -0.5916038155555725,
+            -0.00254039466381073
+          ],
+          "max": [
+            0.7128736972808838,
+            0.5821459293365479,
+            1.193922996520996
+          ]
+        },
+        {
+          "fraction": 0.75,
+          "frame": 18.75,
+          "geometryHash": "5a3f2fc23861761d1db14ad520675c818963351c1f25925e942304626d3b3f14",
+          "min": [
+            -0.6842265725135803,
+            -0.5358626842498779,
+            -0.017338737845420837
+          ],
+          "max": [
+            0.6996743083000183,
+            0.5324798822402954,
+            1.2107654809951782
+          ]
+        },
+        {
+          "fraction": 1,
+          "frame": 25.0,
+          "geometryHash": "7b8c0c5768b7d0157d71dea629952f3eae41205aa3773ee554013f24f3ee4b6d",
+          "min": [
+            -0.675000011920929,
+            -0.4862273931503296,
+            -3.001878212671727e-08
+          ],
+          "max": [
+            0.675000011920929,
+            0.4862273633480072,
+            1.1833922863006592
+          ]
+        }
+      ],
+      "loopSeamMaxVertexErrorMetres": null,
+      "distinctSampledPoses": 5,
+      "images": [
+        "tmp\\frost-puff\\clip-validation\\hit_000.png",
+        "tmp\\frost-puff\\clip-validation\\hit_025.png",
+        "tmp\\frost-puff\\clip-validation\\hit_050.png",
+        "tmp\\frost-puff\\clip-validation\\hit_075.png",
+        "tmp\\frost-puff\\clip-validation\\hit_100.png"
+      ]
+    },
+    {
+      "name": "stun",
+      "durationSeconds": 1.0,
+      "sampledPoses": [
+        {
+          "fraction": 0,
+          "frame": 0.0,
+          "geometryHash": "debad62f21b724a95e7bffb5f4da5a07fa719a4c51e1219acb0886b24cd22a0e",
+          "min": [
+            -0.646893322467804,
+            -0.47789356112480164,
+            -0.05307937040925026
+          ],
+          "max": [
+            0.6418073177337646,
+            0.41814425587654114,
+            1.2015546560287476
+          ]
+        },
+        {
+          "fraction": 0.25,
+          "frame": 25.0,
+          "geometryHash": "7a4f3e1a514ea192fe6d0d83323158b9c37156bda411b9d60a86879271db01ae",
+          "min": [
+            -0.6753981709480286,
+            -0.47789350152015686,
+            -0.04412751644849777
+          ],
+          "max": [
+            0.6399378776550293,
+            0.41814422607421875,
+            1.2195894718170166
+          ]
+        },
+        {
+          "fraction": 0.5,
+          "frame": 50.0,
+          "geometryHash": "debad62f21b724a95e7bffb5f4da5a07fa719a4c51e1219acb0886b24cd22a0e",
+          "min": [
+            -0.646893322467804,
+            -0.47789356112480164,
+            -0.05307937040925026
+          ],
+          "max": [
+            0.6418073177337646,
+            0.41814425587654114,
+            1.2015546560287476
+          ]
+        },
+        {
+          "fraction": 0.75,
+          "frame": 75.0,
+          "geometryHash": "2b795c860b097342b5579463b2aec737879a9fadbe78662332a349ab3bf78a76",
+          "min": [
+            -0.611924946308136,
+            -0.47789350152015686,
+            -0.0970350131392479
+          ],
+          "max": [
+            0.6382597088813782,
+            0.41814422607421875,
+            1.1773490905761719
+          ]
+        },
+        {
+          "fraction": 1,
+          "frame": 100.0,
+          "geometryHash": "debad62f21b724a95e7bffb5f4da5a07fa719a4c51e1219acb0886b24cd22a0e",
+          "min": [
+            -0.646893322467804,
+            -0.47789356112480164,
+            -0.05307937040925026
+          ],
+          "max": [
+            0.6418073177337646,
+            0.41814425587654114,
+            1.2015546560287476
+          ]
+        }
+      ],
+      "loopSeamMaxVertexErrorMetres": 0.0,
+      "distinctSampledPoses": 3,
+      "images": [
+        "tmp\\frost-puff\\clip-validation\\stun_000.png",
+        "tmp\\frost-puff\\clip-validation\\stun_025.png",
+        "tmp\\frost-puff\\clip-validation\\stun_050.png",
+        "tmp\\frost-puff\\clip-validation\\stun_075.png",
+        "tmp\\frost-puff\\clip-validation\\stun_100.png"
+      ]
+    },
+    {
+      "name": "recover",
+      "durationSeconds": 0.45,
+      "sampledPoses": [
+        {
+          "fraction": 0,
+          "frame": 0.0,
+          "geometryHash": "debad62f21b724a95e7bffb5f4da5a07fa719a4c51e1219acb0886b24cd22a0e",
+          "min": [
+            -0.646893322467804,
+            -0.47789356112480164,
+            -0.05307937040925026
+          ],
+          "max": [
+            0.6418073177337646,
+            0.41814425587654114,
+            1.2015546560287476
+          ]
+        },
+        {
+          "fraction": 0.25,
+          "frame": 11.25,
+          "geometryHash": "8b4a8abb979e3a4bf8cbb0dae265f6ea5666e67faf6a87dfd5d1c89247eb1410",
+          "min": [
+            -0.6682171821594238,
+            -0.4687935411930084,
+            -0.02651313692331314
+          ],
+          "max": [
+            0.6503596901893616,
+            0.43205970525741577,
+            1.204430103302002
+          ]
+        },
+        {
+          "fraction": 0.5,
+          "frame": 22.5,
+          "geometryHash": "e0bc231f9de04e74ff4e4f4ae65f26d76d7947428aeb5ba62fc63af1ebc97d2d",
+          "min": [
+            -0.6609626412391663,
+            -0.4587441682815552,
+            -0.029354743659496307
+          ],
+          "max": [
+            0.6584067344665527,
+            0.449996680021286,
+            1.1951719522476196
+          ]
+        },
+        {
+          "fraction": 0.75,
+          "frame": 33.75,
+          "geometryHash": "da0448b4350afec4d3fd26d506281eb3970511d89014399df8953ce20ccb0566",
+          "min": [
+            -0.662479817867279,
+            -0.4626726508140564,
+            -0.02139509655535221
+          ],
+          "max": [
+            0.6661134958267212,
+            0.46742624044418335,
+            1.1878411769866943
+          ]
+        },
+        {
+          "fraction": 1,
+          "frame": 45.0,
+          "geometryHash": "7b8c0c5768b7d0157d71dea629952f3eae41205aa3773ee554013f24f3ee4b6d",
+          "min": [
+            -0.675000011920929,
+            -0.4862273931503296,
+            -3.001878212671727e-08
+          ],
+          "max": [
+            0.675000011920929,
+            0.4862273633480072,
+            1.1833922863006592
+          ]
+        }
+      ],
+      "loopSeamMaxVertexErrorMetres": null,
+      "distinctSampledPoses": 5,
+      "images": [
+        "tmp\\frost-puff\\clip-validation\\recover_000.png",
+        "tmp\\frost-puff\\clip-validation\\recover_025.png",
+        "tmp\\frost-puff\\clip-validation\\recover_050.png",
+        "tmp\\frost-puff\\clip-validation\\recover_075.png",
+        "tmp\\frost-puff\\clip-validation\\recover_100.png"
+      ]
+    },
+    {
+      "name": "carry_panic",
+      "durationSeconds": 0.8,
+      "sampledPoses": [
+        {
+          "fraction": 0,
+          "frame": 0.0,
+          "geometryHash": "7eb23ebe4f286f87a4e9d1fbc8f8bfc0a82f2bf78555c80de37fe03eb2b964a5",
+          "min": [
+            -0.6268159747123718,
+            -0.4435217082500458,
+            0.04041144251823425
+          ],
+          "max": [
+            0.6180881261825562,
+            0.4445180892944336,
+            1.1833922863006592
+          ]
+        },
+        {
+          "fraction": 0.25,
+          "frame": 20.0,
+          "geometryHash": "88e330efc1a21d6f1449927a25a87f84f32e9f8dea59bc2bcd91c985befcfcba",
+          "min": [
+            -0.6069310307502747,
+            -0.5142505168914795,
+            0.027052491903305054
+          ],
+          "max": [
+            0.6480133533477783,
+            0.5088598132133484,
+            1.1113265752792358
+          ]
+        },
+        {
+          "fraction": 0.5,
+          "frame": 40.0,
+          "geometryHash": "7eb23ebe4f286f87a4e9d1fbc8f8bfc0a82f2bf78555c80de37fe03eb2b964a5",
+          "min": [
+            -0.6268159747123718,
+            -0.4435217082500458,
+            0.04041144251823425
+          ],
+          "max": [
+            0.6180881261825562,
+            0.4445180892944336,
+            1.1833922863006592
+          ]
+        },
+        {
+          "fraction": 0.75,
+          "frame": 60.0,
+          "geometryHash": "18a62622dc006c63027e7a216894384f00416ea23e9cd53beff56c2225d8073f",
+          "min": [
+            -0.6466953754425049,
+            -0.4816283583641052,
+            0.012667570263147354
+          ],
+          "max": [
+            0.588274359703064,
+            0.4212750494480133,
+            1.2467057704925537
+          ]
+        },
+        {
+          "fraction": 1,
+          "frame": 80.0,
+          "geometryHash": "7eb23ebe4f286f87a4e9d1fbc8f8bfc0a82f2bf78555c80de37fe03eb2b964a5",
+          "min": [
+            -0.6268159747123718,
+            -0.4435217082500458,
+            0.04041144251823425
+          ],
+          "max": [
+            0.6180881261825562,
+            0.4445180892944336,
+            1.1833922863006592
+          ]
+        }
+      ],
+      "loopSeamMaxVertexErrorMetres": 0.0,
+      "distinctSampledPoses": 3,
+      "images": [
+        "tmp\\frost-puff\\clip-validation\\carry_panic_000.png",
+        "tmp\\frost-puff\\clip-validation\\carry_panic_025.png",
+        "tmp\\frost-puff\\clip-validation\\carry_panic_050.png",
+        "tmp\\frost-puff\\clip-validation\\carry_panic_075.png",
+        "tmp\\frost-puff\\clip-validation\\carry_panic_100.png"
+      ]
+    },
+    {
+      "name": "airborne_tumble",
+      "durationSeconds": 0.7,
+      "sampledPoses": [
+        {
+          "fraction": 0,
+          "frame": 0.0,
+          "geometryHash": "53af2cd6fd86516f80365010655f579a4e77977221f5e5047405b101a8b8c1db",
+          "min": [
+            -0.6388624310493469,
+            -0.4541981816291809,
+            0.030308574438095093
+          ],
+          "max": [
+            0.632320761680603,
+            0.45494744181632996,
+            1.1833922863006592
+          ]
+        },
+        {
+          "fraction": 0.25,
+          "frame": 17.5,
+          "geometryHash": "75630286dcb45840e7104302ebb62b3ab00e945561f1be11918116b851d8a872",
+          "min": [
+            -0.5180540084838867,
+            -0.6097037196159363,
+            0.02992558479309082
+          ],
+          "max": [
+            0.6333922147750854,
+            0.6070551872253418,
+            1.1079802513122559
+          ]
+        },
+        {
+          "fraction": 0.5,
+          "frame": 35.0,
+          "geometryHash": "4ca32da2f5d8c6ff871cef28ba7560d0bbb7e43e42aa4277f1507c0ec8f0fdec",
+          "min": [
+            -0.6323207020759583,
+            -0.45419809222221375,
+            -0.08339226245880127
+          ],
+          "max": [
+            0.6388624310493469,
+            0.45494744181632996,
+            1.06969153881073
+          ]
+        },
+        {
+          "fraction": 0.75,
+          "frame": 52.5,
+          "geometryHash": "3ad9c9273a6e35b041065f30ba4aa2eb51bd950b956eff5520857d9f47fe3ee0",
+          "min": [
+            -0.5489540100097656,
+            -0.5825470089912415,
+            0.06885957717895508
+          ],
+          "max": [
+            0.6333922147750854,
+            0.590833842754364,
+            1.008614182472229
+          ]
+        },
+        {
+          "fraction": 1,
+          "frame": 70.0,
+          "geometryHash": "869060c398b4ebdcc50cd2b594948e9abe093eaaba3aa4581aa49fae2ccb233b",
+          "min": [
+            -0.6388624310493469,
+            -0.45419812202453613,
+            0.030308542773127556
+          ],
+          "max": [
+            0.632320761680603,
+            0.4549473524093628,
+            1.1833922863006592
+          ]
+        }
+      ],
+      "loopSeamMaxVertexErrorMetres": 1.999200562387517e-07,
+      "distinctSampledPoses": 5,
+      "images": [
+        "tmp\\frost-puff\\clip-validation\\airborne_tumble_000.png",
+        "tmp\\frost-puff\\clip-validation\\airborne_tumble_025.png",
+        "tmp\\frost-puff\\clip-validation\\airborne_tumble_050.png",
+        "tmp\\frost-puff\\clip-validation\\airborne_tumble_075.png",
+        "tmp\\frost-puff\\clip-validation\\airborne_tumble_100.png"
+      ]
+    },
+    {
+      "name": "land_burst",
+      "durationSeconds": 0.8,
+      "sampledPoses": [
+        {
+          "fraction": 0,
+          "frame": 0.0,
+          "geometryHash": "e72aa314821881b6034d919c44dbcab94d4c7c21545a397fa567e96c52cb3507",
+          "min": [
+            -1.0193973779678345,
+            -0.7668589949607849,
+            -0.04406975209712982
+          ],
+          "max": [
+            1.0545176267623901,
+            0.7647503614425659,
+            1.0935968160629272
+          ]
+        },
+        {
+          "fraction": 0.25,
+          "frame": 20.0,
+          "geometryHash": "61afc004d9e7ad5fce0466074b75795b0aa36ac6037246949f915ea6267a1af5",
+          "min": [
+            -0.7125084400177002,
+            -0.5321624279022217,
+            -0.13210785388946533
+          ],
+          "max": [
+            0.732954740524292,
+            0.530609130859375,
+            1.4257267713546753
+          ]
+        },
+        {
+          "fraction": 0.5,
+          "frame": 40.0,
+          "geometryHash": "3eeab4ce4dda0b4d3a6a06627454c7370ef5c9220174cfef9c481154a1b16a4a",
+          "min": [
+            -0.7908432483673096,
+            -0.58723384141922,
+            -0.04077368229627609
+          ],
+          "max": [
+            0.8098489046096802,
+            0.5854805111885071,
+            1.2939573526382446
+          ]
+        },
+        {
+          "fraction": 0.75,
+          "frame": 60.0,
+          "geometryHash": "cebea2da79129c1238502abfe297d55c64ed63a41033f46ccfb9ff909e1c4210",
+          "min": [
+            -0.7342907190322876,
+            -0.5357170104980469,
+            -0.004425413440912962
+          ],
+          "max": [
+            0.7416550517082214,
+            0.5348561406135559,
+            1.1986737251281738
+          ]
+        },
+        {
+          "fraction": 1,
+          "frame": 80.0,
+          "geometryHash": "7b8c0c5768b7d0157d71dea629952f3eae41205aa3773ee554013f24f3ee4b6d",
+          "min": [
+            -0.675000011920929,
+            -0.4862273931503296,
+            -3.001878212671727e-08
+          ],
+          "max": [
+            0.675000011920929,
+            0.4862273633480072,
+            1.1833922863006592
+          ]
+        }
+      ],
+      "loopSeamMaxVertexErrorMetres": null,
+      "distinctSampledPoses": 5,
+      "images": [
+        "tmp\\frost-puff\\clip-validation\\land_burst_000.png",
+        "tmp\\frost-puff\\clip-validation\\land_burst_025.png",
+        "tmp\\frost-puff\\clip-validation\\land_burst_050.png",
+        "tmp\\frost-puff\\clip-validation\\land_burst_075.png",
+        "tmp\\frost-puff\\clip-validation\\land_burst_100.png"
+      ]
+    },
+    {
+      "name": "death",
+      "durationSeconds": 1.1,
+      "sampledPoses": [
+        {
+          "fraction": 0,
+          "frame": 0.0,
+          "geometryHash": "7b8c0c5768b7d0157d71dea629952f3eae41205aa3773ee554013f24f3ee4b6d",
+          "min": [
+            -0.675000011920929,
+            -0.4862273931503296,
+            -3.001878212671727e-08
+          ],
+          "max": [
+            0.675000011920929,
+            0.4862273633480072,
+            1.1833922863006592
+          ]
+        },
+        {
+          "fraction": 0.25,
+          "frame": 27.5,
+          "geometryHash": "735ce941a96b8dd895f4b05473c80955bf678036cb15d6fc1042a23e1c0cb51a",
+          "min": [
+            -0.8834506273269653,
+            -0.5389038324356079,
+            -0.22102424502372742
+          ],
+          "max": [
+            0.8419486880302429,
+            0.4985595643520355,
+            1.3157281875610352
+          ]
+        },
+        {
+          "fraction": 0.5,
+          "frame": 55.0,
+          "geometryHash": "464816df0210f02398edc58d9eb443b3eefccba023b86d5561bdbcf2e5496389",
+          "min": [
+            -0.7005808353424072,
+            -0.5905898809432983,
+            -0.2501131296157837
+          ],
+          "max": [
+            0.7165520191192627,
+            0.5062563419342041,
+            1.2213976383209229
+          ]
+        },
+        {
+          "fraction": 0.75,
+          "frame": 82.5,
+          "geometryHash": "426902fbcc3a773e7f273b6ecc11ee952fc17ca63a0027c8ee70838c4038f7c9",
+          "min": [
+            -0.27698075771331787,
+            -0.37762850522994995,
+            0.025953814387321472
+          ],
+          "max": [
+            0.2846306562423706,
+            0.3372924327850342,
+            0.8750072717666626
+          ]
+        },
+        {
+          "fraction": 1,
+          "frame": 110.0,
+          "geometryHash": "b7c958e9a1aa38ccaf11f7eb7505bd69aaaa93d2f6c65e695f30b61223fedc37",
+          "min": [
+            -0.00826495885848999,
+            -0.01205417513847351,
+            0.4175502061843872
+          ],
+          "max": [
+            0.008556991815567017,
+            0.01139456033706665,
+            0.4424068033695221
+          ]
+        }
+      ],
+      "loopSeamMaxVertexErrorMetres": null,
+      "distinctSampledPoses": 5,
+      "images": [
+        "tmp\\frost-puff\\clip-validation\\death_000.png",
+        "tmp\\frost-puff\\clip-validation\\death_025.png",
+        "tmp\\frost-puff\\clip-validation\\death_050.png",
+        "tmp\\frost-puff\\clip-validation\\death_075.png",
+        "tmp\\frost-puff\\clip-validation\\death_100.png"
+      ]
+    }
+  ]
+}

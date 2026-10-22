@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "checkedAtUtc": "2026-10-22T03:37:48Z",
+  "provider": "Tripo3D",
+  "gameDevCliAvailable": false,
+  "fallbackCli": "C:/Users/mekdr/AppData/Roaming/npm/tripo.cmd",
+  "generationSubmitted": true,
+  "uploadsPerformed": true,
+  "jobIds": [
+    "cee1c92c-0dca-4bf0-84e9-5fabdcc3cf95"
+  ],
+  "creditsConsumed": null,
+  "actualCharges": null,
+  "chargeNote": "Generate button displayed 30 credits. Concurrent sibling jobs used the same web account; aggregate balance changes cannot independently establish this job charge. No currency charge or credit purchase performed.",
+  "blocker": null,
+  "registration": "Leaf index.js exports the valid FrostPuff class. Only own saved test map contains spawn definitions.",
+  "apiDiagnostics": {
+    "node": "v24.14.0",
+    "credentialConfigured": true,
+    "credentialSource": "profile:default",
+    "apiReachable": true,
+    "region": "ov"
+  },
+  "apiBalance": {
+    "available": 0,
+    "frozen": 0
+  },
+  "method": "Tripo Studio web UI in user-authorized existing Opera session",
+  "jobUrl": "https://studio.tripo3d.ai/workspace/generate/cee1c92c-0dca-4bf0-84e9-5fabdcc3cf95",
+  "status": "completed_downloaded",
+  "webBalanceObservedBefore": 23110,
+  "displayedGenerationCostCredits": 30,
+  "model": "H3.1 – Best Quality",
+  "mode": "HD Model",
+  "outputFormat": "GLB",
+  "exportTextureResolution": "2k Current",
+  "uploadedImage": "src/game/objects/enemies/frost-puff/source-portrait.png",
+  "uploadedImageSha256": "675ac95a3bd4d725cddc21d06a6eedb2734d5b94c59357014283ce14442e227f",
+  "originalDownloadSha256": "2e4dc451ad219af23ed37af965e1f5d6305eeec0968434c33531872c71ee3219",
+  "originalDownloadBytes": 2368804,
+  "originalPreservedAs": "src/game/models/enemies/frost-puff/tripo-original.glb.bin",
+  "generationAttempts": 1,
+  "replacementAttempts": 0,
+  "imageDerivative": {
+    "tool": "image_gen.imagegen",
+    "output": "src/game/objects/enemies/frost-puff/source-portrait.png",
+    "transparency": true,
+    "prompt": "Extract only the large main top-left portrait; preserve ice head, black recessed eyes, azure eyebrows, faceted crystals; remove lettering, infographic panels, ground, shadows and all secondary characters."
+  }
+}

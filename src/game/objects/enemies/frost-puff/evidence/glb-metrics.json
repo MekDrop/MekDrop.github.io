@@ -1,0 +1,302 @@
+{
+  "actions": [
+    {
+      "frame_end": 16.8,
+      "frame_start": 0.0,
+      "name": "airborne_tumble",
+      "users": 2
+    },
+    {
+      "frame_end": 7.68,
+      "frame_start": 0.0,
+      "name": "burst_charge",
+      "users": 1
+    },
+    {
+      "frame_end": 11.52,
+      "frame_start": 0.0,
+      "name": "burst_release",
+      "users": 1
+    },
+    {
+      "frame_end": 19.2,
+      "frame_start": 0.0,
+      "name": "carry_panic",
+      "users": 1
+    },
+    {
+      "frame_end": 26.4,
+      "frame_start": 0.0,
+      "name": "death",
+      "users": 1
+    },
+    {
+      "frame_end": 5.28,
+      "frame_start": 0.0,
+      "name": "frost_cast",
+      "users": 1
+    },
+    {
+      "frame_end": 9.12,
+      "frame_start": 0.0,
+      "name": "frost_recover",
+      "users": 1
+    },
+    {
+      "frame_end": 9.6,
+      "frame_start": 0.0,
+      "name": "frost_windup",
+      "users": 1
+    },
+    {
+      "frame_end": 6.0,
+      "frame_start": 0.0,
+      "name": "hit",
+      "users": 1
+    },
+    {
+      "frame_end": 48.0,
+      "frame_start": 0.0,
+      "name": "hover_idle",
+      "users": 1
+    },
+    {
+      "frame_end": 24.0,
+      "frame_start": 0.0,
+      "name": "hover_move",
+      "users": 1
+    },
+    {
+      "frame_end": 12.0,
+      "frame_start": 0.0,
+      "name": "hover_turn",
+      "users": 1
+    },
+    {
+      "frame_end": 19.2,
+      "frame_start": 0.0,
+      "name": "land_burst",
+      "users": 1
+    },
+    {
+      "frame_end": 10.8,
+      "frame_start": 0.0,
+      "name": "recover",
+      "users": 1
+    },
+    {
+      "frame_end": 24.0,
+      "frame_start": 0.0,
+      "name": "startled_drift",
+      "users": 1
+    },
+    {
+      "frame_end": 24.0,
+      "frame_start": 0.0,
+      "name": "stun",
+      "users": 1
+    }
+  ],
+  "blender": {
+    "background": true,
+    "build_hash": "9e2066aef7ef",
+    "version": "5.2.1 LTS",
+    "version_tuple": [
+      5,
+      2,
+      1
+    ]
+  },
+  "hard_gate_pass": true,
+  "input": "C:\\Users\\mekdr\\Documents\\Projects\\MekDrop.github.io\\src\\game\\models\\enemies\\frost-puff\\frost-puff.glb",
+  "issues": [],
+  "material_details": [
+    {
+      "image_texture_nodes": 3,
+      "images": [
+        "frost-puff-tripo-original_basecolor",
+        "frost-puff-tripo-original_normal",
+        "frost-puff-tripo-original_rm"
+      ],
+      "name": "FrostPuff_IceAndCrystal",
+      "node_count": 7,
+      "use_nodes": true
+    }
+  ],
+  "materials": [
+    "FrostPuff_IceAndCrystal"
+  ],
+  "meshes": [
+    {
+      "boundary_edges": 1849,
+      "connected_components": 119,
+      "data_name": "meshes[0]",
+      "degenerate_faces": 0,
+      "edges": 7322,
+      "flat_polygons": 0,
+      "invalid_vertices": 0,
+      "isolated_vertices": 0,
+      "material_slots": [
+        "FrostPuff_IceAndCrystal"
+      ],
+      "missing_material_faces": 0,
+      "modifiers": [
+        {
+          "name": "Armature",
+          "type": "ARMATURE"
+        }
+      ],
+      "name": "FrostPuff_TripoMesh",
+      "non_manifold_edges": 1849,
+      "polygons": 4265,
+      "refinement_modifiers": [],
+      "shape_keys": 0,
+      "smooth_polygon_ratio": 1.0,
+      "smooth_polygons": 4265,
+      "source_polygons": 4265,
+      "source_vertices": 3176,
+      "triangles": 4265,
+      "uv_layers": 1,
+      "vertex_groups": 14,
+      "vertices": 3176,
+      "weighted_vertices": 3176,
+      "wire_edges": 0,
+      "world_bounds": [
+        [
+          -0.726577,
+          -0.558701,
+          -0.072528
+        ],
+        [
+          0.66483,
+          0.538093,
+          1.287579
+        ]
+      ],
+      "zero_length_edges": 0
+    }
+  ],
+  "objects": [
+    {
+      "action": "airborne_tumble",
+      "collections": [
+        "Scene Collection"
+      ],
+      "dimensions": [
+        1.381439,
+        0.612986,
+        1.254038
+      ],
+      "hidden_render": false,
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "name": "FrostPuffRig",
+      "parent": null,
+      "rotation_euler": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "transform_is_finite": true,
+      "type": "ARMATURE"
+    },
+    {
+      "action": null,
+      "collections": [
+        "Scene Collection"
+      ],
+      "dimensions": [
+        1.391407,
+        1.096794,
+        1.360106
+      ],
+      "hidden_render": false,
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "name": "FrostPuff_TripoMesh",
+      "parent": "FrostPuffRig",
+      "rotation_euler": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "transform_is_finite": true,
+      "type": "MESH"
+    }
+  ],
+  "scene": {
+    "bounds": {
+      "dimensions": [
+        1.391407,
+        1.096794,
+        1.360107
+      ],
+      "max": [
+        0.66483,
+        0.538093,
+        1.287579
+      ],
+      "min": [
+        -0.726577,
+        -0.558701,
+        -0.072528
+      ]
+    },
+    "fps": 24.0,
+    "frame_end": 250,
+    "frame_start": 1,
+    "name": "Scene"
+  },
+  "schema_version": 3,
+  "totals": {
+    "actions": 16,
+    "armatures": 1,
+    "bones": 14,
+    "boundary_edges": 1849,
+    "cameras": 0,
+    "constraints": 0,
+    "degenerate_faces": 0,
+    "edges": 7322,
+    "flat_polygons": 0,
+    "geometry_nodes_modifiers": 0,
+    "images": 3,
+    "invalid_vertices": 0,
+    "isolated_vertices": 0,
+    "lights": 0,
+    "materials": 1,
+    "mesh_objects": 1,
+    "missing_material_faces": 0,
+    "node_materials": 1,
+    "non_manifold_edges": 1849,
+    "objects": 2,
+    "polygons": 4265,
+    "refinement_modifiers": 0,
+    "rigid_body_objects": 0,
+    "shape_keys": 0,
+    "simulation_modifiers": 0,
+    "smooth_polygons": 4265,
+    "textured_materials": 1,
+    "triangles": 4265,
+    "uv_mapped_meshes": 1,
+    "vertices": 3176,
+    "weighted_meshes": 1,
+    "wire_edges": 0,
+    "zero_length_edges": 0
+  }
+}
