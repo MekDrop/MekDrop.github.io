@@ -1,0 +1,23 @@
+{
+  "result": {
+    "found": true,
+    "state": "DivecapInspectState",
+    "clip": "idle",
+    "position": [
+      -1.0009623765945435,
+      2.0033438205718994,
+      -10.989668846130371
+    ],
+    "royal": "King",
+    "modelNodes": [
+      {
+        "state": "idle",
+        "time": 1.6342999999999956,
+        "progress": 0.8171499999999978
+      }
+    ]
+  },
+  "errors": [],
+  "registrationCompatibility": false,
+  "scopedEnemyDiscovery": false
+}

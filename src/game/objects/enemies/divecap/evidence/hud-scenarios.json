@@ -1,0 +1,331 @@
+{
+  "before": {
+    "royal": "King",
+    "royalPoint": [
+      3.625,
+      2.1670000553131104,
+      -2.9345099925994873
+    ],
+    "floor": 2.0000030994415283
+  },
+  "frames": [
+    {
+      "airborne": true,
+      "state": "DivecapFlightState",
+      "clip": "launch",
+      "position": [
+        3.6144628524780273,
+        2.2066049575805664,
+        -3.8839168548583984
+      ],
+      "hits": 0,
+      "royalCalls": 0
+    },
+    {
+      "airborne": false,
+      "state": "DivecapLandingState",
+      "clip": "impact",
+      "position": [
+        3.608278512954712,
+        2.189110040664673,
+        -3.9113986492156982
+      ],
+      "hits": 1,
+      "royalCalls": 1,
+      "royalOutcome": [
+        "focus",
+        "visualSize",
+        "viewRotation"
+      ]
+    },
+    {
+      "airborne": false,
+      "state": "DivecapLandingState",
+      "clip": "impact",
+      "position": [
+        3.606998920440674,
+        2.189101219177246,
+        -3.9106600284576416
+      ],
+      "hits": 1,
+      "royalCalls": 1,
+      "royalOutcome": [
+        "focus",
+        "visualSize",
+        "viewRotation"
+      ]
+    },
+    {
+      "airborne": false,
+      "state": "DivecapLandingState",
+      "clip": "land_recover",
+      "position": [
+        3.606454372406006,
+        2.1891086101531982,
+        -3.9108729362487793
+      ],
+      "hits": 1,
+      "royalCalls": 1,
+      "royalOutcome": [
+        "focus",
+        "visualSize",
+        "viewRotation"
+      ]
+    },
+    {
+      "airborne": false,
+      "state": "DivecapLandingState",
+      "clip": "land_recover",
+      "position": [
+        3.606454372406006,
+        2.1891098022460938,
+        -3.91085147857666
+      ],
+      "hits": 1,
+      "royalCalls": 1,
+      "royalOutcome": [
+        "focus",
+        "visualSize",
+        "viewRotation"
+      ]
+    },
+    {
+      "airborne": false,
+      "state": "DivecapLandingState",
+      "clip": "land_recover",
+      "position": [
+        3.606454372406006,
+        2.1891098022460938,
+        -3.910815477371216
+      ],
+      "hits": 1,
+      "royalCalls": 1,
+      "royalOutcome": [
+        "focus",
+        "visualSize",
+        "viewRotation"
+      ]
+    },
+    {
+      "airborne": false,
+      "state": "DivecapLandingState",
+      "clip": "land_recover",
+      "position": [
+        3.606454610824585,
+        2.1891098022460938,
+        -3.910797595977783
+      ],
+      "hits": 1,
+      "royalCalls": 1,
+      "royalOutcome": [
+        "focus",
+        "visualSize",
+        "viewRotation"
+      ]
+    },
+    {
+      "airborne": false,
+      "state": "DivecapLandingState",
+      "clip": "land_recover",
+      "position": [
+        3.606454610824585,
+        2.1891098022460938,
+        -3.910794496536255
+      ],
+      "hits": 1,
+      "royalCalls": 1,
+      "royalOutcome": [
+        "focus",
+        "visualSize",
+        "viewRotation"
+      ]
+    },
+    {
+      "airborne": false,
+      "state": "DivecapLandingState",
+      "clip": "land_recover",
+      "position": [
+        3.606454610824585,
+        2.1891098022460938,
+        -3.910787582397461
+      ],
+      "hits": 1,
+      "royalCalls": 1,
+      "royalOutcome": [
+        "focus",
+        "visualSize",
+        "viewRotation"
+      ]
+    },
+    {
+      "airborne": false,
+      "state": "DivecapPursueState",
+      "clip": "queue_wait",
+      "position": [
+        3.606454610824585,
+        2.1891098022460938,
+        -3.9107775688171387
+      ],
+      "hits": 1,
+      "royalCalls": 1,
+      "royalOutcome": [
+        "focus",
+        "visualSize",
+        "viewRotation"
+      ]
+    },
+    {
+      "airborne": false,
+      "state": "DivecapPursueState",
+      "clip": "queue_wait",
+      "position": [
+        3.606454610824585,
+        2.1891098022460938,
+        -3.9107775688171387
+      ],
+      "hits": 1,
+      "royalCalls": 1,
+      "royalOutcome": [
+        "focus",
+        "visualSize",
+        "viewRotation"
+      ]
+    },
+    {
+      "airborne": false,
+      "state": "DivecapPursueState",
+      "clip": "queue_wait",
+      "position": [
+        3.606454610824585,
+        2.1891098022460938,
+        -3.9107775688171387
+      ],
+      "hits": 1,
+      "royalCalls": 1,
+      "royalOutcome": [
+        "focus",
+        "visualSize",
+        "viewRotation"
+      ]
+    },
+    {
+      "airborne": false,
+      "state": "DivecapPursueState",
+      "clip": "queue_wait",
+      "position": [
+        3.606454610824585,
+        2.1891098022460938,
+        -3.9107775688171387
+      ],
+      "hits": 1,
+      "royalCalls": 1,
+      "royalOutcome": [
+        "focus",
+        "visualSize",
+        "viewRotation"
+      ]
+    },
+    {
+      "airborne": false,
+      "state": "DivecapPursueState",
+      "clip": "queue_wait",
+      "position": [
+        3.606454610824585,
+        2.1891098022460938,
+        -3.9107775688171387
+      ],
+      "hits": 1,
+      "royalCalls": 1,
+      "royalOutcome": [
+        "focus",
+        "visualSize",
+        "viewRotation"
+      ]
+    },
+    {
+      "airborne": false,
+      "state": "DivecapPursueState",
+      "clip": "queue_wait",
+      "position": [
+        3.606454610824585,
+        2.1891098022460938,
+        -3.9107775688171387
+      ],
+      "hits": 1,
+      "royalCalls": 1,
+      "royalOutcome": [
+        "focus",
+        "visualSize",
+        "viewRotation"
+      ]
+    },
+    {
+      "airborne": false,
+      "state": "DivecapPursueState",
+      "clip": "queue_wait",
+      "position": [
+        3.606454610824585,
+        2.1891098022460938,
+        -3.9107775688171387
+      ],
+      "hits": 1,
+      "royalCalls": 1,
+      "royalOutcome": [
+        "focus",
+        "visualSize",
+        "viewRotation"
+      ]
+    },
+    {
+      "airborne": false,
+      "state": "DivecapPursueState",
+      "clip": "queue_wait",
+      "position": [
+        3.606454610824585,
+        2.1891098022460938,
+        -3.9107775688171387
+      ],
+      "hits": 1,
+      "royalCalls": 1,
+      "royalOutcome": [
+        "focus",
+        "visualSize",
+        "viewRotation"
+      ]
+    },
+    {
+      "airborne": false,
+      "state": "DivecapPursueState",
+      "clip": "queue_wait",
+      "position": [
+        3.606454610824585,
+        2.1891098022460938,
+        -3.9107775688171387
+      ],
+      "hits": 1,
+      "royalCalls": 1,
+      "royalOutcome": [
+        "focus",
+        "visualSize",
+        "viewRotation"
+      ]
+    }
+  ],
+  "preview": {
+    "visiblePixels": 35113,
+    "transparentPixels": 227031,
+    "margin": 112
+  },
+  "hud": {
+    "queue": {
+      "state": "DivecapQueueState",
+      "encouraged": true
+    },
+    "carry": {
+      "carried": true,
+      "bodyEnabled": false
+    },
+    "aimedThrowLaunched": false,
+    "royalDropButton": true
+  }
+}

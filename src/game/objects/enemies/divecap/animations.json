@@ -1,0 +1,476 @@
+{
+  "fps": 30,
+  "animationEnum": {
+    "IDLE": "idle",
+    "WALK": "walk",
+    "RUN": "run",
+    "TURN": "turn",
+    "EAGER_HOP": "eager_hop",
+    "VOLUNTEER_WAVE": "volunteer_wave",
+    "QUEUE_WAIT": "queue_wait",
+    "CARRIED_READY": "carried_ready",
+    "LAUNCH": "launch",
+    "AIRBORNE_FLY": "airborne_fly",
+    "DIVE_POSE": "dive_pose",
+    "DIVE_LOOP": "dive_loop",
+    "IMPACT": "impact",
+    "LAND_RECOVER": "land_recover",
+    "MISSED_LAND_STUN": "missed_land_stun",
+    "HELMET_BONK": "helmet_bonk",
+    "HIT": "hit",
+    "STUN": "stun",
+    "RECOVER": "recover",
+    "KNOCKBACK": "knockback",
+    "DEATH": "death"
+  },
+  "locomotion": {
+    "walk": {
+      "cycleDistanceMeters": 0.52,
+      "authoredSpeedMetersPerSecond": 0.65
+    },
+    "run": {
+      "cycleDistanceMeters": 0.72,
+      "authoredSpeedMetersPerSecond": 1.44
+    }
+  },
+  "clips": [
+    {
+      "name": "idle",
+      "duration": 2,
+      "loop": true,
+      "events": {},
+      "states": [
+        "DivecapPursueState"
+      ]
+    },
+    {
+      "name": "walk",
+      "duration": 0.8,
+      "loop": true,
+      "events": {
+        "leftPlant": 0,
+        "rightPlant": 0.4
+      },
+      "states": [
+        "DivecapPursueState",
+        "DivecapQueueState"
+      ]
+    },
+    {
+      "name": "run",
+      "duration": 0.5,
+      "loop": true,
+      "events": {
+        "leftPlant": 0,
+        "rightPlant": 0.25
+      },
+      "states": [
+        "DivecapPursueState",
+        "DivecapQueueState"
+      ]
+    },
+    {
+      "name": "turn",
+      "duration": 0.5,
+      "loop": false,
+      "events": {},
+      "states": [
+        "DivecapPursueState"
+      ]
+    },
+    {
+      "name": "eager_hop",
+      "duration": 0.7,
+      "loop": false,
+      "events": {},
+      "states": [
+        "DivecapPursueState",
+        "DivecapQueueState"
+      ]
+    },
+    {
+      "name": "volunteer_wave",
+      "duration": 1,
+      "loop": false,
+      "events": {},
+      "states": [
+        "DivecapQueueState"
+      ]
+    },
+    {
+      "name": "queue_wait",
+      "duration": 1.6,
+      "loop": true,
+      "events": {},
+      "states": [
+        "DivecapQueueState"
+      ]
+    },
+    {
+      "name": "carried_ready",
+      "duration": 1,
+      "loop": true,
+      "events": {},
+      "states": [
+        "DivecapCarriedState"
+      ]
+    },
+    {
+      "name": "launch",
+      "duration": 0.3,
+      "loop": false,
+      "events": {
+        "release": 0
+      },
+      "states": [
+        "DivecapFlightState"
+      ]
+    },
+    {
+      "name": "airborne_fly",
+      "duration": 0.8,
+      "loop": true,
+      "events": {},
+      "states": [
+        "DivecapFlightState"
+      ]
+    },
+    {
+      "name": "dive_pose",
+      "duration": 0.3333333333333333,
+      "loop": false,
+      "events": {},
+      "states": [
+        "DivecapFlightState"
+      ]
+    },
+    {
+      "name": "dive_loop",
+      "duration": 0.6,
+      "loop": true,
+      "events": {},
+      "states": [
+        "DivecapFlightState"
+      ]
+    },
+    {
+      "name": "impact",
+      "duration": 0.3333333333333333,
+      "loop": false,
+      "events": {
+        "splash": 0,
+        "contact": 0
+      },
+      "states": [
+        "DivecapLandingState"
+      ]
+    },
+    {
+      "name": "land_recover",
+      "duration": 0.6666666666666666,
+      "loop": false,
+      "events": {},
+      "states": [
+        "DivecapLandingState"
+      ]
+    },
+    {
+      "name": "missed_land_stun",
+      "duration": 1.2,
+      "loop": false,
+      "events": {},
+      "states": [
+        "DivecapLandingState"
+      ]
+    },
+    {
+      "name": "helmet_bonk",
+      "duration": 0.7,
+      "loop": false,
+      "events": {
+        "contact": 0.2
+      },
+      "states": [
+        "DivecapBonkState"
+      ]
+    },
+    {
+      "name": "hit",
+      "duration": 0.4,
+      "loop": false,
+      "events": {},
+      "states": [
+        "DivecapPursueState",
+        "DivecapQueueState"
+      ]
+    },
+    {
+      "name": "stun",
+      "duration": 1,
+      "loop": true,
+      "events": {},
+      "states": [
+        "DivecapStunState"
+      ]
+    },
+    {
+      "name": "recover",
+      "duration": 0.5,
+      "loop": false,
+      "events": {},
+      "states": [
+        "DivecapRecoverState"
+      ]
+    },
+    {
+      "name": "knockback",
+      "duration": 0.6,
+      "loop": false,
+      "events": {},
+      "states": [
+        "DivecapPursueState"
+      ]
+    },
+    {
+      "name": "death",
+      "duration": 1,
+      "loop": false,
+      "events": {
+        "cleanup": 1
+      },
+      "states": [
+        "DivecapDeathState"
+      ]
+    }
+  ],
+  "testPlaybackState": "DivecapInspectState",
+  "verification": {
+    "freshGlbImport": "evidence/fresh-import.json",
+    "renderedPoseReview": "evidence/blender-clips.jpg",
+    "enginePlayback": "evidence/engine-playback.json",
+    "allClipsHaveFinitePlaybackAndMeasuredBoneMotion": true,
+    "normalRoute": "evidence/normal-route.json",
+    "unfilteredEnemyDiscoveryPassed": true,
+    "physicsLifecycle": {
+      "launch": true,
+      "flight": [
+        {
+          "state": "DivecapFlightState",
+          "clip": "launch",
+          "airborne": true,
+          "position": [
+            -0.48125672340393066,
+            2.7261760234832764,
+            -11
+          ],
+          "hits": 0
+        },
+        {
+          "state": "DivecapFlightState",
+          "clip": "dive_pose",
+          "airborne": true,
+          "position": [
+            -0.0006566513329744339,
+            2.766958236694336,
+            -11
+          ],
+          "hits": 0
+        },
+        {
+          "state": "DivecapFlightState",
+          "clip": "dive_pose",
+          "airborne": true,
+          "position": [
+            0.5597434043884277,
+            2.1002681255340576,
+            -11
+          ],
+          "hits": 0
+        },
+        {
+          "state": "DivecapLandingState",
+          "clip": "impact",
+          "airborne": false,
+          "position": [
+            0.6499464511871338,
+            2.003901720046997,
+            -11.000441551208496
+          ],
+          "hits": 0
+        },
+        {
+          "state": "DivecapLandingState",
+          "clip": "impact",
+          "airborne": false,
+          "position": [
+            0.6499310731887817,
+            2.0039541721343994,
+            -11.003191947937012
+          ],
+          "hits": 0
+        },
+        {
+          "state": "DivecapLandingState",
+          "clip": "missed_land_stun",
+          "airborne": false,
+          "position": [
+            0.6498959064483643,
+            2.002394676208496,
+            -11.023673057556152
+          ],
+          "hits": 0
+        },
+        {
+          "state": "DivecapLandingState",
+          "clip": "missed_land_stun",
+          "airborne": false,
+          "position": [
+            0.6498003005981445,
+            2.00374436378479,
+            -11.063652992248535
+          ],
+          "hits": 0
+        },
+        {
+          "state": "DivecapLandingState",
+          "clip": "missed_land_stun",
+          "airborne": false,
+          "position": [
+            0.6497077941894531,
+            2.0034217834472656,
+            -11.100406646728516
+          ],
+          "hits": 0
+        },
+        {
+          "state": "DivecapLandingState",
+          "clip": "missed_land_stun",
+          "airborne": false,
+          "position": [
+            0.6496132612228394,
+            2.0036537647247314,
+            -11.13401985168457
+          ],
+          "hits": 0
+        },
+        {
+          "state": "DivecapLandingState",
+          "clip": "missed_land_stun",
+          "airborne": false,
+          "position": [
+            0.6494854092597961,
+            2.0038983821868896,
+            -11.179634094238281
+          ],
+          "hits": 0
+        },
+        {
+          "state": "DivecapLandingState",
+          "clip": "missed_land_stun",
+          "airborne": false,
+          "position": [
+            0.6493895649909973,
+            2.003819704055786,
+            -11.216058731079102
+          ],
+          "hits": 0
+        },
+        {
+          "state": "DivecapLandingState",
+          "clip": "missed_land_stun",
+          "airborne": false,
+          "position": [
+            0.6492817401885986,
+            2.003843307495117,
+            -11.255431175231934
+          ],
+          "hits": 0
+        },
+        {
+          "state": "DivecapQueueState",
+          "clip": "walk",
+          "airborne": false,
+          "position": [
+            0.709708034992218,
+            2.0038950443267822,
+            -11.314921379089355
+          ],
+          "hits": 0
+        },
+        {
+          "state": "DivecapQueueState",
+          "clip": "walk",
+          "airborne": false,
+          "position": [
+            0.8720273971557617,
+            2.0039122104644775,
+            -11.390449523925781
+          ],
+          "hits": 0
+        },
+        {
+          "state": "DivecapQueueState",
+          "clip": "walk",
+          "airborne": false,
+          "position": [
+            1.0238728523254395,
+            2.0039713382720947,
+            -11.416934967041016
+          ],
+          "hits": 0
+        },
+        {
+          "state": "DivecapQueueState",
+          "clip": "walk",
+          "airborne": false,
+          "position": [
+            1.1894779205322266,
+            2.0039918422698975,
+            -11.44582748413086
+          ],
+          "hits": 0
+        }
+      ],
+      "pickup": {
+        "accepted": true,
+        "state": "DivecapCarriedState",
+        "bodyEnabled": false
+      },
+      "ogreThrow": true,
+      "death": {
+        "alive": false,
+        "detached": true
+      }
+    },
+    "royalImpact": "evidence/royal-impact.json",
+    "successfulActualRoyalCapability": true,
+    "stanceFootDriftRatios": [
+      {
+        "clip": "walk",
+        "ratio": 0.02572413441462625
+      },
+      {
+        "clip": "run",
+        "ratio": 0.0003544181935277065
+      }
+    ],
+    "focusedUnitTests": {
+      "command": "node --test test/unit/game/objects/enemies/divecap/divecap.test.js",
+      "passed": 14
+    },
+    "lint": {
+      "command": "node node_modules/eslint/bin/eslint.js src/game/objects/enemies/divecap",
+      "passed": true
+    },
+    "preview": {
+      "path": "preview.png",
+      "visiblePixels": 37193,
+      "transparentPixels": 224951,
+      "margin": 111
+    },
+    "limitations": [
+      "Reference rear is inferred; model has irregular triangular planes and deeper eyes under the helmet.",
+      "The Pitcher Ogre planner rejected its covered-castle arc in this fixture; actual pickup/release and a genuine successful royal splash drop are separately verified."
+    ]
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "date": "2026-10-22",
+  "reference": "../info.png",
+  "referenceComparison": "reference-vs-game.jpg",
+  "sourceBlend": "../../../../models/enemies/divecap/divecap.blend",
+  "model": {
+    "provider": "Tripo3D",
+    "originalPreserved": true,
+    "editableBlend": true,
+    "exportedGlb": true,
+    "rigBones": 7,
+    "embeddedClips": 21,
+    "uvAndWeightsFreshImported": true
+  },
+  "art": {
+    "frontSideRearReviewed": true,
+    "gameCameraReviewed": true,
+    "allClipSamplesReviewed": true,
+    "transparentPreview": true,
+    "referenceDifferencesDocumented": true
+  },
+  "behavior": {
+    "realYukaStates": true,
+    "royalPersonTarget": true,
+    "noTowerAttacks": true,
+    "openEntrancePreference": true,
+    "ogreQueue": true,
+    "eagerCarry": true,
+    "bellEncouragement": true,
+    "ammoLaunchAndLanding": true,
+    "successfulRoyalSplash": true,
+    "missedLandingRecovery": true,
+    "externalStunRecovery": true,
+    "wallOcclusion": true,
+    "deathCleanup": true,
+    "timeScaleChanges": true
+  },
+  "spawning": {
+    "onlySavedOwnTestMap": true,
+    "normalSpawnPoolsChanged": false
+  },
+  "evidence": {
+    "enginePlayback": "engine-playback.json",
+    "royalImpact": "royal-impact.json",
+    "hudScenarios": "hud-scenarios.json",
+    "normalRoute": "normal-route.json",
+    "providerReceipt": "../provider-receipt.json",
+    "renderedDiveAndSplash": "dive-and-splash.json"
+  },
+  "checks": {
+    "unitTestsPassed": 14,
+    "focusedLintPassed": true,
+    "broadSuiteRun": false,
+    "buildRun": false,
+    "reasonBuildSkipped": "localhost:9000 was live"
+  },
+  "remainingLimitations": [
+    "Reference rear is inferred; model has irregular triangular planes and deeper eyes under the helmet.",
+    "The Pitcher Ogre planner rejected its covered-castle arc in this fixture; actual pickup/release and a genuine successful royal splash drop are separately verified."
+  ],
+  "finalRuntimeScope": {
+    "scopedEnemyRegistry": [
+      "divecap",
+      "pitcher-ogre"
+    ],
+    "optionalObjectCache": "generator fallback in test browser only",
+    "earlierUnfilteredPass": "normal-route.json"
+  }
+}

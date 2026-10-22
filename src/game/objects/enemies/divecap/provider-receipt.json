@@ -1,0 +1,29 @@
+{
+  "provider": "Tripo3D Studio",
+  "interface": "browser; game-dev CLI unavailable on PATH",
+  "jobId": "0ef11fa5-ee8c-47bd-931a-f010d3f6ff61",
+  "url": "https://studio.tripo3d.ai/workspace/generate/0ef11fa5-ee8c-47bd-931a-f010d3f6ff61",
+  "model": "H3.1 – Best Quality",
+  "input": "generation-reference.png",
+  "inputDerivation": "ImageGen isolated the main upper-left portrait from info.png; no secondary cameo characters or lettering.",
+  "generationMode": "Geometry & Texture",
+  "generateInParts": false,
+  "texture8K": false,
+  "quotedCredits": 30,
+  "actualChargeCredits": null,
+  "chargeNote": "Accepted 30-credit Generate action; balance changed concurrently with sibling jobs so aggregate balance delta is not an individual receipt.",
+  "status": "downloaded-and-locally-rigged",
+  "replacementAttempts": 0,
+  "original": "provenance/tripo-original.glb",
+  "originalTriangles": 4730,
+  "originalVertices": 3209,
+  "providerRigging": false,
+  "providerAnimation": false,
+  "localRefinement": "Blender species rig, seven semantic bones, normalized skin weights, retained provider mesh/UV/texture, authored actions.",
+  "sha256": {
+    "original": "ead4941ce5e7e690e5d14705591c466a6ad38cfa85c702c11f07a60b5ca82a43",
+    "reference": "bb1cb858f5e2efde46404066686e7078d826ca2b44d746d798e87cc5711d041d",
+    "blend": "81da5f94c515dbd4005031590df25466b2cb27ba6f8a818e4bed5df4ca46a5a4",
+    "glb": "59104fac7dbbfe2744f42eed422f5100533bbbb51b87a90ae9da3a7e88a2219f"
+  }
+}

@@ -1,0 +1,880 @@
+{
+  "freshImport": true,
+  "clips": [
+    {
+      "name": "idle",
+      "duration": 2,
+      "frames": [
+        0,
+        12,
+        24,
+        36,
+        48
+      ],
+      "maxMiddleVertexMotion": 0.017927651913028232,
+      "maxEndpointVertexDifference": 0,
+      "finite": true,
+      "sampleImages": [
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 0,
+          "column": 0
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 0,
+          "column": 1
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 0,
+          "column": 2
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 0,
+          "column": 3
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 0,
+          "column": 4
+        }
+      ]
+    },
+    {
+      "name": "walk",
+      "duration": 0.8000000317891439,
+      "frames": [
+        0,
+        4.800000190734863,
+        9.600000381469727,
+        14.40000057220459,
+        19.200000762939453
+      ],
+      "maxMiddleVertexMotion": 0.2599999940853886,
+      "maxEndpointVertexDifference": 0,
+      "finite": true,
+      "sampleImages": [
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 1,
+          "column": 0
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 1,
+          "column": 1
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 1,
+          "column": 2
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 1,
+          "column": 3
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 1,
+          "column": 4
+        }
+      ]
+    },
+    {
+      "name": "run",
+      "duration": 0.5,
+      "frames": [
+        0,
+        3,
+        6,
+        9,
+        12
+      ],
+      "maxMiddleVertexMotion": 0.34207691154015535,
+      "maxEndpointVertexDifference": 0,
+      "finite": true,
+      "sampleImages": [
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 2,
+          "column": 0
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 2,
+          "column": 1
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 2,
+          "column": 2
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 2,
+          "column": 3
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 2,
+          "column": 4
+        }
+      ]
+    },
+    {
+      "name": "turn",
+      "duration": 0.5,
+      "frames": [
+        0,
+        3,
+        6,
+        9,
+        12
+      ],
+      "maxMiddleVertexMotion": 0.1297107768103159,
+      "maxEndpointVertexDifference": 0,
+      "finite": true,
+      "sampleImages": [
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 3,
+          "column": 0
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 3,
+          "column": 1
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 3,
+          "column": 2
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 3,
+          "column": 3
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 3,
+          "column": 4
+        }
+      ]
+    },
+    {
+      "name": "eager_hop",
+      "duration": 0.6999999682108561,
+      "frames": [
+        0,
+        4.199999809265137,
+        8.399999618530273,
+        12.59999942779541,
+        16.799999237060547
+      ],
+      "maxMiddleVertexMotion": 0.18478565383937978,
+      "maxEndpointVertexDifference": 0,
+      "finite": true,
+      "sampleImages": [
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 4,
+          "column": 0
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 4,
+          "column": 1
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 4,
+          "column": 2
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 4,
+          "column": 3
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 4,
+          "column": 4
+        }
+      ]
+    },
+    {
+      "name": "volunteer_wave",
+      "duration": 1,
+      "frames": [
+        0,
+        6,
+        12,
+        18,
+        24
+      ],
+      "maxMiddleVertexMotion": 0.09008508803239046,
+      "maxEndpointVertexDifference": 0,
+      "finite": true,
+      "sampleImages": [
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 5,
+          "column": 0
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 5,
+          "column": 1
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 5,
+          "column": 2
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 5,
+          "column": 3
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 5,
+          "column": 4
+        }
+      ]
+    },
+    {
+      "name": "queue_wait",
+      "duration": 1.6000000635782878,
+      "frames": [
+        0,
+        9.600000381469727,
+        19.200000762939453,
+        28.80000114440918,
+        38.400001525878906
+      ],
+      "maxMiddleVertexMotion": 0.042775607666395786,
+      "maxEndpointVertexDifference": 0,
+      "finite": true,
+      "sampleImages": [
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 6,
+          "column": 0
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 6,
+          "column": 1
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 6,
+          "column": 2
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 6,
+          "column": 3
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 6,
+          "column": 4
+        }
+      ]
+    },
+    {
+      "name": "carried_ready",
+      "duration": 1,
+      "frames": [
+        0,
+        6,
+        12,
+        18,
+        24
+      ],
+      "maxMiddleVertexMotion": 0.02704256761164695,
+      "maxEndpointVertexDifference": 0,
+      "finite": true,
+      "sampleImages": [
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 7,
+          "column": 0
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 7,
+          "column": 1
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 7,
+          "column": 2
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 7,
+          "column": 3
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 7,
+          "column": 4
+        }
+      ]
+    },
+    {
+      "name": "launch",
+      "duration": 0.30000001192092896,
+      "frames": [
+        0,
+        1.8000000715255737,
+        3.6000001430511475,
+        5.400000214576721,
+        7.200000286102295
+      ],
+      "maxMiddleVertexMotion": 0.7485065044137665,
+      "maxEndpointVertexDifference": 0.7485065044137665,
+      "finite": true,
+      "sampleImages": [
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 8,
+          "column": 0
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 8,
+          "column": 1
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 8,
+          "column": 2
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 8,
+          "column": 3
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 8,
+          "column": 4
+        }
+      ]
+    },
+    {
+      "name": "airborne_fly",
+      "duration": 0.8000000317891439,
+      "frames": [
+        0,
+        4.800000190734863,
+        9.600000381469727,
+        14.40000057220459,
+        19.200000762939453
+      ],
+      "maxMiddleVertexMotion": 0.042775607666395786,
+      "maxEndpointVertexDifference": 0,
+      "finite": true,
+      "sampleImages": [
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 9,
+          "column": 0
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 9,
+          "column": 1
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 9,
+          "column": 2
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 9,
+          "column": 3
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 9,
+          "column": 4
+        }
+      ]
+    },
+    {
+      "name": "dive_pose",
+      "duration": 0.3333333333333333,
+      "frames": [
+        0,
+        2,
+        4,
+        6,
+        8
+      ],
+      "maxMiddleVertexMotion": 1.350825584317277,
+      "maxEndpointVertexDifference": 0.9534128958104016,
+      "finite": true,
+      "sampleImages": [
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 10,
+          "column": 0
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 10,
+          "column": 1
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 10,
+          "column": 2
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 10,
+          "column": 3
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 10,
+          "column": 4
+        }
+      ]
+    },
+    {
+      "name": "dive_loop",
+      "duration": 0.6000000238418579,
+      "frames": [
+        0,
+        3.6000001430511475,
+        7.200000286102295,
+        10.800000429153442,
+        14.40000057220459
+      ],
+      "maxMiddleVertexMotion": 0.0285384514844497,
+      "maxEndpointVertexDifference": 0,
+      "finite": true,
+      "sampleImages": [
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 11,
+          "column": 0
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 11,
+          "column": 1
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 11,
+          "column": 2
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 11,
+          "column": 3
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 11,
+          "column": 4
+        }
+      ]
+    },
+    {
+      "name": "impact",
+      "duration": 0.3333333333333333,
+      "frames": [
+        0,
+        2,
+        4,
+        6,
+        8
+      ],
+      "maxMiddleVertexMotion": 1.1570988512710536,
+      "maxEndpointVertexDifference": 1.083355571750879,
+      "finite": true,
+      "sampleImages": [
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 12,
+          "column": 0
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 12,
+          "column": 1
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 12,
+          "column": 2
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 12,
+          "column": 3
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 12,
+          "column": 4
+        }
+      ]
+    },
+    {
+      "name": "land_recover",
+      "duration": 0.6666666666666666,
+      "frames": [
+        0,
+        4,
+        8,
+        12,
+        16
+      ],
+      "maxMiddleVertexMotion": 0.34576328018040514,
+      "maxEndpointVertexDifference": 0.26815060926194273,
+      "finite": true,
+      "sampleImages": [
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 13,
+          "column": 0
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 13,
+          "column": 1
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 13,
+          "column": 2
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 13,
+          "column": 3
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 13,
+          "column": 4
+        }
+      ]
+    },
+    {
+      "name": "missed_land_stun",
+      "duration": 1.2000000476837158,
+      "frames": [
+        0,
+        7.200000286102295,
+        14.40000057220459,
+        21.600000858306885,
+        28.80000114440918
+      ],
+      "maxMiddleVertexMotion": 0.2876337952406007,
+      "maxEndpointVertexDifference": 0.27182748565370063,
+      "finite": true,
+      "sampleImages": [
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 14,
+          "column": 0
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 14,
+          "column": 1
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 14,
+          "column": 2
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 14,
+          "column": 3
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 14,
+          "column": 4
+        }
+      ]
+    },
+    {
+      "name": "helmet_bonk",
+      "duration": 0.6999999682108561,
+      "frames": [
+        0,
+        4.199999809265137,
+        4.800000000000001,
+        8.399999618530273,
+        12.59999942779541,
+        16.799999237060547
+      ],
+      "maxMiddleVertexMotion": 0.5595535155965888,
+      "maxEndpointVertexDifference": 0,
+      "finite": true,
+      "sampleImages": [
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 15,
+          "column": 0
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 15,
+          "column": 1
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 15,
+          "column": 2
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 15,
+          "column": 3
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 15,
+          "column": 4
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 15,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "name": "hit",
+      "duration": 0.40000001589457196,
+      "frames": [
+        0,
+        2.4000000953674316,
+        4.800000190734863,
+        7.200000286102295,
+        9.600000381469727
+      ],
+      "maxMiddleVertexMotion": 0.19507568426786143,
+      "maxEndpointVertexDifference": 0,
+      "finite": true,
+      "sampleImages": [
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 16,
+          "column": 0
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 16,
+          "column": 1
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 16,
+          "column": 2
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 16,
+          "column": 3
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 16,
+          "column": 4
+        }
+      ]
+    },
+    {
+      "name": "stun",
+      "duration": 1,
+      "frames": [
+        0,
+        6,
+        12,
+        18,
+        24
+      ],
+      "maxMiddleVertexMotion": 0.08624310523984566,
+      "maxEndpointVertexDifference": 0,
+      "finite": true,
+      "sampleImages": [
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 17,
+          "column": 0
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 17,
+          "column": 1
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 17,
+          "column": 2
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 17,
+          "column": 3
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 17,
+          "column": 4
+        }
+      ]
+    },
+    {
+      "name": "recover",
+      "duration": 0.5,
+      "frames": [
+        0,
+        3,
+        6,
+        9,
+        12
+      ],
+      "maxMiddleVertexMotion": 0.17945524163382517,
+      "maxEndpointVertexDifference": 0.14032355206512676,
+      "finite": true,
+      "sampleImages": [
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 18,
+          "column": 0
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 18,
+          "column": 1
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 18,
+          "column": 2
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 18,
+          "column": 3
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 18,
+          "column": 4
+        }
+      ]
+    },
+    {
+      "name": "knockback",
+      "duration": 0.6000000238418579,
+      "frames": [
+        0,
+        3.6000001430511475,
+        7.200000286102295,
+        10.800000429153442,
+        14.40000057220459
+      ],
+      "maxMiddleVertexMotion": 0.34583013836000515,
+      "maxEndpointVertexDifference": 0,
+      "finite": true,
+      "sampleImages": [
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 19,
+          "column": 0
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 19,
+          "column": 1
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 19,
+          "column": 2
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 19,
+          "column": 3
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 19,
+          "column": 4
+        }
+      ]
+    },
+    {
+      "name": "death",
+      "duration": 1,
+      "frames": [
+        0,
+        6,
+        12,
+        18,
+        24
+      ],
+      "maxMiddleVertexMotion": 1.1298340677282508,
+      "maxEndpointVertexDifference": 1.1298340677282508,
+      "finite": true,
+      "sampleImages": [
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 20,
+          "column": 0
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 20,
+          "column": 1
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 20,
+          "column": 2
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 20,
+          "column": 3
+        },
+        {
+          "contactSheet": "blender-clips.jpg",
+          "row": 20,
+          "column": 4
+        }
+      ]
+    }
+  ],
+  "vertices": 14190,
+  "bones": 7,
+  "uvLayers": 1,
+  "contactSheetLayout": {
+    "labelWidth": 180,
+    "cellWidth": 180,
+    "rowHeight": 125
+  }
+}

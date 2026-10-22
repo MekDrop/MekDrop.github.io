@@ -1,0 +1,195 @@
+{
+  "dive": true,
+  "splash": true,
+  "frames": [
+    {
+      "state": "DivecapFlightState",
+      "clip": "launch",
+      "airborne": true,
+      "position": [
+        -0.9442668557167053,
+        2.3143410682678223,
+        -11
+      ],
+      "splash": false
+    },
+    {
+      "state": "DivecapFlightState",
+      "clip": "launch",
+      "airborne": true,
+      "position": [
+        -0.7840667366981506,
+        2.980884552001953,
+        -11
+      ],
+      "splash": false
+    },
+    {
+      "state": "DivecapFlightState",
+      "clip": "launch",
+      "airborne": true,
+      "position": [
+        -0.5704665780067444,
+        3.650611400604248,
+        -11
+      ],
+      "splash": false
+    },
+    {
+      "state": "DivecapFlightState",
+      "clip": "launch",
+      "airborne": true,
+      "position": [
+        -0.46366655826568604,
+        3.891205072402954,
+        -11
+      ],
+      "splash": false
+    },
+    {
+      "state": "DivecapFlightState",
+      "clip": "airborne_fly",
+      "airborne": true,
+      "position": [
+        -0.41026657819747925,
+        3.98754620552063,
+        -11
+      ],
+      "splash": false
+    },
+    {
+      "state": "DivecapFlightState",
+      "clip": "airborne_fly",
+      "airborne": true,
+      "position": [
+        -0.19686661660671234,
+        4.217972755432129,
+        -11
+      ],
+      "splash": false
+    },
+    {
+      "state": "DivecapFlightState",
+      "clip": "dive_pose",
+      "airborne": true,
+      "position": [
+        -0.09006664156913757,
+        4.238675594329834,
+        -11
+      ],
+      "splash": false
+    },
+    {
+      "state": "DivecapFlightState",
+      "clip": "dive_pose",
+      "airborne": true,
+      "position": [
+        0.04353336617350578,
+        4.17671537399292,
+        -11
+      ],
+      "splash": false
+    },
+    {
+      "state": "DivecapFlightState",
+      "clip": "dive_pose",
+      "airborne": true,
+      "position": [
+        0.15033334493637085,
+        4.0564727783203125,
+        -11
+      ],
+      "splash": false
+    },
+    {
+      "state": "DivecapFlightState",
+      "clip": "dive_pose",
+      "airborne": true,
+      "position": [
+        0.2837333381175995,
+        3.818307399749756,
+        -11
+      ],
+      "splash": false
+    },
+    {
+      "state": "DivecapFlightState",
+      "clip": "dive_pose",
+      "airborne": true,
+      "position": [
+        0.33693334460258484,
+        3.6964962482452393,
+        -11
+      ],
+      "splash": false
+    },
+    {
+      "state": "DivecapFlightState",
+      "clip": "dive_pose",
+      "airborne": true,
+      "position": [
+        0.39053332805633545,
+        3.557227373123169,
+        -11
+      ],
+      "splash": false
+    },
+    {
+      "state": "DivecapFlightState",
+      "clip": "dive_pose",
+      "airborne": true,
+      "position": [
+        0.4705333113670349,
+        3.320767402648926,
+        -11
+      ],
+      "splash": false
+    },
+    {
+      "state": "DivecapFlightState",
+      "clip": "dive_loop",
+      "airborne": true,
+      "position": [
+        0.6039333939552307,
+        2.8476662635803223,
+        -11
+      ],
+      "splash": false
+    },
+    {
+      "state": "DivecapFlightState",
+      "clip": "dive_loop",
+      "airborne": true,
+      "position": [
+        0.7373335361480713,
+        2.2766895294189453,
+        -11
+      ],
+      "splash": false
+    },
+    {
+      "state": "DivecapFlightState",
+      "clip": "airborne_fly",
+      "airborne": true,
+      "position": [
+        0.846327006816864,
+        1.9818832874298096,
+        -10.99907112121582
+      ],
+      "splash": false
+    },
+    {
+      "state": "DivecapLandingState",
+      "clip": "impact",
+      "airborne": false,
+      "position": [
+        0.9021276831626892,
+        1.9885179996490479,
+        -10.99750804901123
+      ],
+      "splash": true,
+      "particles": 22,
+      "visible": true
+    }
+  ]
+}

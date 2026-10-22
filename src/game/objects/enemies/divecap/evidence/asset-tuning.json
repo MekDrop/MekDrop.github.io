@@ -1,0 +1,135 @@
+{
+  "uniformScale": 1,
+  "yawCorrectionDegrees": 180,
+  "groundOffset": 0,
+  "aabb": {
+    "min": [
+      -0.4545,
+      0,
+      -0.3393
+    ],
+    "max": [
+      0.4545,
+      1,
+      0.3393
+    ]
+  },
+  "dims": [
+    0.9089,
+    1,
+    0.6786
+  ],
+  "center": [
+    0,
+    0.5,
+    0
+  ],
+  "boundsSource": "vertices",
+  "boundsPose": "bind",
+  "requiresRuntimeCheck": true,
+  "joints": [
+    "arm.L",
+    "arm.R",
+    "body",
+    "foot.L",
+    "foot.R",
+    "helmet",
+    "root"
+  ],
+  "clips": [
+    {
+      "name": "airborne_fly",
+      "duration": 0.8
+    },
+    {
+      "name": "carried_ready",
+      "duration": 1
+    },
+    {
+      "name": "death",
+      "duration": 1
+    },
+    {
+      "name": "dive_loop",
+      "duration": 0.6
+    },
+    {
+      "name": "dive_pose",
+      "duration": 0.3333
+    },
+    {
+      "name": "eager_hop",
+      "duration": 0.7
+    },
+    {
+      "name": "helmet_bonk",
+      "duration": 0.7
+    },
+    {
+      "name": "hit",
+      "duration": 0.4
+    },
+    {
+      "name": "idle",
+      "duration": 2
+    },
+    {
+      "name": "impact",
+      "duration": 0.3333
+    },
+    {
+      "name": "knockback",
+      "duration": 0.6
+    },
+    {
+      "name": "land_recover",
+      "duration": 0.6667
+    },
+    {
+      "name": "launch",
+      "duration": 0.3
+    },
+    {
+      "name": "missed_land_stun",
+      "duration": 1.2
+    },
+    {
+      "name": "queue_wait",
+      "duration": 1.6
+    },
+    {
+      "name": "recover",
+      "duration": 0.5
+    },
+    {
+      "name": "run",
+      "duration": 0.5
+    },
+    {
+      "name": "stun",
+      "duration": 1
+    },
+    {
+      "name": "turn",
+      "duration": 0.5
+    },
+    {
+      "name": "volunteer_wave",
+      "duration": 1
+    },
+    {
+      "name": "walk",
+      "duration": 0.8
+    }
+  ],
+  "actualGameGrounding": [
+    -1.0009623765945435,
+    2.0033438205718994,
+    -10.989668846130371
+  ],
+  "runtimeEvidence": [
+    "engine-playback.json",
+    "normal-route.json",
+    "royal-impact.json"
+  ]
+}

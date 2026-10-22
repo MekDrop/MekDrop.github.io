@@ -1,0 +1,23 @@
+{
+  "source": "../info.png",
+  "generationReference": "../generation-reference.png",
+  "jobId": "0ef11fa5-ee8c-47bd-931a-f010d3f6ff61",
+  "findings": {
+    "identity": "Cream mushroom creature with a cheerful open mouth, short cream arms, brown feet, red cap rim and a tall pointed gold diving helmet.",
+    "silhouette": "Tripo preserved the oversized helmet and squat body; no replacement generation was needed.",
+    "refinement": "Flat surface shading retained; saturated helmet material added while retaining source UVs and dark inset-window texture. Seven-bone species rig with normalized weights added.",
+    "uncertainty": "Rear surfaces are inferred by Tripo because the source portrait does not show the rear.",
+    "remainingArtDifferences": "Provider mesh has softer, irregular triangulated planes and extra red folds at the rear; facial eyes sit more deeply under the helmet than the supplied portrait."
+  },
+  "sourcePreserved": true,
+  "paidReplacementAttempts": 0,
+  "clipCount": 21,
+  "checks": {
+    "freshGlbImport": true,
+    "uvPresent": true,
+    "bones": 7,
+    "finiteTimelineSamples": true,
+    "allClipsShowSampledVertexMotion": true,
+    "loopSeams": true
+  }
+}
