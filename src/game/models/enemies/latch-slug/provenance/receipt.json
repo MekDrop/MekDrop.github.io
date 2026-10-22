@@ -1,0 +1,27 @@
+{
+  "provider": "Tripo3D Studio",
+  "taskId": "2e8f5da5-9c29-4fee-8ba6-d02f7a48f15d",
+  "url": "https://studio.tripo3d.ai/workspace/generate/2e8f5da5-9c29-4fee-8ba6-d02f7a48f15d",
+  "status": "downloaded",
+  "source": "Main character isolated from approved info.png with Studio Nano Banana Edit Image",
+  "reference": "provenance/reference.png",
+  "parameters": {
+    "model": "H3.1 – Best Quality",
+    "mode": "HD Model",
+    "geometryAndTexture": true,
+    "generateInParts": false,
+    "texture8k": false,
+    "privacy": "Private",
+    "exportFormat": "GLB",
+    "exportTextureResolution": "2k"
+  },
+  "generationDisplayedCostCredits": 30,
+  "referenceEditButtonLabel": "Edit 10 0",
+  "actualChargeCredits": null,
+  "chargeNote": "Per-job charge ledger not exposed in inspected UI. Shared-account balance changes include sibling tasks and cannot establish this job charge.",
+  "webBalanceAtStart": 23110,
+  "apiBalanceAtEarlierCheck": 0,
+  "originalSha256": "225c3b3fd9dcecda19ea9aad9c9e92d80e12d3137ed9912cdc054d0c6e6f2ba5",
+  "finalSha256": "e0b424fc2dba8d268fffd5723fb2e7cfb90cd2008b70c67013643b964dfaa383",
+  "replacementAttempts": 0
+}

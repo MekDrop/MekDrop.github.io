@@ -1,0 +1,500 @@
+{
+  "status": "fresh-glb-sampled-runtime-playback-not-verified",
+  "model": "src/game/models/enemies/latch-slug/latch-slug.glb",
+  "clips": [
+    {
+      "name": "idle_dog",
+      "durationSeconds": 2,
+      "loop": true,
+      "events": [],
+      "supportedStates": [
+        "LatchClipState"
+      ],
+      "freshImportSamples": [
+        0,
+        0.25,
+        0.5,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "waddle_walk",
+      "durationSeconds": 1,
+      "loop": true,
+      "events": [],
+      "supportedStates": [
+        "LatchClipState",
+        "LatchSeekState"
+      ],
+      "freshImportSamples": [
+        0,
+        0.25,
+        0.5,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "waddle_run",
+      "durationSeconds": 0.6666666666666666,
+      "loop": true,
+      "events": [],
+      "supportedStates": [
+        "LatchClipState"
+      ],
+      "freshImportSamples": [
+        0,
+        0.25,
+        0.5,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "turn",
+      "durationSeconds": 0.7,
+      "loop": false,
+      "events": [],
+      "supportedStates": [
+        "LatchClipState"
+      ],
+      "freshImportSamples": [
+        0,
+        0.25,
+        0.5,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "sniff",
+      "durationSeconds": 1.2,
+      "loop": false,
+      "events": [],
+      "supportedStates": [
+        "LatchClipState",
+        "LatchSeekState"
+      ],
+      "freshImportSamples": [
+        0,
+        0.25,
+        0.5,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "pant",
+      "durationSeconds": 1,
+      "loop": true,
+      "events": [],
+      "supportedStates": [
+        "LatchClipState"
+      ],
+      "freshImportSamples": [
+        0,
+        0.25,
+        0.5,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "sit_down",
+      "durationSeconds": 0.6,
+      "loop": false,
+      "events": [],
+      "supportedStates": [
+        "LatchClipState",
+        "LatchDogState"
+      ],
+      "freshImportSamples": [
+        0,
+        0.25,
+        0.5,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "sit_loop",
+      "durationSeconds": 2,
+      "loop": true,
+      "events": [],
+      "supportedStates": [
+        "LatchClipState",
+        "LatchDogState"
+      ],
+      "freshImportSamples": [
+        0,
+        0.25,
+        0.5,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "stand_up",
+      "durationSeconds": 0.6,
+      "loop": false,
+      "events": [],
+      "supportedStates": [
+        "LatchClipState"
+      ],
+      "freshImportSamples": [
+        0,
+        0.25,
+        0.5,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "follow",
+      "durationSeconds": 0.9,
+      "loop": true,
+      "events": [],
+      "supportedStates": [
+        "LatchClipState",
+        "LatchDogState"
+      ],
+      "freshImportSamples": [
+        0,
+        0.25,
+        0.5,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "nudge",
+      "durationSeconds": 0.7,
+      "loop": false,
+      "events": [],
+      "supportedStates": [
+        "LatchClipState"
+      ],
+      "freshImportSamples": [
+        0,
+        0.25,
+        0.5,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "scoot",
+      "durationSeconds": 0.7,
+      "loop": false,
+      "events": [],
+      "supportedStates": [
+        "LatchClipState"
+      ],
+      "freshImportSamples": [
+        0,
+        0.25,
+        0.5,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "antenna_wag",
+      "durationSeconds": 1.2,
+      "loop": true,
+      "events": [],
+      "supportedStates": [
+        "LatchClipState"
+      ],
+      "freshImportSamples": [
+        0,
+        0.25,
+        0.5,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "startled",
+      "durationSeconds": 0.6666666666666666,
+      "loop": false,
+      "events": [],
+      "supportedStates": [
+        "LatchClipState",
+        "LatchReactionState"
+      ],
+      "freshImportSamples": [
+        0,
+        0.25,
+        0.5,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "hit",
+      "durationSeconds": 0.4,
+      "loop": false,
+      "events": [],
+      "supportedStates": [
+        "LatchClipState"
+      ],
+      "freshImportSamples": [
+        0,
+        0.25,
+        0.5,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "stun",
+      "durationSeconds": 1.2,
+      "loop": true,
+      "events": [],
+      "supportedStates": [
+        "LatchClipState",
+        "LatchReactionState"
+      ],
+      "freshImportSamples": [
+        0,
+        0.25,
+        0.5,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "recover",
+      "durationSeconds": 0.6666666666666666,
+      "loop": false,
+      "events": [],
+      "supportedStates": [
+        "LatchClipState",
+        "LatchReactionState"
+      ],
+      "freshImportSamples": [
+        0,
+        0.25,
+        0.5,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "knockback",
+      "durationSeconds": 0.6,
+      "loop": false,
+      "events": [],
+      "supportedStates": [
+        "LatchClipState"
+      ],
+      "freshImportSamples": [
+        0,
+        0.25,
+        0.5,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "carried_ready",
+      "durationSeconds": 1.2,
+      "loop": true,
+      "events": [],
+      "supportedStates": [
+        "LatchClipState",
+        "LatchReactionState"
+      ],
+      "freshImportSamples": [
+        0,
+        0.25,
+        0.5,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "airborne",
+      "durationSeconds": 1,
+      "loop": true,
+      "events": [],
+      "supportedStates": [
+        "LatchClipState",
+        "LatchReactionState"
+      ],
+      "freshImportSamples": [
+        0,
+        0.25,
+        0.5,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "land",
+      "durationSeconds": 0.3,
+      "loop": false,
+      "events": [
+        {
+          "name": "ground_contact",
+          "time": 0
+        }
+      ],
+      "supportedStates": [
+        "LatchClipState",
+        "LatchReactionState"
+      ],
+      "freshImportSamples": [
+        0,
+        0.25,
+        0.5,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "land_recover",
+      "durationSeconds": 0.4,
+      "loop": false,
+      "events": [],
+      "supportedStates": [
+        "LatchClipState"
+      ],
+      "freshImportSamples": [
+        0,
+        0.25,
+        0.5,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "door_press",
+      "durationSeconds": 0.6,
+      "loop": false,
+      "events": [
+        {
+          "name": "press_contact",
+          "time": 0.55
+        }
+      ],
+      "supportedStates": [
+        "LatchClipState",
+        "LatchPressState"
+      ],
+      "freshImportSamples": [
+        0,
+        0.25,
+        0.5,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "inflate_start",
+      "durationSeconds": 0.6,
+      "loop": false,
+      "events": [],
+      "supportedStates": [
+        "LatchClipState",
+        "LatchPressState"
+      ],
+      "freshImportSamples": [
+        0,
+        0.25,
+        0.5,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "inflate_loop",
+      "durationSeconds": 1.2,
+      "loop": true,
+      "events": [],
+      "supportedStates": [
+        "LatchClipState",
+        "LatchPressState"
+      ],
+      "freshImportSamples": [
+        0,
+        0.25,
+        0.5,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "terminal_splat",
+      "durationSeconds": 0.7,
+      "loop": false,
+      "events": [
+        {
+          "name": "glue_contact",
+          "time": 0.49
+        }
+      ],
+      "supportedStates": [
+        "LatchClipState",
+        "LatchDeadState"
+      ],
+      "freshImportSamples": [
+        0,
+        0.25,
+        0.5,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "death",
+      "durationSeconds": 1.1,
+      "loop": false,
+      "events": [],
+      "supportedStates": [
+        "LatchClipState",
+        "LatchDeadState"
+      ],
+      "freshImportSamples": [
+        0,
+        0.25,
+        0.5,
+        0.75,
+        1
+      ]
+    }
+  ],
+  "verifiedClips": [],
+  "sampledClips": [
+    "idle_dog",
+    "waddle_walk",
+    "waddle_run",
+    "turn",
+    "sniff",
+    "pant",
+    "sit_down",
+    "sit_loop",
+    "stand_up",
+    "follow",
+    "nudge",
+    "scoot",
+    "antenna_wag",
+    "startled",
+    "hit",
+    "stun",
+    "recover",
+    "knockback",
+    "carried_ready",
+    "airborne",
+    "land",
+    "land_recover",
+    "door_press",
+    "inflate_start",
+    "inflate_loop",
+    "terminal_splat",
+    "death"
+  ],
+  "evidence": "evidence/clip-samples.json"
+}

@@ -527,6 +527,13 @@ export class CastleEntityBuilder {
   }
 
   /**
+   * @returns {ReadonlyArray<import("../../architecture/door/Door.js").Door>}
+   */
+  get entranceDoors() {
+    return this.#animatedDoors.filter(CastleEntityBuilder.#filterDoor);
+  }
+
+  /**
    * @param {number|null} amount
    */
   set testDoorOpenAmount(amount) {

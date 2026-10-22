@@ -1,5 +1,6 @@
 import { NpcDoorAvoidance } from "../../shared/NpcDoorAvoidance.js";
 import { DoorLeafQueries } from "./DoorLeafQueries.js";
+import { DoorJam } from "./DoorJam.js";
 
 const SWING_SAMPLE_STEP = 1 / 360;
 const OPEN_DISTANCE = 1.8;
@@ -69,6 +70,35 @@ export class Door {
     return applied;
   }
 
+  /**
+   * @type {DoorJam}
+   */
+  #jam = new DoorJam();
+
+  /**
+   * @returns {boolean}
+   */
+  get jammed() {
+    return this.#jam.active;
+  }
+
+  /**
+   * @param {{clear: Function}} source
+   */
+  jamShut(source) {
+    return !this.#broken && this.#jam.attach(this.#openAmount, source);
+  }
+
+  /**
+   * @param {{clear: Function}} source
+   */
+  releaseJam(source) {
+    return this.#jam.release(source);
+  }
+
+  clearGlue() {
+    this.#jam.clear();
+  }
   /**
    * @type {import("playcanvas").Material[]}
    */
@@ -346,7 +376,7 @@ export class Door {
    * @param {number} value
    */
   set openAmount(value) {
-    if (this.#broken) {
+    if (this.#broken || this.jammed) {
       return;
     }
     if (this.#collision.swing) {
@@ -485,6 +515,10 @@ export class Door {
       0,
       this.#manualOpenRemaining - deltaTime,
     );
+    // Keep the existing leaf pose and Ammo collision bodies together while held.
+    if (this.jammed) {
+      return;
+    }
     const target = this.#testOpenAmount ?? Math.max(Number(open ?? this.#shouldOpen()), this.#sequenceOpenAmount ?? 0);
     if (Math.abs(target - this.#openAmount) > 0.000001 && this.#canNpcMove) {
       NpcDoorAvoidance.requestClearance(this.#entity, this.#inNpcSwing, this.#canNpcMove, null, this.#operator);
@@ -557,6 +591,7 @@ export class Door {
   }
 
   destroy() {
+    this.clearGlue();
     this.#collision?.destroy();
     this.#entity?.destroy();
     for (const material of this.#ownedMaterials) {

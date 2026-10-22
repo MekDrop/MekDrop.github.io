@@ -1,0 +1,126 @@
+{
+  "enemy": "LatchSlug",
+  "slug": "latch-slug",
+  "status": "incomplete-scene-initialization-stalled",
+  "date": "2026-10-22",
+  "reference": "info.png",
+  "referenceReview": {
+    "viewed": true,
+    "subject": "Main left portrait: squat faceted resin-green dog-slug, amber shell and head, four paws, curled antennae and tail, square cream-rimmed black eyes, pink tongue",
+    "actualModelComparison": "Inspected original and locally refined front, side, rear and three-quarter renders. Identity, faceted amber head/antennae/tail, eyes/tongue/paws and green resin panels match closely; body is opaque textured green rather than volumetrically translucent. Local axes, rig and materials refined; no replacement generation."
+  },
+  "provider": {
+    "name": "Tripo3D",
+    "gameDevCli": "not-installed-on-PATH",
+    "availableCli": "tripo-cli",
+    "availableCliVersion": "0.5.2",
+    "credentialStatus": "configured-in-default-profile",
+    "reachability": "doctor-passed",
+    "availableCredits": 0,
+    "frozenCredits": 0,
+    "jobs": [
+      "2e8f5da5-9c29-4fee-8ba6-d02f7a48f15d"
+    ],
+    "uploads": [
+      "info.png"
+    ],
+    "charges": null,
+    "generationParameters": null,
+    "note": "Per-job charge ledger not exposed in inspected UI. Shared-account balance changes include sibling tasks and cannot establish this job charge.",
+    "webStudio": "https://studio.tripo3d.ai/workspace/generate/2e8f5da5-9c29-4fee-8ba6-d02f7a48f15d",
+    "generationDisplayedCostCredits": 30
+  },
+  "assets": {
+    "originalProviderOutput": "src/game/models/enemies/latch-slug/provenance/provider-original.glb",
+    "blend": "src/game/models/enemies/latch-slug/latch-slug.blend",
+    "glb": "src/game/models/enemies/latch-slug/latch-slug.glb",
+    "preview": null
+  },
+  "yukaStates": [
+    "LatchSeekState",
+    "LatchDogState",
+    "LatchPressState",
+    "LatchReactionState",
+    "LatchDeadState",
+    "LatchClipState"
+  ],
+  "checks": {
+    "focusedUnitTests": {
+      "passed": 12,
+      "failed": 0,
+      "command": "node --test --test-isolation=none test/unit/game/objects/enemies/latch-slug/latch-slug.test.js test/unit/game/objects/architecture/door/door-jam.test.js",
+      "coverage": [
+        "real Yuka states and actual royal target resolution",
+        "zero outgoing door/royal damage",
+        "open door survival and movement restriction",
+        "door transitions during press and inflation",
+        "premature splat on closed-door bell; open-door bell survival",
+        "bell deduplication and secondary event rejection",
+        "pickup/stun interrupts windup",
+        "source-owned glue expiry and early clearing",
+        "death prevents healing/carry/jamming/status",
+        "slow capability produces reduced shared Enemy horizontal velocity",
+        "throw velocity handed to body without runtime trajectory integration",
+        "fatal splat disables root rigidbody and nested collisions",
+        "jam preserves existing door pose under opening APIs; clear restores movement"
+      ]
+    },
+    "doorRegression": {
+      "passed": 19,
+      "failed": 1,
+      "failure": "holds a swinging door until a visible NPC clears its leaf: idle !== wait",
+      "baseline": "Same failure reproduced using git HEAD Door.js with current surrounding checkout files; no original test or DoorPlacement changes made."
+    },
+    "artReview": "Opened refined front, rear, right, hero views and top-view clip contact sheet; further contact/deformation close-up review required.",
+    "freshGlbClipSampling": {
+      "clips": 27,
+      "phases": [
+        0,
+        0.25,
+        0.5,
+        0.75,
+        1
+      ],
+      "allFinite": true,
+      "allDeform": true,
+      "evidence": "evidence/clip-samples.json",
+      "note": "Changing sampled geometry and matching clip names are not complete visual or playback acceptance."
+    },
+    "actualGamePlayback": "Retry: original dynamic-module error resolved; scene remains at Raising the terrain with no logged browser errors. Per-clip production check added but not run.",
+    "actualGamePhysics": "not-verified",
+    "transparentPreview": "Still not captured because the production scene does not finish initialization."
+  },
+  "registration": true,
+  "testMap": "src/game/maps/tests/enemy-latch-slug.json",
+  "intendedTestMapUrl": "/map/test_enemy-latch-slug",
+  "remaining": [
+    "Resolve scene initialization stall and run Verify all clips through the saved test-map HUD",
+    "Verify contacts, loop seams, blends, foot sliding, time scaling and interruption transitions; sampled geometry alone does not complete this",
+    "Capture actual production-renderer transparent preview.png",
+    "Verify actual-map spawn coordinates, Ammo movement/contact/throw and royal approach",
+    "Finish authored residue visuals and player-facing clearing interaction; current clear API/HUD is programmatic",
+    "Verify slow effect with actual hero/royal recipients and implement missing capability integration if needed",
+    "Improve navigation around castle obstacles beyond direct royal pursuit"
+  ],
+  "retry": {
+    "date": "2026-10-22",
+    "otherEnemyChatsInactive": true,
+    "originalModuleErrorResolved": true,
+    "route": "http://localhost:9000/map/test_enemy-latch-slug",
+    "observedStage": "Raising the terrain… Building the map scene…",
+    "browsers": [
+      "Opera",
+      "visible in-app browser"
+    ],
+    "loggedErrors": [],
+    "alternateServer": "Previously observed 127.0.0.1:9024 is now connection refused",
+    "newControls": [
+      "Verify all clips: samples actual model joints, finite animation time and exported track duration, then downloads JSON",
+      "Beside entrance: collision-body teleport and camera framing"
+    ],
+    "royal": "Added actual King through objects[] with castleIndex 0 and seed 1",
+    "playbackExecuted": false,
+    "previewCaptured": false,
+    "note": "No model generation or provider spend during this retry. Scene initialization prevents the HUD controls from being exercised. Foreground/user inspection of the live test page is needed before further runtime acceptance."
+  }
+}
