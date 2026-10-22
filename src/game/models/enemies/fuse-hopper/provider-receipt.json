@@ -1,0 +1,34 @@
+{
+  "provider": "Tripo3D",
+  "channel": "signed-in Tripo Studio web UI",
+  "model": "H3.1 Best Quality",
+  "jobId": "be54f4ef-7eec-4ac9-84f3-269918e5b6d2",
+  "url": "https://studio.tripo3d.ai/workspace/generate/be54f4ef-7eec-4ac9-84f3-269918e5b6d2",
+  "input": "src/game/objects/enemies/fuse-hopper/portrait.png",
+  "inputDerivation": {
+    "source": "info.png",
+    "tool": "built-in imagegen",
+    "prompt": "Extract only the large main Fuse Hopper character in the upper-left; preserve angular charcoal bomb body, two orange eyes, segmented fuse, two mechanical spring legs and brass boots; remove text, scenery and other characters."
+  },
+  "parameters": {
+    "geometryAndTexture": true,
+    "generateInParts": false,
+    "texture8k": false,
+    "privacy": "Private",
+    "exportFormat": "GLB",
+    "textureResolution": "2k"
+  },
+  "creditsBefore": 22640,
+  "creditsAfter": 22610,
+  "actualCreditsSpent": 30,
+  "cashCharge": null,
+  "generationAttempts": 1,
+  "replacementAttempts": 0,
+  "status": "downloaded_original",
+  "original": "fuse-hopper-tripo-original.glb",
+  "apiEarlier": {
+    "authenticated": true,
+    "credits": 0
+  },
+  "note": "Web Studio credits are available despite separate API balance of zero."
+}

@@ -1,0 +1,430 @@
+{
+  "status": "fresh-import-sampled-production-playback-pending",
+  "model": "src/game/models/enemies/fuse-hopper/fuse-hopper.glb",
+  "rig": "FuseHopperRig",
+  "clips": [
+    {
+      "name": "idle_bounce",
+      "duration": 1.2000000476837158,
+      "loop": true,
+      "events": [],
+      "verified": false,
+      "verification": {
+        "freshImport": true,
+        "timelineSamples": [
+          0,
+          0.25,
+          0.5,
+          0.75,
+          1
+        ],
+        "nonemptyMotion": true,
+        "loopSeamMetres": 0,
+        "productionPlayback": false,
+        "visualReview": false,
+        "mainMeshVertexMotionMetres": 0.03358937662303665
+      }
+    },
+    {
+      "name": "hop_compress",
+      "duration": 0.20000000794728598,
+      "loop": false,
+      "events": [],
+      "verified": false,
+      "verification": {
+        "freshImport": true,
+        "timelineSamples": [
+          0,
+          0.25,
+          0.5,
+          0.75,
+          1
+        ],
+        "nonemptyMotion": true,
+        "loopSeamMetres": null,
+        "productionPlayback": false,
+        "visualReview": false,
+        "mainMeshVertexMotionMetres": 0.08553816423583384
+      }
+    },
+    {
+      "name": "hop_takeoff",
+      "duration": 0.16666666666666666,
+      "loop": false,
+      "events": [],
+      "verified": false,
+      "verification": {
+        "freshImport": true,
+        "timelineSamples": [
+          0,
+          0.25,
+          0.5,
+          0.75,
+          1
+        ],
+        "nonemptyMotion": true,
+        "loopSeamMetres": null,
+        "productionPlayback": false,
+        "visualReview": false,
+        "mainMeshVertexMotionMetres": 0.08553816423583384
+      }
+    },
+    {
+      "name": "hop_air",
+      "duration": 0.30000001192092896,
+      "loop": false,
+      "events": [],
+      "verified": false,
+      "verification": {
+        "freshImport": true,
+        "timelineSamples": [
+          0,
+          0.25,
+          0.5,
+          0.75,
+          1
+        ],
+        "nonemptyMotion": true,
+        "loopSeamMetres": null,
+        "productionPlayback": false,
+        "visualReview": false,
+        "mainMeshVertexMotionMetres": 0.05229983298364415
+      }
+    },
+    {
+      "name": "hop_land",
+      "duration": 0.20000000794728598,
+      "loop": false,
+      "events": [],
+      "verified": false,
+      "verification": {
+        "freshImport": true,
+        "timelineSamples": [
+          0,
+          0.25,
+          0.5,
+          0.75,
+          1
+        ],
+        "nonemptyMotion": true,
+        "loopSeamMetres": null,
+        "productionPlayback": false,
+        "visualReview": false,
+        "mainMeshVertexMotionMetres": 0.06709188236353716
+      }
+    },
+    {
+      "name": "hop_locomotion_loop",
+      "duration": 0.4333333174387614,
+      "loop": true,
+      "events": [],
+      "verified": false,
+      "verification": {
+        "freshImport": true,
+        "timelineSamples": [
+          0,
+          0.25,
+          0.5,
+          0.75,
+          1
+        ],
+        "nonemptyMotion": true,
+        "loopSeamMetres": 0,
+        "productionPlayback": false,
+        "visualReview": false,
+        "mainMeshVertexMotionMetres": 0.07375841202591822
+      }
+    },
+    {
+      "name": "turn",
+      "duration": 0.3333333333333333,
+      "loop": false,
+      "events": [],
+      "verified": false,
+      "verification": {
+        "freshImport": true,
+        "timelineSamples": [
+          0,
+          0.25,
+          0.5,
+          0.75,
+          1
+        ],
+        "nonemptyMotion": true,
+        "loopSeamMetres": null,
+        "productionPlayback": false,
+        "visualReview": false,
+        "mainMeshVertexMotionMetres": 0.13102412172948255
+      }
+    },
+    {
+      "name": "startled_stop",
+      "duration": 0.30000001192092896,
+      "loop": false,
+      "events": [],
+      "verified": false,
+      "verification": {
+        "freshImport": true,
+        "timelineSamples": [
+          0,
+          0.25,
+          0.5,
+          0.75,
+          1
+        ],
+        "nonemptyMotion": true,
+        "loopSeamMetres": null,
+        "productionPlayback": false,
+        "visualReview": false,
+        "mainMeshVertexMotionMetres": 0.13177251261478534
+      }
+    },
+    {
+      "name": "recover",
+      "duration": 0.2666666905085246,
+      "loop": false,
+      "events": [],
+      "verified": false,
+      "verification": {
+        "freshImport": true,
+        "timelineSamples": [
+          0,
+          0.25,
+          0.5,
+          0.75,
+          1
+        ],
+        "nonemptyMotion": true,
+        "loopSeamMetres": null,
+        "productionPlayback": false,
+        "visualReview": false,
+        "mainMeshVertexMotionMetres": 0.1012447514928685
+      }
+    },
+    {
+      "name": "fuse_start",
+      "duration": 0.20000000794728598,
+      "loop": false,
+      "events": [],
+      "verified": false,
+      "verification": {
+        "freshImport": true,
+        "timelineSamples": [
+          0,
+          0.25,
+          0.5,
+          0.75,
+          1
+        ],
+        "nonemptyMotion": true,
+        "loopSeamMetres": null,
+        "productionPlayback": false,
+        "visualReview": false,
+        "mainMeshVertexMotionMetres": 0.13754572419661573
+      }
+    },
+    {
+      "name": "fuse_loop",
+      "duration": 0.6000000238418579,
+      "loop": true,
+      "events": [],
+      "verified": false,
+      "verification": {
+        "freshImport": true,
+        "timelineSamples": [
+          0,
+          0.25,
+          0.5,
+          0.75,
+          1
+        ],
+        "nonemptyMotion": true,
+        "loopSeamMetres": 0,
+        "productionPlayback": false,
+        "visualReview": false,
+        "mainMeshVertexMotionMetres": 0.04849539090781418
+      }
+    },
+    {
+      "name": "carried_ready",
+      "duration": 0.8000000317891439,
+      "loop": true,
+      "events": [],
+      "verified": false,
+      "verification": {
+        "freshImport": true,
+        "timelineSamples": [
+          0,
+          0.25,
+          0.5,
+          0.75,
+          1
+        ],
+        "nonemptyMotion": true,
+        "loopSeamMetres": 0,
+        "productionPlayback": false,
+        "visualReview": false,
+        "mainMeshVertexMotionMetres": 0.04508751889639589
+      }
+    },
+    {
+      "name": "thrown_tumble",
+      "duration": 0.6999999682108561,
+      "loop": true,
+      "events": [],
+      "verified": false,
+      "verification": {
+        "freshImport": true,
+        "timelineSamples": [
+          0,
+          0.25,
+          0.5,
+          0.75,
+          1
+        ],
+        "nonemptyMotion": true,
+        "loopSeamMetres": 1.9684202691350738e-7,
+        "productionPlayback": false,
+        "visualReview": false,
+        "mainMeshVertexMotionMetres": 1.061944795012612
+      }
+    },
+    {
+      "name": "impact_land",
+      "duration": 0.2666666905085246,
+      "loop": false,
+      "events": [],
+      "verified": false,
+      "verification": {
+        "freshImport": true,
+        "timelineSamples": [
+          0,
+          0.25,
+          0.5,
+          0.75,
+          1
+        ],
+        "nonemptyMotion": true,
+        "loopSeamMetres": null,
+        "productionPlayback": false,
+        "visualReview": false,
+        "mainMeshVertexMotionMetres": 0.09553438158559566
+      }
+    },
+    {
+      "name": "detonate",
+      "duration": 0.6666666666666666,
+      "loop": false,
+      "events": [
+        {
+          "name": "blast",
+          "time": 0
+        }
+      ],
+      "verified": false,
+      "verification": {
+        "freshImport": true,
+        "timelineSamples": [
+          0,
+          0.25,
+          0.5,
+          0.75,
+          1
+        ],
+        "nonemptyMotion": true,
+        "loopSeamMetres": null,
+        "productionPlayback": false,
+        "visualReview": false,
+        "mainMeshVertexMotionMetres": 0.5256802211017619
+      }
+    },
+    {
+      "name": "hit",
+      "duration": 0.2666666905085246,
+      "loop": false,
+      "events": [],
+      "verified": false,
+      "verification": {
+        "freshImport": true,
+        "timelineSamples": [
+          0,
+          0.25,
+          0.5,
+          0.75,
+          1
+        ],
+        "nonemptyMotion": true,
+        "loopSeamMetres": null,
+        "productionPlayback": false,
+        "visualReview": false,
+        "mainMeshVertexMotionMetres": 0.15515501976966056
+      }
+    },
+    {
+      "name": "stun",
+      "duration": 1,
+      "loop": true,
+      "events": [],
+      "verified": false,
+      "verification": {
+        "freshImport": true,
+        "timelineSamples": [
+          0,
+          0.25,
+          0.5,
+          0.75,
+          1
+        ],
+        "nonemptyMotion": true,
+        "loopSeamMetres": 0,
+        "productionPlayback": false,
+        "visualReview": false,
+        "mainMeshVertexMotionMetres": 0.08719124535200704
+      }
+    },
+    {
+      "name": "stun_recover",
+      "duration": 0.30000001192092896,
+      "loop": false,
+      "events": [],
+      "verified": false,
+      "verification": {
+        "freshImport": true,
+        "timelineSamples": [
+          0,
+          0.25,
+          0.5,
+          0.75,
+          1
+        ],
+        "nonemptyMotion": true,
+        "loopSeamMetres": null,
+        "productionPlayback": false,
+        "visualReview": false,
+        "mainMeshVertexMotionMetres": 0.06315248524496374
+      }
+    },
+    {
+      "name": "death",
+      "duration": 0.6666666666666666,
+      "loop": false,
+      "events": [],
+      "verified": false,
+      "verification": {
+        "freshImport": true,
+        "timelineSamples": [
+          0,
+          0.25,
+          0.5,
+          0.75,
+          1
+        ],
+        "nonemptyMotion": true,
+        "loopSeamMetres": null,
+        "productionPlayback": false,
+        "visualReview": false,
+        "mainMeshVertexMotionMetres": 1.3046388217273905
+      }
+    }
+  ]
+}
