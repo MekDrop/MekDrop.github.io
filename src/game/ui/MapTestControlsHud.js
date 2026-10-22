@@ -20,7 +20,7 @@ export class MapTestControlsHud extends GamePanelHud {
    */
   #controls;
   /**
-   * @type {Array<{entity: import("playcanvas").Entity, button: import("../debug/MapTestControls.js").MapTestButton}>}
+   * @type {Array<{entity: import("playcanvas").Entity, button?: import("../debug/MapTestControls.js").MapTestButton, action?: () => void}>}
    */
   #buttons = [];
   /**
@@ -43,6 +43,26 @@ export class MapTestControlsHud extends GamePanelHud {
    * @type {number}
    */
   #pressed = -1;
+  /**
+   * @type {import("playcanvas").Entity[]}
+   */
+  #tabs = [];
+  /**
+   * @type {number}
+   */
+  #activeTab = 0;
+  /**
+   * @type {number}
+   */
+  #firstTab = 0;
+  /**
+   * @type {import("playcanvas").Entity|null}
+   */
+  #previousTab = null;
+  /**
+   * @type {import("playcanvas").Entity|null}
+   */
+  #nextTab = null;
 
   /**
    * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, panels: MapTestPanel[], controls: import("../debug/MapTestControls.js").MapTestControls}} options
@@ -57,46 +77,74 @@ export class MapTestControlsHud extends GamePanelHud {
 
     this.#controls = controls;
     this.#canvas = app.graphicsDevice.canvas;
+    const tabbed = panels.length > 1;
+    if (tabbed) {
+      const strip = this.createPanel({
+        name: "Test control tabs",
+        x: 16,
+        y: 96,
+        width: 480,
+        height: 38,
+      });
+      this.#previousTab = this.#label(strip, "<", 0, 0, 34, 38);
+      this.#nextTab = this.#label(strip, ">", 446, 0, 34, 38);
+      this.#buttons.push({
+        entity: this.#previousTab,
+        action: () => this.#scrollTabs(-1),
+      }, {
+        entity: this.#nextTab,
+        action: () => this.#scrollTabs(1),
+      });
+      for (const [index, definition] of panels.entries()) {
+        const entity = this.#label(strip, definition.title, 38, 0, 200, 38);
+        this.#tabs.push(entity);
+        this.#buttons.push({
+          entity,
+          action: () => this.#selectTab(index),
+        });
+      }
+    }
+    const width = tabbed ? 480 : 240;
     for (const [index, definition] of panels.entries()) {
       const height = 46 + definition.buttons.length * 38 + (definition.statusTargetId ? 36 : 0);
       const panel = this.createPanel({
         name: definition.title,
-        x: definition.x ?? 16,
-        y: definition.y ?? 140 + index * (height + 12),
-        width: 240,
+        x: tabbed ? 16 : definition.x ?? 16,
+        y: tabbed ? 140 : definition.y ?? 140,
+        width,
         height,
       });
-      const background = this.createTextureRecord(definition.title, 480, height * 2);
+      const background = this.createTextureRecord(definition.title, width * 2, height * 2);
       background.context.scale(2, 2);
-      this.drawPanelFrame(background.context, 240, height);
+      this.drawPanelFrame(background.context, width, height);
       background.texture.setSource(background.canvas);
       this.createImage({
         parent: panel,
         name: "Panel background",
         x: 0,
         y: 0,
-        width: 240,
+        width,
         height,
         texture: background.texture,
       });
       this.#panels.push(panel);
-      this.#label(panel, definition.title, 10, 10, 220, 26);
+      this.#label(panel, definition.title, 10, 10, width - 20, 26);
       for (const [buttonIndex, button] of definition.buttons.entries()) {
-        const entity = this.#label(panel, button.label, 10, 42 + buttonIndex * 38, 220, 30);
+        const entity = this.#label(panel, button.label, 10, 42 + buttonIndex * 38, width - 20, 30);
         this.#buttons.push({
           entity,
           button,
         });
       }
       if (definition.statusTargetId) {
-        const record = this.createTextureRecord("Test status", 440, 60);
+        const record = this.createTextureRecord("Test status", (width - 20) * 2, 60);
         record.context.scale(2, 2);
         this.createImage({
           parent: panel,
           name: "Test status",
           x: 10,
           y: height - 34,
-          width: 220,
+          width: width - 20,
           height: 30,
           texture: record.texture,
         });
@@ -107,6 +155,7 @@ export class MapTestControlsHud extends GamePanelHud {
         });
       }
     }
+    this.#refreshTabs();
     this.syncDrawOrder();
     for (const type of [INPUT_EVENT_TYPE.POINTER_DOWN, INPUT_EVENT_TYPE.POINTER_UP, INPUT_EVENT_TYPE.POINTER_MOVE, INPUT_EVENT_TYPE.POINTER_CANCEL, INPUT_EVENT_TYPE.WHEEL, INPUT_EVENT_TYPE.DOUBLE_CLICK]) {
       this.#canvas.addEventListener(type, this.#input, {
@@ -114,6 +163,38 @@ export class MapTestControlsHud extends GamePanelHud {
         passive: false,
       });
     }
+  }
+
+  /**
+   * @param {number} direction
+   */
+  #scrollTabs(direction) {
+    this.#firstTab = Math.max(0, Math.min(this.#tabs.length - 2, this.#firstTab + direction));
+    this.#refreshTabs();
+  }
+
+  /**
+   * @param {number} index
+   */
+  #selectTab(index) {
+    this.#activeTab = index;
+    this.#refreshTabs();
+  }
+
+  #refreshTabs() {
+    if (this.#tabs.length === 0) {
+      return;
+    }
+    for (const [index, panel] of this.#panels.entries()) {
+      panel.enabled = index === this.#activeTab;
+    }
+    for (const [index, tab] of this.#tabs.entries()) {
+      tab.enabled = index >= this.#firstTab && index < this.#firstTab + 2;
+      tab.setLocalPosition(38 + (index - this.#firstTab) * 204, 0, 0);
+      tab.element.color = gameUiTheme.playCanvasColor(this.pc, index === this.#activeTab ? "#ffffff" : gameUiTheme.textMuted);
+    }
+    this.#previousTab.element.opacity = this.#firstTab > 0 ? 1 : 0.35;
+    this.#nextTab.element.opacity = this.#firstTab + 2 < this.#tabs.length ? 1 : 0.35;
   }
 
   /**
@@ -171,7 +252,11 @@ export class MapTestControlsHud extends GamePanelHud {
      *
      * @param {import("playcanvas").Entity} panel
      */
-      (panel) => this.#contains(panel, event));
+      (panel) => panel.enabledInHierarchy && this.#contains(panel, event)) || this.#buttons.some(
+      /**
+       * @param {{entity: import("playcanvas").Entity}} button
+       */
+      (button) => button.entity.enabledInHierarchy && this.#contains(button.entity, event));
     if (!inside && this.#pointer === null) {
       return;
     }
@@ -181,14 +266,19 @@ export class MapTestControlsHud extends GamePanelHud {
      *
      * @param {{entity: import("playcanvas").Entity}} button
      */
-      (button) => this.#contains(button.entity, event));
+      (button) => button.entity.enabledInHierarchy && this.#contains(button.entity, event));
     if (event.type === INPUT_EVENT_TYPE.POINTER_DOWN && event.button === 0) {
       this.#pointer = event.pointerId;
       this.#pressed = index;
       this.#canvas.setPointerCapture(event.pointerId);
     } else if (event.type === INPUT_EVENT_TYPE.POINTER_UP && event.pointerId === this.#pointer) {
       if (index >= 0 && index === this.#pressed) {
-        this.#controls.execute(this.#buttons[index].button);
+        const pressed = this.#buttons[index];
+        if (pressed.action) {
+          pressed.action();
+        } else {
+          this.#controls.execute(pressed.button);
+        }
       }
       this.#pointer = null;
       this.#pressed = -1;
@@ -206,10 +296,11 @@ export class MapTestControlsHud extends GamePanelHud {
       }
       status.previous = text;
       const { context, canvas, texture } = status.record;
-      context.clearRect(0, 0, 220, 30);
+      const width = canvas.width / 2;
+      context.clearRect(0, 0, width, 30);
       context.fillStyle = gameUiTheme.text;
       context.font = gameUiTheme.font(500, 11);
-      context.fillText(text, 4, 18, 212);
+      context.fillText(text, 4, 18, width - 8);
       texture.setSource(canvas);
     }
   }

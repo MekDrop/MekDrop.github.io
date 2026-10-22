@@ -41,7 +41,11 @@ All scene entities must still be authored through `objects`.
 ```
 
 Panel coordinates use the HUD's 1280 × 720 reference resolution, measured from
-the top left. Give multiple panels explicit positions that do not overlap.
+the top left. Maps with multiple panels automatically show them as tabs in a
+fixed-width HUD at (16, 96), with the selected panel below at (16, 140).
+The `<` and `>` buttons scroll the tab strip one tab at a time; selecting a tab
+shows only that group's controls and live status. Existing panel titles become
+tab labels. Explicit panel positions still apply to maps with a single panel.
 Use `animationViewport` for the initial camera, and `heroSpawn` for reproducible
 actor placement. Test map controls appear only on maps declaring these properties.
 
