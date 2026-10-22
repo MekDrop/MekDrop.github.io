@@ -4,6 +4,32 @@ import { Entity, Vec3 } from "playcanvas";
 import { State } from "yuka";
 import { HammerheadBrute } from "../../../../../../src/game/objects/enemies/hammerhead-brute/HammerheadBrute.js";
 import { Enemy } from "../../../../../../src/game/objects/enemies/shared/Enemy.js";
+import { HammerAnimationPlayback } from "../../../../../../src/game/objects/enemies/hammerhead-brute/HammerAnimationPlayback.js";
+
+test("HUD playback status remains readable after death cleanup", () => {
+  const playback = new HammerAnimationPlayback({
+    addComponent: () => {},
+    anim: {
+      speed: 1,
+      addAnimationState: () => {},
+      baseLayer: {
+        play: () => {},
+        activeStateCurrentTime: 0,
+      },
+    },
+  }, {
+    getAnimationTracks: () => new Map([["idle", { duration: 2 }]]),
+  }, "test.glb", [{
+    name: "idle",
+    looping: true,
+  }]);
+  playback.destroy();
+  assert.deepEqual(playback.status, {
+    clip: null,
+    time: 0,
+    speed: 0,
+  });
+});
 
 function fixture() {
   const actors = [];
@@ -66,6 +92,61 @@ test("real Yuka windup/contact/recovery applies one blow, including a large time
   assert.equal(royal.health, 55);
 });
 
+test("approach leaves reach for collision geometry offset from an actor origin", () => {
+  const { brute, royal } = fixture();
+  royal.entity.setPosition(0, 0, -2.3);
+  brute.pursue();
+  assert.equal(brute.stateName, "HammerPursueState");
+  assert.ok(brute.entity.rigidbody.linearVelocity.z < 0);
+});
+
+test("approach commits yaw to Ammo without changing position or movement velocity", () => {
+  const { brute, royal } = fixture();
+  royal.entity.setPosition(0, 0, 3);
+  let committed = null;
+  brute.entity.rigidbody.teleport = (position, rotation) => {
+    committed = {
+      position,
+      rotation,
+    };
+  };
+  brute.moveToward(royal, 0.85);
+  assert.deepEqual(committed.position, new Vec3());
+  assert.ok(Math.abs(committed.rotation.y) > 0.99);
+  assert.ok(brute.entity.rigidbody.linearVelocity.z > 0.8);
+});
+
+test("a blocked castle plan waits instead of driving directly through obstacles", () => {
+  const { brute, actors } = fixture();
+  actors[1].entity.setPosition(0, 0, -8);
+  actors.push({
+    entranceDoors: [],
+    residence: {
+      blocksMovementAt: () => true,
+      layout: {
+        origin: new Vec3(),
+        walkableAreas: [{
+          minX: -10,
+          maxX: 10,
+          minZ: -10,
+          maxZ: 10,
+          floorY: 0,
+        }],
+        authoredStairs: [],
+        stairs: null,
+        toLocal: (x, z) => ({
+          x,
+          z,
+        }),
+        toWorld: (x, z, y) => new Vec3(x, y, z),
+      },
+    },
+  });
+  brute.pursue();
+  assert.equal(brute.stateName, "HammerPursueState");
+  assert.equal(brute.entity.rigidbody.linearVelocity.length(), 0);
+});
+
 test("ringing is ignored and all carry/launch entry points reject", () => {
   const { brute, royal } = fixture();
   assert.equal(brute.onBellRung({ eventId: "bell" }), false);
@@ -108,6 +189,24 @@ test("hammer hits allies once and a nearer wall intercepts the contact fan", () 
   });
   brute.strike();
   assert.equal(royal.health, 55);
+});
+
+test("a royal game-over callback fires once across repeated hammer contacts", () => {
+  const { brute, royal, actors, touch } = fixture();
+  let calls = 0;
+  const king = {
+    entity: royal.entity,
+    beginGameOver: () => {
+      calls++;
+    },
+  };
+  actors.splice(1, 1, king);
+  touch(king);
+  brute.strike();
+  brute.strike();
+  assert.equal(calls, 1);
+  brute.pursue();
+  assert.equal(brute.requestedClip, "idle");
 });
 
 test("only nearby blocking towers divert pursuit; a hit releases and launches occupants", () => {

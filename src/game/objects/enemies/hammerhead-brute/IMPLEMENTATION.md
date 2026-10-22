@@ -33,22 +33,30 @@ animation-manifest.json and asset-validation.json. This is exported deformation
 verification. All 17 clips also pass actual PlayCanvas playback checks: positive
 finite playback speed, advancing time, and at least three moving non-root joints.
 See playback-evidence.json and playback-validation.json. This does not certify
-every visual pose or gameplay outcome. Offline imported-scene totals include an
-importer helper mesh; the provider mesh itself has 4,733 triangles.
+every visual pose or gameplay outcome. Fresh-import totals now explicitly exclude
+Blender's bone-display helper: 14,199 split vertices, 4,733 triangles, one UV layer,
+16 bones. All 17 sampled deformations pass, with zero sampled looping seams.
 
 Real Yuka states own pursuit, windup, swing, recovery, overhead door bash, hit,
 stun/recover, pickup rejection, death and clip inspection. Movement uses the shared
 Ammo capsule (mass 320). A forward 180-degree Ammo ray fan takes nearest non-self
 contacts and deduplicates 45-damage hits per blow, including allies. Ringing is
-ignored; all carrier/launch entry points reject. Eight focused Node tests and
+ignored; all carrier/launch entry points reject. Thirteen focused enemy tests
+(17 including the dispatcher/HUD tests) and
 focused ESLint pass. Physics fixtures do not prove actual Ammo behavior.
 
 Royal actors are actual shared-contract royals; only nearby obstructions between
 the brute and royal divert pursuit. HammerNavigation uses CastleResidentMotion
 on a detached planning cursor; the real root moves through Enemy/Ammo. Successful
-furnished-castle traversal remains unverified. Doors now expose receiveDamage;
-hammer contact uses that production destruction API. Actual siege acceptance
-remains pending. Production towers
+furnished-castle traversal still fails before reaching the royal. Doors expose
+receiveDamage; hammer contact uses that production destruction API. Live Ammo
+testing found that entity-only yaw was overwritten by physics before contact.
+The brute now synchronizes orientation to its body without changing position or
+velocity-driven movement, and approaches with clearance inside maximum reach.
+Two actual hammer contacts destroy the closed leaf; the brute enters the castle.
+See behavior-evidence.json. A blocked plan now waits instead of falling back to
+driving directly through furniture. A wider prop-probe experiment was rejected
+because it prevented entry; it is not included. Production towers
 lack destructible isSabotageTower/receiveDamage capabilities. Dislodging requires
 occupiedTower === tower, releaseTarget() and launch({velocity,thrower}); Wire
 Gremlin currently lacks occupiedTower. Its owner must expose true occupancy.
@@ -66,7 +74,18 @@ inspection copy. It uses the production renderer and object code, with prefetch
 disabled and a temporary static Hammerhead factory registration to avoid an
 outside-root Vite glob transform issue. Shared factory/config remain unchanged.
 preview.png is a 512x512 RGBA production capture with transparent background,
-42,337 visible pixels and complete-object margins. Still required: visual blend
-and time-scale acceptance, physical siege/occupancy outcomes and royal navigation.
+42,337 visible pixels and complete-object margins. The Acceptance HUD panel adds
+reproducible siege and lifecycle observations. Royal game-over callbacks are
+deduplicated, preventing repeated contact from restarting the presentation.
+Still required: complete royal navigation, occupied-tower integration and visual
+blend acceptance. The current shared resident probe uses a 0.22-radius human
+capsule; full clearance planning for this 0.7-radius brute needs further work.
+Live lifecycle observations confirm bell immunity, pickup/launch rejection,
+external stun/recovery, disabled death collision and entity removal. Animation
+advancement measured 0.521 seconds per wall second at half speed and 0.986 at
+normal speed. Death cleanup exposed a HUD read of a released animation component;
+status now safely reports zero time/speed after disposal, covered by a regression.
+The final lifecycle rerun completed with zero browser errors; behavior-cleanup.jpg
+shows the retired actor removed while the HUD remains operational.
 The supplied Clairvoyance
 todos.md staff-doc path was absent; no substitute work tracker was created.

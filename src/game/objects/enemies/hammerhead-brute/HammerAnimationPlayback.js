@@ -68,8 +68,8 @@ export class HammerAnimationPlayback {
   get status() {
     return {
       clip:this.#current,
-      time:this.#animation.baseLayer.activeStateCurrentTime,
-      speed:this.#animation.speed,
+      time:this.#animation?.baseLayer.activeStateCurrentTime ?? 0,
+      speed:this.#animation?.speed ?? 0,
     };
   }
 
@@ -90,6 +90,7 @@ export class HammerAnimationPlayback {
 
   destroy() {
     this.#animation = null;
+    this.#current = null;
     this.#names.clear();
     this.#durations.clear();
   }

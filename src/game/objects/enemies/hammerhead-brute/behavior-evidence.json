@@ -1,0 +1,2048 @@
+{
+  "source": "Saved test-map HUD, production PlayCanvas update loop and Ammo bodies",
+  "route": "http://127.0.0.1:9138/en-US/map/test_enemy-hammerhead-brute",
+  "date": "2026-10-22",
+  "siege": [
+    {
+      "label": "initial",
+      "state": "HammerPlaybackState",
+      "health": 180,
+      "wallTimeMs": 32139.700000047684,
+      "position": [
+        -1.0000156164169312,
+        2.0039658546447754,
+        -9.998528480529785
+      ],
+      "royal": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "parented": true,
+      "rigidbody": true,
+      "clip": {
+        "clip": "idle",
+        "time": 8.9352,
+        "speed": 1
+      },
+      "statuses": [],
+      "doors": [
+        {
+          "health": 48,
+          "broken": false,
+          "openAmount": 1,
+          "position": [
+            0,
+            2,
+            -6.150000095367432
+          ]
+        }
+      ]
+    },
+    {
+      "label": "siege-1",
+      "state": "HammerPursueState",
+      "health": 180,
+      "wallTimeMs": 33164.700000047684,
+      "position": [
+        -0.8257050514221191,
+        2.003899335861206,
+        -9.341822624206543
+      ],
+      "royal": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "target": "Door",
+      "parented": true,
+      "rigidbody": true,
+      "clip": {
+        "clip": "heavy_walk",
+        "time": 1.0343000000000024,
+        "speed": 1
+      },
+      "statuses": [],
+      "doors": [
+        {
+          "health": 48,
+          "broken": false,
+          "openAmount": 0,
+          "position": [
+            0,
+            2,
+            -6.150000095367432
+          ]
+        }
+      ]
+    },
+    {
+      "label": "siege-2",
+      "state": "HammerPursueState",
+      "health": 180,
+      "wallTimeMs": 34163.89999997616,
+      "position": [
+        -0.69675612449646,
+        2.0030198097229004,
+        -8.84576416015625
+      ],
+      "royal": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "target": "Door",
+      "parented": true,
+      "rigidbody": true,
+      "clip": {
+        "clip": "heavy_walk",
+        "time": 2.0353000000000026,
+        "speed": 1
+      },
+      "statuses": [],
+      "doors": [
+        {
+          "health": 48,
+          "broken": false,
+          "openAmount": 0,
+          "position": [
+            0,
+            2,
+            -6.150000095367432
+          ]
+        }
+      ]
+    },
+    {
+      "label": "siege-3",
+      "state": "HammerPursueState",
+      "health": 180,
+      "wallTimeMs": 35156.89999997616,
+      "position": [
+        -0.5705179572105408,
+        2.0038843154907227,
+        -8.360671997070312
+      ],
+      "royal": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "target": "Door",
+      "parented": true,
+      "rigidbody": true,
+      "clip": {
+        "clip": "heavy_walk",
+        "time": 3.036300000000004,
+        "speed": 1
+      },
+      "statuses": [],
+      "doors": [
+        {
+          "health": 48,
+          "broken": false,
+          "openAmount": 0,
+          "position": [
+            0,
+            2,
+            -6.150000095367432
+          ]
+        }
+      ]
+    },
+    {
+      "label": "siege-4",
+      "state": "HammerDoorBashState",
+      "health": 180,
+      "wallTimeMs": 36155.800000071526,
+      "position": [
+        -0.4979642331600189,
+        2.0039844512939453,
+        -8.07951831817627
+      ],
+      "royal": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "target": "Door",
+      "parented": true,
+      "rigidbody": true,
+      "clip": {
+        "clip": "overhead_door_bash",
+        "time": 0.4404000000000015,
+        "speed": 1
+      },
+      "statuses": [],
+      "doors": [
+        {
+          "health": 48,
+          "broken": false,
+          "openAmount": 0,
+          "position": [
+            0,
+            2,
+            -6.150000095367432
+          ]
+        }
+      ]
+    },
+    {
+      "label": "siege-5",
+      "state": "HammerDoorBashState",
+      "health": 180,
+      "wallTimeMs": 37163.200000047684,
+      "position": [
+        -0.49800264835357666,
+        2.003983974456787,
+        -8.07915210723877
+      ],
+      "royal": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "target": "Door",
+      "parented": true,
+      "rigidbody": true,
+      "clip": {
+        "clip": "overhead_door_bash",
+        "time": 1.4414999999999996,
+        "speed": 1
+      },
+      "statuses": [],
+      "doors": [
+        {
+          "health": 3,
+          "broken": false,
+          "openAmount": 0,
+          "position": [
+            0,
+            2,
+            -6.150000095367432
+          ]
+        }
+      ]
+    },
+    {
+      "label": "siege-6",
+      "state": "HammerDoorBashState",
+      "health": 180,
+      "wallTimeMs": 38156.5,
+      "position": [
+        -0.4980106055736542,
+        2.003988742828369,
+        -8.078993797302246
+      ],
+      "royal": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "target": "Door",
+      "parented": true,
+      "rigidbody": true,
+      "clip": {
+        "clip": "overhead_door_bash",
+        "time": 0.44040000000000157,
+        "speed": 1
+      },
+      "statuses": [],
+      "doors": [
+        {
+          "health": 3,
+          "broken": false,
+          "openAmount": 0,
+          "position": [
+            0,
+            2,
+            -6.150000095367432
+          ]
+        }
+      ]
+    },
+    {
+      "label": "siege-7",
+      "state": "HammerDoorBashState",
+      "health": 180,
+      "wallTimeMs": 39563.39999997616,
+      "position": [
+        -0.4980493485927582,
+        2.003983974456787,
+        -8.07864761352539
+      ],
+      "royal": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "target": "Door",
+      "parented": true,
+      "rigidbody": true,
+      "clip": {
+        "clip": "overhead_door_bash",
+        "time": 1.4479999999999924,
+        "speed": 1
+      },
+      "statuses": [],
+      "doors": [
+        {
+          "health": 0,
+          "broken": true,
+          "openAmount": 1,
+          "position": [
+            0,
+            2,
+            -6.150000095367432
+          ]
+        }
+      ]
+    },
+    {
+      "label": "siege-8",
+      "state": "HammerPursueState",
+      "health": 180,
+      "wallTimeMs": 40553.200000047684,
+      "position": [
+        -0.38357993960380554,
+        2.003953218460083,
+        -7.635342597961426
+      ],
+      "royal": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "target": "hammer-royal",
+      "parented": true,
+      "rigidbody": true,
+      "clip": {
+        "clip": "heavy_walk",
+        "time": 0.8408999999999944,
+        "speed": 1
+      },
+      "statuses": [],
+      "doors": [
+        {
+          "health": 0,
+          "broken": true,
+          "openAmount": 1,
+          "position": [
+            0,
+            2,
+            -6.150000095367432
+          ]
+        }
+      ]
+    },
+    {
+      "label": "siege-9",
+      "state": "HammerPursueState",
+      "health": 180,
+      "wallTimeMs": 41538.10000002384,
+      "position": [
+        -0.2513122260570526,
+        2.003981828689575,
+        -7.123710632324219
+      ],
+      "royal": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "target": "hammer-royal",
+      "parented": true,
+      "rigidbody": true,
+      "clip": {
+        "clip": "heavy_walk",
+        "time": 1.842,
+        "speed": 1
+      },
+      "statuses": [],
+      "doors": [
+        {
+          "health": 0,
+          "broken": true,
+          "openAmount": 1,
+          "position": [
+            0,
+            2,
+            -6.150000095367432
+          ]
+        }
+      ]
+    },
+    {
+      "label": "siege-10",
+      "state": "HammerPursueState",
+      "health": 180,
+      "wallTimeMs": 45025.39999997616,
+      "position": [
+        0.048914678394794464,
+        2.0039992332458496,
+        -6.629878044128418
+      ],
+      "royal": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "target": "hammer-royal",
+      "parented": true,
+      "rigidbody": true,
+      "clip": {
+        "clip": "heavy_walk",
+        "time": 2.8492000000000064,
+        "speed": 1
+      },
+      "statuses": [],
+      "doors": [
+        {
+          "health": 0,
+          "broken": true,
+          "openAmount": 1,
+          "position": [
+            0,
+            2,
+            -6.150000095367432
+          ]
+        }
+      ]
+    },
+    {
+      "label": "siege-11",
+      "state": "HammerPursueState",
+      "health": 180,
+      "wallTimeMs": 48813.300000071526,
+      "position": [
+        0.23102544248104095,
+        1.999985694885254,
+        -6.2000861167907715
+      ],
+      "royal": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "target": "hammer-royal",
+      "parented": true,
+      "rigidbody": true,
+      "clip": {
+        "clip": "heavy_walk",
+        "time": 3.9028000000000143,
+        "speed": 1
+      },
+      "statuses": [],
+      "doors": [
+        {
+          "health": 0,
+          "broken": true,
+          "openAmount": 1,
+          "position": [
+            0,
+            2,
+            -6.150000095367432
+          ]
+        }
+      ]
+    },
+    {
+      "label": "siege-12",
+      "state": "HammerPursueState",
+      "health": 180,
+      "wallTimeMs": 52437.5,
+      "position": [
+        0.25178852677345276,
+        1.9999994039535522,
+        -5.831019878387451
+      ],
+      "royal": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "target": "hammer-royal",
+      "parented": true,
+      "rigidbody": true,
+      "clip": {
+        "clip": "heavy_walk",
+        "time": 4.923100000000016,
+        "speed": 1
+      },
+      "statuses": [],
+      "doors": [
+        {
+          "health": 0,
+          "broken": true,
+          "openAmount": 1,
+          "position": [
+            0,
+            2,
+            -6.150000095367432
+          ]
+        }
+      ]
+    },
+    {
+      "label": "siege-13",
+      "state": "HammerPursueState",
+      "health": 180,
+      "wallTimeMs": 56564.39999997616,
+      "position": [
+        0.5928520560264587,
+        2,
+        -5.364511013031006
+      ],
+      "royal": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "target": "hammer-royal",
+      "parented": true,
+      "rigidbody": true,
+      "clip": {
+        "clip": "heavy_walk",
+        "time": 5.956900000000012,
+        "speed": 1
+      },
+      "statuses": [],
+      "doors": [
+        {
+          "health": 0,
+          "broken": true,
+          "openAmount": 1,
+          "position": [
+            0,
+            2,
+            -6.150000095367432
+          ]
+        }
+      ]
+    },
+    {
+      "label": "siege-14",
+      "state": "HammerPursueState",
+      "health": 180,
+      "wallTimeMs": 60954.10000002384,
+      "position": [
+        0.6762571334838867,
+        2,
+        -4.928314685821533
+      ],
+      "royal": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "target": "hammer-royal",
+      "parented": true,
+      "rigidbody": true,
+      "clip": {
+        "clip": "heavy_walk",
+        "time": 6.984000000000023,
+        "speed": 1
+      },
+      "statuses": [],
+      "doors": [
+        {
+          "health": 0,
+          "broken": true,
+          "openAmount": 1,
+          "position": [
+            0,
+            2,
+            -6.150000095367432
+          ]
+        }
+      ]
+    },
+    {
+      "label": "siege-15",
+      "state": "HammerPursueState",
+      "health": 180,
+      "wallTimeMs": 64584,
+      "position": [
+        0.7841352820396423,
+        2,
+        -4.557999134063721
+      ],
+      "royal": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "target": "hammer-royal",
+      "parented": true,
+      "rigidbody": true,
+      "clip": {
+        "clip": "heavy_walk",
+        "time": 7.984300000000025,
+        "speed": 1
+      },
+      "statuses": [],
+      "doors": [
+        {
+          "health": 0,
+          "broken": true,
+          "openAmount": 1,
+          "position": [
+            0,
+            2,
+            -6.150000095367432
+          ]
+        }
+      ]
+    },
+    {
+      "label": "siege-16",
+      "state": "HammerPursueState",
+      "health": 180,
+      "wallTimeMs": 68496.39999997616,
+      "position": [
+        0.7839620113372803,
+        2,
+        -4.365448474884033
+      ],
+      "royal": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "target": "hammer-royal",
+      "parented": true,
+      "rigidbody": true,
+      "clip": {
+        "clip": "heavy_walk",
+        "time": 8.991400000000008,
+        "speed": 1
+      },
+      "statuses": [],
+      "doors": [
+        {
+          "health": 0,
+          "broken": true,
+          "openAmount": 1,
+          "position": [
+            0,
+            2,
+            -6.150000095367432
+          ]
+        }
+      ]
+    },
+    {
+      "label": "siege-17",
+      "state": "HammerPursueState",
+      "health": 180,
+      "wallTimeMs": 72596.39999997616,
+      "position": [
+        0.7841156721115112,
+        1.9999995231628418,
+        -4.193989276885986
+      ],
+      "royal": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "target": "hammer-royal",
+      "parented": true,
+      "rigidbody": true,
+      "clip": {
+        "clip": "heavy_walk",
+        "time": 10.025199999999991,
+        "speed": 1
+      },
+      "statuses": [],
+      "doors": [
+        {
+          "health": 0,
+          "broken": true,
+          "openAmount": 1,
+          "position": [
+            0,
+            2,
+            -6.150000095367432
+          ]
+        }
+      ]
+    },
+    {
+      "label": "siege-18",
+      "state": "HammerPursueState",
+      "health": 180,
+      "wallTimeMs": 76525,
+      "position": [
+        0.784127950668335,
+        1.9999995231628418,
+        -4.160569667816162
+      ],
+      "royal": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "target": "hammer-royal",
+      "parented": true,
+      "rigidbody": true,
+      "clip": {
+        "clip": "heavy_walk",
+        "time": 11.045799999999982,
+        "speed": 1
+      },
+      "statuses": [],
+      "doors": [
+        {
+          "health": 0,
+          "broken": true,
+          "openAmount": 1,
+          "position": [
+            0,
+            2,
+            -6.150000095367432
+          ]
+        }
+      ]
+    },
+    {
+      "label": "siege-19",
+      "state": "HammerPursueState",
+      "health": 180,
+      "wallTimeMs": 80416.10000002384,
+      "position": [
+        0.7841224670410156,
+        1.9999995231628418,
+        -4.161178112030029
+      ],
+      "royal": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "target": "hammer-royal",
+      "parented": true,
+      "rigidbody": true,
+      "clip": {
+        "clip": "heavy_walk",
+        "time": 12.092899999999968,
+        "speed": 1
+      },
+      "statuses": [],
+      "doors": [
+        {
+          "health": 0,
+          "broken": true,
+          "openAmount": 1,
+          "position": [
+            0,
+            2,
+            -6.150000095367432
+          ]
+        }
+      ]
+    },
+    {
+      "label": "siege-20",
+      "state": "HammerPursueState",
+      "health": 180,
+      "wallTimeMs": 84679.5,
+      "position": [
+        0.7840809226036072,
+        1.9999995231628418,
+        -4.160689830780029
+      ],
+      "royal": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "target": "hammer-royal",
+      "parented": true,
+      "rigidbody": true,
+      "clip": {
+        "clip": "heavy_walk",
+        "time": 13.113399999999965,
+        "speed": 1
+      },
+      "statuses": [],
+      "doors": [
+        {
+          "health": 0,
+          "broken": true,
+          "openAmount": 1,
+          "position": [
+            0,
+            2,
+            -6.150000095367432
+          ]
+        }
+      ]
+    },
+    {
+      "label": "siege-21",
+      "state": "HammerPursueState",
+      "health": 180,
+      "wallTimeMs": 88809.5,
+      "position": [
+        0.7840890884399414,
+        1.9999995231628418,
+        -4.161096096038818
+      ],
+      "royal": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "target": "hammer-royal",
+      "parented": true,
+      "rigidbody": true,
+      "clip": {
+        "clip": "heavy_walk",
+        "time": 14.173899999999975,
+        "speed": 1
+      },
+      "statuses": [],
+      "doors": [
+        {
+          "health": 0,
+          "broken": true,
+          "openAmount": 1,
+          "position": [
+            0,
+            2,
+            -6.150000095367432
+          ]
+        }
+      ]
+    },
+    {
+      "label": "siege-22",
+      "state": "HammerPursueState",
+      "health": 180,
+      "wallTimeMs": 92636.70000004768,
+      "position": [
+        0.7840387225151062,
+        1.9999995231628418,
+        -4.16078519821167
+      ],
+      "royal": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "target": "hammer-royal",
+      "parented": true,
+      "rigidbody": true,
+      "clip": {
+        "clip": "heavy_walk",
+        "time": 15.194499999999982,
+        "speed": 1
+      },
+      "statuses": [],
+      "doors": [
+        {
+          "health": 0,
+          "broken": true,
+          "openAmount": 1,
+          "position": [
+            0,
+            2,
+            -6.150000095367432
+          ]
+        }
+      ]
+    },
+    {
+      "label": "siege-23",
+      "state": "HammerPursueState",
+      "health": 180,
+      "wallTimeMs": 96514,
+      "position": [
+        0.7838026285171509,
+        1.999999761581421,
+        -4.159557342529297
+      ],
+      "royal": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "target": "hammer-royal",
+      "parented": true,
+      "rigidbody": true,
+      "clip": {
+        "clip": "heavy_walk",
+        "time": 16.201499999999985,
+        "speed": 1
+      },
+      "statuses": [],
+      "doors": [
+        {
+          "health": 0,
+          "broken": true,
+          "openAmount": 1,
+          "position": [
+            0,
+            2,
+            -6.150000095367432
+          ]
+        }
+      ]
+    },
+    {
+      "label": "siege-24",
+      "state": "HammerPursueState",
+      "health": 180,
+      "wallTimeMs": 100061.60000002384,
+      "position": [
+        0.7840754985809326,
+        1.9999995231628418,
+        -4.1608781814575195
+      ],
+      "royal": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "target": "hammer-royal",
+      "parented": true,
+      "rigidbody": true,
+      "clip": {
+        "clip": "heavy_walk",
+        "time": 17.22199999999999,
+        "speed": 1
+      },
+      "statuses": [],
+      "doors": [
+        {
+          "health": 0,
+          "broken": true,
+          "openAmount": 1,
+          "position": [
+            0,
+            2,
+            -6.150000095367432
+          ]
+        }
+      ]
+    },
+    {
+      "label": "siege-25",
+      "state": "HammerPursueState",
+      "health": 180,
+      "wallTimeMs": 104304.70000004768,
+      "position": [
+        0.7839940786361694,
+        1.9999995231628418,
+        -4.160073757171631
+      ],
+      "royal": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "target": "hammer-royal",
+      "parented": true,
+      "rigidbody": true,
+      "clip": {
+        "clip": "heavy_walk",
+        "time": 18.275800000000004,
+        "speed": 1
+      },
+      "statuses": [],
+      "doors": [
+        {
+          "health": 0,
+          "broken": true,
+          "openAmount": 1,
+          "position": [
+            0,
+            2,
+            -6.150000095367432
+          ]
+        }
+      ]
+    },
+    {
+      "label": "siege-26",
+      "state": "HammerPursueState",
+      "health": 180,
+      "wallTimeMs": 108430,
+      "position": [
+        0.7839846014976501,
+        1.9999995231628418,
+        -4.15926456451416
+      ],
+      "royal": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "target": "hammer-royal",
+      "parented": true,
+      "rigidbody": true,
+      "clip": {
+        "clip": "heavy_walk",
+        "time": 19.28269999999999,
+        "speed": 1
+      },
+      "statuses": [],
+      "doors": [
+        {
+          "health": 0,
+          "broken": true,
+          "openAmount": 1,
+          "position": [
+            0,
+            2,
+            -6.150000095367432
+          ]
+        }
+      ]
+    },
+    {
+      "label": "siege-27",
+      "state": "HammerPursueState",
+      "health": 180,
+      "wallTimeMs": 112511.5,
+      "position": [
+        0.7842364311218262,
+        1.9999995231628418,
+        -4.160251617431641
+      ],
+      "royal": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "target": "hammer-royal",
+      "parented": true,
+      "rigidbody": true,
+      "clip": {
+        "clip": "heavy_walk",
+        "time": 20.370100000000004,
+        "speed": 1
+      },
+      "statuses": [],
+      "doors": [
+        {
+          "health": 0,
+          "broken": true,
+          "openAmount": 1,
+          "position": [
+            0,
+            2,
+            -6.150000095367432
+          ]
+        }
+      ]
+    },
+    {
+      "label": "siege-28",
+      "state": "HammerPursueState",
+      "health": 180,
+      "wallTimeMs": 116763.80000007153,
+      "position": [
+        0.7840901613235474,
+        1.9999995231628418,
+        -4.16110897064209
+      ],
+      "royal": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "target": "hammer-royal",
+      "parented": true,
+      "rigidbody": true,
+      "clip": {
+        "clip": "heavy_walk",
+        "time": 21.377400000000033,
+        "speed": 1
+      },
+      "statuses": [],
+      "doors": [
+        {
+          "health": 0,
+          "broken": true,
+          "openAmount": 1,
+          "position": [
+            0,
+            2,
+            -6.150000095367432
+          ]
+        }
+      ]
+    },
+    {
+      "label": "siege-29",
+      "state": "HammerPursueState",
+      "health": 180,
+      "wallTimeMs": 120195.39999997616,
+      "position": [
+        0.7839664220809937,
+        1.9999995231628418,
+        -4.160330772399902
+      ],
+      "royal": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "target": "hammer-royal",
+      "parented": true,
+      "rigidbody": true,
+      "clip": {
+        "clip": "heavy_walk",
+        "time": 22.391300000000047,
+        "speed": 1
+      },
+      "statuses": [],
+      "doors": [
+        {
+          "health": 0,
+          "broken": true,
+          "openAmount": 1,
+          "position": [
+            0,
+            2,
+            -6.150000095367432
+          ]
+        }
+      ]
+    },
+    {
+      "label": "siege-30",
+      "state": "HammerPursueState",
+      "health": 180,
+      "wallTimeMs": 124186.5,
+      "position": [
+        0.7841266393661499,
+        1.9999995231628418,
+        -4.1610636711120605
+      ],
+      "royal": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "target": "hammer-royal",
+      "parented": true,
+      "rigidbody": true,
+      "clip": {
+        "clip": "heavy_walk",
+        "time": 23.411800000000074,
+        "speed": 1
+      },
+      "statuses": [],
+      "doors": [
+        {
+          "health": 0,
+          "broken": true,
+          "openAmount": 1,
+          "position": [
+            0,
+            2,
+            -6.150000095367432
+          ]
+        }
+      ]
+    }
+  ],
+  "findings": {
+    "doorDestruction": true,
+    "castleEntry": true,
+    "completeRoyalNavigation": false,
+    "note": "After synchronizing facing to Ammo, two physical blows broke the leaf and the brute entered. It stalled inside before reaching the royal. This run preceded the conservative no-route stop; it does not establish complete navigation.",
+    "bellImmunity": true,
+    "pickupAndLaunchRejected": true,
+    "externalStunRecovery": true,
+    "deathDisablesPhysics": true,
+    "deathRemovesEntity": true,
+    "animationSecondsPerWallSecond": {
+      "halfSpeed": 0.5212575233863882,
+      "normalSpeed": 0.9864156338810205
+    },
+    "cleanupHud": "Final lifecycle rerun completed with zero browser errors after the disposed-playback HUD fix.",
+    "cleanupScreenshot": "behavior-cleanup.jpg"
+  },
+  "lifecycle": [
+    {
+      "label": "initial",
+      "state": "HammerPlaybackState",
+      "health": 180,
+      "wallTimeMs": 53703.299999952316,
+      "position": [
+        -1.000016212463379,
+        2.0039658546447754,
+        -9.998518943786621
+      ],
+      "royal": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "parented": true,
+      "rigidbody": true,
+      "clip": {
+        "clip": "idle",
+        "time": 29.52909999999997,
+        "speed": 1
+      },
+      "statuses": [],
+      "doors": [
+        {
+          "health": 48,
+          "broken": false,
+          "openAmount": 1,
+          "position": [
+            0,
+            2,
+            -6.150000095367432
+          ]
+        }
+      ]
+    },
+    {
+      "label": "bell-return-false",
+      "state": "HammerPlaybackState",
+      "health": 180,
+      "wallTimeMs": 53707.10000002384,
+      "position": [
+        -1.000016212463379,
+        2.0039658546447754,
+        -9.998518943786621
+      ],
+      "royal": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "parented": true,
+      "rigidbody": true,
+      "clip": {
+        "clip": "idle",
+        "time": 29.52909999999997,
+        "speed": 1
+      },
+      "statuses": [],
+      "doors": [
+        {
+          "health": 48,
+          "broken": false,
+          "openAmount": 1,
+          "position": [
+            0,
+            2,
+            -6.150000095367432
+          ]
+        }
+      ]
+    },
+    {
+      "label": "carry-false-launch-false",
+      "state": "HammerRejectPickupState",
+      "health": 180,
+      "wallTimeMs": 53712.700000047684,
+      "position": [
+        -1.000016212463379,
+        2.0039658546447754,
+        -9.998518943786621
+      ],
+      "royal": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "parented": true,
+      "rigidbody": true,
+      "clip": {
+        "clip": "reject_pickup",
+        "time": 0,
+        "speed": 1
+      },
+      "statuses": [],
+      "doors": [
+        {
+          "health": 48,
+          "broken": false,
+          "openAmount": 1,
+          "position": [
+            0,
+            2,
+            -6.150000095367432
+          ]
+        }
+      ]
+    },
+    {
+      "label": "stunned",
+      "state": "HammerStunState",
+      "health": 180,
+      "wallTimeMs": 54736.700000047684,
+      "position": [
+        -0.9557866454124451,
+        2.0034608840942383,
+        -9.82785701751709
+      ],
+      "royal": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "target": "hammer-royal",
+      "parented": true,
+      "rigidbody": true,
+      "clip": {
+        "clip": "stun",
+        "time": 0,
+        "speed": 1
+      },
+      "statuses": [
+        "stun"
+      ],
+      "doors": [
+        {
+          "health": 48,
+          "broken": false,
+          "openAmount": 1,
+          "position": [
+            0,
+            2,
+            -6.150000095367432
+          ]
+        }
+      ]
+    },
+    {
+      "label": "stun-recovery",
+      "state": "HammerStunRecoverState",
+      "health": 180,
+      "wallTimeMs": 55882.700000047684,
+      "position": [
+        -0.9792342782020569,
+        2.003366708755493,
+        -9.83385944366455
+      ],
+      "royal": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "target": "hammer-royal",
+      "parented": true,
+      "rigidbody": true,
+      "clip": {
+        "clip": "stun_recover",
+        "time": 0.13340000000000146,
+        "speed": 1
+      },
+      "statuses": [],
+      "doors": [
+        {
+          "health": 48,
+          "broken": false,
+          "openAmount": 1,
+          "position": [
+            0,
+            2,
+            -6.150000095367432
+          ]
+        }
+      ]
+    },
+    {
+      "label": "recovered",
+      "state": "HammerPursueState",
+      "health": 180,
+      "wallTimeMs": 56949.799999952316,
+      "position": [
+        -0.9161192178726196,
+        2.006196975708008,
+        -9.537099838256836
+      ],
+      "royal": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "target": "hammer-royal",
+      "parented": true,
+      "rigidbody": true,
+      "clip": {
+        "clip": "heavy_walk",
+        "time": 0.4805,
+        "speed": 1
+      },
+      "statuses": [],
+      "doors": [
+        {
+          "health": 48,
+          "broken": false,
+          "openAmount": 1,
+          "position": [
+            0,
+            2,
+            -6.150000095367432
+          ]
+        }
+      ]
+    },
+    {
+      "label": "speed-0.5-start",
+      "state": "HammerPlaybackState",
+      "health": 180,
+      "wallTimeMs": 57356.39999997616,
+      "position": [
+        -0.9154435396194458,
+        2.003571033477783,
+        -9.58202075958252
+      ],
+      "royal": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "target": "hammer-royal",
+      "parented": true,
+      "rigidbody": true,
+      "clip": {
+        "clip": "heavy_walk",
+        "time": 0.6873999999999978,
+        "speed": 1
+      },
+      "statuses": [],
+      "doors": [
+        {
+          "health": 48,
+          "broken": false,
+          "openAmount": 1,
+          "position": [
+            0,
+            2,
+            -6.150000095367432
+          ]
+        }
+      ]
+    },
+    {
+      "label": "speed-0.5-end",
+      "state": "HammerPlaybackState",
+      "health": 180,
+      "wallTimeMs": 58137.299999952316,
+      "position": [
+        -0.9280425906181335,
+        1.9996024370193481,
+        -9.717355728149414
+      ],
+      "royal": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "target": "hammer-royal",
+      "parented": true,
+      "rigidbody": true,
+      "clip": {
+        "clip": "heavy_walk",
+        "time": 1.0944500000000006,
+        "speed": 1
+      },
+      "statuses": [],
+      "doors": [
+        {
+          "health": 48,
+          "broken": false,
+          "openAmount": 1,
+          "position": [
+            0,
+            2,
+            -6.150000095367432
+          ]
+        }
+      ]
+    },
+    {
+      "label": "speed-1-start",
+      "state": "HammerPlaybackState",
+      "health": 180,
+      "wallTimeMs": 58340.10000002384,
+      "position": [
+        -0.929905891418457,
+        2.003551721572876,
+        -9.718536376953125
+      ],
+      "royal": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "target": "hammer-royal",
+      "parented": true,
+      "rigidbody": true,
+      "clip": {
+        "clip": "heavy_walk",
+        "time": 1.3079500000000004,
+        "speed": 1
+      },
+      "statuses": [],
+      "doors": [
+        {
+          "health": 48,
+          "broken": false,
+          "openAmount": 1,
+          "position": [
+            0,
+            2,
+            -6.150000095367432
+          ]
+        }
+      ]
+    },
+    {
+      "label": "speed-1-end",
+      "state": "HammerPlaybackState",
+      "health": 180,
+      "wallTimeMs": 58759.700000047684,
+      "position": [
+        -0.9338695406913757,
+        2.0037078857421875,
+        -9.718109130859375
+      ],
+      "royal": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "target": "hammer-royal",
+      "parented": true,
+      "rigidbody": true,
+      "clip": {
+        "clip": "heavy_walk",
+        "time": 1.7218499999999946,
+        "speed": 1
+      },
+      "statuses": [],
+      "doors": [
+        {
+          "health": 48,
+          "broken": false,
+          "openAmount": 1,
+          "position": [
+            0,
+            2,
+            -6.150000095367432
+          ]
+        }
+      ]
+    },
+    {
+      "label": "death",
+      "state": "HammerDeathState",
+      "health": 0,
+      "wallTimeMs": 58763.200000047684,
+      "position": [
+        -0.9338695406913757,
+        2.0037078857421875,
+        -9.718109130859375
+      ],
+      "royal": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "parented": true,
+      "rigidbody": false,
+      "clip": {
+        "clip": "death",
+        "time": 0,
+        "speed": 1
+      },
+      "statuses": [],
+      "doors": [
+        {
+          "health": 48,
+          "broken": false,
+          "openAmount": 1,
+          "position": [
+            0,
+            2,
+            -6.150000095367432
+          ]
+        }
+      ]
+    },
+    {
+      "label": "cleanup",
+      "state": "HammerDeathState",
+      "health": 0,
+      "wallTimeMs": 61288.10000002384,
+      "position": [
+        -0.9338695406913757,
+        2.0037078857421875,
+        -9.718109130859375
+      ],
+      "royal": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "parented": false,
+      "rigidbody": false,
+      "clip": null,
+      "statuses": [],
+      "doors": [
+        {
+          "health": 48,
+          "broken": false,
+          "openAmount": 1,
+          "position": [
+            0,
+            2,
+            -6.150000095367432
+          ]
+        }
+      ]
+    }
+  ],
+  "lifecycleFinal": [
+    {
+      "label": "initial",
+      "state": "HammerPlaybackState",
+      "health": 180,
+      "wallTimeMs": 64909.200000047684,
+      "position": [
+        -1.000012993812561,
+        2.0039658546447754,
+        -9.998567581176758
+      ],
+      "royal": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "parented": true,
+      "rigidbody": true,
+      "clip": {
+        "clip": "idle",
+        "time": 41.57490000000023,
+        "speed": 1
+      },
+      "statuses": [],
+      "doors": [
+        {
+          "health": 48,
+          "broken": false,
+          "openAmount": 1,
+          "position": [
+            0,
+            2,
+            -6.150000095367432
+          ]
+        }
+      ]
+    },
+    {
+      "label": "bell-return-false",
+      "state": "HammerPlaybackState",
+      "health": 180,
+      "wallTimeMs": 64912.60000002384,
+      "position": [
+        -1.000012993812561,
+        2.0039658546447754,
+        -9.998567581176758
+      ],
+      "royal": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "parented": true,
+      "rigidbody": true,
+      "clip": {
+        "clip": "idle",
+        "time": 41.57490000000023,
+        "speed": 1
+      },
+      "statuses": [],
+      "doors": [
+        {
+          "health": 48,
+          "broken": false,
+          "openAmount": 1,
+          "position": [
+            0,
+            2,
+            -6.150000095367432
+          ]
+        }
+      ]
+    },
+    {
+      "label": "carry-false-launch-false",
+      "state": "HammerRejectPickupState",
+      "health": 180,
+      "wallTimeMs": 64916.10000002384,
+      "position": [
+        -1.000012993812561,
+        2.0039658546447754,
+        -9.998567581176758
+      ],
+      "royal": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "parented": true,
+      "rigidbody": true,
+      "clip": {
+        "clip": "reject_pickup",
+        "time": 0,
+        "speed": 1
+      },
+      "statuses": [],
+      "doors": [
+        {
+          "health": 48,
+          "broken": false,
+          "openAmount": 1,
+          "position": [
+            0,
+            2,
+            -6.150000095367432
+          ]
+        }
+      ]
+    },
+    {
+      "label": "stunned",
+      "state": "HammerStunState",
+      "health": 180,
+      "wallTimeMs": 65923.70000004768,
+      "position": [
+        -0.9532994031906128,
+        2.003059148788452,
+        -9.818238258361816
+      ],
+      "royal": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "target": "hammer-royal",
+      "parented": true,
+      "rigidbody": true,
+      "clip": {
+        "clip": "stun",
+        "time": 0,
+        "speed": 1
+      },
+      "statuses": [
+        "stun"
+      ],
+      "doors": [
+        {
+          "health": 48,
+          "broken": false,
+          "openAmount": 1,
+          "position": [
+            0,
+            2,
+            -6.150000095367432
+          ]
+        }
+      ]
+    },
+    {
+      "label": "stun-recovery",
+      "state": "HammerStunRecoverState",
+      "health": 180,
+      "wallTimeMs": 67061.30000007153,
+      "position": [
+        -0.9959706664085388,
+        2.0034546852111816,
+        -9.82524299621582
+      ],
+      "royal": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "target": "hammer-royal",
+      "parented": true,
+      "rigidbody": true,
+      "clip": {
+        "clip": "stun_recover",
+        "time": 0.10680000000000292,
+        "speed": 1
+      },
+      "statuses": [],
+      "doors": [
+        {
+          "health": 48,
+          "broken": false,
+          "openAmount": 1,
+          "position": [
+            0,
+            2,
+            -6.150000095367432
+          ]
+        }
+      ]
+    },
+    {
+      "label": "recovered",
+      "state": "HammerPursueState",
+      "health": 180,
+      "wallTimeMs": 68045.80000007153,
+      "position": [
+        -0.9505610466003418,
+        2.007389783859253,
+        -9.609758377075195
+      ],
+      "royal": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "target": "hammer-royal",
+      "parented": true,
+      "rigidbody": true,
+      "clip": {
+        "clip": "heavy_walk",
+        "time": 0.45369999999999716,
+        "speed": 1
+      },
+      "statuses": [],
+      "doors": [
+        {
+          "health": 48,
+          "broken": false,
+          "openAmount": 1,
+          "position": [
+            0,
+            2,
+            -6.150000095367432
+          ]
+        }
+      ]
+    },
+    {
+      "label": "speed-0.5-start",
+      "state": "HammerPlaybackState",
+      "health": 180,
+      "wallTimeMs": 68439.10000002384,
+      "position": [
+        -0.9543763399124146,
+        2.0036227703094482,
+        -9.611187934875488
+      ],
+      "royal": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "target": "hammer-royal",
+      "parented": true,
+      "rigidbody": true,
+      "clip": {
+        "clip": "heavy_walk",
+        "time": 0.6538999999999943,
+        "speed": 1
+      },
+      "statuses": [],
+      "doors": [
+        {
+          "health": 48,
+          "broken": false,
+          "openAmount": 1,
+          "position": [
+            0,
+            2,
+            -6.150000095367432
+          ]
+        }
+      ]
+    },
+    {
+      "label": "speed-0.5-end",
+      "state": "HammerPlaybackState",
+      "health": 180,
+      "wallTimeMs": 69235.10000002384,
+      "position": [
+        -0.9626233577728271,
+        2.0035862922668457,
+        -9.615327835083008
+      ],
+      "royal": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "target": "hammer-royal",
+      "parented": true,
+      "rigidbody": true,
+      "clip": {
+        "clip": "heavy_walk",
+        "time": 1.0543499999999986,
+        "speed": 1
+      },
+      "statuses": [],
+      "doors": [
+        {
+          "health": 48,
+          "broken": false,
+          "openAmount": 1,
+          "position": [
+            0,
+            2,
+            -6.150000095367432
+          ]
+        }
+      ]
+    },
+    {
+      "label": "speed-1-start",
+      "state": "HammerPlaybackState",
+      "health": 180,
+      "wallTimeMs": 69443.80000007153,
+      "position": [
+        -0.9656708240509033,
+        2.003775119781494,
+        -9.615327835083008
+      ],
+      "royal": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "target": "hammer-royal",
+      "parented": true,
+      "rigidbody": true,
+      "clip": {
+        "clip": "heavy_walk",
+        "time": 1.2545499999999956,
+        "speed": 1
+      },
+      "statuses": [],
+      "doors": [
+        {
+          "health": 48,
+          "broken": false,
+          "openAmount": 1,
+          "position": [
+            0,
+            2,
+            -6.150000095367432
+          ]
+        }
+      ]
+    },
+    {
+      "label": "speed-1-end",
+      "state": "HammerPlaybackState",
+      "health": 180,
+      "wallTimeMs": 69845.89999997616,
+      "position": [
+        -0.9794168472290039,
+        2.0034420490264893,
+        -9.615653991699219
+      ],
+      "royal": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "target": "hammer-royal",
+      "parented": true,
+      "rigidbody": true,
+      "clip": {
+        "clip": "heavy_walk",
+        "time": 1.65494999999999,
+        "speed": 1
+      },
+      "statuses": [],
+      "doors": [
+        {
+          "health": 48,
+          "broken": false,
+          "openAmount": 1,
+          "position": [
+            0,
+            2,
+            -6.150000095367432
+          ]
+        }
+      ]
+    },
+    {
+      "label": "death",
+      "state": "HammerDeathState",
+      "health": 0,
+      "wallTimeMs": 69849.20000004768,
+      "position": [
+        -0.9794168472290039,
+        2.0034420490264893,
+        -9.615653991699219
+      ],
+      "royal": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "parented": true,
+      "rigidbody": false,
+      "clip": {
+        "clip": "death",
+        "time": 0,
+        "speed": 1
+      },
+      "statuses": [],
+      "doors": [
+        {
+          "health": 48,
+          "broken": false,
+          "openAmount": 1,
+          "position": [
+            0,
+            2,
+            -6.150000095367432
+          ]
+        }
+      ]
+    },
+    {
+      "label": "cleanup",
+      "state": "HammerDeathState",
+      "health": 0,
+      "wallTimeMs": 72346.70000004768,
+      "position": [
+        -0.9794168472290039,
+        2.0034420490264893,
+        -9.615653991699219
+      ],
+      "royal": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "parented": false,
+      "rigidbody": false,
+      "clip": null,
+      "statuses": [],
+      "doors": [
+        {
+          "health": 48,
+          "broken": false,
+          "openAmount": 1,
+          "position": [
+            0,
+            2,
+            -6.150000095367432
+          ]
+        }
+      ]
+    }
+  ]
+}

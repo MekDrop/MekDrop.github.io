@@ -110,7 +110,9 @@ export class HammerNavigation {
     this.#motion.update(Math.max(owner.deltaTime, 0.15));
     const point = this.#cursor.getPosition().clone();
 
-    return point.distance(owner.position) > 0.001 ? { position: point } : null;
+    // A blocked castle route must wait for the planner, rather than fall back to
+    // driving straight into the furniture between the brute and the royal.
+    return { position: point };
   }
 
   /**

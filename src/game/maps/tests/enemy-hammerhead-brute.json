@@ -3923,6 +3923,22 @@
             "script": "for (const e of objects) { if (e.definition?.id === 'hammerhead-brute-test') { e.testPlayClip('death'); } }"
           }
         ]
+      },
+      {
+        "title": "Acceptance",
+        "x": 390,
+        "y": 80,
+        "statusTargetId": "hammerhead-brute-test",
+        "buttons": [
+          {
+            "label": "Check siege",
+            "script": "for (const e of objects) { if (e.definition?.id === 'hammerhead-brute-test') e.verifyBehavior('siege'); }"
+          },
+          {
+            "label": "Check lifecycle",
+            "script": "for (const e of objects) { if (e.definition?.id === 'hammerhead-brute-test') e.verifyBehavior('lifecycle'); }"
+          }
+        ]
       }
     ]
   },

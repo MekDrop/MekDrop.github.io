@@ -34,6 +34,10 @@ export class HammerheadBrute extends Enemy {
    * @type {boolean}
    */
   #retired = false;
+  /**
+   * @type {WeakSet<import("../shared/Enemy.js").EnemyActor>}
+   */
+  #reachedRoyals = new WeakSet();
 
   /**
    * @param {import("../../ObjectTypes.js").MapObjectOptions} options
@@ -112,6 +116,13 @@ export class HammerheadBrute extends Enemy {
   }
 
   /**
+   * @param {string} mode
+   */
+  verifyBehavior(mode) {
+    return new HammerChecks(this).verifyBehavior(mode);
+  }
+
+  /**
    * @param {number} phase
    */
   testSample(phase) {
@@ -175,9 +186,25 @@ export class HammerheadBrute extends Enemy {
     return false;
   }
 
+  /**
+   * Commit facing to Ammo as well as the entity; movement remains velocity-driven.
+   * Otherwise the next physics sync restores the old yaw before hammer contact.
+   * @param {import("../shared/Enemy.js").EnemyActor} target
+   * @param {number} speed
+   * @param {number} arrivalRadius
+   * @returns {boolean}
+   */
+  moveToward(target, speed = 1.2, arrivalRadius = 0.05) {
+    const moving = super.moveToward(target, speed, arrivalRadius);
+    if (moving) {
+      this.entity.rigidbody.teleport?.(this.position.clone(), this.entity.getRotation().clone());
+    }
+    return moving;
+  }
+
   pursue() {
     this.royalTarget = this.resolveRoyalTarget();
-    if (!this.royalTarget) {
+    if (!this.royalTarget || this.#reachedRoyals.has(this.royalTarget)) {
       this.stop();
       this.playClip("idle");
 
@@ -185,7 +212,8 @@ export class HammerheadBrute extends Enemy {
     }
     const approach = this.navigation.next(this.royalTarget) ?? this.royalTarget;
     this.attackTarget = this.#obstruction(approach) ?? this.royalTarget;
-    if (this.distanceTo(this.attackTarget) > this.attackRange) {
+    // Aim at the actor's origin, leaving reach for offset collision geometry.
+    if (this.distanceTo(this.attackTarget) > this.attackRange - 0.4) {
       this.playClip("heavy_walk");
       this.moveToward(this.attackTarget === this.royalTarget ? approach : this.attackTarget, 0.85);
 
@@ -313,7 +341,10 @@ export class HammerheadBrute extends Enemy {
       if (typeof actor.receiveDamage === "function") {
         actor.receiveDamage(45, this, "hammer");
       } else if (typeof actor.beginGameOver === "function") {
-        actor.beginGameOver(() => this.position.clone());
+        if (!this.#reachedRoyals.has(actor)) {
+          this.#reachedRoyals.add(actor);
+          actor.beginGameOver(() => this.position.clone());
+        }
       } else if (typeof actor.openTemporarily === "function" && actor.openAmount < 0.8) {
         const blows = (this.#doorHits.get(actor) ?? 0) + 1;
         this.#doorHits.set(actor, blows);
