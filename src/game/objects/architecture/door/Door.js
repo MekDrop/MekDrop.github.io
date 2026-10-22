@@ -44,6 +44,13 @@ export class Door {
   }
 
   /**
+   * @returns {number}
+   */
+  get clearWidth() {
+    return this.#width;
+  }
+
+  /**
    * Remove only moving leaves; the frame and its Ammo bodies stay castle-owned.
    * @param {number} amount
    * @returns {number}

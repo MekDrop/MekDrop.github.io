@@ -16,6 +16,7 @@ import { WreckerFistSwingState } from "./WreckerFistSwingState.js";
 import { WreckerFistRecoverState } from "./WreckerFistRecoverState.js";
 import { WreckerStunRecoverState } from "./WreckerStunRecoverState.js";
 import { WreckerCombat } from "./WreckerCombat.js";
+import { WreckerNavigation } from "./WreckerNavigation.js";
 
 /**
  * Huge royal hunter with contact-driven rage and embedded Tripo animation.
@@ -38,8 +39,11 @@ export class HornedWrecker extends Enemy {
     this.contactActors = new Set();
     this.contactHandles = [];
     this.combat = new WreckerCombat(this);
+    this.navigation = new WreckerNavigation(this);
     this.radius = 0.7;
     this.height = 2.2;
+    // Fresh-import bounds measure 2.604 m across the calibrated fists.
+    this.breachWidth = 3;
     if (this.modelLibrary) {
       const model = this.modelLibrary.instantiate(HornedWrecker.modelUrls[0]);
       const wrapper = new this.pc.Entity("Calibrated Wrecker artwork");
@@ -66,6 +70,24 @@ export class HornedWrecker extends Enemy {
     if (this.contactHandles.length) {
       return;
     }
+    if (this.definition.verificationControls) {
+      this.physicsManifolds = new Map();
+      this.contactHandles.push(this.entity.rigidbody.on("contact", /**
+       * @param {import("playcanvas").ContactResult} result
+       */ (result) => {
+          this.physicsManifolds.set(result.other, {
+            at: this.elapsed,
+            name: result.other.name,
+            velocity: this.entity.rigidbody.linearVelocity.clone(),
+            normals: result.contacts.map(/**
+           * @param {import("playcanvas").ContactPoint} contact
+           */ (contact) => [contact.normal.x, contact.normal.y, contact.normal.z]),
+            points: result.contacts.map(/**
+           * @param {import("playcanvas").ContactPoint} contact
+           */ (contact) => contact.point.clone()),
+          });
+        }));
+    }
     this.contactHandles.push(this.entity.collision.on("collisionstart", /**
      *
      * @param {import("playcanvas").ContactResult} result
@@ -79,6 +101,10 @@ export class HornedWrecker extends Enemy {
         if (result.contacts?.length && !lateral) {
           return;
         }
+        if (this.definition.verificationControls) {
+          this.physicsContacts ??= new Set();
+          this.physicsContacts.add(result.other);
+        }
         const actor = this.contactActor(result.other);
         if (actor) {
           this.contactActors.add(actor);
@@ -90,10 +116,12 @@ export class HornedWrecker extends Enemy {
      * @param {import("playcanvas").Entity} other
      */
       (other) => {
+        this.physicsContacts?.delete(other);
         const actor = this.contactActor(other);
         this.contactActors.delete(actor);
       }));
   }
+
 
   /**
    * @param {import("playcanvas").Entity} entity
@@ -254,6 +282,37 @@ export class HornedWrecker extends Enemy {
     return {};
   }
 
+  /**
+   * Open leaves can still obstruct this broad capsule. Test the actual crossing
+   * instead of assuming an open animation means the passage is wide enough.
+   * @param {import("../shared/Enemy.js").EnemyActor} royal
+   * @returns {import("../../architecture/door/Door.js").Door|null}
+   */
+  blockingDoor(royal) {
+    const destination = this.targetPosition(royal);
+    if (!destination) {
+      return null;
+    }
+    const direction = destination.clone().sub(this.position);
+    direction.y = 0;
+    direction.normalize();
+    for (const actor of this.actors) {
+      for (const door of actor.destructibleDoors ?? actor.entranceDoors ?? []) {
+        if (door.broken || this.distanceTo(door) > 3 || !this.combat.canReach(door, 3)) {
+          continue;
+        }
+        for (let distance = 0; distance <= 3; distance += 0.2) {
+          const point = this.position.clone().add(direction.clone().mulScalar(distance));
+          if (door.blocksCameraAt(point.x, point.y + 0.8, point.z, this.radius)) {
+            return door;
+          }
+        }
+      }
+    }
+
+    return null;
+  }
+
   beginBattering() {
     if (this.alive && !this.statuses.has("stun")) {
       this.behavior.changeTo(WreckerBatterState.name);
@@ -288,6 +347,7 @@ export class HornedWrecker extends Enemy {
   }
 
   destroy() {
+    this.navigation.destroy();
     this.checks?.destroy();
     for (const handle of this.contactHandles) {
       handle.off();

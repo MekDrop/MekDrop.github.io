@@ -1,0 +1,286 @@
+{
+  "source": "Production PlayCanvas HUD capture runtime-playback-raw.json, four actual rig joints",
+  "limitation": "Angular continuity evidence only; not a foot-plant or visual-quality assessment",
+  "results": [
+    {
+      "name": "idle_snort",
+      "scale": 1,
+      "maxAdjacentJointDegrees": 0.2504265736128249,
+      "observedLoopCrossings": 1,
+      "maxLoopCrossingJointDegrees": 0.08415736334684533
+    },
+    {
+      "name": "heavy_walk",
+      "scale": 1,
+      "maxAdjacentJointDegrees": 1.6817549530038818,
+      "observedLoopCrossings": 1,
+      "maxLoopCrossingJointDegrees": 1.6817549530038818
+    },
+    {
+      "name": "heavy_run",
+      "scale": 1,
+      "maxAdjacentJointDegrees": 5.215816617859605,
+      "observedLoopCrossings": 1,
+      "maxLoopCrossingJointDegrees": 5.215816617859605
+    },
+    {
+      "name": "turn",
+      "scale": 1,
+      "maxAdjacentJointDegrees": 2.541500525956279,
+      "observedLoopCrossings": 0,
+      "maxLoopCrossingJointDegrees": 0
+    },
+    {
+      "name": "irritated_glare",
+      "scale": 1,
+      "maxAdjacentJointDegrees": 2.0116072148845485,
+      "observedLoopCrossings": 0,
+      "maxLoopCrossingJointDegrees": 0
+    },
+    {
+      "name": "warning_snort",
+      "scale": 1,
+      "maxAdjacentJointDegrees": 1.5026668811326067,
+      "observedLoopCrossings": 0,
+      "maxLoopCrossingJointDegrees": 0
+    },
+    {
+      "name": "warning_stomp",
+      "scale": 1,
+      "maxAdjacentJointDegrees": 0.8336000816736866,
+      "observedLoopCrossings": 0,
+      "maxLoopCrossingJointDegrees": 0
+    },
+    {
+      "name": "rage_start",
+      "scale": 1,
+      "maxAdjacentJointDegrees": 0.9648073177642164,
+      "observedLoopCrossings": 0,
+      "maxLoopCrossingJointDegrees": 0
+    },
+    {
+      "name": "rage_charge_loop",
+      "scale": 1,
+      "maxAdjacentJointDegrees": 6.09726025926936,
+      "observedLoopCrossings": 1,
+      "maxLoopCrossingJointDegrees": 6.09726025926936
+    },
+    {
+      "name": "charge_stop",
+      "scale": 1,
+      "maxAdjacentJointDegrees": 2.8716561839662424,
+      "observedLoopCrossings": 0,
+      "maxLoopCrossingJointDegrees": 0
+    },
+    {
+      "name": "fist_windup",
+      "scale": 1,
+      "maxAdjacentJointDegrees": 2.73281075420758,
+      "observedLoopCrossings": 0,
+      "maxLoopCrossingJointDegrees": 0
+    },
+    {
+      "name": "fist_swing",
+      "scale": 1,
+      "maxAdjacentJointDegrees": 9.109871976103456,
+      "observedLoopCrossings": 0,
+      "maxLoopCrossingJointDegrees": 0
+    },
+    {
+      "name": "fist_recover",
+      "scale": 1,
+      "maxAdjacentJointDegrees": 1.8774446438490278,
+      "observedLoopCrossings": 0,
+      "maxLoopCrossingJointDegrees": 0
+    },
+    {
+      "name": "door_batter",
+      "scale": 1,
+      "maxAdjacentJointDegrees": 6.981364918775902,
+      "observedLoopCrossings": 0,
+      "maxLoopCrossingJointDegrees": 0
+    },
+    {
+      "name": "headbutt_reject_pickup",
+      "scale": 1,
+      "maxAdjacentJointDegrees": 6.27323341390994,
+      "observedLoopCrossings": 0,
+      "maxLoopCrossingJointDegrees": 0
+    },
+    {
+      "name": "hit",
+      "scale": 1,
+      "maxAdjacentJointDegrees": 3.529543064944701,
+      "observedLoopCrossings": 0,
+      "maxLoopCrossingJointDegrees": 0
+    },
+    {
+      "name": "external_stun",
+      "scale": 1,
+      "maxAdjacentJointDegrees": 1.6808422386184192,
+      "observedLoopCrossings": 1,
+      "maxLoopCrossingJointDegrees": 0.4187195428644528
+    },
+    {
+      "name": "external_stun_recover",
+      "scale": 1,
+      "maxAdjacentJointDegrees": 1.75564474440475,
+      "observedLoopCrossings": 0,
+      "maxLoopCrossingJointDegrees": 0
+    },
+    {
+      "name": "knockback",
+      "scale": 1,
+      "maxAdjacentJointDegrees": 4.281840752619494,
+      "observedLoopCrossings": 0,
+      "maxLoopCrossingJointDegrees": 0
+    },
+    {
+      "name": "death",
+      "scale": 1,
+      "maxAdjacentJointDegrees": 0.2977793807907425,
+      "observedLoopCrossings": 0,
+      "maxLoopCrossingJointDegrees": 0
+    },
+    {
+      "name": "idle_snort",
+      "scale": 0.5,
+      "maxAdjacentJointDegrees": 0.09798272801132303,
+      "observedLoopCrossings": 1,
+      "maxLoopCrossingJointDegrees": 0.04176437935110416
+    },
+    {
+      "name": "heavy_walk",
+      "scale": 0.5,
+      "maxAdjacentJointDegrees": 0.8408801857573475,
+      "observedLoopCrossings": 1,
+      "maxLoopCrossingJointDegrees": 0.4172978067990636
+    },
+    {
+      "name": "heavy_run",
+      "scale": 0.5,
+      "maxAdjacentJointDegrees": 2.5888546293150134,
+      "observedLoopCrossings": 1,
+      "maxLoopCrossingJointDegrees": 1.3082489618301518
+    },
+    {
+      "name": "turn",
+      "scale": 0.5,
+      "maxAdjacentJointDegrees": 1.2939092519715427,
+      "observedLoopCrossings": 0,
+      "maxLoopCrossingJointDegrees": 0
+    },
+    {
+      "name": "irritated_glare",
+      "scale": 0.5,
+      "maxAdjacentJointDegrees": 1.033832547140837,
+      "observedLoopCrossings": 0,
+      "maxLoopCrossingJointDegrees": 0
+    },
+    {
+      "name": "warning_snort",
+      "scale": 0.5,
+      "maxAdjacentJointDegrees": 0.768682711968848,
+      "observedLoopCrossings": 0,
+      "maxLoopCrossingJointDegrees": 0
+    },
+    {
+      "name": "warning_stomp",
+      "scale": 0.5,
+      "maxAdjacentJointDegrees": 0.4157346920509848,
+      "observedLoopCrossings": 0,
+      "maxLoopCrossingJointDegrees": 0
+    },
+    {
+      "name": "rage_start",
+      "scale": 0.5,
+      "maxAdjacentJointDegrees": 0.4824022286104273,
+      "observedLoopCrossings": 0,
+      "maxLoopCrossingJointDegrees": 0
+    },
+    {
+      "name": "rage_charge_loop",
+      "scale": 0.5,
+      "maxAdjacentJointDegrees": 3.059958032961638,
+      "observedLoopCrossings": 1,
+      "maxLoopCrossingJointDegrees": 3.059958032961638
+    },
+    {
+      "name": "charge_stop",
+      "scale": 0.5,
+      "maxAdjacentJointDegrees": 1.1045108280749534,
+      "observedLoopCrossings": 0,
+      "maxLoopCrossingJointDegrees": 0
+    },
+    {
+      "name": "fist_windup",
+      "scale": 0.5,
+      "maxAdjacentJointDegrees": 1.3715169517190682,
+      "observedLoopCrossings": 0,
+      "maxLoopCrossingJointDegrees": 0
+    },
+    {
+      "name": "fist_swing",
+      "scale": 0.5,
+      "maxAdjacentJointDegrees": 4.55481561676987,
+      "observedLoopCrossings": 0,
+      "maxLoopCrossingJointDegrees": 0
+    },
+    {
+      "name": "fist_recover",
+      "scale": 0.5,
+      "maxAdjacentJointDegrees": 1.8844696165559511,
+      "observedLoopCrossings": 0,
+      "maxLoopCrossingJointDegrees": 0
+    },
+    {
+      "name": "door_batter",
+      "scale": 0.5,
+      "maxAdjacentJointDegrees": 3.486318597671561,
+      "observedLoopCrossings": 0,
+      "maxLoopCrossingJointDegrees": 0
+    },
+    {
+      "name": "headbutt_reject_pickup",
+      "scale": 0.5,
+      "maxAdjacentJointDegrees": 4.177964615358135,
+      "observedLoopCrossings": 0,
+      "maxLoopCrossingJointDegrees": 0
+    },
+    {
+      "name": "hit",
+      "scale": 0.5,
+      "maxAdjacentJointDegrees": 6.7586297112026505,
+      "observedLoopCrossings": 0,
+      "maxLoopCrossingJointDegrees": 0
+    },
+    {
+      "name": "external_stun",
+      "scale": 0.5,
+      "maxAdjacentJointDegrees": 1.6624068630098465,
+      "observedLoopCrossings": 1,
+      "maxLoopCrossingJointDegrees": 0.42184312487814557
+    },
+    {
+      "name": "external_stun_recover",
+      "scale": 0.5,
+      "maxAdjacentJointDegrees": 0.8798805267828506,
+      "observedLoopCrossings": 0,
+      "maxLoopCrossingJointDegrees": 0
+    },
+    {
+      "name": "knockback",
+      "scale": 0.5,
+      "maxAdjacentJointDegrees": 2.2407951839484346,
+      "observedLoopCrossings": 0,
+      "maxLoopCrossingJointDegrees": 0
+    },
+    {
+      "name": "death",
+      "scale": 0.5,
+      "maxAdjacentJointDegrees": 0.14889195249957632,
+      "observedLoopCrossings": 0,
+      "maxLoopCrossingJointDegrees": 0
+    }
+  ]
+}

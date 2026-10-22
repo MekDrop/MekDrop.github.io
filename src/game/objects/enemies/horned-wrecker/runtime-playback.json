@@ -1,0 +1,1153 @@
+{
+  "source": "Production PlayCanvas HUD Verify all clips, actual update frames and local joint quaternion samples",
+  "date": "2026-10-22",
+  "url": "http://localhost:9000/map/test_enemy-horned-wrecker",
+  "clips": [
+    {
+      "name": "idle_snort",
+      "scale": 1,
+      "duration": 2,
+      "frames": 102,
+      "distinctPoses": 102,
+      "finite": true,
+      "startTime": 20.82729999999994,
+      "endTime": 23.06949999999996,
+      "joints": [
+        {
+          "name": "Head",
+          "maximumComponentChange": 0.026449638735345997
+        },
+        {
+          "name": "Spine2",
+          "maximumComponentChange": 0.023990295558332347
+        },
+        {
+          "name": "LeftUpLeg",
+          "maximumComponentChange": 0
+        },
+        {
+          "name": "RightArm",
+          "maximumComponentChange": 0.014941912540792801
+        }
+      ]
+    },
+    {
+      "name": "heavy_walk",
+      "scale": 1,
+      "duration": 1.2000000476837158,
+      "frames": 70,
+      "distinctPoses": 70,
+      "finite": true,
+      "startTime": 0.02669999999999709,
+      "endTime": 1.4681999999999964,
+      "joints": [
+        {
+          "name": "Head",
+          "maximumComponentChange": 0.004038025128152118
+        },
+        {
+          "name": "Spine2",
+          "maximumComponentChange": 0.021199741012585177
+        },
+        {
+          "name": "LeftUpLeg",
+          "maximumComponentChange": 0.10310586290147356
+        },
+        {
+          "name": "RightArm",
+          "maximumComponentChange": 0.04259284040962299
+        }
+      ]
+    },
+    {
+      "name": "heavy_run",
+      "scale": 1,
+      "duration": 0.699999988079071,
+      "frames": 48,
+      "distinctPoses": 46,
+      "finite": true,
+      "startTime": 0.01330000000000291,
+      "endTime": 0.9741999999999966,
+      "joints": [
+        {
+          "name": "Head",
+          "maximumComponentChange": 8.591547763595688e-9
+        },
+        {
+          "name": "Spine2",
+          "maximumComponentChange": 0.05199310372433
+        },
+        {
+          "name": "LeftUpLeg",
+          "maximumComponentChange": 0.2706377604562094
+        },
+        {
+          "name": "RightArm",
+          "maximumComponentChange": 0.10715414065019675
+        }
+      ]
+    },
+    {
+      "name": "turn",
+      "scale": 1,
+      "duration": 0.6499999761581421,
+      "frames": 46,
+      "distinctPoses": 34,
+      "finite": true,
+      "startTime": 0.026800000000002912,
+      "endTime": 0.6499999761581421,
+      "joints": [
+        {
+          "name": "Head",
+          "maximumComponentChange": 0.16845345447203436
+        },
+        {
+          "name": "Spine2",
+          "maximumComponentChange": 0.04799415103300153
+        },
+        {
+          "name": "LeftUpLeg",
+          "maximumComponentChange": 0.06528789201863561
+        },
+        {
+          "name": "RightArm",
+          "maximumComponentChange": 0.02634751835732972
+        }
+      ]
+    },
+    {
+      "name": "irritated_glare",
+      "scale": 1,
+      "duration": 1,
+      "frames": 60,
+      "distinctPoses": 49,
+      "finite": true,
+      "startTime": 0.026299999999995636,
+      "endTime": 1,
+      "joints": [
+        {
+          "name": "Head",
+          "maximumComponentChange": 0.10812320581145883
+        },
+        {
+          "name": "Spine2",
+          "maximumComponentChange": 0.031252420537898284
+        },
+        {
+          "name": "LeftUpLeg",
+          "maximumComponentChange": 1.1102230246251565e-16
+        },
+        {
+          "name": "RightArm",
+          "maximumComponentChange": 2.220446049250313e-16
+        }
+      ]
+    },
+    {
+      "name": "warning_snort",
+      "scale": 1,
+      "duration": 0.6499999761581421,
+      "frames": 46,
+      "distinctPoses": 34,
+      "finite": true,
+      "startTime": 0.02669999999999709,
+      "endTime": 0.6499999761581421,
+      "joints": [
+        {
+          "name": "Head",
+          "maximumComponentChange": 0.10144784304094893
+        },
+        {
+          "name": "Spine2",
+          "maximumComponentChange": 0.03820648936399823
+        },
+        {
+          "name": "LeftUpLeg",
+          "maximumComponentChange": 1.1102230246251565e-16
+        },
+        {
+          "name": "RightArm",
+          "maximumComponentChange": 0.0256019383194869
+        }
+      ]
+    },
+    {
+      "name": "warning_stomp",
+      "scale": 1,
+      "duration": 0.800000011920929,
+      "frames": 54,
+      "distinctPoses": 42,
+      "finite": true,
+      "startTime": 0.013400000000001456,
+      "endTime": 0.800000011920929,
+      "joints": [
+        {
+          "name": "Head",
+          "maximumComponentChange": 1.1102230246251565e-16
+        },
+        {
+          "name": "Spine2",
+          "maximumComponentChange": 0.06357631245391157
+        },
+        {
+          "name": "LeftUpLeg",
+          "maximumComponentChange": 1.1102230246251565e-16
+        },
+        {
+          "name": "RightArm",
+          "maximumComponentChange": 2.220446049250313e-16
+        }
+      ]
+    },
+    {
+      "name": "rage_start",
+      "scale": 1,
+      "duration": 0.5,
+      "frames": 39,
+      "distinctPoses": 26,
+      "finite": true,
+      "startTime": 0.0135,
+      "endTime": 0.5,
+      "joints": [
+        {
+          "name": "Head",
+          "maximumComponentChange": 0.10421038832378421
+        },
+        {
+          "name": "Spine2",
+          "maximumComponentChange": 0.14469771819538563
+        },
+        {
+          "name": "LeftUpLeg",
+          "maximumComponentChange": 1.1102230246251565e-16
+        },
+        {
+          "name": "RightArm",
+          "maximumComponentChange": 0.11861307588781964
+        }
+      ]
+    },
+    {
+      "name": "rage_charge_loop",
+      "scale": 1,
+      "duration": 0.6000000238418579,
+      "frames": 43,
+      "distinctPoses": 43,
+      "finite": true,
+      "startTime": 0.013299999999995635,
+      "endTime": 0.8675999999999987,
+      "joints": [
+        {
+          "name": "Head",
+          "maximumComponentChange": 0.023112698410690607
+        },
+        {
+          "name": "Spine2",
+          "maximumComponentChange": 0.043014813945075385
+        },
+        {
+          "name": "LeftUpLeg",
+          "maximumComponentChange": 0.18782138780959365
+        },
+        {
+          "name": "RightArm",
+          "maximumComponentChange": 0.10763174050112125
+        }
+      ]
+    },
+    {
+      "name": "charge_stop",
+      "scale": 1,
+      "duration": 0.75,
+      "frames": 47,
+      "distinctPoses": 37,
+      "finite": true,
+      "startTime": 0.026599999999998545,
+      "endTime": 0.75,
+      "joints": [
+        {
+          "name": "Head",
+          "maximumComponentChange": 0.1017431915103128
+        },
+        {
+          "name": "Spine2",
+          "maximumComponentChange": 0.23514605293517032
+        },
+        {
+          "name": "LeftUpLeg",
+          "maximumComponentChange": 0.10819204334633797
+        },
+        {
+          "name": "RightArm",
+          "maximumComponentChange": 0.25137104060266147
+        }
+      ]
+    },
+    {
+      "name": "fist_windup",
+      "scale": 1,
+      "duration": 0.550000011920929,
+      "frames": 38,
+      "distinctPoses": 27,
+      "finite": true,
+      "startTime": 0.02669999999999709,
+      "endTime": 0.550000011920929,
+      "joints": [
+        {
+          "name": "Head",
+          "maximumComponentChange": 1.734328236580014e-8
+        },
+        {
+          "name": "Spine2",
+          "maximumComponentChange": 0.1157751538653147
+        },
+        {
+          "name": "LeftUpLeg",
+          "maximumComponentChange": 1.1102230246251565e-16
+        },
+        {
+          "name": "RightArm",
+          "maximumComponentChange": 0.4023118486573116
+        }
+      ]
+    },
+    {
+      "name": "fist_swing",
+      "scale": 1,
+      "duration": 0.30000001192092896,
+      "frames": 25,
+      "distinctPoses": 14,
+      "finite": true,
+      "startTime": 0.026700000000004366,
+      "endTime": 0.30000001192092896,
+      "joints": [
+        {
+          "name": "Head",
+          "maximumComponentChange": 1.8626487019446226e-9
+        },
+        {
+          "name": "Spine2",
+          "maximumComponentChange": 0.22998157001603808
+        },
+        {
+          "name": "LeftUpLeg",
+          "maximumComponentChange": 1.1102230246251565e-16
+        },
+        {
+          "name": "RightArm",
+          "maximumComponentChange": 0.7183114798919674
+        }
+      ]
+    },
+    {
+      "name": "fist_recover",
+      "scale": 1,
+      "duration": 0.6499999761581421,
+      "frames": 46,
+      "distinctPoses": 32,
+      "finite": true,
+      "startTime": 0.013400000000001456,
+      "endTime": 0.6499999761581421,
+      "joints": [
+        {
+          "name": "Head",
+          "maximumComponentChange": 1.5480633663855498e-8
+        },
+        {
+          "name": "Spine2",
+          "maximumComponentChange": 0.1197174030734221
+        },
+        {
+          "name": "LeftUpLeg",
+          "maximumComponentChange": 1.1102230246251565e-16
+        },
+        {
+          "name": "RightArm",
+          "maximumComponentChange": 0.32388665918832493
+        }
+      ]
+    },
+    {
+      "name": "door_batter",
+      "scale": 1,
+      "duration": 1.2000000476837158,
+      "frames": 71,
+      "distinctPoses": 59,
+      "finite": true,
+      "startTime": 0.02660000000000582,
+      "endTime": 1.2000000476837158,
+      "joints": [
+        {
+          "name": "Head",
+          "maximumComponentChange": 1.1102230246251565e-16
+        },
+        {
+          "name": "Spine2",
+          "maximumComponentChange": 0.11874276427985817
+        },
+        {
+          "name": "LeftUpLeg",
+          "maximumComponentChange": 1.1102230246251565e-16
+        },
+        {
+          "name": "RightArm",
+          "maximumComponentChange": 0.3184458249414104
+        }
+      ]
+    },
+    {
+      "name": "headbutt_reject_pickup",
+      "scale": 1,
+      "duration": 0.800000011920929,
+      "frames": 54,
+      "distinctPoses": 41,
+      "finite": true,
+      "startTime": 0.013400000000001456,
+      "endTime": 0.800000011920929,
+      "joints": [
+        {
+          "name": "Head",
+          "maximumComponentChange": 0.2618086915139477
+        },
+        {
+          "name": "Spine2",
+          "maximumComponentChange": 0.09556892513257806
+        },
+        {
+          "name": "LeftUpLeg",
+          "maximumComponentChange": 1.1102230246251565e-16
+        },
+        {
+          "name": "RightArm",
+          "maximumComponentChange": 1.1102230246251565e-16
+        }
+      ]
+    },
+    {
+      "name": "hit",
+      "scale": 1,
+      "duration": 0.3499999940395355,
+      "frames": 31,
+      "distinctPoses": 19,
+      "finite": true,
+      "startTime": 0.01330000000000291,
+      "endTime": 0.3499999940395355,
+      "joints": [
+        {
+          "name": "Head",
+          "maximumComponentChange": 0.08576231328215887
+        },
+        {
+          "name": "Spine2",
+          "maximumComponentChange": 0.12193837678712316
+        },
+        {
+          "name": "LeftUpLeg",
+          "maximumComponentChange": 1.1102230246251565e-16
+        },
+        {
+          "name": "RightArm",
+          "maximumComponentChange": 1.1102230246251565e-16
+        }
+      ]
+    },
+    {
+      "name": "external_stun",
+      "scale": 1,
+      "duration": 1,
+      "frames": 69,
+      "distinctPoses": 69,
+      "finite": true,
+      "startTime": 0.013299999999995635,
+      "endTime": 1.2545999999999984,
+      "joints": [
+        {
+          "name": "Head",
+          "maximumComponentChange": 0.09621018658558983
+        },
+        {
+          "name": "Spine2",
+          "maximumComponentChange": 0.05572023057100345
+        },
+        {
+          "name": "LeftUpLeg",
+          "maximumComponentChange": 1.1102230246251565e-16
+        },
+        {
+          "name": "RightArm",
+          "maximumComponentChange": 5.5725238645720765e-8
+        }
+      ]
+    },
+    {
+      "name": "external_stun_recover",
+      "scale": 1,
+      "duration": 0.699999988079071,
+      "frames": 62,
+      "distinctPoses": 45,
+      "finite": true,
+      "startTime": 0.026799999999995633,
+      "endTime": 0.699999988079071,
+      "joints": [
+        {
+          "name": "Head",
+          "maximumComponentChange": 0.10413510788870978
+        },
+        {
+          "name": "Spine2",
+          "maximumComponentChange": 0.06220467617876407
+        },
+        {
+          "name": "LeftUpLeg",
+          "maximumComponentChange": 1.1102230246251565e-16
+        },
+        {
+          "name": "RightArm",
+          "maximumComponentChange": 0.09628415316103034
+        }
+      ]
+    },
+    {
+      "name": "knockback",
+      "scale": 1,
+      "duration": 0.6499999761581421,
+      "frames": 54,
+      "distinctPoses": 38,
+      "finite": true,
+      "startTime": 0.01330000000000291,
+      "endTime": 0.6499999761581421,
+      "joints": [
+        {
+          "name": "Head",
+          "maximumComponentChange": 0.08646412614871776
+        },
+        {
+          "name": "Spine2",
+          "maximumComponentChange": 1.1102230246251565e-16
+        },
+        {
+          "name": "LeftUpLeg",
+          "maximumComponentChange": 1.1102230246251565e-16
+        },
+        {
+          "name": "RightArm",
+          "maximumComponentChange": 0.2291347160579793
+        }
+      ]
+    },
+    {
+      "name": "death",
+      "scale": 1,
+      "duration": 1.7999999523162842,
+      "frames": 136,
+      "distinctPoses": 121,
+      "finite": true,
+      "startTime": 0.013400000000008731,
+      "endTime": 1.7999999523162842,
+      "joints": [
+        {
+          "name": "Head",
+          "maximumComponentChange": 0.13041740261628998
+        },
+        {
+          "name": "Spine2",
+          "maximumComponentChange": 0.15375600894707137
+        },
+        {
+          "name": "LeftUpLeg",
+          "maximumComponentChange": 2.6386640483710977e-8
+        },
+        {
+          "name": "RightArm",
+          "maximumComponentChange": 0.13328112186591617
+        }
+      ]
+    },
+    {
+      "name": "idle_snort",
+      "scale": 0.5,
+      "duration": 2,
+      "frames": 288,
+      "distinctPoses": 288,
+      "finite": true,
+      "startTime": 0.006700000000004366,
+      "endTime": 2.255600000000003,
+      "joints": [
+        {
+          "name": "Head",
+          "maximumComponentChange": 0.14072559056752582
+        },
+        {
+          "name": "Spine2",
+          "maximumComponentChange": 0.16148077409678502
+        },
+        {
+          "name": "LeftUpLeg",
+          "maximumComponentChange": 2.491338646493091e-8
+        },
+        {
+          "name": "RightArm",
+          "maximumComponentChange": 0.13572614723985515
+        }
+      ]
+    },
+    {
+      "name": "heavy_walk",
+      "scale": 0.5,
+      "duration": 1.2000000476837158,
+      "frames": 167,
+      "distinctPoses": 167,
+      "finite": true,
+      "startTime": 0.00664999999999418,
+      "endTime": 1.4614499999999966,
+      "joints": [
+        {
+          "name": "Head",
+          "maximumComponentChange": 0.012093830928154404
+        },
+        {
+          "name": "Spine2",
+          "maximumComponentChange": 0.017043679362736874
+        },
+        {
+          "name": "LeftUpLeg",
+          "maximumComponentChange": 0.10024474655746199
+        },
+        {
+          "name": "RightArm",
+          "maximumComponentChange": 0.04485873708244102
+        }
+      ]
+    },
+    {
+      "name": "heavy_run",
+      "scale": 0.5,
+      "duration": 0.699999988079071,
+      "frames": 127,
+      "distinctPoses": 123,
+      "finite": true,
+      "startTime": 0.006699999999997089,
+      "endTime": 0.9543000000000027,
+      "joints": [
+        {
+          "name": "Head",
+          "maximumComponentChange": 9.122983707736109e-9
+        },
+        {
+          "name": "Spine2",
+          "maximumComponentChange": 0.05486493341557594
+        },
+        {
+          "name": "LeftUpLeg",
+          "maximumComponentChange": 0.2757185047761669
+        },
+        {
+          "name": "RightArm",
+          "maximumComponentChange": 0.10918338913044025
+        }
+      ]
+    },
+    {
+      "name": "turn",
+      "scale": 0.5,
+      "duration": 0.6499999761581421,
+      "frames": 107,
+      "distinctPoses": 77,
+      "finite": true,
+      "startTime": 0.006699999999997089,
+      "endTime": 0.6499999761581421,
+      "joints": [
+        {
+          "name": "Head",
+          "maximumComponentChange": 0.17319359799453973
+        },
+        {
+          "name": "Spine2",
+          "maximumComponentChange": 0.05711657164215775
+        },
+        {
+          "name": "LeftUpLeg",
+          "maximumComponentChange": 0.12069042016200454
+        },
+        {
+          "name": "RightArm",
+          "maximumComponentChange": 0.04930409728711807
+        }
+      ]
+    },
+    {
+      "name": "irritated_glare",
+      "scale": 0.5,
+      "duration": 1,
+      "frames": 148,
+      "distinctPoses": 120,
+      "finite": true,
+      "startTime": 0.006699999999997089,
+      "endTime": 1,
+      "joints": [
+        {
+          "name": "Head",
+          "maximumComponentChange": 0.10461414923173792
+        },
+        {
+          "name": "Spine2",
+          "maximumComponentChange": 0.031804954250409134
+        },
+        {
+          "name": "LeftUpLeg",
+          "maximumComponentChange": 1.1102230246251565e-16
+        },
+        {
+          "name": "RightArm",
+          "maximumComponentChange": 1.1102230246251565e-16
+        }
+      ]
+    },
+    {
+      "name": "warning_snort",
+      "scale": 0.5,
+      "duration": 0.6499999761581421,
+      "frames": 101,
+      "distinctPoses": 75,
+      "finite": true,
+      "startTime": 0.006699999999997089,
+      "endTime": 0.6499999761581421,
+      "joints": [
+        {
+          "name": "Head",
+          "maximumComponentChange": 0.10425489204097174
+        },
+        {
+          "name": "Spine2",
+          "maximumComponentChange": 0.03926840282423294
+        },
+        {
+          "name": "LeftUpLeg",
+          "maximumComponentChange": 1.1102230246251565e-16
+        },
+        {
+          "name": "RightArm",
+          "maximumComponentChange": 0.026306282100556855
+        }
+      ]
+    },
+    {
+      "name": "warning_stomp",
+      "scale": 0.5,
+      "duration": 0.800000011920929,
+      "frames": 124,
+      "distinctPoses": 97,
+      "finite": true,
+      "startTime": 0.006699999999997089,
+      "endTime": 0.800000011920929,
+      "joints": [
+        {
+          "name": "Head",
+          "maximumComponentChange": 1.1102230246251565e-16
+        },
+        {
+          "name": "Spine2",
+          "maximumComponentChange": 0.06380791075399572
+        },
+        {
+          "name": "LeftUpLeg",
+          "maximumComponentChange": 1.1102230246251565e-16
+        },
+        {
+          "name": "RightArm",
+          "maximumComponentChange": 1.1102230246251565e-16
+        }
+      ]
+    },
+    {
+      "name": "rage_start",
+      "scale": 0.5,
+      "duration": 0.5,
+      "frames": 86,
+      "distinctPoses": 58,
+      "finite": true,
+      "startTime": 0.006699999999997089,
+      "endTime": 0.5,
+      "joints": [
+        {
+          "name": "Head",
+          "maximumComponentChange": 0.10445012631400757
+        },
+        {
+          "name": "Spine2",
+          "maximumComponentChange": 0.1450242955098845
+        },
+        {
+          "name": "LeftUpLeg",
+          "maximumComponentChange": 1.1102230246251565e-16
+        },
+        {
+          "name": "RightArm",
+          "maximumComponentChange": 0.11888374608534115
+        }
+      ]
+    },
+    {
+      "name": "rage_charge_loop",
+      "scale": 0.5,
+      "duration": 0.6000000238418579,
+      "frames": 101,
+      "distinctPoses": 101,
+      "finite": true,
+      "startTime": 0.013349999999998545,
+      "endTime": 0.8541999999999969,
+      "joints": [
+        {
+          "name": "Head",
+          "maximumComponentChange": 0.023101853719214194
+        },
+        {
+          "name": "Spine2",
+          "maximumComponentChange": 0.04300452260771662
+        },
+        {
+          "name": "LeftUpLeg",
+          "maximumComponentChange": 0.18801516576939417
+        },
+        {
+          "name": "RightArm",
+          "maximumComponentChange": 0.10767957962094196
+        }
+      ]
+    },
+    {
+      "name": "charge_stop",
+      "scale": 0.5,
+      "duration": 0.75,
+      "frames": 122,
+      "distinctPoses": 91,
+      "finite": true,
+      "startTime": 0.013349999999998545,
+      "endTime": 0.75,
+      "joints": [
+        {
+          "name": "Head",
+          "maximumComponentChange": 0.11610342557430611
+        },
+        {
+          "name": "Spine2",
+          "maximumComponentChange": 0.2561518929842513
+        },
+        {
+          "name": "LeftUpLeg",
+          "maximumComponentChange": 0.06617746254758311
+        },
+        {
+          "name": "RightArm",
+          "maximumComponentChange": 0.2556595691999258
+        }
+      ]
+    },
+    {
+      "name": "fist_windup",
+      "scale": 0.5,
+      "duration": 0.550000011920929,
+      "frames": 91,
+      "distinctPoses": 61,
+      "finite": true,
+      "startTime": 0.006699999999997089,
+      "endTime": 0.550000011920929,
+      "joints": [
+        {
+          "name": "Head",
+          "maximumComponentChange": 1.7343282365800127e-8
+        },
+        {
+          "name": "Spine2",
+          "maximumComponentChange": 0.11697805170844514
+        },
+        {
+          "name": "LeftUpLeg",
+          "maximumComponentChange": 1.1102230246251565e-16
+        },
+        {
+          "name": "RightArm",
+          "maximumComponentChange": 0.40662775313278404
+        }
+      ]
+    },
+    {
+      "name": "fist_swing",
+      "scale": 0.5,
+      "duration": 0.30000001192092896,
+      "frames": 66,
+      "distinctPoses": 36,
+      "finite": true,
+      "startTime": 0.006650000000001455,
+      "endTime": 0.30000001192092896,
+      "joints": [
+        {
+          "name": "Head",
+          "maximumComponentChange": 1.8626487019446292e-9
+        },
+        {
+          "name": "Spine2",
+          "maximumComponentChange": 0.23661324372117137
+        },
+        {
+          "name": "LeftUpLeg",
+          "maximumComponentChange": 1.1102230246251565e-16
+        },
+        {
+          "name": "RightArm",
+          "maximumComponentChange": 0.7306807227778366
+        }
+      ]
+    },
+    {
+      "name": "fist_recover",
+      "scale": 0.5,
+      "duration": 0.6499999761581421,
+      "frames": 79,
+      "distinctPoses": 68,
+      "finite": true,
+      "startTime": 0.006650000000001455,
+      "endTime": 0.6499999761581421,
+      "joints": [
+        {
+          "name": "Head",
+          "maximumComponentChange": 1.5480633663855498e-8
+        },
+        {
+          "name": "Spine2",
+          "maximumComponentChange": 0.11992696980771488
+        },
+        {
+          "name": "LeftUpLeg",
+          "maximumComponentChange": 1.1102230246251565e-16
+        },
+        {
+          "name": "RightArm",
+          "maximumComponentChange": 0.3244048772353939
+        }
+      ]
+    },
+    {
+      "name": "door_batter",
+      "scale": 0.5,
+      "duration": 1.2000000476837158,
+      "frames": 150,
+      "distinctPoses": 128,
+      "finite": true,
+      "startTime": 0.013349999999998545,
+      "endTime": 1.2000000476837158,
+      "joints": [
+        {
+          "name": "Head",
+          "maximumComponentChange": 1.1102230246251565e-16
+        },
+        {
+          "name": "Spine2",
+          "maximumComponentChange": 0.12019924139576474
+        },
+        {
+          "name": "LeftUpLeg",
+          "maximumComponentChange": 1.1102230246251565e-16
+        },
+        {
+          "name": "RightArm",
+          "maximumComponentChange": 0.3248833196080008
+        }
+      ]
+    },
+    {
+      "name": "headbutt_reject_pickup",
+      "scale": 0.5,
+      "duration": 0.800000011920929,
+      "frames": 79,
+      "distinctPoses": 61,
+      "finite": true,
+      "startTime": 0.05,
+      "endTime": 0.800000011920929,
+      "joints": [
+        {
+          "name": "Head",
+          "maximumComponentChange": 0.30016802076328597
+        },
+        {
+          "name": "Spine2",
+          "maximumComponentChange": 0.08850544434916163
+        },
+        {
+          "name": "LeftUpLeg",
+          "maximumComponentChange": 1.1102230246251565e-16
+        },
+        {
+          "name": "RightArm",
+          "maximumComponentChange": 1.1102230246251565e-16
+        }
+      ]
+    },
+    {
+      "name": "hit",
+      "scale": 0.5,
+      "duration": 0.3499999940395355,
+      "frames": 33,
+      "distinctPoses": 21,
+      "finite": true,
+      "startTime": 0.013349999999998545,
+      "endTime": 0.3499999940395355,
+      "joints": [
+        {
+          "name": "Head",
+          "maximumComponentChange": 0.08575364791569429
+        },
+        {
+          "name": "Spine2",
+          "maximumComponentChange": 0.12192579342122334
+        },
+        {
+          "name": "LeftUpLeg",
+          "maximumComponentChange": 1.1102230246251565e-16
+        },
+        {
+          "name": "RightArm",
+          "maximumComponentChange": 1.1102230246251565e-16
+        }
+      ]
+    },
+    {
+      "name": "external_stun",
+      "scale": 0.5,
+      "duration": 1,
+      "frames": 113,
+      "distinctPoses": 113,
+      "finite": true,
+      "startTime": 0.013349999999998545,
+      "endTime": 1.2545999999999988,
+      "joints": [
+        {
+          "name": "Head",
+          "maximumComponentChange": 0.09624584157377626
+        },
+        {
+          "name": "Spine2",
+          "maximumComponentChange": 0.05569388167918626
+        },
+        {
+          "name": "LeftUpLeg",
+          "maximumComponentChange": 1.1102230246251565e-16
+        },
+        {
+          "name": "RightArm",
+          "maximumComponentChange": 5.5699125534047766e-8
+        }
+      ]
+    },
+    {
+      "name": "external_stun_recover",
+      "scale": 0.5,
+      "duration": 0.699999988079071,
+      "frames": 100,
+      "distinctPoses": 71,
+      "finite": true,
+      "startTime": 0.006699999999997089,
+      "endTime": 0.699999988079071,
+      "joints": [
+        {
+          "name": "Head",
+          "maximumComponentChange": 0.1046349384208284
+        },
+        {
+          "name": "Spine2",
+          "maximumComponentChange": 0.06270191378472634
+        },
+        {
+          "name": "LeftUpLeg",
+          "maximumComponentChange": 1.1102230246251565e-16
+        },
+        {
+          "name": "RightArm",
+          "maximumComponentChange": 0.09886959383509558
+        }
+      ]
+    },
+    {
+      "name": "knockback",
+      "scale": 0.5,
+      "duration": 0.6499999761581421,
+      "frames": 93,
+      "distinctPoses": 67,
+      "finite": true,
+      "startTime": 0.01330000000000291,
+      "endTime": 0.6499999761581421,
+      "joints": [
+        {
+          "name": "Head",
+          "maximumComponentChange": 0.08646412614871776
+        },
+        {
+          "name": "Spine2",
+          "maximumComponentChange": 1.1102230246251565e-16
+        },
+        {
+          "name": "LeftUpLeg",
+          "maximumComponentChange": 1.1102230246251565e-16
+        },
+        {
+          "name": "RightArm",
+          "maximumComponentChange": 0.2291347160579793
+        }
+      ]
+    },
+    {
+      "name": "death",
+      "scale": 0.5,
+      "duration": 1.7999999523162842,
+      "frames": 251,
+      "distinctPoses": 217,
+      "finite": true,
+      "startTime": 0.013349999999998545,
+      "endTime": 1.7999999523162842,
+      "joints": [
+        {
+          "name": "Head",
+          "maximumComponentChange": 0.1304182131777499
+        },
+        {
+          "name": "Spine2",
+          "maximumComponentChange": 0.15375699029762552
+        },
+        {
+          "name": "LeftUpLeg",
+          "maximumComponentChange": 2.6386640483710977e-8
+        },
+        {
+          "name": "RightArm",
+          "maximumComponentChange": 0.13328193529890234
+        }
+      ]
+    }
+  ],
+  "loops": [
+    {
+      "name": "idle_snort",
+      "exportedEndpointMaximumDelta": 0
+    },
+    {
+      "name": "heavy_walk",
+      "exportedEndpointMaximumDelta": 0
+    },
+    {
+      "name": "heavy_run",
+      "exportedEndpointMaximumDelta": 0
+    },
+    {
+      "name": "rage_charge_loop",
+      "exportedEndpointMaximumDelta": 0
+    },
+    {
+      "name": "external_stun",
+      "exportedEndpointMaximumDelta": 0
+    }
+  ],
+  "allMotionPassed": true,
+  "limitations": [
+    "Foot sliding and full contact deformation require visual judgment; quaternion motion alone does not establish those."
+  ]
+}

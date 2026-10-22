@@ -1,3 +1,5 @@
+import { WreckerBehaviorCheck } from "./WreckerBehaviorCheck.js";
+
 /**
  * Evidence controls restricted to the saved enemy test map.
  */
@@ -34,6 +36,29 @@ export class WreckerChecks {
     window.removeEventListener("keydown", this.#key, true);
   }
 
+  verifyBehavior() {
+    return new WreckerBehaviorCheck(this.owner).run();
+  }
+
+  verifyPursuit() {
+    return new WreckerBehaviorCheck(this.owner).run(true);
+  }
+
+  /**
+   * Move the test-map observer into the vestibule for a real interior view.
+   */
+  observeInterior() {
+    const hero = this.owner.actors.find(/**
+     * @param {import("../shared/Enemy.js").EnemyActor} actor
+     */ (actor) => actor.isDefender && typeof actor.teleport === "function");
+    const castle = this.owner.actors.find(/**
+     * @param {import("../shared/Enemy.js").EnemyActor} actor
+     */ (actor) => actor.residence?.layout);
+    if (hero && castle) {
+      hero.teleport(castle.residence.layout.toWorld(-0.75, 2.75, 0.014));
+    }
+  }
+
   /**
    * @param {string} name
    * @param {Blob} blob
@@ -43,6 +68,15 @@ export class WreckerChecks {
     const link = document.createElement("a");
     link.href = url;
     link.download = name;
+    link.id = `wrecker-${name}`;
+    link.hidden = true;
+    document.getElementById(link.id)?.remove();
+    document.body.appendChild(link);
+    const reader = new FileReader();
+    reader.addEventListener("load", () => {
+      link.href = String(reader.result);
+    });
+    reader.readAsDataURL(blob);
     link.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
@@ -105,16 +139,24 @@ export class WreckerChecks {
     this.download("horned-wrecker-playback.json", new Blob([JSON.stringify(results)], { type: "application/json" }));
   }
 
-  async preview() {
+  /**
+   * @param {import("playcanvas").Entity} root
+   * @param {{radius?:number,center?:import("playcanvas").Vec3,position?:import("playcanvas").Vec3,name?:string}} view
+   */
+  async preview(root = this.owner.modelRoot, view = {}) {
     const owner = this.owner;
     if (!owner.alive) {
       return;
     }
-    owner.inspectClip(1);
-    owner.playClip("idle_snort");
+    if (root === owner.modelRoot) {
+      owner.inspectClip(1);
+      owner.playClip("idle_snort");
+    }
     const pc = owner.pc;
     const app = owner.app;
-    const meshes = owner.modelRoot.findComponents("render").flatMap(/**
+    const meshes = root.findComponents("render").filter(/**
+     * @param {import("playcanvas").RenderComponent} render
+     */ (render) => render.enabled && render.entity.enabled).flatMap(/**
      *
      * @param {import("playcanvas").RenderComponent} render
      */
@@ -123,7 +165,7 @@ export class WreckerChecks {
     for (const mesh of meshes.slice(1)) {
       bounds.add(mesh.aabb);
     }
-    const radius = bounds.halfExtents.length();
+    const radius = view.radius ?? bounds.halfExtents.length();
     const cameras = app.root.findComponents("camera");
     const enabled = cameras.map(/**
      *
@@ -147,8 +189,8 @@ export class WreckerChecks {
       farClip: 100,
     });
     app.root.addChild(camera);
-    const center = bounds.center;
-    camera.setPosition(center.x - radius * 3, center.y + radius * 2, center.z - radius * 3);
+    const center = view.center ?? bounds.center;
+    camera.setPosition(view.position ?? new pc.Vec3(center.x - radius * 3, center.y + radius * 2, center.z - radius * 3));
     camera.lookAt(center);
     const texture = new pc.Texture(app.graphicsDevice, {
       width: 512,
@@ -183,7 +225,7 @@ export class WreckerChecks {
        *
        * @param {Blob} blob
        */
-        (blob) => this.download("horned-wrecker-preview.png", blob), "image/png");
+        (blob) => this.download(view.name ?? "horned-wrecker-preview.png", blob), "image/png");
     } finally {
       cameras.forEach(/**
        *
@@ -198,5 +240,27 @@ export class WreckerChecks {
       target.destroy();
       texture.destroy();
     }
+  }
+
+  async captureBreach() {
+    const castle = this.owner.actors.find(/**
+     * @param {import("../shared/Enemy.js").EnemyActor} actor
+     */ (actor) => actor.destructibleDoors?.some(/**
+      * @param {import("../../architecture/door/Door.js").Door} door
+      */ (door) => door.broken && !door.exteriorEntrance));
+    const door = castle?.destructibleDoors.find(/**
+     * @param {import("../../architecture/door/Door.js").Door} door
+     */ (door) => door.broken && !door.exteriorEntrance);
+    if (!door) {
+      return;
+    }
+    const center = door.entity.getPosition().clone().add(new this.owner.pc.Vec3(0, 1.15, 0));
+
+    return this.preview(this.owner.app.root, {
+      center,
+      radius: 2.1,
+      position: center.clone().add(new this.owner.pc.Vec3(-3, 1, 0.5)),
+      name: "horned-wrecker-breach.png",
+    });
   }
 }

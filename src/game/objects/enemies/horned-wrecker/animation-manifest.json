@@ -156,8 +156,17 @@
     "finiteStartMiddleEndSamples": true,
     "allClipMidpointRendersReviewed": true,
     "actionContactSamples": true,
-    "runtimePlayback": false,
-    "loopSeamsAndFootSliding": false
+    "runtimePlayback": true,
+    "loopSeamsAndFootSliding": false,
+    "runtimePlaybackEvidence": "runtime-playback.json",
+    "runtimeScales": [
+      1,
+      0.5
+    ],
+    "exportedLoopEndpointsMatch": true,
+    "runtimeLoopContinuityEvidence": "runtime-continuity.json",
+    "observedLoopCrossings": 10,
+    "maxObservedLoopCrossingDegrees": 6.0973
   },
   "supportedStates": [
     "WreckerBatterState",

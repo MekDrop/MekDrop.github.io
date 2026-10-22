@@ -404,14 +404,27 @@ export class CastleWindowLayout {
    * @returns {MasonryBox[]}
    */
   cutBoxes(boxes, clearance = 0) {
+    return CastleWindowLayout.subtractBoxes(boxes, this.#windows.map(/**
+     * @param {RecessedWindow} window
+     */ (window) => window.cut), clearance);
+  }
+
+  /**
+   * Shared exact box subtraction for windows and damaged door jambs.
+   * @param {MasonryBox[]} boxes
+   * @param {WindowBounds[]} cuts
+   * @param {number} clearance
+   * @returns {MasonryBox[]}
+   */
+  static subtractBoxes(boxes, cuts, clearance = 0) {
     // Apertures use world axes. Normalize quarter-turn masonry before splitting;
     // retaining its old yaw would rotate the cut fragments a second time.
     let result = boxes.map(CastleWindowLayout.#mapBox2);
-    for (const window of this.#windows) {
+    for (const aperture of cuts) {
       // The insert's jambs and lintel sit exactly on the aperture boundary.
       // Recess the rendered wall faces beneath that trim instead of drawing
       // both surfaces in the same plane. Collision keeps the exact aperture.
-      const cut = { ...window.cut };
+      const cut = { ...aperture };
       for (const axis of ["X", "Y", "Z"]) {
         cut[`min${axis}`] -= clearance;
         cut[`max${axis}`] += clearance;

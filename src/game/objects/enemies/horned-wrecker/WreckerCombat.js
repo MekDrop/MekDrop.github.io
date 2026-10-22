@@ -63,8 +63,18 @@ export class WreckerCombat {
       return;
     }
     const door = owner.batterDoor;
-    if (owner.stateName === "WreckerBatterState" && door && this.canReach(door, 1.6)) {
+    if (owner.stateName === "WreckerBatterState" && door && this.canReach(door, 1.8)) {
       door.receiveDamage(16);
+      // Leave a full grid cell of clearance for rubble and a turning capsule.
+      const width = Math.max(owner.breachWidth, Math.ceil((owner.radius * 2 + 0.3) * 2) / 2);
+      if (door.broken && door.clearWidth < width) {
+        for (const actor of owner.actors) {
+          if (actor.breachDoorway?.(door, width, owner.height)) {
+            owner.navigation.invalidate();
+            break;
+          }
+        }
+      }
     }
     const recipients = new Set(owner.contactActors);
     const royal = owner.resolveRoyalTarget();
@@ -76,11 +86,15 @@ export class WreckerCombat {
       recipients.add(owner.pickupAggressor);
     }
     for (const actor of recipients) {
-      if (actor.alive === false || struck.has(actor)) {
+      if (actor.alive === false || struck.has(actor) || owner.suppressesRivalContact(actor)) {
         continue;
       }
       struck.add(actor);
-      actor.receiveDamage?.(amount, owner, "physical");
+      if (typeof actor.receiveDamage === "function") {
+        actor.receiveDamage(amount, owner, "physical");
+      } else if (actor !== royal) {
+        actor.applyStatus?.("stun", { duration: 0.6 });
+      }
       if (actor === royal && !this.reachedRoyals.has(royal)) {
         const performance = royal.beginGameOver?.(() => owner.position.clone());
         if (performance !== null && performance !== false) {

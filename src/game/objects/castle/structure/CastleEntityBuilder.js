@@ -127,6 +127,18 @@ export class CastleEntityBuilder {
    */
   #vertexBuffers = [];
   /**
+   * @type {import("playcanvas").Entity|null}
+   */
+  #masonryRoot = null;
+  /**
+   * @type {import("./CastleWindowLayout.js").MasonryBox[]}
+   */
+  #masonryBoxes = [];
+  /**
+   * @type {WeakMap<Door,number>}
+   */
+  #breachedDoors = new WeakMap();
+  /**
    *
    * @type {CastleRoof|null}
    */
@@ -534,6 +546,67 @@ export class CastleEntityBuilder {
   }
 
   /**
+   * Door-owned damage capabilities, including interior room doors.
+   * @returns {ReadonlyArray<import("../../architecture/door/Door.js").Door>}
+   */
+  get destructibleDoors() {
+    return [...this.#animatedDoors];
+  }
+
+  /**
+   * Smash only the jamb surrounding an already broken, owned door. The same
+   * subtraction updates the visible bricks, native body and camera queries.
+   * @param {Door} door
+   * @param {number} width
+   * @param {number} height
+   * @returns {boolean}
+   */
+  breachDoorway(door, width, height) {
+    if (!this.#animatedDoors.includes(door) || !door.broken || !Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0 || (this.#breachedDoors.get(door) ?? 0) >= width) {
+      return false;
+    }
+    const inverse = new this.#pc.Mat4().copy(this.#entity.getWorldTransform()).invert();
+    const center = inverse.transformPoint(door.entity.getPosition());
+    const forward = inverse.transformVector(door.entity.forward).normalize();
+    const acrossX = Math.abs(forward.x) > Math.abs(forward.z);
+    const halfX = acrossX ? 0.8 : width / 2;
+    const halfZ = acrossX ? width / 2 : 0.8;
+    const cut = {
+      minX: center.x - halfX,
+      maxX: center.x + halfX,
+      minY: center.y + 0.025,
+      maxY: center.y + height + 0.15,
+      minZ: center.z - halfZ,
+      maxZ: center.z + halfZ,
+    };
+    this.#renderBatch?.destroy();
+    this.#renderBatch = null;
+    this.#masonryRoot?.destroy();
+    for (const buffer of this.#vertexBuffers) {
+      buffer?.destroy();
+    }
+    this.#vertexBuffers = [];
+    this.#masonryBoxes = CastleWindowLayout.subtractBoxes(this.#masonryBoxes, [cut]);
+    const collisionBoxes = this.#cameraCollisionBlocks.map(CastleEntityBuilder.#mapBlock2);
+    this.#cameraCollisionBlocks = CastleWindowLayout.subtractBoxes(collisionBoxes, [cut]).map(CastleEntityBuilder.#mapBox);
+    this.#cameraCollisionIndex = new SurfaceSpatialIndex();
+    for (const block of this.#cameraCollisionBlocks) {
+      this.#cameraCollisionIndex.add(block, {
+        minX: block.x - block.halfX,
+        maxX: block.x + block.halfX,
+        minZ: block.z - block.halfZ,
+        maxZ: block.z + block.halfZ,
+      });
+    }
+    door.entity.enabled = false;
+    this.#breachedDoors.set(door, width);
+    this.#rebuildMasonry();
+    this.onSceneReady();
+
+    return true;
+  }
+
+  /**
    * @param {number|null} amount
    */
   set testDoorOpenAmount(amount) {
@@ -869,8 +942,25 @@ export class CastleEntityBuilder {
         },
       );
       this.#vertexBuffers.push(vertexBuffer);
-      this.#entity.addChild(entity);
+      this.#masonryRoot.addChild(entity);
     }
+  }
+
+  #rebuildMasonry() {
+    this.#masonryRoot = new this.#pc.Entity("Castle destructible masonry");
+    this.#entity.addChild(this.#masonryRoot);
+    const batches = new Map();
+    for (const box of this.#masonryBoxes) {
+      this.#addBoxMatrix(batches, box.material, box.x, box.y, box.z, box.yaw, box.sx, box.sy, box.sz);
+    }
+    addGeneratedVoxelPhysics({
+      pc: this.#pc,
+      parent: this.#masonryRoot,
+      name: "Castle masonry",
+      voxels: createCastleMasonryVoxels(this.#cameraCollisionBlocks),
+      friction: 0,
+    });
+    this.#createInstancedBatches(batches);
   }
 
   #render() {
@@ -936,33 +1026,12 @@ export class CastleEntityBuilder {
         maxZ: block.z + block.halfZ,
       });
     }
-    const batches = new Map();
-    for (const box of windows.cutBoxes(geometry.boxes, 0.002)) {
-      this.#addBoxMatrix(
-        batches,
-        box.material,
-        box.x,
-        box.y,
-        box.z,
-        box.yaw,
-        box.sx,
-        box.sy,
-        box.sz,
-      );
-    }
+    this.#masonryBoxes = windows.cutBoxes(geometry.boxes, 0.002);
     for (const roof of geometry.decorations.roofs) {
       this.#roofs.add(roof);
     }
 
-    // Solid masonry owns engine contact at every storey, including window glazing.
-    addGeneratedVoxelPhysics({
-      pc: this.#pc,
-      parent: this.#entity,
-      name: "Castle masonry",
-      voxels: createCastleMasonryVoxels(this.#cameraCollisionBlocks),
-      friction: 0,
-    });
-    this.#createInstancedBatches(batches);
+    this.#rebuildMasonry();
     this.#createAnimatedDoors();
     if (metadata.runtime.terrace) {
       this.#terraceContext = {

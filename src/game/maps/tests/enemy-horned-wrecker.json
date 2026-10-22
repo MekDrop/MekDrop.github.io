@@ -3758,6 +3758,17 @@
         "y": 2.014,
         "z": -11
       }
+    },
+    {
+      "object": "HornedWrecker",
+      "id": "wrecker-ally",
+      "verificationIdle": true,
+      "maxHealth": 300,
+      "position": {
+        "x": 5,
+        "y": 2.014,
+        "z": -12
+      }
     }
   ],
   "animationViewport": {
@@ -3837,6 +3848,28 @@
           {
             "label": "Death",
             "script": "const w=[...objects].find(o=>o.definition?.id==='horned-wrecker'); w?.receiveDamage(10000);"
+          }
+        ]
+      },
+      {
+        "title": "Behavior audit",
+        "statusTargetId": "horned-wrecker",
+        "buttons": [
+          {
+            "label": "Run real scene audit",
+            "script": "const w=[...objects].find(o=>o.definition?.id==='horned-wrecker');w.checks.verifyBehavior().catch(console.error);"
+          },
+          {
+            "label": "Inspect breached interior",
+            "script": "const w=[...objects].find(o=>o.definition?.id==='horned-wrecker');w.checks.observeInterior();"
+          },
+          {
+            "label": "Capture masonry breach",
+            "script": "const w=[...objects].find(o=>o.definition?.id==='horned-wrecker');w.checks.captureBreach().catch(console.error);"
+          },
+          {
+            "label": "Run pursuit only",
+            "script": "const w=[...objects].find(o=>o.definition?.id==='horned-wrecker');w.checks.verifyPursuit().catch(console.error);"
           }
         ]
       }

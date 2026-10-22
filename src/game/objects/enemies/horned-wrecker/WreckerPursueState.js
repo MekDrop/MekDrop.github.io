@@ -19,10 +19,25 @@ export class WreckerPursueState extends State {
 
       return;
     }
+    if (owner.combat.reachedRoyals.has(royal)) {
+      owner.stop();
+      owner.playClip("idle_snort");
+
+      return;
+    }
     const route = owner.entranceRoute(royal);
-    if (route.door && owner.distanceTo(route.door) < 1.5) {
-      owner.batterDoor = route.door;
+    const blockingDoor = owner.blockingDoor(royal);
+    const obstruction = blockingDoor ?? route.door;
+    if (obstruction && owner.distanceTo(obstruction) < 1.8) {
+      owner.batterDoor = obstruction;
       owner.beginBattering();
+
+      return;
+    }
+    // The full-size capsule cannot plan through a narrow closed doorway.
+    // Approach its reachable leaf first, then let the timed fist contact break it.
+    if (blockingDoor) {
+      owner.moveToward(blockingDoor, 0.9, 1.5);
 
       return;
     }
@@ -31,7 +46,9 @@ export class WreckerPursueState extends State {
 
       return;
     }
-    owner.moveToward(route.waypoint ?? royal, 0.9);
+    const waypoint = owner.navigation.next(royal) ?? route.waypoint ?? { position: owner.targetPosition(royal) };
+    owner.moveToward(waypoint, 0.9, 0.01);
+    owner.navigation.stepToward(waypoint);
     if (owner.contactActors.size > 0) {
       owner.provoke();
     }

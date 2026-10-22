@@ -1,6 +1,6 @@
 {
   "enemy": "HornedWrecker",
-  "status": "incomplete-awaiting-runtime-verification",
+  "status": "runtime-behavior-verified-review-remaining",
   "reference": "info.png",
   "referenceReviewed": true,
   "referenceFeatures": [
@@ -74,7 +74,7 @@
     "normalMapsModified": false
   },
   "verified": {
-    "unitTests": 10,
+    "unitTests": 16,
     "unitCommand": "node --test test/unit/game/objects/enemies/horned-wrecker/horned-wrecker.test.js",
     "focusedEslint": true,
     "authoredClips": [
@@ -101,18 +101,41 @@
     ],
     "freshImportSampledClips": 20,
     "midpointRenderSheetReviewed": true,
-    "actualGamePlayback": false,
-    "physicsIntegrationInBrowser": false,
-    "transparentPreview": false
+    "actualGamePlayback": true,
+    "physicsIntegrationInBrowser": true,
+    "transparentPreview": true,
+    "runtimePlaybackEvidence": "runtime-playback.json",
+    "runtimeBehaviorEvidence": "runtime-behavior.json",
+    "previewPixels": {
+      "mode": "RGBA",
+      "width": 512,
+      "height": 512,
+      "visible": 47560,
+      "transparent": 214584,
+      "bounds": [
+        102,
+        126,
+        386,
+        408
+      ]
+    },
+    "liveBehaviorPassed": [
+      "bell immunity including amplified-source stun rejection",
+      "physical stun interruption and recovery",
+      "pickup rejection and actual hero stun at headbutt contact",
+      "allied fist windup/contact timing (300 to 275 health)",
+      "dead ally entity and rigidbody cleanup",
+      "entrance door damage (48 to 0), leaf destruction and traversal",
+      "3 m wooden-door and stone-jamb breaches in matching native physics and rendered geometry",
+      "Unaided traversal and actual King game-over performance, with observer left outside"
+    ],
+    "runtimeBehaviorComplete": true,
+    "castleBreachEvidence": "runtime-breach.png",
+    "runtimeLoopContinuityEvidence": "runtime-continuity.json"
   },
   "remaining": [
-    "Complete actual-game clip/joint motion checks and export playback evidence using saved HUD controls",
-    "Review loop seams, foot sliding, contact frames, blends, interruptions, time scale and full death cleanup",
-    "Verify actual Ammo bump/headbutt/allied strike outcomes and entrance traversal with production royal",
-    "Verify unobstructed towers are ignored and obstructing towers are cleared in a real map",
-    "Verify ongoing pickup/swap event producers call the exposed capabilities",
-    "Capture production transparent preview.png, inspect it and verify nonempty transparent RGBA pixels",
-    "Resolve any deformation or behavior issues exposed by production checks before calling this complete"
+    "Complete visual foot-plant and blend/contact quality review beyond the sampled clip/joint/loop checks",
+    "Verify obstructing tower destruction and production pickup/swap event producers"
   ],
   "assets": {
     "blend": "src/game/models/enemies/horned-wrecker/horned-wrecker.blend",
@@ -127,9 +150,7 @@
     "visualFinding": "Front, side, rear and game-camera Blender renders reviewed. Main red brute, tan curled horns, fists and cuffs retained. White nostril puffs remain modeled, not dynamic VFX."
   },
   "testMapUrl": "http://localhost:9000/map/test_enemy-horned-wrecker",
-  "runtimeBlockers": [
-    "Shared MapTestControlsHud.js input handler uses unsupported enabledInHierarchy at lines 255, 259 and 269. All button hit-tests are false. Proposed scoped prerequisite: replace those three reads with supported enabled getter; shared HUD lies outside assigned Horned Wrecker file scope."
-  ],
+  "runtimeBlockers": [],
   "retryEvidence": {
     "date": "2026-10-22",
     "resumeCommit": "73a1a157",
@@ -140,8 +161,18 @@
       "Ignore floor support contacts when provoking rage",
       "Test-only idle, keyboard shortcuts and dual time-scale playback capture"
     ],
-    "checks": "10 focused unit tests passed; focused enemy ESLint passed",
+    "checks": "26 focused checks pass (16 Wrecker, 1 generated-castle breach, 9 door); changed-file ESLint and diff check pass. Three focused subtraction checks also pass.",
     "runtimeAcceptanceComplete": false,
-    "sharedHudFixRequested": true
+    "sharedHudFixRequested": false,
+    "waitingForOtherChats": false,
+    "userRevokedWaiting": true,
+    "routeCorrection": "Latch the completed exterior crossing until the body actually leaves again; cross smashed portals squarely; match the 2.604 m artwork width with a 3 m breach; rebuild native collision, camera queries, visible masonry and the detached route cursor together.",
+    "localServer": "Port 9000, isolated temporary cache via tmp/horned-wrecker/stable-dev.cjs; HMR disabled, source watcher enabled, explicit page reload required",
+    "userAuthorizedStoneJambs": true,
+    "castleBaselineFailures": [
+      "Two old window-layout expectations also fail against the unchanged HEAD module",
+      "Unchanged masonry coalescing test fails its compression-ratio expectation"
+    ],
+    "runtimeBehaviorComplete": true
   }
 }

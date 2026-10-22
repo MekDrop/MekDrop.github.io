@@ -93,6 +93,25 @@ test("pickup is rejected, contacts receive a single headbutt, launch is impossib
   assert.equal(actor.airborne, false);
 });
 
+test("headbutt uses the hero status capability when health damage is unavailable", () => {
+  const actor = create();
+  const effects = [];
+  const hero = {
+    applyStatus: (name, options) => effects.push({
+      name,
+      options,
+    }),
+  };
+  actor.contactActors.add(hero);
+  assert.equal(actor.beginCarry(hero), false);
+  actor.update(0.3);
+  actor.update(0.2);
+  assert.deepEqual(effects, [{
+    name: "stun",
+    options: { duration: 0.6 },
+  }]);
+});
+
 test("external stun interrupts rage; death terminates actions and rejects revival", () => {
   const actor = create();
   actor.provoke();
@@ -181,6 +200,25 @@ test("royal reach uses Ammo occlusion and starts the production performance once
   assert.equal(started, 1);
 });
 
+test("pursuit uses the collision-aware doorway route before a direct entrance waypoint", () => {
+  const actor = create();
+  const royal = {
+    isRoyal: true,
+    entity: new pc.Entity("royal"),
+  };
+  royal.entity.setPosition(0, 0, 10);
+  actor.runtime.objects.push(royal);
+  const planned = { position: new pc.Vec3(0, 0, 3) };
+  actor.navigation.next = () => planned;
+  actor.entranceRoute = () => ({ waypoint: { position: new pc.Vec3(2, 0, 3) } });
+  let received;
+  actor.moveToward = (target) => {
+    received = target;
+  };
+  actor.update(0.1);
+  assert.equal(received, planned);
+});
+
 test("fist damage waits for windup and contact then recovers", () => {
   const actor = create();
   let damage = 0;
@@ -197,6 +235,178 @@ test("fist damage waits for windup and contact then recovers", () => {
   actor.update(0.13);
   assert.equal(actor.stateName, "WreckerFistRecoverState");
   assert.equal(damage, 25);
+});
+
+test("open interior leaves are battered when the wrecker cannot fit past them", () => {
+  const actor = create();
+  const royal = {
+    isRoyal: true,
+    entity: new pc.Entity("royal"),
+  };
+  royal.entity.setPosition(0, 0, 5);
+  const door = {
+    entity: new pc.Entity("open interior leaf"),
+    openAmount: 1,
+    broken: false,
+    blocksCameraAt: (x, y, z, radius) => radius === 0.7 && z > 0.6,
+  };
+  door.entity.setPosition(0, 0, 1);
+  actor.runtime.objects.push(royal, { destructibleDoors: [door] });
+  actor.app.systems = { rigidbody: { raycastAll: () => [] } };
+  actor.update(0.1);
+  assert.equal(actor.stateName, "WreckerBatterState");
+  assert.equal(actor.batterDoor, door);
+  door.broken = true;
+  assert.equal(actor.blockingDoor(royal), null);
+  door.broken = false;
+  door.blocksCameraAt = () => false;
+  assert.equal(actor.blockingDoor(royal), null);
+});
+
+test("entry stays straight until the complete capsule clears the masonry jamb", () => {
+  const actor = create();
+  actor.entity.setPosition(0, 0, 1.2);
+  actor.app.systems = {};
+  const royal = {
+    isRoyal: true,
+    entity: new pc.Entity("royal"),
+  };
+  royal.entity.setPosition(3, 0, 5);
+  const door = { entity: new pc.Entity("entrance") };
+  const layout = {
+    origin: {
+      x: 0,
+      y: 0,
+      z: 0,
+    },
+    walkableAreas: [{
+      minX: -10,
+      maxX: 10,
+      minZ: -10,
+      maxZ: 10,
+      floorY: 0,
+    }],
+    toLocal: (x, z) => ({
+      x,
+      z,
+    }),
+    toWorld: (x, z, y) => ({
+      x,
+      y,
+      z,
+    }),
+  };
+  actor.runtime.objects.push(royal, {
+    residence: {
+      layout,
+      blocksMovementAt: () => false,
+    },
+    entranceDoors: [door],
+  });
+  const waypoint = actor.navigation.next(royal);
+  assert.equal(waypoint.position.x, 0);
+  assert.ok(waypoint.position.z > actor.position.z + 0.6);
+  assert.ok(Math.abs(actor.position.z - 1.2) < 0.000001);
+  actor.entity.setPosition(0, 0, 1.8);
+  actor.navigation.next(royal);
+  // The inner doorway sits slightly nearer the facade than the entry waypoint.
+  // Clearing the entrance must remain latched while approaching that doorway.
+  actor.entity.setPosition(1.2, 0, 1.775);
+  assert.ok(actor.navigation.next(royal).position.x > 1.2);
+  actor.entity.setPosition(0, 0, -1.2);
+  assert.equal(actor.navigation.next(royal).position.x, 0);
+  actor.navigation.destroy();
+});
+
+test("the breaking fist contact requests a body-sized masonry breach from the door owner", () => {
+  const actor = create();
+  actor.app.systems = { rigidbody: { raycastAll: () => [] } };
+  const door = {
+    entity: new pc.Entity("narrow door"),
+    clearWidth: 1,
+    broken: false,
+    receiveDamage: () => {
+      door.broken = true;
+    },
+  };
+  door.entity.setPosition(0, 0, 1);
+  let breach;
+  let invalidated = 0;
+  actor.navigation.invalidate = () => {
+    invalidated++;
+  };
+  actor.runtime.objects.push({
+    breachDoorway: (target, width, height) => {
+      breach = {
+        target,
+        width,
+        height,
+      };
+
+      return true;
+    },
+  });
+  actor.batterDoor = door;
+  actor.beginBattering();
+  actor.update(0.59);
+  assert.equal(breach, undefined);
+  actor.update(0.02);
+  assert.equal(breach.target, door);
+  assert.equal(breach.width, 3);
+  assert.equal(breach.height, 2.2);
+  assert.equal(invalidated, 1);
+});
+
+test("a smashed interior portal is crossed squarely before turning toward the royal", () => {
+  const actor = create();
+  actor.entity.setPosition(0, 0, 1.5);
+  actor.app.systems = {};
+  const royal = {
+    isRoyal: true,
+    entity: new pc.Entity("royal"),
+  };
+  royal.entity.setPosition(3, 0, 3);
+  const door = {
+    entity: new pc.Entity("smashed portal"),
+    broken: true,
+  };
+  door.entity.setPosition(1.5, 0, 1.5);
+  door.entity.setEulerAngles(0, -90, 0);
+  const layout = {
+    origin: {
+      x: 0,
+      y: 0,
+      z: 0,
+    },
+    walkableAreas: [{
+      minX: -10,
+      maxX: 10,
+      minZ: -10,
+      maxZ: 10,
+      floorY: 0,
+    }],
+    toLocal: (x, z) => ({
+      x,
+      z,
+    }),
+    toWorld: (x, z, y) => ({
+      x,
+      y,
+      z,
+    }),
+  };
+  actor.runtime.objects.push(royal, {
+    residence: {
+      layout,
+      blocksMovementAt: () => false,
+    },
+    entranceDoors: [],
+    destructibleDoors: [door],
+  });
+  const waypoint = actor.navigation.next(royal);
+  assert.ok(waypoint.position.x > 2.6);
+  assert.ok(Math.abs(waypoint.position.z - 1.5) < 0.000001);
+  actor.navigation.destroy();
 });
 
 test("all exported clips contain finite changing tracks on the weighted rig", () => {
