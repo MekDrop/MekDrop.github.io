@@ -17,7 +17,8 @@ export class CrownCrabClawState extends State {
     this.#time = 0;
     this.#contactApplied = false;
     crab.stop();
-    crab.requestAnimation(crab.attackTarget?.enemyType === crab.enemyType ? "duel" : "claw_windup");
+    crab.requestAnimation(typeof crab.attackTarget?.openTemporarily === "function" ? "door_claw" :
+      crab.attackTarget?.enemyType === crab.enemyType ? "duel" : "claw_windup", true);
   }
 
   /**
@@ -30,14 +31,18 @@ export class CrownCrabClawState extends State {
       return;
     }
     this.#time += crab.deltaTime;
-    if (!this.#contactApplied && this.#time >= 0.45) {
+    const special = typeof crab.attackTarget?.openTemporarily === "function" || crab.attackTarget?.enemyType === crab.enemyType;
+    if (!special && this.#time >= 0.45 && this.#time < 0.65) {
+      crab.requestAnimation("claw_snap");
+    }
+    if (!this.#contactApplied && this.#time >= 0.6) {
       this.#contactApplied = true;
       const target = crab.attackTarget;
-      if (target?.exteriorEntrance && crab.distanceTo(target) <= 1.8) {
-        crab.requestAnimation("door_claw");
-        target.openTemporarily(2);
+      if (typeof target?.openTemporarily === "function" && crab.distanceTo(target) <= 1.8 && crab.hasClearContact(target)) {
+        target.testOpenAmount = null;
+        // Include claw recovery and the slow body's passage through the swing.
+        target.openTemporarily(4);
       } else {
-        crab.requestAnimation("claw_snap");
         crab.applyClawContact(target);
       }
       if (target?.enemyType === crab.enemyType) {
@@ -45,7 +50,7 @@ export class CrownCrabClawState extends State {
         target.duelCooldownUntil = target.elapsed + 4;
       }
     }
-    if (this.#time >= 0.65) {
+    if (!special && this.#time >= 0.65) {
       crab.requestAnimation("claw_recover");
     }
     if (this.#time >= 1.1) {

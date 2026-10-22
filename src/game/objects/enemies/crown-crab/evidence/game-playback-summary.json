@@ -1,0 +1,134 @@
+[
+  {
+    "name": "idle",
+    "samples": 46,
+    "finite": true,
+    "poses": 46
+  },
+  {
+    "name": "scuttle_forward",
+    "samples": 23,
+    "finite": true,
+    "poses": 23
+  },
+  {
+    "name": "scuttle_sideways",
+    "samples": 25,
+    "finite": true,
+    "poses": 25
+  },
+  {
+    "name": "run",
+    "samples": 19,
+    "finite": true,
+    "poses": 19
+  },
+  {
+    "name": "turn",
+    "samples": 21,
+    "finite": true,
+    "poses": 20
+  },
+  {
+    "name": "claw_windup",
+    "samples": 15,
+    "finite": true,
+    "poses": 12
+  },
+  {
+    "name": "claw_snap",
+    "samples": 8,
+    "finite": true,
+    "poses": 5
+  },
+  {
+    "name": "claw_recover",
+    "samples": 14,
+    "finite": true,
+    "poses": 12
+  },
+  {
+    "name": "door_claw",
+    "samples": 33,
+    "finite": true,
+    "poses": 30
+  },
+  {
+    "name": "front_block",
+    "samples": 11,
+    "finite": true,
+    "poses": 9
+  },
+  {
+    "name": "rear_hit",
+    "samples": 12,
+    "finite": true,
+    "poses": 9
+  },
+  {
+    "name": "angry_warn",
+    "samples": 22,
+    "finite": true,
+    "poses": 18
+  },
+  {
+    "name": "duel",
+    "samples": 32,
+    "finite": true,
+    "poses": 30
+  },
+  {
+    "name": "stun",
+    "samples": 29,
+    "finite": true,
+    "poses": 28
+  },
+  {
+    "name": "stun_recover",
+    "samples": 14,
+    "finite": true,
+    "poses": 11
+  },
+  {
+    "name": "knockback",
+    "samples": 15,
+    "finite": true,
+    "poses": 13
+  },
+  {
+    "name": "pickup_struggle",
+    "samples": 24,
+    "finite": true,
+    "poses": 24
+  },
+  {
+    "name": "airborne_tumble",
+    "samples": 24,
+    "finite": true,
+    "poses": 24
+  },
+  {
+    "name": "land",
+    "samples": 8,
+    "finite": true,
+    "poses": 5
+  },
+  {
+    "name": "land_recover",
+    "samples": 12,
+    "finite": true,
+    "poses": 10
+  },
+  {
+    "name": "revenge_run",
+    "samples": 18,
+    "finite": true,
+    "poses": 18
+  },
+  {
+    "name": "death",
+    "samples": 41,
+    "finite": true,
+    "poses": 40
+  }
+]

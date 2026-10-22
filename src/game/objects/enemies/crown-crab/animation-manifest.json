@@ -1,28 +1,279 @@
 {
   "schemaVersion": 1,
-  "status": "planned-not-authored",
-  "model": null,
-  "clips": [],
-  "verifiedClips": [],
-  "requiredClips": [
-    "idle", "scuttle_forward", "scuttle_sideways", "run", "turn",
-    "claw_windup", "claw_snap", "claw_recover", "door_claw",
-    "front_block", "rear_hit", "angry_warn", "duel", "stun", "stun_recover",
-    "pickup_struggle", "airborne_tumble", "land", "land_recover", "revenge_run", "death"
+  "status": "validated-fresh-import-and-production-playback",
+  "model": "src/game/models/enemies/crown-crab/crown-crab.glb",
+  "clips": [
+    {
+      "name": "idle",
+      "duration": 1.6,
+      "looping": true,
+      "events": [],
+      "supportedStates": [
+        "CrownCrabPursueState",
+        "CrownCrabPlaybackState"
+      ]
+    },
+    {
+      "name": "scuttle_forward",
+      "duration": 0.8,
+      "looping": true,
+      "events": [],
+      "supportedStates": [
+        "CrownCrabPursueState"
+      ]
+    },
+    {
+      "name": "scuttle_sideways",
+      "duration": 0.9,
+      "looping": true,
+      "events": [],
+      "supportedStates": [
+        "CrownCrabQueueState"
+      ]
+    },
+    {
+      "name": "run",
+      "duration": 0.6,
+      "looping": true,
+      "events": [],
+      "supportedStates": [
+        "CrownCrabPlaybackState"
+      ]
+    },
+    {
+      "name": "turn",
+      "duration": 0.7,
+      "looping": false,
+      "events": [],
+      "supportedStates": [
+        "CrownCrabPlaybackState"
+      ]
+    },
+    {
+      "name": "claw_windup",
+      "duration": 0.4666666666666667,
+      "looping": false,
+      "events": [],
+      "supportedStates": [
+        "CrownCrabClawState"
+      ]
+    },
+    {
+      "name": "claw_snap",
+      "duration": 0.2,
+      "looping": false,
+      "events": [
+        {
+          "name": "contact",
+          "time": 0.15
+        }
+      ],
+      "supportedStates": [
+        "CrownCrabClawState"
+      ]
+    },
+    {
+      "name": "claw_recover",
+      "duration": 0.4666666666666667,
+      "looping": false,
+      "events": [],
+      "supportedStates": [
+        "CrownCrabClawState"
+      ]
+    },
+    {
+      "name": "door_claw",
+      "duration": 1.1,
+      "looping": false,
+      "events": [
+        {
+          "name": "contact",
+          "time": 0.6
+        }
+      ],
+      "supportedStates": [
+        "CrownCrabClawState"
+      ]
+    },
+    {
+      "name": "front_block",
+      "duration": 0.3,
+      "looping": false,
+      "events": [],
+      "supportedStates": [
+        "CrownCrabHitState"
+      ]
+    },
+    {
+      "name": "rear_hit",
+      "duration": 0.3,
+      "looping": false,
+      "events": [],
+      "supportedStates": [
+        "CrownCrabHitState"
+      ]
+    },
+    {
+      "name": "angry_warn",
+      "duration": 0.6666666666666666,
+      "looping": false,
+      "events": [],
+      "supportedStates": [
+        "CrownCrabAngryState",
+        "CrownCrabQueueState"
+      ]
+    },
+    {
+      "name": "duel",
+      "duration": 1.1,
+      "looping": false,
+      "events": [
+        {
+          "name": "contact",
+          "time": 0.6
+        }
+      ],
+      "supportedStates": [
+        "CrownCrabClawState"
+      ]
+    },
+    {
+      "name": "stun",
+      "duration": 1,
+      "looping": true,
+      "events": [],
+      "supportedStates": [
+        "CrownCrabStunnedState"
+      ]
+    },
+    {
+      "name": "stun_recover",
+      "duration": 0.4,
+      "looping": false,
+      "events": [],
+      "supportedStates": [
+        "CrownCrabRecoverState"
+      ]
+    },
+    {
+      "name": "knockback",
+      "duration": 0.4666666666666667,
+      "looping": false,
+      "events": [],
+      "supportedStates": [
+        "CrownCrabKnockbackState"
+      ]
+    },
+    {
+      "name": "pickup_struggle",
+      "duration": 0.8,
+      "looping": true,
+      "events": [],
+      "supportedStates": [
+        "CrownCrabCarriedState"
+      ]
+    },
+    {
+      "name": "airborne_tumble",
+      "duration": 0.8,
+      "looping": true,
+      "events": [],
+      "supportedStates": [
+        "CrownCrabAirborneState"
+      ]
+    },
+    {
+      "name": "land",
+      "duration": 0.2,
+      "looping": false,
+      "events": [],
+      "supportedStates": [
+        "CrownCrabLandingState"
+      ]
+    },
+    {
+      "name": "land_recover",
+      "duration": 0.4,
+      "looping": false,
+      "events": [],
+      "supportedStates": [
+        "CrownCrabLandingState"
+      ]
+    },
+    {
+      "name": "revenge_run",
+      "duration": 0.5,
+      "looping": true,
+      "events": [],
+      "supportedStates": [
+        "CrownCrabPursueState"
+      ]
+    },
+    {
+      "name": "death",
+      "duration": 1.5,
+      "looping": false,
+      "events": [],
+      "supportedStates": [
+        "CrownCrabDeathState"
+      ]
+    }
   ],
-  "behaviorStates": [
-    "CrownCrabPursueState", "CrownCrabClawState", "CrownCrabAngryState",
-    "CrownCrabStunnedState", "CrownCrabCarriedState", "CrownCrabAirborneState",
-    "CrownCrabLandingState", "CrownCrabDeathState"
+  "verifiedClips": [
+    "idle",
+    "scuttle_forward",
+    "scuttle_sideways",
+    "run",
+    "turn",
+    "claw_windup",
+    "claw_snap",
+    "claw_recover",
+    "door_claw",
+    "front_block",
+    "rear_hit",
+    "angry_warn",
+    "duel",
+    "stun",
+    "stun_recover",
+    "knockback",
+    "pickup_struggle",
+    "airborne_tumble",
+    "land",
+    "land_recover",
+    "revenge_run",
+    "death"
   ],
-  "logicTimingSeconds": {
-    "clawContact": 0.45,
-    "clawRecoveryStart": 0.65,
-    "clawEnd": 1.1,
-    "angryWarning": 0.65,
-    "landingRecoveryStart": 0.2,
-    "landingEnd": 0.6,
-    "deathCleanup": 1.5
+  "offlineVerifiedClips": [
+    "idle",
+    "scuttle_forward",
+    "scuttle_sideways",
+    "run",
+    "turn",
+    "claw_windup",
+    "claw_snap",
+    "claw_recover",
+    "door_claw",
+    "front_block",
+    "rear_hit",
+    "angry_warn",
+    "duel",
+    "stun",
+    "stun_recover",
+    "knockback",
+    "pickup_struggle",
+    "airborne_tumble",
+    "land",
+    "land_recover",
+    "revenge_run",
+    "death"
+  ],
+  "offlineEvidence": "evidence/fresh-import.json",
+  "runtimePhaseDurations": {
+    "claw_windup": 0.45,
+    "claw_snap": 0.2,
+    "claw_recover": 0.45,
+    "angry_warn": 0.65,
+    "knockback": 0.45
   },
-  "timingNote": "These are logic timings, not measured clip durations. Align with authored clip contacts before registration."
+  "runtimeEvidence": "evidence/game-playback.json"
 }

@@ -1,0 +1,8 @@
+[
+  {
+    "level": "info",
+    "message": "CROWN_CRAB_PLAYBACK_COMPLETE [{\"name\":\"idle\",\"samples\":87},{\"name\":\"scuttle_forward\",\"samples\":51},{\"name\":\"scuttle_sideways\",\"samples\":50},{\"name\":\"run\",\"samples\":38},{\"name\":\"turn\",\"samples\":42},{\"name\":\"claw_windup\",\"samples\":30},{\"name\":\"claw_snap\",\"samples\":16},{\"name\":\"claw_recover\",\"samples\":31},{\"name\":\"door_claw\",\"samples\":65},{\"name\":\"front_block\",\"samples\":22},{\"name\":\"rear_hit\",\"samples\":23},{\"name\":\"angry_warn\",\"samples\":41},{\"name\":\"duel\",\"samples\":61},{\"name\":\"stun\",\"samples\":55},{\"name\":\"stun_recover\",\"samples\":21},{\"name\":\"knockback\",\"samples\":29},{\"name\":\"pickup_struggle\",\"samples\":27},{\"name\":\"airborne_tumble\",\"samples\":39},{\"name\":\"land\",\"samples\":15},{\"name\":\"land_recover\",\"samples\":28},{\"name\":\"revenge_run\",\"samples\":34},{\"name\":\"death\",\"samples\":82}]",
+    "timestamp": "2026-10-22T05:53:25.043Z",
+    "url": "http://127.0.0.1:9001/src/game/objects/enemies/crown-crab/CrownCrabChecks.js"
+  }
+]

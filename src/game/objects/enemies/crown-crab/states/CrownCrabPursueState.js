@@ -6,7 +6,7 @@ export class CrownCrabPursueState extends State {
    */
   execute(crab) {
     const target = crab.pursuitTarget;
-    if (!target) {
+    if (!target || crab.reachedRoyals.has(target)) {
       crab.stop();
       crab.requestAnimation("idle");
 
@@ -18,19 +18,26 @@ export class CrownCrabPursueState extends State {
 
       return;
     }
-    const door = crab.findEntranceObstruction(target);
+    const blocker = crab.findQueueBlocker(target);
+    if (blocker) {
+      crab.demandQueuePosition(blocker);
+
+      return;
+    }
+    const waypoint = crab.navigation?.next(target) ?? target;
+    const door = crab.findEntranceObstruction(waypoint);
     if (door) {
       crab.startClaw(door);
 
       return;
     }
-    if (crab.distanceTo(target) <= 1.15) {
+    if (crab.distanceTo(target) <= 1.15 && crab.hasClearContact(target)) {
       crab.startClaw(target);
 
       return;
     }
     const revenge = crab.revengeTarget && !crab.grudgesSuppressed;
     crab.requestAnimation(revenge ? "revenge_run" : "scuttle_forward");
-    crab.moveToward(target, revenge ? 2.2 : 1.2);
+    crab.moveToward(waypoint, revenge ? 1.2 : 0.6, 0.01);
   }
 }

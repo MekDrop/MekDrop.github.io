@@ -1,0 +1,160 @@
+{
+  "source": "saved-map production Ammo audit",
+  "results": [
+    {
+      "name": "queue",
+      "passed": true,
+      "evidence": {
+        "states": [
+          "CrownCrabPursueState",
+          "CrownCrabQueueState"
+        ],
+        "start": {
+          "x": 0.000007023150828899816,
+          "y": 2.003995656967163,
+          "z": -9.999979972839355
+        },
+        "end": {
+          "x": -0.24531598389148712,
+          "y": 2.003995656967163,
+          "z": -7.064697742462158
+        },
+        "blocker": {
+          "x": -0.007657370530068874,
+          "y": 2.0036842823028564,
+          "z": -7.964710712432861
+        }
+      }
+    },
+    {
+      "name": "entrance",
+      "passed": true,
+      "evidence": {
+        "closed": [
+          0
+        ],
+        "maximumOpen": 1,
+        "furthestZ": -3.5767433643341064,
+        "probeHits": [
+          "Castle moving door plank collider",
+          "Castle moving door plank collider"
+        ],
+        "states": [
+          "CrownCrabClawState",
+          "CrownCrabPursueState"
+        ],
+        "position": {
+          "x": -0.2998878061771393,
+          "y": 1.9999996423721313,
+          "z": -4.440382957458496
+        }
+      }
+    },
+    {
+      "name": "duel",
+      "passed": true,
+      "evidence": {
+        "before": 100,
+        "afterContact": 71.2,
+        "afterRecovery": 71.2
+      }
+    },
+    {
+      "name": "stun",
+      "passed": true,
+      "evidence": {
+        "interrupted": "CrownCrabStunnedState",
+        "recovered": "CrownCrabPursueState",
+        "before": 71.2,
+        "after": 71.2
+      }
+    },
+    {
+      "name": "bell",
+      "passed": true,
+      "evidence": {
+        "state": "CrownCrabAngryState",
+        "confused": false
+      }
+    },
+    {
+      "name": "throw",
+      "passed": true,
+      "evidence": {
+        "carried": true,
+        "height": 3.2159979343414307,
+        "top": 3.709313154220581,
+        "states": [
+          "CrownCrabAirborneState",
+          "CrownCrabLandingState",
+          "CrownCrabPursueState",
+          "CrownCrabClawState"
+        ],
+        "airborne": false,
+        "grounded": true
+      }
+    },
+    {
+      "name": "royal",
+      "passed": true,
+      "evidence": {
+        "nearest": 0.8742428551657216,
+        "distanceScope": "Entire audit, including the initial closed-entrance traversal",
+        "royalStart": {
+          "x": 3.625,
+          "y": 2.1670000553131104,
+          "z": -2.9345099925994873
+        },
+        "royalEnd": {
+          "x": 3.686549425125122,
+          "y": 2.0517795085906982,
+          "z": -5.728763103485107
+        },
+        "accepted": true,
+        "clearContact": true,
+        "contacts": [
+          "Castle moving door plank collider",
+          "crab-castle-court-44 CandleStand",
+          "Castle masonry physics collider"
+        ],
+        "navigation": {
+          "approach": {
+            "x": 3.1228675031741946,
+            "y": 2,
+            "z": -3.9132147262303625
+          },
+          "blocked": false,
+          "probe": {
+            "ready": true,
+            "ammo": true,
+            "queries": 26817,
+            "contacts": 296737
+          },
+          "currentBlocked": true
+        },
+        "blockers": [],
+        "waypoint": {
+          "x": 2.763704536710066,
+          "y": 1.999995470046997,
+          "z": -3.0453634261793674
+        },
+        "crab": {
+          "x": 2.763739824295044,
+          "y": 1.999995231628418,
+          "z": -2.7970166206359863
+        }
+      }
+    },
+    {
+      "name": "death",
+      "passed": true,
+      "evidence": {
+        "attached": false,
+        "playbackPresent": false
+      }
+    }
+  ],
+  "capturedAt": "2026-10-22T13:16:20.169Z",
+  "map": "/map/test_enemy-crown-crab",
+  "captureMode": "IAB saved-map opt-in; identical testVerifyBehavior method to the separately verified Opera HUD invocation"
+}

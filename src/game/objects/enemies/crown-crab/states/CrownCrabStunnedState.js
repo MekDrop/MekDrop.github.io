@@ -1,4 +1,5 @@
 import { State } from "yuka";
+import { CrownCrabRecoverState } from "./CrownCrabRecoverState.js";
 
 export class CrownCrabStunnedState extends State {
   /**
@@ -14,7 +15,8 @@ export class CrownCrabStunnedState extends State {
    */
   execute(crab) {
     if (!crab.statuses.has("stun")) {
-      crab.resumePursuit();
+      crab.attackTarget = null;
+      crab.behavior.changeTo(CrownCrabRecoverState.name);
     }
   }
 }

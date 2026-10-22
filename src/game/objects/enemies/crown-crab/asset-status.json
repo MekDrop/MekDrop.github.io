@@ -1,7 +1,7 @@
 {
   "enemy": "CrownCrab",
   "slug": "crown-crab",
-  "status": "generated-static-source-needs-rig-and-refinement",
+  "status": "integrated-live-behavior-validated",
   "reference": "info.png",
   "referenceReviewed": true,
   "referenceFindings": [
@@ -48,49 +48,143 @@
         "filename": "crown-crab-tripo-original.glb",
         "bytes": 2213088,
         "sha256": "bf07268459cc74db0e02400a5a26e308605acd9e0f3c0ac462456ef31e243f8f"
+      },
+      "segmentation": {
+        "url": "https://studio.tripo3d.ai/workspace/segmentation/0daf7361-b6df-4e83-a53b-b559decf3051",
+        "assetId": "0daf7361-b6df-4e83-a53b-b559decf3051",
+        "separateJobId": null,
+        "selectedDetail": "Detailed 15+; saved UI later labeled Balanced",
+        "quote": "Start Segmenting 40 0 (trial)",
+        "actualCharge": null,
+        "observedBalanceBefore": 22640,
+        "observedBalanceAfter": 22640,
+        "export": "provider/segmented.glb",
+        "bytes": 5274484,
+        "sha256": "e17ac1923510b1461aa228d8fedc77b074eb96ce327f82605d7a6c7ca10ffc4d"
       }
     }
   },
   "plannedModel": "src/game/models/enemies/crown-crab/crown-crab.glb",
   "plannedEditableSource": "src/game/models/enemies/crown-crab/crown-crab.blend",
   "generatedModel": "src/game/objects/enemies/crown-crab/provider/original.glb",
-  "refinedModel": null,
-  "preview": null,
-  "registrationEnabled": false,
-  "testMapUrl": null,
+  "refinedModel": "src/game/models/enemies/crown-crab/crown-crab.glb",
+  "preview": "src/game/objects/enemies/crown-crab/preview.png",
+  "registrationEnabled": true,
+  "testMapUrl": "/map/test_enemy-crown-crab",
   "verification": {
     "unitTests": "test/unit/game/objects/enemies/crown-crab/crown-crab.test.js",
     "unitTestScope": "Yuka transitions and capability interactions with real PlayCanvas Entity transforms; rigid bodies and recipients are test doubles, not an Ammo integration check.",
-    "actualGamePlayback": false,
-    "ammoContactAndThrows": false,
-    "referenceRenderComparison": false,
-    "freshGlbImport": false,
-    "transparentPreview": false,
+    "actualGamePlayback": true,
+    "ammoContactAndThrows": true,
+    "referenceRenderComparison": true,
+    "freshGlbImport": true,
+    "transparentPreview": {
+      "passed": true,
+      "width": 512,
+      "height": 512,
+      "alphaRange": [
+        0,
+        255
+      ],
+      "nonemptyBounds": [
+        108,
+        149,
+        436,
+        372
+      ],
+      "edgeAlpha": 0,
+      "source": "Production PlayCanvas mesh and scene lighting; isolated render layer"
+    },
     "offlineSourceRenders": {
       "views": [
         "front",
-        "side",
         "rear",
+        "left",
+        "right",
+        "top",
         "game"
       ],
-      "directory": "tmp",
+      "directory": "evidence",
       "reviewed": true,
       "findings": [
-        "Identity, red armor, crown and angry face preserved.",
-        "Claws raised rather than down and forward as in primary reference.",
-        "Body narrower and crown taller than reference; local refinement required.",
-        "Single connected textured mesh, no bones and no clips; not production-ready."
+        "Red armor, crown and angry cream face preserved; shell broadened and claws lowered.",
+        "Reference claw proportions and silhouette remain approximate, rather than an exact reconstruction.",
+        "All 22 imported clips deform finite geometry. Loop endpoints match within 0.000001 m.",
+        "Landing and death samples remain above the ground plane."
       ]
+    },
+    "focusedUnitTests": {
+      "passed": 23,
+      "failed": 0,
+      "dispatcherPassed": 3,
+      "totalPassed": 26
+    },
+    "gameClipSampling": {
+      "completed": 22,
+      "samples": 466,
+      "allFinite": true,
+      "allChangeNonRootJoints": true,
+      "evidence": "evidence/game-playback.json",
+      "summary": "evidence/game-playback-summary.json"
+    },
+    "castleGround": {
+      "maps": 1,
+      "castles": 1,
+      "issues": 0,
+      "errors": 0
+    },
+    "liveBehaviorObserved": [
+      "Queue demand and real Ammo advancement past the authored stationary-AI CinderImp blocker.",
+      "A fully closed entrance opens through claw contact; the physical crab root crosses the doorway.",
+      "Duel damage occurs once after windup; stun interrupts contact and recovers.",
+      "Bell source provokes anger without confusion.",
+      "Hero carry, actual body launch, height gain, landing recovery, grounded pursuit and thrower revenge.",
+      "Royal contact is accepted and the authored King world position changes during its production performance.",
+      "Death detaches the root and clears animation playback and owned navigation resources."
+    ],
+    "royalReachability": true,
+    "focusedLint": true,
+    "mapScriptsCompiled": 44,
+    "gameBehavior": {
+      "passed": 8,
+      "failed": 0,
+      "evidence": "evidence/game-behavior.json"
+    },
+    "hud": {
+      "dispatchVerified": true,
+      "browser": "Opera",
+      "evidence": "evidence/game-hud-dispatch.png",
+      "fullAuditCapture": "IAB saved-map opt-in invokes the same testVerifyBehavior method as the HUD button"
+    },
+    "completedAt": "2026-10-22T13:16:30.567Z"
+  },
+  "remaining": [],
+  "editableSource": "src/game/models/enemies/crown-crab/crown-crab.blend",
+  "refinement": {
+    "source": "Tripo segmented derivative; original preserved unchanged",
+    "edits": [
+      "Broader shell, shorter wider crown, lowered forward claws, pale rear exposed chitin",
+      "Joined mesh with baked 2048 color atlas",
+      "Nonhumanoid 25-bone rig; authored two-link leg IK baked into clips with toe orientation compensation",
+      "22 separate embedded actions; grounded poses have evaluated mesh clearance correction"
+    ],
+    "triangles": 4500,
+    "materialCount": 1,
+    "bones": 25,
+    "clips": 22,
+    "modelYaw": {
+      "degrees": 180,
+      "owner": "Unanimated Crown Crab model orientation parent; authored rig root is keyed by clips"
     }
   },
-  "remaining": [
-    "Initial Tripo generation complete. Preserve original and receipts; no replacement generation submitted.",
-    "Refine proportions and claw pose locally; rig nonhumanoid crab, author and verify embedded clips.",
-    "Add animation enum under src/game/enum per repo rule, and production clip playback adapter.",
-    "Finish front-of-queue negotiation and verify door clearance and royal reachability in real game physics.",
-    "Add valid leaf registration and enemy-crown-crab test map with HUD controls only after the model exists.",
-    "Verify all clips from fresh GLB import and actual game playback, then capture transparent preview.png."
-  ],
-  "editableStaticSource": "src/game/models/enemies/crown-crab/crown-crab.blend",
-  "staticExport": "src/game/models/enemies/crown-crab/crown-crab.glb"
+  "modelIntegrity": {
+    "src/game/models/enemies/crown-crab/crown-crab.glb": {
+      "bytes": 1971480,
+      "sha256": "d4acf7987876dd6a15f2623d19ef1ffbb9f9c0c9ff179b523b67564454cde854"
+    },
+    "src/game/models/enemies/crown-crab/crown-crab.blend": {
+      "bytes": 6767745,
+      "sha256": "0ad3c8e4ffd5383953f4ef928fbd23067ba663075d4961b53c8f5a06648b4c89"
+    }
+  }
 }

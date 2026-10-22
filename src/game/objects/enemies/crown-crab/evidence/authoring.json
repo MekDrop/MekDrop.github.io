@@ -1,0 +1,208 @@
+{
+  "bones": [
+    "Root",
+    "Body",
+    "Crown",
+    "Claw.L",
+    "Pincer.L",
+    "LegFront.L",
+    "ShinFront.L",
+    "ToeFront.L",
+    "LegMiddle.L",
+    "ShinMiddle.L",
+    "ToeMiddle.L",
+    "LegRear.L",
+    "ShinRear.L",
+    "ToeRear.L",
+    "Claw.R",
+    "Pincer.R",
+    "LegFront.R",
+    "ShinFront.R",
+    "ToeFront.R",
+    "LegMiddle.R",
+    "ShinMiddle.R",
+    "ToeMiddle.R",
+    "LegRear.R",
+    "ShinRear.R",
+    "ToeRear.R"
+  ],
+  "triangles": 4500,
+  "materials": 1,
+  "sourceParts": 70,
+  "dimensions": [
+    1.6476187705993652,
+    1.5373635292053223,
+    0.9702379703521729
+  ],
+  "clips": [
+    {
+      "name": "idle",
+      "duration": 1.6,
+      "looping": true,
+      "events": [],
+      "supportedStates": []
+    },
+    {
+      "name": "scuttle_forward",
+      "duration": 0.8,
+      "looping": true,
+      "events": [],
+      "supportedStates": []
+    },
+    {
+      "name": "scuttle_sideways",
+      "duration": 0.9,
+      "looping": true,
+      "events": [],
+      "supportedStates": []
+    },
+    {
+      "name": "run",
+      "duration": 0.6,
+      "looping": true,
+      "events": [],
+      "supportedStates": []
+    },
+    {
+      "name": "turn",
+      "duration": 0.7,
+      "looping": false,
+      "events": [],
+      "supportedStates": []
+    },
+    {
+      "name": "claw_windup",
+      "duration": 0.4666666666666667,
+      "looping": false,
+      "events": [],
+      "supportedStates": []
+    },
+    {
+      "name": "claw_snap",
+      "duration": 0.2,
+      "looping": false,
+      "events": [
+        {
+          "name": "contact",
+          "time": 0.15
+        }
+      ],
+      "supportedStates": []
+    },
+    {
+      "name": "claw_recover",
+      "duration": 0.4666666666666667,
+      "looping": false,
+      "events": [],
+      "supportedStates": []
+    },
+    {
+      "name": "door_claw",
+      "duration": 1.1,
+      "looping": false,
+      "events": [
+        {
+          "name": "contact",
+          "time": 0.6
+        }
+      ],
+      "supportedStates": []
+    },
+    {
+      "name": "front_block",
+      "duration": 0.3,
+      "looping": false,
+      "events": [],
+      "supportedStates": []
+    },
+    {
+      "name": "rear_hit",
+      "duration": 0.3,
+      "looping": false,
+      "events": [],
+      "supportedStates": []
+    },
+    {
+      "name": "angry_warn",
+      "duration": 0.6666666666666666,
+      "looping": false,
+      "events": [],
+      "supportedStates": []
+    },
+    {
+      "name": "duel",
+      "duration": 1.1,
+      "looping": false,
+      "events": [
+        {
+          "name": "contact",
+          "time": 0.6
+        }
+      ],
+      "supportedStates": []
+    },
+    {
+      "name": "stun",
+      "duration": 1.0,
+      "looping": true,
+      "events": [],
+      "supportedStates": []
+    },
+    {
+      "name": "stun_recover",
+      "duration": 0.4,
+      "looping": false,
+      "events": [],
+      "supportedStates": []
+    },
+    {
+      "name": "knockback",
+      "duration": 0.4666666666666667,
+      "looping": false,
+      "events": [],
+      "supportedStates": []
+    },
+    {
+      "name": "pickup_struggle",
+      "duration": 0.8,
+      "looping": true,
+      "events": [],
+      "supportedStates": []
+    },
+    {
+      "name": "airborne_tumble",
+      "duration": 0.8,
+      "looping": true,
+      "events": [],
+      "supportedStates": []
+    },
+    {
+      "name": "land",
+      "duration": 0.2,
+      "looping": false,
+      "events": [],
+      "supportedStates": []
+    },
+    {
+      "name": "land_recover",
+      "duration": 0.4,
+      "looping": false,
+      "events": [],
+      "supportedStates": []
+    },
+    {
+      "name": "revenge_run",
+      "duration": 0.5,
+      "looping": true,
+      "events": [],
+      "supportedStates": []
+    },
+    {
+      "name": "death",
+      "duration": 1.5,
+      "looping": false,
+      "events": [],
+      "supportedStates": []
+    }
+  ]
+}
