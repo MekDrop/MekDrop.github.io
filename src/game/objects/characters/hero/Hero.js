@@ -2186,7 +2186,9 @@ export class Hero {
    * @param {{x: number, y: number, z: number}} options.targetPosition
    * @param {number} options.targetRadius
    * @param {import("src/game/objects/characters/hero/tools/HeroTool.js").HeroTool} options.tool
-   * @param {boolean} options.heldItem
+   * @param {import("../../ground-cover/GroundCoverHeldItem.js").GroundCoverHeldItem} options.heldItem
+   * @param {() => import("../../ground-cover/GroundCoverHeldItem.js").GroundCoverHeldItem|null} options.nextHeldItem
+   * @param {() => import("playcanvas").Vec3} options.nextTargetPosition
    * @param {(impact: import("src/game/objects/ObjectTypes.js").HeroActionPayload) => void} options.onImpact
    * @param {() => void} options.onComplete
    */
@@ -2197,6 +2199,8 @@ export class Hero {
       targetRadius = 0,
       tool = null,
       heldItem = null,
+      nextHeldItem = null,
+      nextTargetPosition = null,
       onImpact,
       onComplete,
     },
@@ -2244,6 +2248,26 @@ export class Hero {
       positioningElapsed: 0,
       tool: collectionTool,
       heldItem,
+      nextHeldItem,
+      /**
+       * @param {import("src/game/objects/ObjectTypes.js").HeroActionPayload} action
+       */
+      retarget: nextTargetPosition ? (action) => {
+        const next = nextTargetPosition();
+        const x = next.x - this.#position.x;
+        const z = next.z - this.#position.z;
+        const distance = Math.hypot(x, z);
+        if (distance > 0.001) {
+          this.#facingYaw = Math.atan2(x, z) * 180 / Math.PI;
+        }
+        action.positioning = this.#collectionPositioning({
+          pickupAction,
+          targetPosition: next,
+          targetRadius,
+          targetDistance: distance,
+        });
+        action.positioningElapsed = 0;
+      } : null,
       heldItemAttachmentEntity: pickupAction.heldItemAttachment === "left"
         ? this.#leftHeldItemAttachmentEntity
         : this.#rightHeldItemAttachmentEntity,

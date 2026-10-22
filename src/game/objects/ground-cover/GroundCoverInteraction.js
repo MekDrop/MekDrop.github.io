@@ -83,17 +83,29 @@ export class GroundCoverInteraction {
     }
 
     const started = this.#hero.collectGroundCover(this.#collectible.category, {
-      targetPosition: this.#collectible.position,
+      targetPosition: this.#collectible.pickupPosition,
       targetRadius: this.#collectible.interactionRadius,
       tool: this.#tool,
       heldItem: this.#collectible.createHeldItem(),
       onImpact: this.#onImpact.bind(this),
+      nextHeldItem: this.#nextHeldItem.bind(this),
+      nextTargetPosition: this.#nextTargetPosition.bind(this),
       onComplete: this.#onComplete,
     });
     if (started) {
       this.#onChange?.();
     }
     return started;
+  }
+
+  #nextTargetPosition() {
+    return this.#collectible.pickupPosition;
+  }
+
+  #nextHeldItem() {
+    return this.#collectible.canInteract && !this.#hero.inventoryFull
+      ? this.#collectible.createHeldItem()
+      : null;
   }
 
   #onImpact() {

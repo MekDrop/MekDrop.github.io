@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { setImmediate } from "node:timers/promises";
 import { test } from "node:test";
-import { Asset } from "playcanvas";
+import { Asset, Entity } from "playcanvas";
 import { GameModelLibrary } from "../../../../src/game/models/GameModelLibrary.js";
 import { GameModelLoadError, GameModelLibraryDestroyedError } from "../../../../src/game/errors/assets/index.js";
 
@@ -104,11 +104,19 @@ test("progress counts unique completed models and identifies remaining work", as
   });
   const updates = [];
   const loading = library.load(["/a", "/b", "/a"], (url, completed, total) => {
-    updates.push({ url, completed, total });
+    updates.push({
+      url,
+      completed,
+      total,
+    });
   });
   assets.succeed("/b");
   await setImmediate();
-  assert.deepEqual(updates.at(-1), { url: "/a", completed: 1, total: 2 });
+  assert.deepEqual(updates.at(-1), {
+    url: "/a",
+    completed: 1,
+    total: 2,
+  });
   assets.succeed("/a");
   await loading;
   assert.equal(updates.at(-1).completed, 2);
@@ -152,4 +160,33 @@ test("destroy cancels queued work and disposes models that finish loading late",
   assert.equal(assets.bitmapsReleased, 4);
   assert.equal(assets.resourcesDestroyed, 4);
   await assert.rejects(library.load(["/new"]), GameModelLibraryDestroyedError);
+});
+
+test("instantiates only the selected authored part without changing other copies", async () => {
+  const assets = new ModelRegistry();
+  const library = new GameModelLibrary({
+    pc: { Asset },
+    app: { assets },
+  });
+  const loading = library.load(["/cluster.glb"]);
+  const asset = assets.pending.get("/cluster.glb");
+  assets.succeed("/cluster.glb");
+  asset.resource.instantiateRenderEntity = () => {
+    const root = new Entity("cluster");
+    for (const name of ["One cap", "One stalk", "Two cap", "Two stalk"]) {
+      const node = new Entity(name);
+      node.render = { meshInstances: [] };
+      root.addChild(node);
+    }
+
+    return root;
+  };
+  await loading;
+  const selected = library.instantiate("/cluster.glb", { nodePrefix: "Two " });
+  assert.deepEqual(selected.children.map((node) => node.name), ["Two cap", "Two stalk"]);
+  const whole = library.instantiate("/cluster.glb");
+  assert.equal(whole.children.length, 4);
+  selected.destroy();
+  whole.destroy();
+  library.destroy();
 });

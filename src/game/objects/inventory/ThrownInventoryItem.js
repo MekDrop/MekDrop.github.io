@@ -1,11 +1,10 @@
+import { inventoryMushroomPart } from "../ground-cover/MushroomParts.js";
 import { GRASS_SURFACE_LIFT } from "../../config/terrain.js";
 
 const THROW_SPEED = 1.45;
 const THROW_LIFT = 3.15;
 const FLOOR_OFFSET = 0.04;
 const DROP_FALL_HEIGHT = 0.85;
-const FLOOR_HALF_SIZE = 3;
-const FLOOR_HALF_HEIGHT = 0.025;
 const BODY_HALF_EXTENTS = Object.freeze({
   x: 0.12,
   y: 0.1,
@@ -38,11 +37,6 @@ export class ThrownInventoryItem {
     * @type {import("playcanvas").Entity|null}
    */
   #body;
-  /**
-   *
-    * @type {import("playcanvas").Entity|null}
-   */
-  #floor;
   /**
    *
     * @type {number}
@@ -123,7 +117,7 @@ export class ThrownInventoryItem {
     const body = new pc.Entity(`Thrown inventory item body ${item.variant}`);
     body.setLocalPosition(position.x, bodyY, position.z);
     body.setLocalEulerAngles(-18, 24, 12);
-    const model = modelLibrary.instantiate(item.modelUrl);
+    const model = modelLibrary.instantiate(item.modelUrl, { nodePrefix: inventoryMushroomPart(item) });
     this.#cloneMaterials(model);
     body.addChild(model);
     body.addComponent("collision", {
@@ -144,7 +138,7 @@ export class ThrownInventoryItem {
       linearDamping: LINEAR_DAMPING,
       angularDamping: ANGULAR_DAMPING,
       group: pc.BODYGROUP_USER_3,
-      mask: pc.BODYGROUP_USER_4,
+      mask: pc.BODYGROUP_STATIC,
     });
     body.rigidbody.linearVelocity = dropped
       ? new pc.Vec3(0, 0, 0)
@@ -163,31 +157,8 @@ export class ThrownInventoryItem {
     this.#body = body;
     this.#entity.addChild(body);
 
-    const floor = new pc.Entity(`Thrown inventory item floor ${item.variant}`);
-    floor.setLocalPosition(
-      position.x,
-      floorSurfaceY + FLOOR_OFFSET - FLOOR_HALF_HEIGHT,
-      position.z,
-    );
-    floor.addComponent("collision", {
-      type: "box",
-      halfExtents: new pc.Vec3(
-        FLOOR_HALF_SIZE,
-        FLOOR_HALF_HEIGHT,
-        FLOOR_HALF_SIZE,
-      ),
-    });
-    floor.addComponent("rigidbody", {
-      type: pc.BODYTYPE_STATIC,
-      friction: 0.86,
-      restitution: 0.28,
-      group: pc.BODYGROUP_USER_4,
-      mask: pc.BODYGROUP_USER_3,
-    });
-    this.#floor = floor;
     body.rigidbody.on("collisionstart", this.#handleCollisionStart);
     body.rigidbody.on("collisionend", this.#handleCollisionEnd);
-    this.#entity.addChild(floor);
   }
 
   get entity() {
@@ -262,6 +233,9 @@ export class ThrownInventoryItem {
    * @param {number} deltaTime
    */
   advance(deltaTime) {
+    if (this.#body?.getPosition().y < -32) {
+      this.beginFade();
+    }
     if (this.#expired || !this.#fading) {
       return;
     }
@@ -274,7 +248,6 @@ export class ThrownInventoryItem {
     this.#entity?.destroy();
     this.#entity = null;
     this.#body = null;
-    this.#floor = null;
     for (const material of this.#materials) {
       material.destroy();
     }
@@ -310,7 +283,7 @@ export class ThrownInventoryItem {
     * @type {(result: {other: import("playcanvas").Entity}) => void}
    */
   #handleCollisionStart = (result) => {
-    if (result.other === this.#floor) {
+    if (result.other.tags?.has("terrain-physics-surface")) {
       this.#touchingGrass = true;
     }
   };
@@ -321,7 +294,7 @@ export class ThrownInventoryItem {
     * @type {(other: import("playcanvas").Entity) => void}
    */
   #handleCollisionEnd = (other) => {
-    if (other === this.#floor) {
+    if (other.tags?.has("terrain-physics-surface")) {
       this.#touchingGrass = false;
     }
   };

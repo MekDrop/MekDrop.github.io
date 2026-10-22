@@ -91,6 +91,7 @@ export class HeroCollectingActionState extends HeroRuntimeActionState {
     if (!action.impacted && action.elapsed >= action.impactTime) {
       action.impacted = true;
       const collected = action.onImpact?.() === true;
+      action.collected = collected;
       if (collected && action.heldItem) {
         feedback.mountHeldItem(action.heldItem, action.heldItemAttachmentEntity);
       }
@@ -108,6 +109,21 @@ export class HeroCollectingActionState extends HeroRuntimeActionState {
       action.heldItem = null;
     }
     if (action.elapsed < action.duration) {
+      return;
+    }
+    const nextHeldItem = action.collected ? action.nextHeldItem?.() : null;
+    if (nextHeldItem) {
+      action.heldItem?.destroy();
+      action.heldItem = nextHeldItem;
+      action.elapsed = 0;
+      action.impacted = false;
+      action.collected = false;
+      action.retarget?.(action);
+      action.phase = action.positioning
+        ? HERO_COLLECTION_PHASE.APPROACHING
+        : HERO_COLLECTION_PHASE.REACHING;
+      feedback.begin(action);
+
       return;
     }
     action.completed = true;

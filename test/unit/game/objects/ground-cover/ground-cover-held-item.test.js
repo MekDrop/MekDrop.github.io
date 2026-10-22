@@ -67,3 +67,87 @@ it("aligns the held mushroom with a model facing independently of the hero root"
   item.destroy();
   hero.destroy();
 });
+
+it("holds the selected mushroom near the bottom of its stalk throughout the lift", () => {
+  for (const nodePrefix of ["", "Small golden mushroom", "Forest mushroom three"]) {
+    const hero = new pc.Entity("hero");
+    const hand = new pc.Entity("hand");
+    hero.addChild(hand);
+    hand.setLocalPosition(0.1, 0.35, 0.5);
+    const stalkName = `${nodePrefix || "Red mushroom"} stalk`;
+    const modelLibrary = {
+      instantiate: () => {
+        const model = new pc.Entity("mushroom visual");
+        const stalk = new pc.Entity(stalkName);
+        stalk.setLocalPosition(0.13, 0.03825, 0.1);
+        model.addChild(stalk);
+
+        return model;
+      },
+    };
+    const item = new GroundCoverHeldItem({
+      pc,
+      modelLibrary,
+      modelUrl: "mushroom.glb",
+      name: "stalk grip",
+      nodePrefix,
+      scale: 0.82,
+      gripPoint: {
+        x: -0.3,
+        y: 0.46,
+        z: 0,
+      },
+      pickupTilt: 0,
+      keepCapUpright: true,
+    });
+    item.mount(hero, hand);
+    const stalk = hero.findByName(stalkName);
+    for (const yaw of [0, 45, 90, 180]) {
+      hand.setLocalEulerAngles(0, yaw, 90);
+      item.follow();
+      const lowerGrip = stalk.getWorldTransform().transformPoint(new pc.Vec3(0, -0.03825 * 0.7, 0));
+      assert.ok(lowerGrip.distance(hand.getPosition()) < 0.00001,
+        `${stalkName} slipped away from the fingers at ${yaw} degrees`);
+    }
+    item.destroy();
+    hero.destroy();
+  }
+});
+
+it("follows wrist pitch and roll through stowing without changing the stalk grip", () => {
+  const hero = new pc.Entity("hero");
+  hero.setLocalEulerAngles(0, 43, 0);
+  const hand = new pc.Entity("hand");
+  hero.addChild(hand);
+  hand.setLocalPosition(-0.2, 0.4, 0.5);
+  hand.setLocalEulerAngles(0, 0, 90);
+  const item = new GroundCoverHeldItem({
+    pc,
+    modelLibrary: { instantiate: () => new pc.Entity("visual") },
+    modelUrl: "mushroom.glb",
+    name: "wrist grip",
+    gripPoint: {
+      x: 0,
+      y: 0.02,
+      z: 0,
+    },
+    pickupTilt: -68,
+    keepCapUpright: true,
+    followWrist: true,
+  });
+  item.mount(hero, hand);
+  const root = hero.findByName("Held wrist grip");
+  const relative = hand.getRotation().clone().invert().mul(root.getRotation());
+  for (const pitch of [-95, -90, -85, 0, 85, 90, 95]) {
+    hand.setLocalEulerAngles(pitch, pitch * 0.6, 90 + pitch);
+    hand.setLocalPosition(-0.2, 0.4 + pitch * 0.001, 0.5);
+    item.follow();
+    const current = hand.getRotation().clone().invert().mul(root.getRotation());
+    const dot = current.x * relative.x + current.y * relative.y + current.z * relative.z + current.w * relative.w;
+    assert.ok(Math.abs(dot) > 0.99999, `wrist alignment changed at ${pitch}`);
+    const grip = root.getWorldTransform().transformPoint(new pc.Vec3(0, 0.02, 0));
+    assert.ok(grip.distance(hand.getPosition()) < 0.00001);
+  }
+  item.destroy();
+  hero.destroy();
+});

@@ -1,3 +1,4 @@
+import { mushroomParts } from "./MushroomParts.js";
 import { MushroomDebris } from "./MushroomDebris.js";
 
 const WIND_TILT_DEGREES = 18;
@@ -233,7 +234,15 @@ export class GroundCoverItem {
     this.#entity.setLocalPosition(x, y, z);
 
 
-    this.#model = modelLibrary.instantiateMerged(modelUrl);
+    const parts = mushroomParts(variant);
+    if (parts.length > 1) {
+      this.#model = new pc.Entity("Mushroom cluster");
+      for (const nodePrefix of parts) {
+        this.#model.addChild(modelLibrary.instantiateMerged(modelUrl, { nodePrefix }));
+      }
+    } else {
+      this.#model = modelLibrary.instantiateMerged(modelUrl);
+    }
     this.#model.setLocalEulerAngles(0, rotation, 0);
     const modelScale = normalizedScale(scale);
     this.#model.setLocalScale(modelScale.x, modelScale.y, modelScale.z);
@@ -304,6 +313,19 @@ export class GroundCoverItem {
     this.#trampleTiltZ = (-directionX / directionLength) * FLOWER_TRAMPLE_ANGLE;
     this.#trampleAmount = 1;
     this.#trampleHold = FLOWER_TRAMPLE_HOLD;
+  }
+
+  /**
+   * Hide only the mushroom removed at this animation's cut.
+   * @param {number} index
+   */
+  collectPart(index) {
+    if (mushroomParts(this.#variant).length === 1) {
+      this.collect();
+
+      return;
+    }
+    this.#model.children[index].enabled = false;
   }
 
   collect() {

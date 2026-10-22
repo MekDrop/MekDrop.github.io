@@ -1,3 +1,5 @@
+import { mushroomParts } from "./MushroomParts.js";
+
 export class GroundCoverCollectible {
   /**
    *
@@ -66,6 +68,17 @@ export class GroundCoverCollectible {
   #collected = false;
 
   /**
+   * @type {number}
+   */
+  #partIndex = 0;
+
+  /**
+   * @type {(index: number) => import("playcanvas").Vec3}
+   */
+  #pickupPosition;
+
+
+  /**
    *
    * @param {{id: string, variant: string, category: number, labelKey: string, icon: string, modelUrl: string, interactionRadius: number, position: {x: number, y: number, z: number}, onCollect: (item: GroundCoverCollectible) => void, onHide: () => void, onDestroy: () => void, createHeldItem: (options: {parent: import("playcanvas").Entity}) => import("./GroundCoverHeldItem.js").GroundCoverHeldItem}} options
    * @param {string} options.id
@@ -77,6 +90,7 @@ export class GroundCoverCollectible {
    * @param {number} options.interactionRadius
    * @param {{x: number, y: number, z: number}} options.position
    * @param {(item: GroundCoverCollectible) => void} options.onCollect
+   * @param {(index: number) => import("playcanvas").Vec3} options.pickupPosition
    * @param {() => void} options.onHide
    * @param {() => void} options.onDestroy
    * @param {(options: {parent: import("playcanvas").Entity}) => import("./GroundCoverHeldItem.js").GroundCoverHeldItem} options.createHeldItem
@@ -94,6 +108,7 @@ export class GroundCoverCollectible {
     onHide,
     onDestroy = onHide,
     createHeldItem = () => null,
+    pickupPosition = () => position,
   }) {
     this.#id = id;
     this.#variant = variant;
@@ -107,6 +122,7 @@ export class GroundCoverCollectible {
     this.#onHide = onHide;
     this.#onDestroy = onDestroy;
     this.#createHeldItem = createHeldItem;
+    this.#pickupPosition = pickupPosition;
   }
 
   /**
@@ -119,6 +135,14 @@ export class GroundCoverCollectible {
 
   get position() {
     return this.#position;
+  }
+
+  /**
+   * Current individual stalk position, including map rotation and scale.
+   * @returns {import("playcanvas").Vec3}
+   */
+  get pickupPosition() {
+    return this.#pickupPosition(this.#partIndex);
   }
 
   get category() {
@@ -138,7 +162,7 @@ export class GroundCoverCollectible {
   }
 
   createHeldItem() {
-    return this.#createHeldItem();
+    return this.#createHeldItem(this.#partIndex);
   }
 
   describe() {
@@ -157,7 +181,7 @@ export class GroundCoverCollectible {
     }
 
     const accepted = this.#onCollect({
-      id: this.#id,
+      id: `${this.#id}:${this.#partIndex}`,
       variant: this.#variant,
       category: this.#category,
       labelKey: this.#labelKey,
@@ -168,8 +192,9 @@ export class GroundCoverCollectible {
       return false;
     }
 
-    this.#collected = true;
-    this.#onHide();
+    const index = this.#partIndex++;
+    this.#collected = this.#partIndex >= mushroomParts(this.#variant).length;
+    this.#onHide(index, this.#collected);
 
     return true;
   }

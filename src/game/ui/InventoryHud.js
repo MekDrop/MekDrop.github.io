@@ -1,3 +1,4 @@
+import { inventoryMushroomPart } from "../objects/ground-cover/MushroomParts.js";
 import { Vec2 } from "playcanvas";
 import { InventoryItemProjector } from "./InventoryItemProjector.js";
 import { gameUiTheme } from "./GameUiTheme.js";
@@ -33,7 +34,6 @@ const SLOT_ROWS = 3;
 const SLOT_SIZE = 90;
 const CLOSE_BUTTON_SIZE = 32;
 const ITEM_PROJECTION_SIZE = 64;
-const DROP_EDGE_MARGIN = 24;
 const ITEM_LABEL_MAXIMUM_WIDTH = SLOT_SIZE - 12;
 const TOOLTIP_WIDTH = 164;
 const TOOLTIP_HEIGHT = 25;
@@ -1224,7 +1224,7 @@ export class InventoryHud {
     for (const [slot, projection] of this.#itemProjectionEntities.entries()) {
       const item = this.#itemAtSlot(slot);
       const texture = item
-        ? this.#itemProjector.textureFor(item.modelUrl)
+        ? this.#itemProjector.textureFor(item.modelUrl, inventoryMushroomPart(item))
         : null;
       projection.element.texture = texture;
       projection.enabled =
@@ -1269,12 +1269,6 @@ export class InventoryHud {
       targetSlot !== sourceSlot &&
       !this.#itemAtSlot(targetSlot);
     const droppedOutside = !this.#dialogContains(clientX, clientY);
-    const dropPoint = droppedOutside
-      ? this.#dialogBottomDropPoint(clientX)
-      : {
-        clientX,
-        clientY,
-      };
     const visual = this.#dragVisual;
 
     this.#dragVisual = null;
@@ -1288,8 +1282,8 @@ export class InventoryHud {
       droppedOutside &&
       this.#onDropItem?.(
         sourceSlot,
-        dropPoint.clientX,
-        dropPoint.clientY,
+        clientX,
+        clientY,
         clientX,
         clientY,
       )
@@ -1324,7 +1318,7 @@ export class InventoryHud {
    * @param {string} name
    */
   #createItemVisual(item, name) {
-    let texture = this.#itemProjector.textureFor(item.modelUrl);
+    let texture = this.#itemProjector.textureFor(item.modelUrl, inventoryMushroomPart(item));
     let ownedTexture = null;
     if (!texture) {
       const canvas = document.createElement("canvas");
@@ -1402,22 +1396,6 @@ export class InventoryHud {
     const { x, y } = this.#clientToPanel(clientX, clientY);
 
     return x >= 0 && x <= PANEL_WIDTH && y >= 0 && y <= PANEL_HEIGHT;
-  }
-
-  /**
-   *
-   * @param {number} clientX
-   */
-  #dialogBottomDropPoint(clientX) {
-    const { clientY } = this.#panelToClient(
-      PANEL_WIDTH / 2,
-      PANEL_HEIGHT + DROP_EDGE_MARGIN,
-    );
-
-    return {
-      clientX,
-      clientY,
-    };
   }
 
   /**

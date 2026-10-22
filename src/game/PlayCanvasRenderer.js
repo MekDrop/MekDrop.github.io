@@ -2770,10 +2770,9 @@ export class PlayCanvasRenderer {
       return null;
     }
     const hit = this.#inventoryDropRaycast(heightRay);
-    const position = this.#inventoryDropScreenPosition(
-      hit?.point?.y ?? hero.position.y,
-      clientX,
-      clientY,
+    const position = hit?.point?.clone() ?? this.#inventoryDropPlanePosition(
+      ray,
+      hero.position.y,
     );
     if (!position) {
       return null;
@@ -2810,33 +2809,6 @@ export class PlayCanvasRenderer {
       }) ?? [];
 
     return hits.find(PlayCanvasRenderer.#findHit) ?? null;
-  }
-
-  /**
-   *
-   * @param {number} height
-   * @param {number} clientX
-   * @param {number} clientY
-   */
-  #inventoryDropScreenPosition(height, clientX, clientY) {
-    if (!this.#camera?.camera || !this.canvas) {
-      return null;
-    }
-    const rect = this.canvas.getBoundingClientRect();
-    const center = this.#camera.camera.worldToScreen(
-      new this.#pc.Vec3(this.#camera.panX, height, this.#camera.panZ),
-    );
-    const correction = this.#screenDeltaToGround(
-      clientX - rect.left - center.x,
-      clientY - rect.top - center.y,
-      this.#camera.zoom,
-    );
-
-    return new this.#pc.Vec3(
-      this.#camera.panX + correction.x,
-      height,
-      this.#camera.panZ + correction.z,
-    );
   }
 
   /**

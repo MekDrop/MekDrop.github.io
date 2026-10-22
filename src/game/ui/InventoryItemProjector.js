@@ -39,15 +39,17 @@ export class InventoryItemProjector {
   /**
    *
    * @param {string} modelUrl
+   * @param {string} nodePrefix
    */
-  textureFor(modelUrl) {
+  textureFor(modelUrl, nodePrefix = "") {
     if (!modelUrl) {
       return null;
     }
-    let projection = this.#projections.get(modelUrl);
+    const key = `${modelUrl}:${nodePrefix}`;
+    let projection = this.#projections.get(key);
     if (!projection) {
-      projection = this.#createProjection(modelUrl);
-      this.#projections.set(modelUrl, projection);
+      projection = this.#createProjection(modelUrl, nodePrefix);
+      this.#projections.set(key, projection);
     }
     return projection.texture;
   }
@@ -73,8 +75,9 @@ export class InventoryItemProjector {
   /**
    *
    * @param {string} modelUrl
+   * @param {string} nodePrefix
    */
-  #createProjection(modelUrl) {
+  #createProjection(modelUrl, nodePrefix) {
     const pc = this.#pc;
     const layer = new pc.Layer({ name: "Inventory item projection" });
     this.#app.scene.layers.push(layer);
@@ -92,11 +95,12 @@ export class InventoryItemProjector {
     });
     const renderTarget = new pc.RenderTarget({
       colorBuffer: texture,
+      flipY: true,
       depth: true,
       samples: 4,
     });
     const root = new pc.Entity("Inventory projection scene");
-    const model = this.#modelLibrary.instantiate(modelUrl);
+    const model = this.#modelLibrary.instantiate(modelUrl, { nodePrefix });
     model.name = "Projected inventory model";
     model.setLocalEulerAngles(0, 20, 0);
     const spriteMaterials = new Map();

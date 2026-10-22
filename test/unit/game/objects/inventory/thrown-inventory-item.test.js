@@ -95,6 +95,7 @@ const pc = {
   BLEND_NORMAL: "normal",
   BODYGROUP_USER_3: 512,
   BODYGROUP_USER_4: 1024,
+  BODYGROUP_STATIC: 2,
   BODYTYPE_DYNAMIC: "dynamic",
   BODYTYPE_STATIC: "static",
   Entity: FakeEntity,
@@ -165,7 +166,7 @@ function createDroppedItem(direction = {
 describe("thrown inventory item", () => {
   it("delegates ballistic movement, bouncing, damping, and settling to Ammo", () => {
     const { thrownItem, model } = createThrownItem();
-    const [body, floor] = thrownItem.entity.children;
+    const [body] = thrownItem.entity.children;
 
     assert.equal(body.children[0], model);
     assert.deepEqual(body.position, new FakeVec3(2, 3.86, 5));
@@ -184,7 +185,7 @@ describe("thrown inventory item", () => {
       linearDamping: 0.08,
       angularDamping: 0.48,
       group: 512,
-      mask: 1024,
+      mask: 2,
     });
     assert.deepEqual(
       body.rigidbody.linearVelocity,
@@ -200,18 +201,8 @@ describe("thrown inventory item", () => {
       Math.abs(body.rigidbody.angularVelocity.z + 4.71238898038469) < 1e-12,
     );
 
-    assert.deepEqual(floor.position, new FakeVec3(2, 3.015, 5));
-    assert.deepEqual(floor.components.get("collision"), {
-      type: "box",
-      halfExtents: new FakeVec3(3, 0.025, 3),
-    });
-    assert.deepEqual(floor.components.get("rigidbody"), {
-      type: "static",
-      friction: 0.86,
-      restitution: 0.28,
-      group: 1024,
-      mask: 512,
-    });
+    assert.equal(thrownItem.entity.children.length, 1, "no invisible floor may bridge a cliff");
+
   });
 
   it("keeps fading independent from the physics simulation", () => {
@@ -246,7 +237,7 @@ describe("thrown inventory item", () => {
 
     body.position = new FakeVec3(2, 3.04, 5);
     body.rigidbody.fire("collisionstart", {
-      other: thrownItem.entity.children[1],
+      other: { tags: { has: () => true } },
     });
     const [contact] = thrownItem.grassImpressionContacts;
     assert.equal(contact.x, 2);
@@ -261,7 +252,7 @@ describe("thrown inventory item", () => {
     assert.deepEqual(thrownItem.grassImpressionContacts, []);
 
     body.position = new FakeVec3(2.2, 3.04, 5.1);
-    body.rigidbody.fire("collisionstart", { other: thrownItem.entity.children[1] });
+    body.rigidbody.fire("collisionstart", { other: { tags: { has: () => true } } });
     const [contact] = thrownItem.grassImpressionContacts;
     assert.equal(contact.id, thrownItem);
     assert.equal(contact.x, 2.2);
@@ -273,7 +264,18 @@ describe("thrown inventory item", () => {
     assert.equal(contact.halfLength, 0.16);
     assert.equal(contact.strength, 1);
 
-    body.rigidbody.fire("collisionend", thrownItem.entity.children[1]);
+    body.rigidbody.fire("collisionend", { tags: { has: () => true } });
     assert.deepEqual(thrownItem.grassImpressionContacts, []);
   });
+});
+
+it("lets an item fall below the world before cleaning it up", () => {
+  const { thrownItem } = createDroppedItem();
+  const [body] = thrownItem.entity.children;
+  assert.equal(thrownItem.entity.children.length, 1);
+  body.position.y = -33;
+  thrownItem.advance(0.1);
+  thrownItem.advance(0.1);
+  thrownItem.advance(0.1);
+  assert.equal(thrownItem.expired, true);
 });

@@ -115,8 +115,8 @@ game:
       blue_flower_patch: Mėlynos gėlės
       clover_patch: Dobilas
       red_mushroom: Raudonas grybas
-      golden_mushroom_pair: Auksiniai grybai
-      forest_mushroom_cluster: Miško grybai
+      golden_mushroom_pair: Auksinis grybas
+      forest_mushroom_cluster: Miško grybas
 language:
   en-US: Anglų (JAV)
   lt: Lietuvių

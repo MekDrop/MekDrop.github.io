@@ -101,8 +101,10 @@ export class GameModelLibrary {
   /**
    *
    * @param {string} url
+   * @param {{nodePrefix?: string}} options
+   * @param {string} options.nodePrefix
    */
-  instantiate(url) {
+  instantiate(url, { nodePrefix = "" } = {}) {
     const asset = this.#assets.get(url);
     if (!asset?.resource) {
       throw new GameModelUnavailableError({ url });
@@ -112,6 +114,17 @@ export class GameModelLibrary {
       castShadows: true,
       receiveShadows: true,
     });
+    if (nodePrefix) {
+      const pending = [entity];
+      while (pending.length) {
+        const node = pending.pop();
+        if (node.render && !node.name.startsWith(nodePrefix)) {
+          node.destroy();
+          continue;
+        }
+        pending.push(...node.children);
+      }
+    }
     this.#configureRenderHierarchy(entity);
 
     return entity;
@@ -121,6 +134,7 @@ export class GameModelLibrary {
    *
    * @param {string} url
    * @param {{material: pc.Material, castShadows: boolean, receiveShadows: boolean}} options
+   * @param {string} options.nodePrefix Only merge authored nodes with this name prefix.
    * @param {pc.Material} options.material
    * @param {boolean} options.linearVertexColors Decode imported material colour before baking it into linear vertex colours.
    * @param {boolean} options.castShadows
@@ -130,12 +144,13 @@ export class GameModelLibrary {
     url,
     {
       material = null,
+      nodePrefix = "",
       linearVertexColors = false,
       castShadows = true,
       receiveShadows = castShadows,
     } = {},
   ) {
-    const mergedModel = this.#mergedModelFor(url, linearVertexColors);
+    const mergedModel = this.#mergedModelFor(url, linearVertexColors, nodePrefix);
 
     const entity = new this.#pc.Entity("Merged game model");
     const meshInstance = new this.#pc.MeshInstance(
@@ -321,17 +336,18 @@ export class GameModelLibrary {
    *
    * @param {string} url
    * @param {boolean} linearVertexColors
+   * @param {string} nodePrefix
    */
-  #mergedModelFor(url, linearVertexColors = false) {
+  #mergedModelFor(url, linearVertexColors = false, nodePrefix = "") {
     const asset = this.#assets.get(url);
     if (!asset?.resource) {
       throw new GameModelUnavailableError({ url });
     }
 
-    const cacheKey = `${url}:${linearVertexColors}`;
+    const cacheKey = `${url}:${linearVertexColors}:${nodePrefix}`;
     let mergedModel = this.#mergedModels.get(cacheKey);
     if (!mergedModel) {
-      mergedModel = this.#mergeRenderHierarchy(asset.resource, linearVertexColors);
+      mergedModel = this.#mergeRenderHierarchy(asset.resource, linearVertexColors, nodePrefix);
       this.#mergedModels.set(cacheKey, mergedModel);
     }
     return mergedModel;
@@ -357,8 +373,9 @@ export class GameModelLibrary {
    *
    * @param {pc.Asset|pc.Texture|pc.Material} resource
    * @param {boolean} linearVertexColors
+   * @param {string} nodePrefix
    */
-  #mergeRenderHierarchy(resource, linearVertexColors = false) {
+  #mergeRenderHierarchy(resource, linearVertexColors = false, nodePrefix = "") {
     const pc = this.#pc;
     const sourceRoot = resource.instantiateRenderEntity();
     // A single-node glTF uses its authored node as the entity root. Its
@@ -378,6 +395,9 @@ export class GameModelLibrary {
     while (pending.length) {
       const entity = pending.pop();
       for (const meshInstance of entity.render?.meshInstances ?? []) {
+        if (nodePrefix && !meshInstance.node.name.startsWith(nodePrefix)) {
+          continue;
+        }
         const sourceMesh = meshInstance.mesh;
         const sourcePositions = [];
         const sourceNormals = [];

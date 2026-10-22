@@ -19,6 +19,7 @@ import { GroundCoverInteraction } from "./GroundCoverInteraction.js";
 import { GroundCoverItem } from "./GroundCoverItem.js";
 import { FlowerPhysics } from "./FlowerPhysics.js";
 import { FlowerPaper } from "./FlowerPaper.js";
+import { mushroomParts } from "./MushroomParts.js";
 import { MushroomPhysics } from "./MushroomPhysics.js";
 
 export const FLOWER_CATEGORY = "flower";
@@ -668,9 +669,15 @@ export class GroundCover {
           definition,
           modelLibrary,
           position,
-          onHide: () => {
-            item.collect();
-            this.#mushroomPhysics.hide(mushroom);
+          /**
+           * @param {number} index
+           * @param {boolean} complete
+           */
+          onHide: (index, complete) => {
+            item.collectPart(index);
+            if (complete) {
+              this.#mushroomPhysics.hide(mushroom);
+            }
           },
           /**
            *
@@ -790,6 +797,22 @@ export class GroundCover {
     onHide,
     onDestroy = onHide,
   }) {
+    const offsets = [];
+    const rotation = new this.#pc.Quat().setFromEulerAngles(0, decoration.rotation, 0);
+    for (const prefix of mushroomParts(decoration.variant)) {
+      const offset = new this.#pc.Vec3();
+      if (prefix) {
+        const source = modelLibrary.instantiate(definition.modelUrl);
+        const stalk = source.findByName(`${prefix} stalk`);
+        offset.copy(stalk.getLocalPosition());
+        offset.y = 0;
+        offset.mulScalar(decoration.scale * definition.scale);
+        rotation.transformVector(offset, offset);
+        source.destroy();
+      }
+      offsets.push(offset);
+    }
+
     return new GroundCoverCollectible({
       id: `${decoration.row}:${decoration.col}:${decorationIndex}`,
       variant: decoration.variant,
@@ -799,9 +822,20 @@ export class GroundCover {
       modelUrl: definition.modelUrl,
       interactionRadius: definition.interactionRadius * decoration.scale,
       position,
+      /**
+       * @param {number} index
+       */
+      pickupPosition: (index) => new this.#pc.Vec3(position.x, position.y, position.z).add(offsets[index]),
       onCollect: this.#onCollect,
-      onHide: () => {
-        onHide();
+      /**
+       * @param {number} index
+       * @param {boolean} complete
+       */
+      onHide: (index, complete) => {
+        onHide(index, complete);
+        if (!complete) {
+          return;
+        }
         this.#onCollectibleRemoved({
           col: decoration.col,
           row: decoration.row,
@@ -820,12 +854,16 @@ export class GroundCover {
           category: definition.category,
         });
       },
-      createHeldItem: () =>
+      /**
+       * @param {number} index
+       */
+      createHeldItem: (index) =>
         new GroundCoverHeldItem({
           pc: this.#pc,
           modelLibrary,
           modelUrl: definition.modelUrl,
           name: decoration.variant,
+          nodePrefix: mushroomParts(decoration.variant)[index],
           scale:
             definition.category === FLOWER_CATEGORY
               ? {
@@ -841,8 +879,9 @@ export class GroundCover {
           castShadows: definition.category !== FLOWER_CATEGORY,
           receiveShadows: definition.category !== FLOWER_CATEGORY,
           gripPoint: definition.gripPoint,
-          pickupTilt: definition.category === FLOWER_CATEGORY ? -68 : 0,
+          pickupTilt: -68,
           keepCapUpright: definition.category === MUSHROOM_CATEGORY,
+          followWrist: definition.category === MUSHROOM_CATEGORY,
         }),
     });
   }

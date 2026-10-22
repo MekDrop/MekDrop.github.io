@@ -51,6 +51,11 @@ export class GroundCoverHeldItem {
    * @type {number}
    */
   #pickupTilt;
+
+  /**
+   * @type {string}
+   */
+  #nodePrefix;
   /**
    *
    * @type {number}
@@ -66,6 +71,16 @@ export class GroundCoverHeldItem {
    * @type {boolean}
    */
   #keepCapUpright;
+
+  /**
+   * @type {boolean}
+   */
+  #followWrist;
+
+  /**
+   * @type {import("playcanvas").Quat|null}
+   */
+  #wristOffset = null;
   /**
    *
    * @type {import("playcanvas").Entity}
@@ -111,6 +126,7 @@ export class GroundCoverHeldItem {
    * @param {number} options.pickupTilt
    * @param {number} options.pickupPitch
    * @param {number} options.pickupYaw
+   * @param {boolean} options.followWrist Follow the glove rotation while preserving the initial stalk grip.
    * @param {boolean} options.keepCapUpright
    */
   constructor({
@@ -127,10 +143,12 @@ export class GroundCoverHeldItem {
       y: 0,
       z: 0,
     },
+    nodePrefix = "",
     pickupTilt = -68,
     pickupPitch = 0,
     pickupYaw = 0,
     keepCapUpright = false,
+    followWrist = false,
   }) {
     this.#pc = pc;
     this.#modelLibrary = modelLibrary;
@@ -152,10 +170,12 @@ export class GroundCoverHeldItem {
     this.#castShadows = castShadows;
     this.#receiveShadows = receiveShadows;
     this.#gripPoint = { ...gripPoint };
+    this.#nodePrefix = nodePrefix;
     this.#pickupTilt = pickupTilt;
     this.#pickupPitch = pickupPitch;
     this.#pickupYaw = pickupYaw;
     this.#keepCapUpright = keepCapUpright;
+    this.#followWrist = followWrist;
   }
 
   /**
@@ -192,6 +212,12 @@ export class GroundCoverHeldItem {
     this.#visualPivot.setLocalRotation(
       outwardRotation.mul(pitchRotation).mul(tiltRotation),
     );
+    if (this.#followWrist) {
+      const initialRotation = new this.#pc.Quat().setFromEulerAngles(
+        0, this.#gripYaw() - this.#initialGripYaw, 0,
+      );
+      this.#wristOffset = this.#wristRotation().invert().mul(initialRotation);
+    }
     this.follow();
   }
 
@@ -204,11 +230,23 @@ export class GroundCoverHeldItem {
       .clone()
       .invert()
       .transformPoint(this.#followTarget.getPosition());
-    if (this.#keepCapUpright) {
+    if (this.#wristOffset) {
+      this.#entity.setLocalRotation(this.#wristRotation().mul(this.#wristOffset));
+    } else if (this.#keepCapUpright) {
       this.#entity.setLocalEulerAngles(0, this.#gripYaw() - this.#initialGripYaw, 0);
     }
     const offset = this.#entity.getLocalRotation().transformVector(this.#scaledGripPoint());
     this.#entity.setLocalPosition(gripPosition.sub(offset));
+  }
+
+  /**
+   * Keep the held stalk rigidly aligned with the glove through the stow turn.
+   * A ground-plane yaw loses wrist pitch and can flip at vertical hand poses.
+   * @returns {import("playcanvas").Quat}
+   */
+  #wristRotation() {
+    return this.#entity.parent.getRotation().clone().invert()
+      .mul(this.#followTarget.getRotation());
   }
 
   /**
@@ -227,6 +265,7 @@ export class GroundCoverHeldItem {
     this.#entity = null;
     this.#visualPivot = null;
     this.#followTarget = null;
+    this.#wristOffset = null;
     if (this.#ownsMaterial) {
       this.#material?.destroy();
     }
@@ -239,6 +278,23 @@ export class GroundCoverHeldItem {
   }
 
   #createVisual() {
+    // Grip near the stalk base: authored stalks run from ground level to
+    // twice their center height. Hold at 15% of that height.
+    if (this.#keepCapUpright) {
+      const source = this.#modelLibrary.instantiate(this.#modelUrl);
+      const stalk = this.#nodePrefix
+        ? source.findByName(`${this.#nodePrefix} stalk`)
+        : source.find(GroundCoverHeldItem.#filterNode)[0];
+      if (stalk) {
+        const center = stalk.getLocalPosition();
+        this.#gripPoint = {
+          x: center.x,
+          y: center.y * 0.3,
+          z: center.z,
+        };
+      }
+      source.destroy();
+    }
     const gripPoint = this.#scaledGripPoint();
     this.#entity = new this.#pc.Entity(`Held ${this.#name}`);
     this.#visualPivot = new this.#pc.Entity(`Held ${this.#name} grip pivot`);
@@ -251,6 +307,17 @@ export class GroundCoverHeldItem {
         receiveShadows: this.#receiveShadows,
       });
     if (this.#keepCapUpright) {
+      if (this.#nodePrefix) {
+        const pending = [visual];
+        while (pending.length) {
+          const node = pending.pop();
+          if (node.render && !node.name.startsWith(this.#nodePrefix)) {
+            node.destroy();
+            continue;
+          }
+          pending.push(...node.children);
+        }
+      }
       this.#matchMergedAppearance(visual);
       this.#orientMushroomCaps(visual);
     }

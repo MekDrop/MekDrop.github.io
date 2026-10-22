@@ -115,8 +115,8 @@ game:
       blue_flower_patch: Blue flowers
       clover_patch: Clover
       red_mushroom: Red mushroom
-      golden_mushroom_pair: Golden mushrooms
-      forest_mushroom_cluster: Forest mushrooms
+      golden_mushroom_pair: Golden mushroom
+      forest_mushroom_cluster: Forest mushroom
 language:
   en-US: English (USA)
   lt: Lithuanian
