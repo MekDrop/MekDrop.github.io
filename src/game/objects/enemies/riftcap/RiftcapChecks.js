@@ -27,7 +27,9 @@ export class RiftcapChecks {
          */
           (resolve) => owner.app.once("update", resolve));
         elapsed += dt;
-        const joints = ["Root", "Hood", "Spine", "UpperArm.L", "Forearm.L", "Forearm.R", "Shin.L", "Foot.R", "OrbitCube"].map(/**
+        const joints = ["Root", "Hips", "Spine", "Hood", "UpperArm.L", "Forearm.L", "UpperArm.R", "Forearm.R",
+          "Thigh.L", "Shin.L", "Foot.L", "Thigh.R", "Shin.R", "Foot.R", "OrbitCube", "StaffCube",
+          "StaffSpark.1", "StaffSpark.2", "StaffSpark.3", "StaffSpark.4"].map(/**
          *
          * @param {string} joint
          */

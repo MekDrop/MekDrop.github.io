@@ -318,6 +318,18 @@ export class Riftcap extends Enemy {
     this.behavior.changeTo(RiftcapAirborneState.name);
   }
 
+  /**
+   * A floor contact can persist for the first simulation step after launch.
+   * @param {{other?: import("playcanvas").Entity}} contact
+   */
+  onLanding(contact = {}) {
+    if (this.entity.rigidbody?.linearVelocity.y > 0.1) {
+      return false;
+    }
+
+    return super.onLanding(contact);
+  }
+
   onLanded() {
     this.behavior.changeTo(RiftcapLandState.name);
   }

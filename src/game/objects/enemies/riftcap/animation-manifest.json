@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "status": "fresh_glb_import_sampled_runtime_pending",
+  "status": "runtime_binding_verified_visual_acceptance_pending",
   "model": "riftcap.glb",
   "rig": "RiftcapRig",
   "bones": [
@@ -34,7 +34,7 @@
       "loop": true,
       "events": [],
       "freshImport": true,
-      "runtimePlayback": false,
+      "runtimePlayback": true,
       "offlineSamplesFinite": true,
       "offlineGeometryChanges": true,
       "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
@@ -42,7 +42,8 @@
         "tmp/riftcap-asset/fresh-import/idle_start.png",
         "tmp/riftcap-asset/fresh-import/idle_middle.png",
         "tmp/riftcap-asset/fresh-import/idle_end.png"
-      ]
+      ],
+      "runtimeEvidence": "evidence/runtime-verification.json"
     },
     "walk": {
       "exported": true,
@@ -51,7 +52,7 @@
       "loop": true,
       "events": [],
       "freshImport": true,
-      "runtimePlayback": false,
+      "runtimePlayback": true,
       "offlineSamplesFinite": true,
       "offlineGeometryChanges": true,
       "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
@@ -59,7 +60,8 @@
         "tmp/riftcap-asset/fresh-import/walk_start.png",
         "tmp/riftcap-asset/fresh-import/walk_middle.png",
         "tmp/riftcap-asset/fresh-import/walk_end.png"
-      ]
+      ],
+      "runtimeEvidence": "evidence/runtime-verification.json"
     },
     "run": {
       "exported": true,
@@ -68,7 +70,7 @@
       "loop": true,
       "events": [],
       "freshImport": true,
-      "runtimePlayback": false,
+      "runtimePlayback": true,
       "offlineSamplesFinite": true,
       "offlineGeometryChanges": true,
       "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
@@ -76,7 +78,8 @@
         "tmp/riftcap-asset/fresh-import/run_start.png",
         "tmp/riftcap-asset/fresh-import/run_middle.png",
         "tmp/riftcap-asset/fresh-import/run_end.png"
-      ]
+      ],
+      "runtimeEvidence": "evidence/runtime-verification.json"
     },
     "turn": {
       "exported": true,
@@ -85,7 +88,7 @@
       "loop": false,
       "events": [],
       "freshImport": true,
-      "runtimePlayback": false,
+      "runtimePlayback": true,
       "offlineSamplesFinite": true,
       "offlineGeometryChanges": true,
       "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
@@ -93,7 +96,8 @@
         "tmp/riftcap-asset/fresh-import/turn_start.png",
         "tmp/riftcap-asset/fresh-import/turn_middle.png",
         "tmp/riftcap-asset/fresh-import/turn_end.png"
-      ]
+      ],
+      "runtimeEvidence": "evidence/runtime-verification.json"
     },
     "bolt_windup": {
       "exported": true,
@@ -102,7 +106,7 @@
       "loop": false,
       "events": [],
       "freshImport": true,
-      "runtimePlayback": false,
+      "runtimePlayback": true,
       "offlineSamplesFinite": true,
       "offlineGeometryChanges": true,
       "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
@@ -110,7 +114,8 @@
         "tmp/riftcap-asset/fresh-import/bolt_windup_start.png",
         "tmp/riftcap-asset/fresh-import/bolt_windup_middle.png",
         "tmp/riftcap-asset/fresh-import/bolt_windup_end.png"
-      ]
+      ],
+      "runtimeEvidence": "evidence/runtime-verification.json"
     },
     "bolt_cast": {
       "exported": true,
@@ -124,7 +129,7 @@
         }
       ],
       "freshImport": true,
-      "runtimePlayback": false,
+      "runtimePlayback": true,
       "offlineSamplesFinite": true,
       "offlineGeometryChanges": true,
       "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
@@ -132,7 +137,8 @@
         "tmp/riftcap-asset/fresh-import/bolt_cast_start.png",
         "tmp/riftcap-asset/fresh-import/bolt_cast_middle.png",
         "tmp/riftcap-asset/fresh-import/bolt_cast_end.png"
-      ]
+      ],
+      "runtimeEvidence": "evidence/runtime-verification.json"
     },
     "bolt_recover": {
       "exported": true,
@@ -141,7 +147,7 @@
       "loop": false,
       "events": [],
       "freshImport": true,
-      "runtimePlayback": false,
+      "runtimePlayback": true,
       "offlineSamplesFinite": true,
       "offlineGeometryChanges": true,
       "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
@@ -149,7 +155,8 @@
         "tmp/riftcap-asset/fresh-import/bolt_recover_start.png",
         "tmp/riftcap-asset/fresh-import/bolt_recover_middle.png",
         "tmp/riftcap-asset/fresh-import/bolt_recover_end.png"
-      ]
+      ],
+      "runtimeEvidence": "evidence/runtime-verification.json"
     },
     "swap_windup": {
       "exported": true,
@@ -158,7 +165,7 @@
       "loop": false,
       "events": [],
       "freshImport": true,
-      "runtimePlayback": false,
+      "runtimePlayback": true,
       "offlineSamplesFinite": true,
       "offlineGeometryChanges": true,
       "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
@@ -166,7 +173,8 @@
         "tmp/riftcap-asset/fresh-import/swap_windup_start.png",
         "tmp/riftcap-asset/fresh-import/swap_windup_middle.png",
         "tmp/riftcap-asset/fresh-import/swap_windup_end.png"
-      ]
+      ],
+      "runtimeEvidence": "evidence/runtime-verification.json"
     },
     "swap_cast": {
       "exported": true,
@@ -180,7 +188,7 @@
         }
       ],
       "freshImport": true,
-      "runtimePlayback": false,
+      "runtimePlayback": true,
       "offlineSamplesFinite": true,
       "offlineGeometryChanges": true,
       "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
@@ -188,7 +196,8 @@
         "tmp/riftcap-asset/fresh-import/swap_cast_start.png",
         "tmp/riftcap-asset/fresh-import/swap_cast_middle.png",
         "tmp/riftcap-asset/fresh-import/swap_cast_end.png"
-      ]
+      ],
+      "runtimeEvidence": "evidence/runtime-verification.json"
     },
     "swap_recover": {
       "exported": true,
@@ -197,7 +206,7 @@
       "loop": false,
       "events": [],
       "freshImport": true,
-      "runtimePlayback": false,
+      "runtimePlayback": true,
       "offlineSamplesFinite": true,
       "offlineGeometryChanges": true,
       "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
@@ -205,7 +214,8 @@
         "tmp/riftcap-asset/fresh-import/swap_recover_start.png",
         "tmp/riftcap-asset/fresh-import/swap_recover_middle.png",
         "tmp/riftcap-asset/fresh-import/swap_recover_end.png"
-      ]
+      ],
+      "runtimeEvidence": "evidence/runtime-verification.json"
     },
     "heal_start": {
       "exported": true,
@@ -214,7 +224,7 @@
       "loop": false,
       "events": [],
       "freshImport": true,
-      "runtimePlayback": false,
+      "runtimePlayback": true,
       "offlineSamplesFinite": true,
       "offlineGeometryChanges": true,
       "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
@@ -222,7 +232,8 @@
         "tmp/riftcap-asset/fresh-import/heal_start_start.png",
         "tmp/riftcap-asset/fresh-import/heal_start_middle.png",
         "tmp/riftcap-asset/fresh-import/heal_start_end.png"
-      ]
+      ],
+      "runtimeEvidence": "evidence/runtime-verification.json"
     },
     "heal_loop": {
       "exported": true,
@@ -231,7 +242,7 @@
       "loop": true,
       "events": [],
       "freshImport": true,
-      "runtimePlayback": false,
+      "runtimePlayback": true,
       "offlineSamplesFinite": true,
       "offlineGeometryChanges": true,
       "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
@@ -239,7 +250,8 @@
         "tmp/riftcap-asset/fresh-import/heal_loop_start.png",
         "tmp/riftcap-asset/fresh-import/heal_loop_middle.png",
         "tmp/riftcap-asset/fresh-import/heal_loop_end.png"
-      ]
+      ],
+      "runtimeEvidence": "evidence/runtime-verification.json"
     },
     "heal_end": {
       "exported": true,
@@ -248,7 +260,7 @@
       "loop": false,
       "events": [],
       "freshImport": true,
-      "runtimePlayback": false,
+      "runtimePlayback": true,
       "offlineSamplesFinite": true,
       "offlineGeometryChanges": true,
       "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
@@ -256,7 +268,8 @@
         "tmp/riftcap-asset/fresh-import/heal_end_start.png",
         "tmp/riftcap-asset/fresh-import/heal_end_middle.png",
         "tmp/riftcap-asset/fresh-import/heal_end_end.png"
-      ]
+      ],
+      "runtimeEvidence": "evidence/runtime-verification.json"
     },
     "ward_windup": {
       "exported": true,
@@ -265,7 +278,7 @@
       "loop": false,
       "events": [],
       "freshImport": true,
-      "runtimePlayback": false,
+      "runtimePlayback": true,
       "offlineSamplesFinite": true,
       "offlineGeometryChanges": true,
       "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
@@ -273,7 +286,8 @@
         "tmp/riftcap-asset/fresh-import/ward_windup_start.png",
         "tmp/riftcap-asset/fresh-import/ward_windup_middle.png",
         "tmp/riftcap-asset/fresh-import/ward_windup_end.png"
-      ]
+      ],
+      "runtimeEvidence": "evidence/runtime-verification.json"
     },
     "ward_cast": {
       "exported": true,
@@ -287,7 +301,7 @@
         }
       ],
       "freshImport": true,
-      "runtimePlayback": false,
+      "runtimePlayback": true,
       "offlineSamplesFinite": true,
       "offlineGeometryChanges": true,
       "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
@@ -295,7 +309,8 @@
         "tmp/riftcap-asset/fresh-import/ward_cast_start.png",
         "tmp/riftcap-asset/fresh-import/ward_cast_middle.png",
         "tmp/riftcap-asset/fresh-import/ward_cast_end.png"
-      ]
+      ],
+      "runtimeEvidence": "evidence/runtime-verification.json"
     },
     "ward_recover": {
       "exported": true,
@@ -304,7 +319,7 @@
       "loop": false,
       "events": [],
       "freshImport": true,
-      "runtimePlayback": false,
+      "runtimePlayback": true,
       "offlineSamplesFinite": true,
       "offlineGeometryChanges": true,
       "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
@@ -312,7 +327,8 @@
         "tmp/riftcap-asset/fresh-import/ward_recover_start.png",
         "tmp/riftcap-asset/fresh-import/ward_recover_middle.png",
         "tmp/riftcap-asset/fresh-import/ward_recover_end.png"
-      ]
+      ],
+      "runtimeEvidence": "evidence/runtime-verification.json"
     },
     "shatter_windup": {
       "exported": true,
@@ -321,7 +337,7 @@
       "loop": false,
       "events": [],
       "freshImport": true,
-      "runtimePlayback": false,
+      "runtimePlayback": true,
       "offlineSamplesFinite": true,
       "offlineGeometryChanges": true,
       "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
@@ -329,7 +345,8 @@
         "tmp/riftcap-asset/fresh-import/shatter_windup_start.png",
         "tmp/riftcap-asset/fresh-import/shatter_windup_middle.png",
         "tmp/riftcap-asset/fresh-import/shatter_windup_end.png"
-      ]
+      ],
+      "runtimeEvidence": "evidence/runtime-verification.json"
     },
     "shatter_cast": {
       "exported": true,
@@ -343,7 +360,7 @@
         }
       ],
       "freshImport": true,
-      "runtimePlayback": false,
+      "runtimePlayback": true,
       "offlineSamplesFinite": true,
       "offlineGeometryChanges": true,
       "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
@@ -351,7 +368,8 @@
         "tmp/riftcap-asset/fresh-import/shatter_cast_start.png",
         "tmp/riftcap-asset/fresh-import/shatter_cast_middle.png",
         "tmp/riftcap-asset/fresh-import/shatter_cast_end.png"
-      ]
+      ],
+      "runtimeEvidence": "evidence/runtime-verification.json"
     },
     "shatter_recover": {
       "exported": true,
@@ -360,7 +378,7 @@
       "loop": false,
       "events": [],
       "freshImport": true,
-      "runtimePlayback": false,
+      "runtimePlayback": true,
       "offlineSamplesFinite": true,
       "offlineGeometryChanges": true,
       "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
@@ -368,7 +386,8 @@
         "tmp/riftcap-asset/fresh-import/shatter_recover_start.png",
         "tmp/riftcap-asset/fresh-import/shatter_recover_middle.png",
         "tmp/riftcap-asset/fresh-import/shatter_recover_end.png"
-      ]
+      ],
+      "runtimeEvidence": "evidence/runtime-verification.json"
     },
     "time_bubble_start": {
       "exported": true,
@@ -377,7 +396,7 @@
       "loop": false,
       "events": [],
       "freshImport": true,
-      "runtimePlayback": false,
+      "runtimePlayback": true,
       "offlineSamplesFinite": true,
       "offlineGeometryChanges": true,
       "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
@@ -385,7 +404,8 @@
         "tmp/riftcap-asset/fresh-import/time_bubble_start_start.png",
         "tmp/riftcap-asset/fresh-import/time_bubble_start_middle.png",
         "tmp/riftcap-asset/fresh-import/time_bubble_start_end.png"
-      ]
+      ],
+      "runtimeEvidence": "evidence/runtime-verification.json"
     },
     "time_bubble_sustain": {
       "exported": true,
@@ -394,7 +414,7 @@
       "loop": true,
       "events": [],
       "freshImport": true,
-      "runtimePlayback": false,
+      "runtimePlayback": true,
       "offlineSamplesFinite": true,
       "offlineGeometryChanges": true,
       "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
@@ -402,7 +422,8 @@
         "tmp/riftcap-asset/fresh-import/time_bubble_sustain_start.png",
         "tmp/riftcap-asset/fresh-import/time_bubble_sustain_middle.png",
         "tmp/riftcap-asset/fresh-import/time_bubble_sustain_end.png"
-      ]
+      ],
+      "runtimeEvidence": "evidence/runtime-verification.json"
     },
     "time_bubble_end": {
       "exported": true,
@@ -411,7 +432,7 @@
       "loop": false,
       "events": [],
       "freshImport": true,
-      "runtimePlayback": false,
+      "runtimePlayback": true,
       "offlineSamplesFinite": true,
       "offlineGeometryChanges": true,
       "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
@@ -419,7 +440,8 @@
         "tmp/riftcap-asset/fresh-import/time_bubble_end_start.png",
         "tmp/riftcap-asset/fresh-import/time_bubble_end_middle.png",
         "tmp/riftcap-asset/fresh-import/time_bubble_end_end.png"
-      ]
+      ],
+      "runtimeEvidence": "evidence/runtime-verification.json"
     },
     "cast_interrupt": {
       "exported": true,
@@ -428,7 +450,7 @@
       "loop": false,
       "events": [],
       "freshImport": true,
-      "runtimePlayback": false,
+      "runtimePlayback": true,
       "offlineSamplesFinite": true,
       "offlineGeometryChanges": true,
       "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
@@ -436,7 +458,8 @@
         "tmp/riftcap-asset/fresh-import/cast_interrupt_start.png",
         "tmp/riftcap-asset/fresh-import/cast_interrupt_middle.png",
         "tmp/riftcap-asset/fresh-import/cast_interrupt_end.png"
-      ]
+      ],
+      "runtimeEvidence": "evidence/runtime-verification.json"
     },
     "confused": {
       "exported": true,
@@ -445,7 +468,7 @@
       "loop": true,
       "events": [],
       "freshImport": true,
-      "runtimePlayback": false,
+      "runtimePlayback": true,
       "offlineSamplesFinite": true,
       "offlineGeometryChanges": true,
       "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
@@ -453,7 +476,8 @@
         "tmp/riftcap-asset/fresh-import/confused_start.png",
         "tmp/riftcap-asset/fresh-import/confused_middle.png",
         "tmp/riftcap-asset/fresh-import/confused_end.png"
-      ]
+      ],
+      "runtimeEvidence": "evidence/runtime-verification.json"
     },
     "recover": {
       "exported": true,
@@ -462,7 +486,7 @@
       "loop": false,
       "events": [],
       "freshImport": true,
-      "runtimePlayback": false,
+      "runtimePlayback": true,
       "offlineSamplesFinite": true,
       "offlineGeometryChanges": true,
       "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
@@ -470,7 +494,8 @@
         "tmp/riftcap-asset/fresh-import/recover_start.png",
         "tmp/riftcap-asset/fresh-import/recover_middle.png",
         "tmp/riftcap-asset/fresh-import/recover_end.png"
-      ]
+      ],
+      "runtimeEvidence": "evidence/runtime-verification.json"
     },
     "hit": {
       "exported": true,
@@ -479,7 +504,7 @@
       "loop": false,
       "events": [],
       "freshImport": true,
-      "runtimePlayback": false,
+      "runtimePlayback": true,
       "offlineSamplesFinite": true,
       "offlineGeometryChanges": true,
       "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
@@ -487,7 +512,8 @@
         "tmp/riftcap-asset/fresh-import/hit_start.png",
         "tmp/riftcap-asset/fresh-import/hit_middle.png",
         "tmp/riftcap-asset/fresh-import/hit_end.png"
-      ]
+      ],
+      "runtimeEvidence": "evidence/runtime-verification.json"
     },
     "stunned": {
       "exported": true,
@@ -496,7 +522,7 @@
       "loop": true,
       "events": [],
       "freshImport": true,
-      "runtimePlayback": false,
+      "runtimePlayback": true,
       "offlineSamplesFinite": true,
       "offlineGeometryChanges": true,
       "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
@@ -504,7 +530,8 @@
         "tmp/riftcap-asset/fresh-import/stunned_start.png",
         "tmp/riftcap-asset/fresh-import/stunned_middle.png",
         "tmp/riftcap-asset/fresh-import/stunned_end.png"
-      ]
+      ],
+      "runtimeEvidence": "evidence/runtime-verification.json"
     },
     "knockback": {
       "exported": true,
@@ -513,7 +540,7 @@
       "loop": false,
       "events": [],
       "freshImport": true,
-      "runtimePlayback": false,
+      "runtimePlayback": true,
       "offlineSamplesFinite": true,
       "offlineGeometryChanges": true,
       "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
@@ -521,7 +548,8 @@
         "tmp/riftcap-asset/fresh-import/knockback_start.png",
         "tmp/riftcap-asset/fresh-import/knockback_middle.png",
         "tmp/riftcap-asset/fresh-import/knockback_end.png"
-      ]
+      ],
+      "runtimeEvidence": "evidence/runtime-verification.json"
     },
     "carried_struggle": {
       "exported": true,
@@ -530,7 +558,7 @@
       "loop": true,
       "events": [],
       "freshImport": true,
-      "runtimePlayback": false,
+      "runtimePlayback": true,
       "offlineSamplesFinite": true,
       "offlineGeometryChanges": true,
       "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
@@ -538,7 +566,8 @@
         "tmp/riftcap-asset/fresh-import/carried_struggle_start.png",
         "tmp/riftcap-asset/fresh-import/carried_struggle_middle.png",
         "tmp/riftcap-asset/fresh-import/carried_struggle_end.png"
-      ]
+      ],
+      "runtimeEvidence": "evidence/runtime-verification.json"
     },
     "airborne": {
       "exported": true,
@@ -547,7 +576,7 @@
       "loop": true,
       "events": [],
       "freshImport": true,
-      "runtimePlayback": false,
+      "runtimePlayback": true,
       "offlineSamplesFinite": true,
       "offlineGeometryChanges": true,
       "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
@@ -555,7 +584,8 @@
         "tmp/riftcap-asset/fresh-import/airborne_start.png",
         "tmp/riftcap-asset/fresh-import/airborne_middle.png",
         "tmp/riftcap-asset/fresh-import/airborne_end.png"
-      ]
+      ],
+      "runtimeEvidence": "evidence/runtime-verification.json"
     },
     "land": {
       "exported": true,
@@ -564,7 +594,7 @@
       "loop": false,
       "events": [],
       "freshImport": true,
-      "runtimePlayback": false,
+      "runtimePlayback": true,
       "offlineSamplesFinite": true,
       "offlineGeometryChanges": true,
       "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
@@ -572,7 +602,8 @@
         "tmp/riftcap-asset/fresh-import/land_start.png",
         "tmp/riftcap-asset/fresh-import/land_middle.png",
         "tmp/riftcap-asset/fresh-import/land_end.png"
-      ]
+      ],
+      "runtimeEvidence": "evidence/runtime-verification.json"
     },
     "death": {
       "exported": true,
@@ -581,7 +612,7 @@
       "loop": false,
       "events": [],
       "freshImport": true,
-      "runtimePlayback": false,
+      "runtimePlayback": true,
       "offlineSamplesFinite": true,
       "offlineGeometryChanges": true,
       "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
@@ -589,7 +620,8 @@
         "tmp/riftcap-asset/fresh-import/death_start.png",
         "tmp/riftcap-asset/fresh-import/death_middle.png",
         "tmp/riftcap-asset/fresh-import/death_end.png"
-      ]
+      ],
+      "runtimeEvidence": "evidence/runtime-verification.json"
     }
   }
 }

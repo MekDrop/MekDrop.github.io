@@ -1,0 +1,629 @@
+{
+  "checkedAt": "2026-10-22",
+  "route": "http://localhost:9000/map/test_enemy-riftcap",
+  "source": "production PlayCanvas GameModelLibrary instance",
+  "clips": [
+    {
+      "name": "airborne",
+      "samples": 13,
+      "finite": true,
+      "movingNonRootJoints": [
+        "OrbitCube",
+        "StaffCube",
+        "StaffSpark.1",
+        "StaffSpark.2",
+        "StaffSpark.3",
+        "StaffSpark.4"
+      ]
+    },
+    {
+      "name": "bolt_cast",
+      "samples": 9,
+      "finite": true,
+      "movingNonRootJoints": [
+        "Hood",
+        "UpperArm.L",
+        "UpperArm.R",
+        "Forearm.R",
+        "OrbitCube",
+        "StaffCube",
+        "StaffSpark.1",
+        "StaffSpark.2",
+        "StaffSpark.3",
+        "StaffSpark.4"
+      ]
+    },
+    {
+      "name": "bolt_recover",
+      "samples": 18,
+      "finite": true,
+      "movingNonRootJoints": [
+        "Hood",
+        "UpperArm.L",
+        "UpperArm.R",
+        "Forearm.R",
+        "OrbitCube",
+        "StaffCube",
+        "StaffSpark.1",
+        "StaffSpark.2",
+        "StaffSpark.3",
+        "StaffSpark.4"
+      ]
+    },
+    {
+      "name": "bolt_windup",
+      "samples": 21,
+      "finite": true,
+      "movingNonRootJoints": [
+        "Hood",
+        "UpperArm.L",
+        "UpperArm.R",
+        "Forearm.R",
+        "OrbitCube",
+        "StaffCube",
+        "StaffSpark.1",
+        "StaffSpark.2",
+        "StaffSpark.3",
+        "StaffSpark.4"
+      ]
+    },
+    {
+      "name": "carried_struggle",
+      "samples": 32,
+      "finite": true,
+      "movingNonRootJoints": [
+        "Hood",
+        "UpperArm.L",
+        "Thigh.L",
+        "Shin.L",
+        "Thigh.R",
+        "Shin.R",
+        "OrbitCube",
+        "StaffCube",
+        "StaffSpark.1",
+        "StaffSpark.2",
+        "StaffSpark.3",
+        "StaffSpark.4"
+      ]
+    },
+    {
+      "name": "cast_interrupt",
+      "samples": 12,
+      "finite": true,
+      "movingNonRootJoints": [
+        "Spine",
+        "Hood",
+        "UpperArm.L",
+        "UpperArm.R",
+        "OrbitCube",
+        "StaffCube",
+        "StaffSpark.1",
+        "StaffSpark.2",
+        "StaffSpark.3",
+        "StaffSpark.4"
+      ]
+    },
+    {
+      "name": "confused",
+      "samples": 61,
+      "finite": true,
+      "movingNonRootJoints": [
+        "Spine",
+        "Hood",
+        "UpperArm.L",
+        "Forearm.L",
+        "OrbitCube",
+        "StaffCube",
+        "StaffSpark.1",
+        "StaffSpark.2",
+        "StaffSpark.3",
+        "StaffSpark.4"
+      ]
+    },
+    {
+      "name": "death",
+      "samples": 67,
+      "finite": true,
+      "movingNonRootJoints": [
+        "Hood",
+        "UpperArm.L",
+        "Thigh.L",
+        "OrbitCube",
+        "StaffCube",
+        "StaffSpark.1",
+        "StaffSpark.2",
+        "StaffSpark.3",
+        "StaffSpark.4"
+      ]
+    },
+    {
+      "name": "heal_end",
+      "samples": 21,
+      "finite": true,
+      "movingNonRootJoints": [
+        "Hood",
+        "UpperArm.L",
+        "Forearm.L",
+        "UpperArm.R",
+        "OrbitCube",
+        "StaffCube",
+        "StaffSpark.1",
+        "StaffSpark.2",
+        "StaffSpark.3",
+        "StaffSpark.4"
+      ]
+    },
+    {
+      "name": "heal_loop",
+      "samples": 59,
+      "finite": true,
+      "movingNonRootJoints": [
+        "Forearm.L",
+        "OrbitCube",
+        "StaffCube",
+        "StaffSpark.1",
+        "StaffSpark.2",
+        "StaffSpark.3",
+        "StaffSpark.4"
+      ]
+    },
+    {
+      "name": "heal_start",
+      "samples": 22,
+      "finite": true,
+      "movingNonRootJoints": [
+        "Hood",
+        "UpperArm.L",
+        "Forearm.L",
+        "UpperArm.R",
+        "OrbitCube",
+        "StaffCube",
+        "StaffSpark.1",
+        "StaffSpark.2",
+        "StaffSpark.3",
+        "StaffSpark.4"
+      ]
+    },
+    {
+      "name": "hit",
+      "samples": 14,
+      "finite": true,
+      "movingNonRootJoints": [
+        "Spine",
+        "Hood",
+        "Forearm.L",
+        "OrbitCube",
+        "StaffCube",
+        "StaffSpark.1",
+        "StaffSpark.2",
+        "StaffSpark.3",
+        "StaffSpark.4"
+      ]
+    },
+    {
+      "name": "idle",
+      "samples": 87,
+      "finite": true,
+      "movingNonRootJoints": [
+        "Hood",
+        "Forearm.L",
+        "OrbitCube",
+        "StaffCube",
+        "StaffSpark.1",
+        "StaffSpark.2",
+        "StaffSpark.3",
+        "StaffSpark.4"
+      ]
+    },
+    {
+      "name": "knockback",
+      "samples": 25,
+      "finite": true,
+      "movingNonRootJoints": [
+        "Hood",
+        "Thigh.L",
+        "Thigh.R",
+        "OrbitCube",
+        "StaffCube",
+        "StaffSpark.1",
+        "StaffSpark.2",
+        "StaffSpark.3",
+        "StaffSpark.4"
+      ]
+    },
+    {
+      "name": "land",
+      "samples": 25,
+      "finite": true,
+      "movingNonRootJoints": [
+        "Hood",
+        "Thigh.L",
+        "Shin.L",
+        "Foot.L",
+        "Thigh.R",
+        "Shin.R",
+        "Foot.R",
+        "OrbitCube",
+        "StaffCube",
+        "StaffSpark.1",
+        "StaffSpark.2",
+        "StaffSpark.3",
+        "StaffSpark.4"
+      ]
+    },
+    {
+      "name": "recover",
+      "samples": 21,
+      "finite": true,
+      "movingNonRootJoints": [
+        "Spine",
+        "Hood",
+        "UpperArm.L",
+        "OrbitCube",
+        "StaffCube",
+        "StaffSpark.1",
+        "StaffSpark.2",
+        "StaffSpark.3",
+        "StaffSpark.4"
+      ]
+    },
+    {
+      "name": "run",
+      "samples": 22,
+      "finite": true,
+      "movingNonRootJoints": [
+        "Hood",
+        "UpperArm.L",
+        "Forearm.L",
+        "UpperArm.R",
+        "Thigh.L",
+        "Shin.L",
+        "Foot.L",
+        "Thigh.R",
+        "Shin.R",
+        "Foot.R",
+        "OrbitCube",
+        "StaffCube",
+        "StaffSpark.1",
+        "StaffSpark.2",
+        "StaffSpark.3",
+        "StaffSpark.4"
+      ]
+    },
+    {
+      "name": "shatter_cast",
+      "samples": 12,
+      "finite": true,
+      "movingNonRootJoints": [
+        "Spine",
+        "Hood",
+        "UpperArm.L",
+        "UpperArm.R",
+        "OrbitCube",
+        "StaffCube",
+        "StaffSpark.1",
+        "StaffSpark.2",
+        "StaffSpark.3",
+        "StaffSpark.4"
+      ]
+    },
+    {
+      "name": "shatter_recover",
+      "samples": 23,
+      "finite": true,
+      "movingNonRootJoints": [
+        "Spine",
+        "Hood",
+        "UpperArm.L",
+        "UpperArm.R",
+        "OrbitCube",
+        "StaffCube",
+        "StaffSpark.1",
+        "StaffSpark.2",
+        "StaffSpark.3",
+        "StaffSpark.4"
+      ]
+    },
+    {
+      "name": "shatter_windup",
+      "samples": 22,
+      "finite": true,
+      "movingNonRootJoints": [
+        "Spine",
+        "UpperArm.L",
+        "UpperArm.R",
+        "OrbitCube",
+        "StaffCube",
+        "StaffSpark.1",
+        "StaffSpark.2",
+        "StaffSpark.3",
+        "StaffSpark.4"
+      ]
+    },
+    {
+      "name": "stunned",
+      "samples": 42,
+      "finite": true,
+      "movingNonRootJoints": [
+        "Hood",
+        "OrbitCube",
+        "StaffCube",
+        "StaffSpark.1",
+        "StaffSpark.2",
+        "StaffSpark.3",
+        "StaffSpark.4"
+      ]
+    },
+    {
+      "name": "swap_cast",
+      "samples": 11,
+      "finite": true,
+      "movingNonRootJoints": [
+        "Spine",
+        "OrbitCube",
+        "StaffCube",
+        "StaffSpark.1",
+        "StaffSpark.2",
+        "StaffSpark.3",
+        "StaffSpark.4"
+      ]
+    },
+    {
+      "name": "swap_recover",
+      "samples": 20,
+      "finite": true,
+      "movingNonRootJoints": [
+        "Hood",
+        "UpperArm.L",
+        "UpperArm.R",
+        "OrbitCube",
+        "StaffCube",
+        "StaffSpark.1",
+        "StaffSpark.2",
+        "StaffSpark.3",
+        "StaffSpark.4"
+      ]
+    },
+    {
+      "name": "swap_windup",
+      "samples": 25,
+      "finite": true,
+      "movingNonRootJoints": [
+        "Hood",
+        "UpperArm.L",
+        "UpperArm.R",
+        "OrbitCube",
+        "StaffCube",
+        "StaffSpark.1",
+        "StaffSpark.2",
+        "StaffSpark.3",
+        "StaffSpark.4"
+      ]
+    },
+    {
+      "name": "time_bubble_end",
+      "samples": 20,
+      "finite": true,
+      "movingNonRootJoints": [
+        "Hood",
+        "UpperArm.L",
+        "Forearm.L",
+        "UpperArm.R",
+        "OrbitCube",
+        "StaffCube",
+        "StaffSpark.1",
+        "StaffSpark.2",
+        "StaffSpark.3",
+        "StaffSpark.4"
+      ]
+    },
+    {
+      "name": "time_bubble_start",
+      "samples": 24,
+      "finite": true,
+      "movingNonRootJoints": [
+        "Hood",
+        "UpperArm.L",
+        "Forearm.L",
+        "UpperArm.R",
+        "OrbitCube",
+        "StaffCube",
+        "StaffSpark.1",
+        "StaffSpark.2",
+        "StaffSpark.3",
+        "StaffSpark.4"
+      ]
+    },
+    {
+      "name": "time_bubble_sustain",
+      "samples": 52,
+      "finite": true,
+      "movingNonRootJoints": [
+        "Hood",
+        "Forearm.L",
+        "OrbitCube",
+        "StaffCube",
+        "StaffSpark.1",
+        "StaffSpark.2",
+        "StaffSpark.3",
+        "StaffSpark.4"
+      ]
+    },
+    {
+      "name": "turn",
+      "samples": 28,
+      "finite": true,
+      "movingNonRootJoints": [
+        "Hood",
+        "Thigh.L",
+        "Thigh.R",
+        "OrbitCube",
+        "StaffCube",
+        "StaffSpark.1",
+        "StaffSpark.2",
+        "StaffSpark.3",
+        "StaffSpark.4"
+      ]
+    },
+    {
+      "name": "walk",
+      "samples": 25,
+      "finite": true,
+      "movingNonRootJoints": [
+        "Hood",
+        "UpperArm.L",
+        "Forearm.L",
+        "UpperArm.R",
+        "Thigh.L",
+        "Shin.L",
+        "Foot.L",
+        "Thigh.R",
+        "Shin.R",
+        "Foot.R",
+        "OrbitCube",
+        "StaffCube",
+        "StaffSpark.1",
+        "StaffSpark.2",
+        "StaffSpark.3",
+        "StaffSpark.4"
+      ]
+    },
+    {
+      "name": "ward_cast",
+      "samples": 11,
+      "finite": true,
+      "movingNonRootJoints": [
+        "OrbitCube",
+        "StaffCube",
+        "StaffSpark.1",
+        "StaffSpark.2",
+        "StaffSpark.3",
+        "StaffSpark.4"
+      ]
+    },
+    {
+      "name": "ward_recover",
+      "samples": 19,
+      "finite": true,
+      "movingNonRootJoints": [
+        "Hood",
+        "UpperArm.L",
+        "Forearm.L",
+        "UpperArm.R",
+        "OrbitCube",
+        "StaffCube",
+        "StaffSpark.1",
+        "StaffSpark.2",
+        "StaffSpark.3",
+        "StaffSpark.4"
+      ]
+    },
+    {
+      "name": "ward_windup",
+      "samples": 18,
+      "finite": true,
+      "movingNonRootJoints": [
+        "Hood",
+        "UpperArm.L",
+        "Forearm.L",
+        "UpperArm.R",
+        "OrbitCube",
+        "StaffCube",
+        "StaffSpark.1",
+        "StaffSpark.2",
+        "StaffSpark.3",
+        "StaffSpark.4"
+      ]
+    }
+  ],
+  "gameplay": {
+    "physics": true,
+    "initial": {
+      "a": "[-0.000003710829105330049, 2.0039987564086914, -12]",
+      "b": "[1.9999964237213135, 2.0039989948272705, -12]"
+    },
+    "heal": {
+      "before": 60,
+      "accepted": true,
+      "after": 95.00000000000003
+    },
+    "ward": {
+      "accepted": true,
+      "damage": 0
+    },
+    "swap": {
+      "allowed": true,
+      "before": [
+        "[0, 2.0139999389648438, -12]",
+        "[2, 2.0139999389648438, -12]"
+      ],
+      "accepted": true,
+      "after": [
+        "[1.9999974966049194, 2.0039989948272705, -12]",
+        "[-0.000002668050910870079, 2.0039989948272705, -12]"
+      ]
+    },
+    "shatter": {
+      "accepted": true,
+      "velocity": "[3.499990224838257, -0.49995195865631104, -0.000004933177933708066]",
+      "position": "[2.303095817565918, 2.010699987411499, -12]"
+    },
+    "bubble": {
+      "accepted": true,
+      "active": true,
+      "unsupported": 82,
+      "collapsed": true
+    },
+    "throw": {
+      "accepted": true,
+      "airborne": true,
+      "landed": true,
+      "position": "[0.4629640281200409, 2.002699375152588, -11.971957206726074]"
+    }
+  },
+  "preview": {
+    "path": "../preview.png",
+    "width": 512,
+    "height": 512,
+    "visible": 44454,
+    "transparent": 217690,
+    "visuallyInspected": true
+  },
+  "limitations": [
+    "Motion binding is verified; feet, loop seams, blend quality and all interruptions are not visually accepted.",
+    "Hero and FrostPuffShot private clocks remain outside allowed scope.",
+    "Cypress did not produce a completed result."
+  ],
+  "extra": {
+    "gateClosed": {
+      "canSwap": false
+    },
+    "gateOpen": {
+      "canSwap": true
+    },
+    "carry": {
+      "accepted": true,
+      "escaped": true,
+      "allyHeld": true,
+      "annoyed": true
+    },
+    "bolt": {
+      "target": true,
+      "position": "[0, 0, 0]",
+      "accepted": true,
+      "shots": 1,
+      "bodies": true,
+      "remainingShots": 0
+    },
+    "teardown": {
+      "bubbleActive": true,
+      "diagnosticRemoved": true,
+      "bubbleReleased": true,
+      "shots": 0
+    }
+  },
+  "cypress": {
+    "edge": "stalled before test result; stopped owned run",
+    "chrome": "stalled before test result; stopped owned run"
+  }
+}

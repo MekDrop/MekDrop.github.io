@@ -1,5 +1,5 @@
 {
-  "status": "assets_authored_behavior_unit_tested_runtime_blocked",
+  "status": "runtime_binding_and_focused_ammo_verified_acceptance_pending",
   "checkedAt": "2026-10-22",
   "registered": true,
   "scope": "Only Riftcap object/model/test-map directories and mirrored Riftcap tests. User explicitly declined cross-folder Hero and FrostPuffShot clock hooks. No shared enemy, factory, renderer, normal map, or spawn-table edits.",
@@ -8,8 +8,7 @@
   "assetProvenance": "src/game/models/enemies/riftcap/provenance.json",
   "testMap": "src/game/maps/tests/enemy-riftcap.json",
   "intendedTestMapUrl": "http://localhost:9000/map/test_enemy-riftcap",
-  "testMapUsable": false,
-  "testMapBlockedReason": "Focused Cypress Edge run against an isolated diagnostic server stalled without producing scene, playback, or preview evidence. The run and temporary server were stopped; shared localhost:9000 was untouched.",
+  "testMapUsable": true,
   "yukaStates": [
     "RiftcapPursueState",
     "RiftcapWindupState",
@@ -61,9 +60,9 @@
     "clipManifest": "animation-manifest.json",
     "freshGlbImport": true,
     "timelineSampling": true,
-    "actualGamePlayback": false,
-    "transparentProductionPreview": false,
-    "previewPath": null,
+    "actualGamePlayback": true,
+    "transparentProductionPreview": true,
+    "previewPath": "preview.png",
     "offlineSampledClips": [
       "airborne",
       "bolt_cast",
@@ -102,18 +101,39 @@
     "multiviewEvidence": [
       "tmp/riftcap-asset/original-views/contact_sheet.png",
       "tmp/riftcap-asset/refined-views/contact_sheet.png"
-    ]
+    ],
+    "runtimeEvidence": "evidence/runtime-verification.json"
   },
   "remainingBlockers": [
-    "Actual-game animation binding/playback, spell and throw/gate verification and transparent preview remain unverified. The focused browser run stalled without a usable scene result. Riftcap-owned transient spell presentation is implemented but not visually accepted.",
-    "User explicitly requires edits remain inside Riftcap. Hero and FrostPuffShot private clocks cannot be fully slowed/restored through current public capabilities; no cross-folder hooks were added. Unsupported actors are reported via bubble.unsupportedActors.",
-    "Locomotion foot contact/sliding, blend transitions and interruptions need real-game inspection. Offline sampled motion is not complete runtime acceptance."
+    "Hero and FrostPuffShot private clocks cannot be integrated within the explicitly permitted scope. Unsupported actors remain reported.",
+    "Visual foot sliding, loop seams, blends, complete interruption acceptance and projectile damage outcome remain unaccepted. See focused runtime evidence for exactly what passed.",
+    "Focused Cypress runs in both Edge and Chrome stalled before producing a test result; owned runs were stopped. Direct Playwright production checks succeeded."
   ],
   "resume": [
-    "Load /map/test_enemy-riftcap after the production scene can start reliably, then run the focused Riftcap Cypress spec.",
-    "Use saved PlayCanvas HUD Verify every clip and Transparent preview controls; inspect complete per-frame joint output, finite rates, loop seams and transitions. Download riftcap-playback.json and riftcap-preview.png; copy validated preview into owning object folder.",
-    "Exercise all six spell HUD controls, heal/ward outcomes, pickup escape, throw/landing, gate swap with doors closed/open, and interruption/death/teardown. Capture actual VFX at peak.",
-    "Keep edits inside Riftcap unless the user changes scope. Full private-clock Time Bubble integration remains unavailable for Hero and FrostPuffShot.",
-    "Update manifest verified/runtimePlayback flags only with actual playback evidence; retain provider original until acceptance."
-  ]
+    "Review evidence/runtime-verification.json for actual production results.",
+    "Complete visual feet, loop seams, blends, interruption and projectile damage acceptance; verified clip flags remain false until visual acceptance.",
+    "Resolve the Cypress runner stall and rerun the saved focused spec.",
+    "Hero/FrostPuffShot private-clock Time Bubble support requires edits outside the permitted Riftcap scope."
+  ],
+  "runtimeVerification": {
+    "evidence": "evidence/runtime-verification.json",
+    "verified": [
+      "32 clips bind and move multiple real non-root joints with finite transforms",
+      "Transparent production preview captured and inspected",
+      "Healing, ward absorption, swap positions, Shatter impulse/displacement",
+      "Bubble bell interruption and real Ammo throw ascent/landing",
+      "Closed gate rejects swap; open gate permits swap",
+      "Carry escape transfers held actor and applies annoyance",
+      "Cube Bolt spawns real Ammo body; teardown releases resources"
+    ],
+    "fixes": [
+      "Apply Shatter impulse after reaction entry stops locomotion",
+      "Reject stale floor landing contact while ascending"
+    ],
+    "remaining": [
+      "Full visual foot/transition/loop inspection",
+      "Complete Cypress result",
+      "Hero/FrostPuffShot private-clock support outside permitted scope"
+    ]
+  }
 }

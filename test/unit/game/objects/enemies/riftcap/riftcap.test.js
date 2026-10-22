@@ -226,6 +226,10 @@ test("shatter pushes both factions using impulses, respects walls and ignores st
   wall.entity.rigidbody = body(wall.entity);
   wall.entity.rigidbody.type = "static";
   objects.push(wall);
+  ally.onStatusApplied = () => {
+    ally.entity.rigidbody.lastImpulse = null;
+    ally.stop();
+  };
   assert.equal(owner.spells.shatter(), 2);
   assert.ok(ally.entity.rigidbody.lastImpulse.x > 0);
   assert.ok(defender.entity.rigidbody.lastImpulse.x < 0);
@@ -355,6 +359,9 @@ test("carry escape swaps only with reachable ally, annoyance and launch/landing 
   });
   assert.equal(owner.stateName, "RiftcapAirborneState");
   assert.equal(owner.entity.rigidbody.linearVelocity.x, 2);
+  assert.equal(owner.onLanding(), false);
+  assert.equal(owner.stateName, "RiftcapAirborneState");
+  owner.entity.rigidbody.linearVelocity.y = -1;
   owner.onLanding();
   assert.equal(owner.stateName, "RiftcapLandState");
   owner.update(0.5);

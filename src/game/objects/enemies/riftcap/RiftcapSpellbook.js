@@ -225,11 +225,12 @@ export class RiftcapSpellbook {
       }
       direction.normalize().mulScalar(3.5 * body.mass);
       direction.y = 1.2 * body.mass;
-      body.applyImpulse(direction);
       actor.applyStatus?.("knockback", {
         duration: 0.45,
         source: owner,
       });
+      // Entering a reaction may stop locomotion; apply the impulse afterward.
+      body.applyImpulse(direction);
       count++;
     }
 
