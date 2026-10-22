@@ -1,0 +1,9 @@
+{
+  "vertices": 13968,
+  "minWeightSum": 0.9999999701976776,
+  "maxWeightSum": 1.0000000298023224,
+  "maxInfluences": 2,
+  "invalidValues": 0,
+  "bones": 17,
+  "uvMapped": true
+}

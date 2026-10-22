@@ -1,0 +1,116 @@
+{
+  "enemy": "HookGremlin",
+  "slug": "hook-gremlin",
+  "completion": "partial_pending_live_acceptance",
+  "registered": true,
+  "reference": "info.png",
+  "referenceReviewed": true,
+  "referenceFindings": [
+    "Main portrait: blue angular goblin with large pointed ears and yellow eyes",
+    "Oversized grey steel hook claws, brown boots and harness, curved brown back attachment",
+    "Secondary red cameo is not the source identity"
+  ],
+  "provider": {
+    "name": "Tripo3D",
+    "cli": "tripo-cli",
+    "cliVersion": "0.5.2",
+    "configuredProfile": "default",
+    "credentialValueRecorded": false,
+    "doctorCommand": "tripo doctor --json",
+    "doctorAuthentication": "passed",
+    "doctorApiReachability": "passed",
+    "balanceCommand": "tripo balance",
+    "availableCredits": 0,
+    "frozenCredits": 0,
+    "generationSubmitted": true,
+    "jobIds": [
+      "91736575-fb7b-4686-96da-5fa3f1dacbbd",
+      "91dc6ff4-b3f1-4d14-a241-ec9f293c6b66"
+    ],
+    "chargesForThisEnemy": null,
+    "blocker": null,
+    "web": {
+      "generationJobId": "91dc6ff4-b3f1-4d14-a241-ec9f293c6b66",
+      "url": "https://studio.tripo3d.ai/workspace/generate/91dc6ff4-b3f1-4d14-a241-ec9f293c6b66",
+      "imageJobId": "91736575-fb7b-4686-96da-5fa3f1dacbbd",
+      "imageEditDisplayedCredits": 0,
+      "imageEditDisplayedRegularCredits": 10,
+      "modelDisplayedCredits": 30,
+      "model": "H3.1 - Best Quality",
+      "geometryAndTexture": true,
+      "privacy": "Private",
+      "generateInParts": false,
+      "texture8k": false,
+      "status": "generated_and_downloaded",
+      "actualCharge": "Not separately exposed in website UI; generation quoted 30, rig 20, image edit displayed discounted 0. Concurrent enemy tasks prevent attributing account balance changes.",
+      "rigDisplayedCredits": 20,
+      "rigJobIdentity": "same model page; separate rig job ID not exposed by UI",
+      "rigResult": "Rejected: 3494 of 3515 vertices weighted to hips; local fitted 17-bone rig replaces these weights on original Tripo mesh.",
+      "imageEditPrompt": "Extract ONLY the large main blue Hook Gremlin character in the upper-left portrait of this design sheet. Remove all text, banners, panels, castle scenery, floor, shadows and every small secondary character. Preserve the exact main character design: cobalt-blue angular goblin, enormous pointed ears, yellow eyes, sharp white teeth, brown leather harness and chunky boots, curved brown segmented back attachment, two oversized grey steel hook claws. Show the complete single character including both hook tips, ears and feet, centered on a plain white background. Do not add anything, do not include the red cameo, do not change the blue palette. Clean 3D asset reference, no lettering.",
+      "negativePrompt": "",
+      "imageEditor": "Nano Banana in Tripo website",
+      "rigPreset": "Humanoid / Mixamo",
+      "replacementModelGenerations": 0,
+      "sourceDesignSha256": "e31452d4da29a59a46765dbc0ab4b79a5a90484e8ddf9bd13379dbf170428002",
+      "portraitSha256": "af09361b94ba88b0daf2655da8872dc5e3a41399a6b88c095d52479dfa167288"
+    }
+  },
+  "implementation": {
+    "scope": "Model-owning HookGremlin runtime leaf, shared Enemy base, Ammo contact component and 11 Yuka states",
+    "physics": "PlayCanvas raycasts, rigidbody linear factors, linear velocity and gravity counterforce; no trajectory integrator",
+    "states": [
+      "HookDetachedState",
+      "HookClimbState",
+      "HookConfusedState",
+      "HookStunnedState",
+      "HookCarriedState",
+      "HookDeadState",
+      "HookAttackState",
+      "HookClingLandingState",
+      "HookMantleState",
+      "HookInspectState",
+      "HookRecoverState"
+    ],
+    "lifecycleIntegration": [
+      "HookGremlin owns model loading and embedded clip playback",
+      "Shared carry/launch/landing/status/damage/death hooks forward into HookClimbBehavior",
+      "beforeLaunch releases grip before shared launch assigns flight velocity",
+      "destroy releases grips and playback checker before shared Enemy teardown"
+    ]
+  },
+  "checks": {
+    "focusedUnitCommand": "node --test test/unit/game/objects/enemies/hook-gremlin/hook-climb.test.js",
+    "focusedUnitTestsPassed": 11,
+    "unitEvidenceBoundary": "Real PlayCanvas vectors/entities, shared Enemy and Yuka machine; raycasts/body commands use test doubles, not live Ammo simulation",
+    "focusedLintCommand": "node node_modules/eslint/bin/eslint.js src/game/objects/enemies/hook-gremlin test/unit/game/objects/enemies/hook-gremlin",
+    "focusedLint": "passed",
+    "actualGamePhysics": "Not verified: repeated real test-route attempts hit concurrent Cinder Imp / Mask Shaman lint errors; the last reload stopped responding. Other tasks files were preserved.",
+    "modelVisualComparison": "Opened front, side, rear and isometric GLB renders against info.png; blue/yellow/brown palette, ears, claws, boots and back loop retained. Steel hooks use rigid weights. Rear details inferred by Tripo.",
+    "exportedClipSampling": "Passed: all 24 clips freshly imported; start, quarter/contact, middle, end deformation sampled; all 24 deform; all looping endpoints match at five decimal places",
+    "actualGameClipPlayback": "not performed: model unavailable",
+    "transparentProductionPreview": "Not captured: actual game route unavailable during verification; Preview PNG HUD command is implemented but no offline substitute was written as preview.png",
+    "animationVisualReview": "Opened all four clip contact sheets; no T-pose, exploded mesh or missing tracks in sampled poses; actual-game foot contact and blend quality pending.",
+    "castleGround": "Passed: 1 castle, 0 confirmed collisions, 0 potential canopy overlaps, 0 errors",
+    "skin": "Passed: 17 joints, max 2 influences per exported vertex, normalized sums within 3e-8, no non-finite weights, UV coordinates present"
+  },
+  "missingDeliverables": [
+    "Actual-game per-clip playback and transition/physics evidence",
+    "Transparent production-game preview.png",
+    "Live climbing/mantle contact and real royal encounter verification"
+  ],
+  "intendedTestRoute": "/map/test_enemy-hook-gremlin",
+  "testRouteAvailable": true,
+  "assets": {
+    "blend": "src/game/models/enemies/hook-gremlin/hook-gremlin.blend",
+    "glb": "src/game/models/enemies/hook-gremlin/hook-gremlin.glb",
+    "originalGlb": "tmp/hook-gremlin/tripo-original.glb",
+    "rejectedProviderRig": "tmp/hook-gremlin/tripo-rigged.glb",
+    "portrait": "source-portrait.png",
+    "hashes": {
+      "blend": "7c60e18f8810614e9812c7c90fac9e9d70e5890be96cae523d6880caa1433e4c",
+      "glb": "f3599f3a9f8720a3f79610211a378e3b3281c4779ecd88402d88611ec49b1e9c",
+      "originalGlb": "6a3bd3a1ef0b188031ffc56e7f570f86af33062f06228301a850d5ed4995829b",
+      "rejectedProviderRig": "b5f3540174931e1e5b34c1753a5b14643a35c66dfa6e597cdff19653652ac435"
+    }
+  }
+}
