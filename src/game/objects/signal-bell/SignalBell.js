@@ -4,6 +4,7 @@ import { SignalBellAudio } from "../../audio/signal-bell/SignalBellAudio.js";
 import { AbstractCastleProp } from "../shared/AbstractCastleProp.js";
 import { SignalBellInteraction } from "./SignalBellInteraction.js";
 import { SignalBellRope } from "./SignalBellRope.js";
+import { SignalBellEvent } from "./SignalBellEvent.js";
 
 /**
  * Map-owned alarm bell with an authored strike clip and an audible, repeatable E action.
@@ -29,6 +30,10 @@ export class SignalBell extends AbstractCastleProp {
    * @type {number}
    */
   #ringCount = 0;
+  /**
+   * @type {import("../ObjectTypes.js").MapObjectRuntime}
+   */
+  #runtime;
   /**
    * @type {((error:Error)=>void)|undefined}
    */
@@ -94,6 +99,7 @@ export class SignalBell extends AbstractCastleProp {
 
     const { pc, app, modelLibrary } = options;
     this.#app = app;
+    this.#runtime = options.runtime ?? {};
     this.#pc = pc;
     this.#onRuntimeError = options.runtime?.onRuntimeError;
     this.#model = this.visualRoots[0].children[0];
@@ -184,6 +190,7 @@ export class SignalBell extends AbstractCastleProp {
   strike() {
     this.#ringCount++;
     this.visualRoots[0].sound.play("ring");
+    SignalBellEvent.dispatch(this, this.#runtime.objects ?? []);
   }
 
   /**

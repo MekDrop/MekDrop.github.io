@@ -8,6 +8,7 @@ import { DoorSwingPhysics } from "./DoorSwingPhysics.js";
 export function createDoorCollision(pc, door) {
   const parts = [];
   const frameBodies = [];
+  const leafRoots = new Set();
   const configuredShapes = new Set();
   /**
    * Mesh assets may create their native shape after the door is constructed.
@@ -78,6 +79,13 @@ export function createDoorCollision(pc, door) {
     if (!render.entity.name.includes("door plank") && !curvedLeaf) {
       continue;
     }
+    // Authored hinges own the moving planks, ironwork and handles together.
+    for (let node = render.entity; node && node !== door; node = node.parent) {
+      if (node.name.toLowerCase().includes("hinge")) {
+        leafRoots.add(node);
+        break;
+      }
+    }
     const positions = [];
     for (const instance of render.meshInstances) {
       instance.mesh.getPositions(positions);
@@ -144,6 +152,16 @@ export function createDoorCollision(pc, door) {
 
   return {
     swing,
+    breakLeaves: () => {
+      for (const leaf of leafRoots) {
+        leaf.enabled = false;
+      }
+      for (const { entity } of parts) {
+        entity.enabled = false;
+      }
+      swing.destroy();
+      parts.length = 0;
+    },
     syncFrameBodies: () => {
       // The castle attaches this door after construction; use its final world pose.
       for (const { collider } of frameBodies) {

@@ -9,6 +9,7 @@
  * @typedef {object} DoorCollision
  * @property {(start: import("playcanvas").Vec3, end: import("playcanvas").Vec3) => (number|null)} raycast
  * @property {(x: number, y: number, z: number, radius: number) => boolean} blocksAt
+ * @property {() => void} [breakLeaves] Disable moving visuals/bodies while preserving frame collision.
  * @property {() => void} destroy
  * @property {import("./DoorSwingPhysics.js").DoorSwingPhysics} [swing]
  * @property {() => void} [syncFrameBodies]

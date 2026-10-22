@@ -1,0 +1,560 @@
+{
+  "status": "All 24 clips fresh-import sampled; production playback pending",
+  "model": "../../../models/enemies/bell-bug/bell-bug.glb",
+  "fps": 30,
+  "clips": [
+    {
+      "name": "idle_nervous",
+      "duration": 1.6,
+      "loop": true,
+      "events": {},
+      "supportedStates": [
+        "BellBugPursueState",
+        "BellBugPlaybackState"
+      ],
+      "verification": {
+        "freshImport": true,
+        "loopSeamResidual": 0,
+        "sampledFractions": [
+          0,
+          0.25,
+          0.5,
+          0.55,
+          0.75,
+          1
+        ],
+        "runtimePlayback": false
+      }
+    },
+    {
+      "name": "scuttle_walk",
+      "duration": 0.8,
+      "loop": true,
+      "events": {},
+      "supportedStates": [
+        "BellBugPursueState"
+      ],
+      "verification": {
+        "freshImport": true,
+        "loopSeamResidual": 0,
+        "sampledFractions": [
+          0,
+          0.25,
+          0.5,
+          0.55,
+          0.75,
+          1
+        ],
+        "runtimePlayback": false
+      }
+    },
+    {
+      "name": "scuttle_run",
+      "duration": 0.5,
+      "loop": true,
+      "events": {},
+      "supportedStates": [
+        "BellBugPlaybackState"
+      ],
+      "verification": {
+        "freshImport": true,
+        "loopSeamResidual": 0,
+        "sampledFractions": [
+          0,
+          0.25,
+          0.5,
+          0.55,
+          0.75,
+          1
+        ],
+        "runtimePlayback": false
+      }
+    },
+    {
+      "name": "turn",
+      "duration": 0.6,
+      "loop": false,
+      "events": {},
+      "supportedStates": [
+        "BellBugPlaybackState"
+      ],
+      "verification": {
+        "freshImport": true,
+        "loopSeamResidual": 0,
+        "sampledFractions": [
+          0,
+          0.25,
+          0.5,
+          0.55,
+          0.75,
+          1
+        ],
+        "runtimePlayback": false
+      }
+    },
+    {
+      "name": "cower",
+      "duration": 1,
+      "loop": true,
+      "events": {},
+      "supportedStates": [
+        "BellBugPanicState"
+      ],
+      "verification": {
+        "freshImport": true,
+        "loopSeamResidual": 0,
+        "sampledFractions": [
+          0,
+          0.25,
+          0.5,
+          0.55,
+          0.75,
+          1
+        ],
+        "runtimePlayback": false
+      }
+    },
+    {
+      "name": "fear_recoil",
+      "duration": 0.2,
+      "loop": false,
+      "events": {},
+      "supportedStates": [
+        "BellBugPanicState"
+      ],
+      "verification": {
+        "freshImport": true,
+        "loopSeamResidual": 0,
+        "sampledFractions": [
+          0,
+          0.25,
+          0.5,
+          0.55,
+          0.75,
+          1
+        ],
+        "runtimePlayback": false
+      }
+    },
+    {
+      "name": "panic_ring_start",
+      "duration": 0.2667,
+      "loop": false,
+      "events": {},
+      "supportedStates": [
+        "BellBugPanicState"
+      ],
+      "verification": {
+        "freshImport": true,
+        "loopSeamResidual": 0.05742900000000006,
+        "sampledFractions": [
+          0,
+          0.25,
+          0.5,
+          0.55,
+          0.75,
+          1
+        ],
+        "runtimePlayback": false
+      }
+    },
+    {
+      "name": "panic_ring_loop",
+      "duration": 0.7333,
+      "loop": true,
+      "events": {},
+      "supportedStates": [
+        "BellBugPanicState"
+      ],
+      "verification": {
+        "freshImport": true,
+        "loopSeamResidual": 0,
+        "sampledFractions": [
+          0,
+          0.25,
+          0.5,
+          0.55,
+          0.75,
+          1
+        ],
+        "runtimePlayback": false
+      }
+    },
+    {
+      "name": "panic_ring_end",
+      "duration": 0.3,
+      "loop": false,
+      "events": {},
+      "supportedStates": [
+        "BellBugPanicState"
+      ],
+      "verification": {
+        "freshImport": true,
+        "loopSeamResidual": 0.05742900000000006,
+        "sampledFractions": [
+          0,
+          0.25,
+          0.5,
+          0.55,
+          0.75,
+          1
+        ],
+        "runtimePlayback": false
+      }
+    },
+    {
+      "name": "door_scratch_start",
+      "duration": 0.3,
+      "loop": false,
+      "events": {},
+      "supportedStates": [
+        "BellBugScratchState"
+      ],
+      "verification": {
+        "freshImport": true,
+        "loopSeamResidual": 0.295887,
+        "sampledFractions": [
+          0,
+          0.25,
+          0.5,
+          0.55,
+          0.75,
+          1
+        ],
+        "runtimePlayback": false
+      }
+    },
+    {
+      "name": "door_scratch_loop",
+      "duration": 0.7333,
+      "loop": true,
+      "events": {
+        "contact": 0.55
+      },
+      "supportedStates": [
+        "BellBugScratchState"
+      ],
+      "verification": {
+        "freshImport": true,
+        "loopSeamResidual": 0,
+        "sampledFractions": [
+          0,
+          0.25,
+          0.5,
+          0.55,
+          0.75,
+          1
+        ],
+        "runtimePlayback": false
+      }
+    },
+    {
+      "name": "door_scratch_end",
+      "duration": 0.2667,
+      "loop": false,
+      "events": {},
+      "supportedStates": [
+        "BellBugScratchRecoverState"
+      ],
+      "verification": {
+        "freshImport": true,
+        "loopSeamResidual": 0.295887,
+        "sampledFractions": [
+          0,
+          0.25,
+          0.5,
+          0.55,
+          0.75,
+          1
+        ],
+        "runtimePlayback": false
+      }
+    },
+    {
+      "name": "scratch_attack",
+      "duration": 0.7333,
+      "loop": false,
+      "events": {
+        "contact": 0.55
+      },
+      "supportedStates": [
+        "BellBugPlaybackState"
+      ],
+      "verification": {
+        "freshImport": true,
+        "loopSeamResidual": 0,
+        "sampledFractions": [
+          0,
+          0.25,
+          0.5,
+          0.55,
+          0.75,
+          1
+        ],
+        "runtimePlayback": false
+      }
+    },
+    {
+      "name": "hit",
+      "duration": 0.3,
+      "loop": false,
+      "events": {},
+      "supportedStates": [
+        "BellBugReactionState"
+      ],
+      "verification": {
+        "freshImport": true,
+        "loopSeamResidual": 0,
+        "sampledFractions": [
+          0,
+          0.25,
+          0.5,
+          0.55,
+          0.75,
+          1
+        ],
+        "runtimePlayback": false
+      }
+    },
+    {
+      "name": "stun",
+      "duration": 1,
+      "loop": true,
+      "events": {},
+      "supportedStates": [
+        "BellBugReactionState"
+      ],
+      "verification": {
+        "freshImport": true,
+        "loopSeamResidual": 0,
+        "sampledFractions": [
+          0,
+          0.25,
+          0.5,
+          0.55,
+          0.75,
+          1
+        ],
+        "runtimePlayback": false
+      }
+    },
+    {
+      "name": "recover",
+      "duration": 0.4,
+      "loop": false,
+      "events": {},
+      "supportedStates": [
+        "BellBugReactionState"
+      ],
+      "verification": {
+        "freshImport": true,
+        "loopSeamResidual": 0.119712,
+        "sampledFractions": [
+          0,
+          0.25,
+          0.5,
+          0.55,
+          0.75,
+          1
+        ],
+        "runtimePlayback": false
+      }
+    },
+    {
+      "name": "carried_panic",
+      "duration": 0.8,
+      "loop": true,
+      "events": {},
+      "supportedStates": [
+        "BellBugReactionState"
+      ],
+      "verification": {
+        "freshImport": true,
+        "loopSeamResidual": 0,
+        "sampledFractions": [
+          0,
+          0.25,
+          0.5,
+          0.55,
+          0.75,
+          1
+        ],
+        "runtimePlayback": false
+      }
+    },
+    {
+      "name": "airborne_tumble",
+      "duration": 0.8,
+      "loop": true,
+      "events": {},
+      "supportedStates": [
+        "BellBugReactionState"
+      ],
+      "verification": {
+        "freshImport": true,
+        "loopSeamResidual": 0.0000010000000000287557,
+        "sampledFractions": [
+          0,
+          0.25,
+          0.5,
+          0.55,
+          0.75,
+          1
+        ],
+        "runtimePlayback": false
+      }
+    },
+    {
+      "name": "land",
+      "duration": 0.2667,
+      "loop": false,
+      "events": {},
+      "supportedStates": [
+        "BellBugReactionState"
+      ],
+      "verification": {
+        "freshImport": true,
+        "loopSeamResidual": 0,
+        "sampledFractions": [
+          0,
+          0.25,
+          0.5,
+          0.55,
+          0.75,
+          1
+        ],
+        "runtimePlayback": false
+      }
+    },
+    {
+      "name": "land_recover",
+      "duration": 0.3333,
+      "loop": false,
+      "events": {},
+      "supportedStates": [
+        "BellBugReactionState"
+      ],
+      "verification": {
+        "freshImport": true,
+        "loopSeamResidual": 0.025000000000000022,
+        "sampledFractions": [
+          0,
+          0.25,
+          0.5,
+          0.55,
+          0.75,
+          1
+        ],
+        "runtimePlayback": false
+      }
+    },
+    {
+      "name": "death",
+      "duration": 1.2,
+      "loop": false,
+      "events": {},
+      "supportedStates": [
+        "BellBugReactionState"
+      ],
+      "verification": {
+        "freshImport": true,
+        "loopSeamResidual": 1.475464,
+        "sampledFractions": [
+          0,
+          0.25,
+          0.5,
+          0.55,
+          0.75,
+          1
+        ],
+        "runtimePlayback": false
+      }
+    },
+    {
+      "name": "knockback",
+      "duration": 0.4,
+      "loop": false,
+      "events": {},
+      "supportedStates": [
+        "BellBugPlaybackState"
+      ],
+      "verification": {
+        "freshImport": true,
+        "loopSeamResidual": 0,
+        "sampledFractions": [
+          0,
+          0.25,
+          0.5,
+          0.55,
+          0.75,
+          1
+        ],
+        "runtimePlayback": false
+      }
+    },
+    {
+      "name": "turn_left",
+      "duration": 0.6,
+      "loop": false,
+      "events": {},
+      "supportedStates": [
+        "BellBugPlaybackState"
+      ],
+      "verification": {
+        "freshImport": true,
+        "loopSeamResidual": 0,
+        "sampledFractions": [
+          0,
+          0.25,
+          0.5,
+          0.55,
+          0.75,
+          1
+        ],
+        "runtimePlayback": false
+      }
+    },
+    {
+      "name": "turn_right",
+      "duration": 0.6,
+      "loop": false,
+      "events": {},
+      "supportedStates": [
+        "BellBugPlaybackState"
+      ],
+      "verification": {
+        "freshImport": true,
+        "loopSeamResidual": 0,
+        "sampledFractions": [
+          0,
+          0.25,
+          0.5,
+          0.55,
+          0.75,
+          1
+        ],
+        "runtimePlayback": false
+      }
+    }
+  ],
+  "evidence": "verification.json",
+  "stateEvents": {
+    "BellBugPanicState": {
+      "fearRecoil": 0,
+      "ringStart": 0.2,
+      "ringContact": 0.45,
+      "ringEnd": 1.2,
+      "cower": 1.5,
+      "resume": 1.8
+    },
+    "BellBugScratchState": {
+      "windup": 0,
+      "loopStart": 0.3,
+      "firstContact": 0.85,
+      "repeatEvery": 0.75
+    },
+    "BellBugReactionState": {
+      "deathCleanup": 1.2
+    }
+  }
+}

@@ -13,6 +13,63 @@ const CLICK_OPEN_SECONDS = 1;
  */
 export class Door {
   /**
+   * @type {number}
+   */
+  #health = 48;
+  /**
+   * @type {boolean}
+   */
+  #broken = false;
+
+  /**
+   * @returns {number}
+   */
+  get health() {
+    return this.#health;
+  }
+
+  /**
+   * @returns {number}
+   */
+  get maxHealth() {
+    return 48;
+  }
+
+  /**
+   * @returns {boolean}
+   */
+  get broken() {
+    return this.#broken;
+  }
+
+  /**
+   * Remove only moving leaves; the frame and its Ammo bodies stay castle-owned.
+   * @param {number} amount
+   * @returns {number}
+   */
+  receiveDamage(amount) {
+    if (!this.#entity || this.#broken || !Number.isFinite(amount) || amount <= 0) {
+      return 0;
+    }
+    const applied = Math.min(amount, this.#health);
+    this.#health -= applied;
+    if (this.#health === 0) {
+      this.#broken = true;
+      this.clearGlue?.();
+      this.#operator = null;
+      this.#collision.syncFrameBodies?.();
+      if (this.#collision.breakLeaves) {
+        this.#collision.breakLeaves();
+      } else if (this.#hinge) {
+        this.#hinge.enabled = false;
+      } else if (this.#animationEntity !== this.#entity) {
+        this.#animationEntity.enabled = false;
+      }
+    }
+    return applied;
+  }
+
+  /**
    * @type {import("playcanvas").Material[]}
    */
   #ownedMaterials;
@@ -147,8 +204,11 @@ export class Door {
     this.#operator = actor;
   }
 
+  /**
+   * @returns {number}
+   */
   get openAmount() {
-    return this.#openAmount;
+    return this.#broken ? 1 : this.#openAmount;
   }
 
   /**
@@ -286,6 +346,9 @@ export class Door {
    * @param {number} value
    */
   set openAmount(value) {
+    if (this.#broken) {
+      return;
+    }
     if (this.#collision.swing) {
       this.#sequenceOpenAmount = Math.max(0, Math.min(1, value));
 
@@ -304,7 +367,7 @@ export class Door {
    * @returns {boolean}
    */
   get revealsInterior() {
-    return this.#shouldOpen() || this.#openAmount > 0.001;
+    return this.#broken || this.#shouldOpen() || this.#openAmount > 0.001;
   }
 
   /**
@@ -324,7 +387,7 @@ export class Door {
    * @param {import("playcanvas").Vec3} rayEnd
    */
   getHit(rayStart, rayEnd) {
-    if (!this.#entity) {
+    if (!this.#entity || this.#broken) {
       return null;
     }
     const distance = this.#collision.raycast(rayStart, rayEnd);
@@ -352,6 +415,9 @@ export class Door {
   }
 
   handlePointerDown() {
+    if (this.#broken) {
+      return false;
+    }
     this.#testOpenAmount = null;
     if (this.#onOpen) {
       return this.#onOpen();
@@ -368,7 +434,7 @@ export class Door {
    * @param {number} options.z
    */
   updateHeroPosition({ x, y, z }) {
-    if (!this.#automatic) {
+    if (this.#broken || !this.#automatic) {
       return;
     }
     if (this.#upperFloor && (y === undefined || Math.abs(y - this.#center.y) > 0.7)) {
@@ -410,6 +476,11 @@ export class Door {
    * @param {number} [speed] Opening speed override.
    */
   update(deltaTime, open, speed = this.#openSpeed) {
+    if (this.#broken) {
+      this.#collision.syncFrameBodies?.();
+
+      return;
+    }
     this.#manualOpenRemaining = Math.max(
       0,
       this.#manualOpenRemaining - deltaTime,
@@ -469,7 +540,7 @@ export class Door {
    */
   intersectsFootprint(x, z, radius) {
     // Ground navigation must not inherit a bedroom door several metres above it.
-    if (this.#elevated) {
+    if (this.#broken || this.#elevated) {
       return false;
     }
     return this.#collision.blocksAt(x, this.#center.y + 0.4, z, radius);
@@ -482,7 +553,7 @@ export class Door {
    * @param {number} radius
    */
   blocksCameraAt(x, y, z, radius = 0) {
-    return this.#collision.blocksAt(x, y, z, radius);
+    return !this.#broken && this.#collision.blocksAt(x, y, z, radius);
   }
 
   destroy() {

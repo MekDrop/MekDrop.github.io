@@ -1,0 +1,524 @@
+{
+  "asset": "C:\\Users\\mekdr\\Documents\\Projects\\MekDrop.github.io\\src\\game\\models\\enemies\\bell-bug\\bell-bug.glb",
+  "freshImport": true,
+  "bones": 9,
+  "clips": [
+    {
+      "name": "airborne_tumble",
+      "frames": [
+        0,
+        24
+      ],
+      "motionResidual": 2,
+      "loopSeamResidual": 0.0000010000000000287557,
+      "finite": true,
+      "sampleFractions": [
+        0,
+        0.25,
+        0.5,
+        0.55,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "carried_panic",
+      "frames": [
+        0,
+        24
+      ],
+      "motionResidual": 0.642614,
+      "loopSeamResidual": 0,
+      "finite": true,
+      "sampleFractions": [
+        0,
+        0.25,
+        0.5,
+        0.55,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "cower",
+      "frames": [
+        0,
+        30
+      ],
+      "motionResidual": 0.019747,
+      "loopSeamResidual": 0,
+      "finite": true,
+      "sampleFractions": [
+        0,
+        0.25,
+        0.5,
+        0.55,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "death",
+      "frames": [
+        0,
+        36
+      ],
+      "motionResidual": 1.475464,
+      "loopSeamResidual": 1.475464,
+      "finite": true,
+      "sampleFractions": [
+        0,
+        0.25,
+        0.5,
+        0.55,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "door_scratch_end",
+      "frames": [
+        0,
+        8
+      ],
+      "motionResidual": 0.295887,
+      "loopSeamResidual": 0.295887,
+      "finite": true,
+      "sampleFractions": [
+        0,
+        0.25,
+        0.5,
+        0.55,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "door_scratch_loop",
+      "frames": [
+        0,
+        22
+      ],
+      "motionResidual": 0.335879,
+      "loopSeamResidual": 0,
+      "finite": true,
+      "sampleFractions": [
+        0,
+        0.25,
+        0.5,
+        0.55,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "door_scratch_start",
+      "frames": [
+        0,
+        9
+      ],
+      "motionResidual": 0.295887,
+      "loopSeamResidual": 0.295887,
+      "finite": true,
+      "sampleFractions": [
+        0,
+        0.25,
+        0.5,
+        0.55,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "fear_recoil",
+      "frames": [
+        0,
+        6
+      ],
+      "motionResidual": 0.17903,
+      "loopSeamResidual": 0,
+      "finite": true,
+      "sampleFractions": [
+        0,
+        0.25,
+        0.5,
+        0.55,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "hit",
+      "frames": [
+        0,
+        9
+      ],
+      "motionResidual": 0.214967,
+      "loopSeamResidual": 0,
+      "finite": true,
+      "sampleFractions": [
+        0,
+        0.25,
+        0.5,
+        0.55,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "idle_nervous",
+      "frames": [
+        0,
+        48
+      ],
+      "motionResidual": 0.049979,
+      "loopSeamResidual": 0,
+      "finite": true,
+      "sampleFractions": [
+        0,
+        0.25,
+        0.5,
+        0.55,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "knockback",
+      "frames": [
+        0,
+        12
+      ],
+      "motionResidual": 0.21823,
+      "loopSeamResidual": 0,
+      "finite": true,
+      "sampleFractions": [
+        0,
+        0.25,
+        0.5,
+        0.55,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "land",
+      "frames": [
+        0,
+        8
+      ],
+      "motionResidual": 0.139543,
+      "loopSeamResidual": 0,
+      "finite": true,
+      "sampleFractions": [
+        0,
+        0.25,
+        0.5,
+        0.55,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "land_recover",
+      "frames": [
+        0,
+        10
+      ],
+      "motionResidual": 0.079915,
+      "loopSeamResidual": 0.025000000000000022,
+      "finite": true,
+      "sampleFractions": [
+        0,
+        0.25,
+        0.5,
+        0.55,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "panic_ring_end",
+      "frames": [
+        0,
+        9
+      ],
+      "motionResidual": 0.09619800000000006,
+      "loopSeamResidual": 0.05742900000000006,
+      "finite": true,
+      "sampleFractions": [
+        0,
+        0.25,
+        0.5,
+        0.55,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "panic_ring_loop",
+      "frames": [
+        0,
+        22
+      ],
+      "motionResidual": 0.132442,
+      "loopSeamResidual": 0,
+      "finite": true,
+      "sampleFractions": [
+        0,
+        0.25,
+        0.5,
+        0.55,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "panic_ring_start",
+      "frames": [
+        0,
+        8
+      ],
+      "motionResidual": 0.059964,
+      "loopSeamResidual": 0.05742900000000006,
+      "finite": true,
+      "sampleFractions": [
+        0,
+        0.25,
+        0.5,
+        0.55,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "recover",
+      "frames": [
+        0,
+        12
+      ],
+      "motionResidual": 0.119712,
+      "loopSeamResidual": 0.119712,
+      "finite": true,
+      "sampleFractions": [
+        0,
+        0.25,
+        0.5,
+        0.55,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "scratch_attack",
+      "frames": [
+        0,
+        22
+      ],
+      "motionResidual": 0.49867799999999995,
+      "loopSeamResidual": 0,
+      "finite": true,
+      "sampleFractions": [
+        0,
+        0.25,
+        0.5,
+        0.55,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "scuttle_run",
+      "frames": [
+        0,
+        15
+      ],
+      "motionResidual": 0.379842,
+      "loopSeamResidual": 0,
+      "finite": true,
+      "sampleFractions": [
+        0,
+        0.25,
+        0.5,
+        0.55,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "scuttle_walk",
+      "frames": [
+        0,
+        24
+      ],
+      "motionResidual": 0.247796,
+      "loopSeamResidual": 0,
+      "finite": true,
+      "sampleFractions": [
+        0,
+        0.25,
+        0.5,
+        0.55,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "stun",
+      "frames": [
+        0,
+        30
+      ],
+      "motionResidual": 0.11906,
+      "loopSeamResidual": 0,
+      "finite": true,
+      "sampleFractions": [
+        0,
+        0.25,
+        0.5,
+        0.55,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "turn",
+      "frames": [
+        0,
+        18
+      ],
+      "motionResidual": 0.29286300000000004,
+      "loopSeamResidual": 0,
+      "finite": true,
+      "sampleFractions": [
+        0,
+        0.25,
+        0.5,
+        0.55,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "turn_left",
+      "frames": [
+        0,
+        18
+      ],
+      "motionResidual": 0.29286300000000004,
+      "loopSeamResidual": 0,
+      "finite": true,
+      "sampleFractions": [
+        0,
+        0.25,
+        0.5,
+        0.55,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "turn_right",
+      "frames": [
+        0,
+        18
+      ],
+      "motionResidual": 0.29286300000000004,
+      "loopSeamResidual": 0,
+      "finite": true,
+      "sampleFractions": [
+        0,
+        0.25,
+        0.5,
+        0.55,
+        0.75,
+        1
+      ]
+    }
+  ],
+  "meshes": [
+    {
+      "name": "Authored middle foot -1",
+      "vertices": 96,
+      "uvLayers": 1,
+      "normalizedWeights": true,
+      "maxInfluences": 1
+    },
+    {
+      "name": "Authored middle foot 1",
+      "vertices": 96,
+      "uvLayers": 1,
+      "normalizedWeights": true,
+      "maxInfluences": 1
+    },
+    {
+      "name": "BellBug Tripo shell body legs",
+      "vertices": 3419,
+      "uvLayers": 1,
+      "normalizedWeights": true,
+      "maxInfluences": 1
+    }
+  ],
+  "note": "Blender importer custom bone-display Icosphere excluded from exported mesh validation.",
+  "referenceReview": {
+    "mainPortraitViewed": true,
+    "originalViews": [
+      "front",
+      "side",
+      "rear",
+      "game"
+    ],
+    "refinedViews": [
+      "front",
+      "side",
+      "rear",
+      "game"
+    ],
+    "findings": [
+      "Golden faceted flared shell, top handle and frightened angular eye identity retained",
+      "Local face shift and self-lit texture improve readability under shell",
+      "Six-legged anatomy completed with two middle feet; original provider mesh retained",
+      "Reference rear is unspecified; generated rear retained"
+    ],
+    "evidenceLocation": "tmp/bell-bug/"
+  },
+  "runtime": {
+    "status": "pending",
+    "testMap": "/map/test_enemy-bell-bug",
+    "blocker": "Production route blocked by sibling src/game/objects/enemies/riftcap/RiftcapSpellbook.js line 169 ESLint padding-line-between-statements; observed again after door integration. No unrelated sibling code changed."
+  },
+  "remaining": [
+    "Actual-game per-clip playback, two-joint motion checks, blend/interruption and time-scale checks",
+    "Actual-game transparent preview.png capture and RGBA validation"
+  ],
+  "focusedTests": {
+    "command": "node --test test/unit/game/objects/architecture/door/door.test.js test/unit/game/objects/architecture/door/door-damage-collision.test.js test/unit/game/objects/enemies/bell-bug/bell-bug.test.js test/unit/game/objects/signal-bell/*.test.js",
+    "passed": 30,
+    "failed": 0
+  },
+  "yukaStates": [
+    "BellBugPursueState",
+    "BellBugPanicState",
+    "BellBugScratchState",
+    "BellBugScratchRecoverState",
+    "BellBugReactionState",
+    "BellBugPlaybackState"
+  ],
+  "doorIntegration": {
+    "authorized": true,
+    "implemented": true,
+    "maxHealth": 48,
+    "scratchDamage": 8,
+    "contactsToBreak": 6,
+    "framePreserved": true,
+    "leavesAndPhysicsDisabled": true,
+    "queriesCleared": true,
+    "nonlethalOpeningUnchanged": true,
+    "evidence": [
+      "test/unit/game/objects/architecture/door/door.test.js",
+      "test/unit/game/objects/architecture/door/door-damage-collision.test.js",
+      "test/unit/game/objects/enemies/bell-bug/bell-bug.test.js"
+    ],
+    "runtimeVerified": false
+  }
+}

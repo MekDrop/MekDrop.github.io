@@ -1,0 +1,46 @@
+{
+  "provider": "Tripo Studio",
+  "operation": "image-to-3d",
+  "jobId": "e401b3b6-882a-4ced-9669-9c7777182143",
+  "url": "https://studio.tripo3d.ai/workspace/generate/e401b3b6-882a-4ced-9669-9c7777182143",
+  "model": "H3.1 – Best Quality",
+  "settings": {
+    "geometryAndTexture": true,
+    "generateInParts": false,
+    "texture8k": false,
+    "privacy": "Sharing Only",
+    "downloadFormat": "GLB",
+    "textureResolution": "2k Current"
+  },
+  "quotedCredits": 30,
+  "observedBalanceBefore": 23160,
+  "observedBalanceAfter": 23130,
+  "observedDeduction": 30,
+  "apiCredentialConfigured": null,
+  "cliStatus": "game-dev not installed/on PATH; existing authorized Studio session used",
+  "prompt": null,
+  "negativePrompt": null,
+  "referenceSource": "src/game/objects/enemies/bell-bug/info.png",
+  "referenceDerivative": "src/game/objects/enemies/bell-bug/model-reference.png",
+  "referenceSha256": "d1adda04de475799c15cb8298bc3f751754dfb7c4f1ccea48f556ebbcf69a443",
+  "originalSha256": "b786aec6f28e30c6adb8465e0084b6b90d9bd7ff486d4cffb7f312f37c09e096",
+  "originalDownload": "tmp/bell-bug/tripo-original.glb",
+  "originalFaces": 4660,
+  "originalVertices": 3299,
+  "refinements": [
+    "Nonhumanoid six-leg armature and rigid normalized skin weights",
+    "Two middle feet added to provider four-legged mesh",
+    "Face brought forward and emissive textured face material improves readability",
+    "24 locally authored semantic animation clips"
+  ],
+  "blend": "bell-bug.blend",
+  "glb": "bell-bug.glb",
+  "glbSha256": "3f8fc8fc22d0b5b403f482d12b1cb2e5cf3d4b919323076e07c72941441a8cf9",
+  "replacementAttempts": 0,
+  "paidRigOrAnimationJobs": 0,
+  "referenceGeneration": {
+    "tool": "image_gen",
+    "prompt": "Create a clean image-to-3D reference from ONLY the LARGE MAIN CHARACTER portrait in the LEFT UPPER half of the supplied Bell Bug infographic. Reproduce the very same golden polygonal bell-shell beetle, handle atop the shell, dark charcoal underside, frightened glowing pale yellow angular eyes and six chunky dark brown beetle legs, gold blocky flared bell rim. One single whole character centered three quarter front view on plain white background. Remove all writing, smaller cameo figures, scenery, motion lines and other elements. Preserve cubist faceted angular low poly aesthetic and exact character proportions; no redesign. Entire beetle visible.",
+    "source": "src/game/objects/enemies/bell-bug/info.png"
+  }
+}

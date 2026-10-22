@@ -195,3 +195,66 @@ it("releases owned model materials exactly once when destroyed", () => {
   door.destroy();
   assert.equal(destroyed, 1);
 });
+
+it("damage removes moving leaves but keeps the frame and clears door queries", () => {
+  let removed = 0;
+  let frames = 0;
+  const { door, entity } = fixture({
+    collision:{
+      raycast: () => 0.2,
+      blocksAt: () => true,
+      syncFrameBodies: () => {
+        frames++;
+      },
+      breakLeaves: () => {
+        removed++;
+      },
+      destroy: () => {},
+    },
+  });
+  const activeRoot = new Entity("Active test scene");
+  activeRoot._enabledInHierarchy = true;
+  activeRoot.addChild(entity);
+  assert.equal(door.receiveDamage(8), 8);
+  assert.equal(door.health, 40);
+  assert.equal(removed, 0);
+  assert.equal(door.intersectsFootprint(0,0,.5), true);
+  assert.equal(door.receiveDamage(100), 40);
+  assert.equal(door.health, 0);
+  assert.equal(door.broken, true);
+  assert.equal(door.openAmount, 1);
+  assert.equal(door.revealsInterior, true);
+  assert.equal(removed, 1);
+  assert.equal(entity.enabled, true, "masonry-owning root survives");
+  assert.equal(door.intersectsFootprint(0,0,.5), false);
+  assert.equal(door.blocksCameraAt(0,0,0), false);
+  assert.equal(door.getHit(new Vec3(),new Vec3(1,0,0)), null);
+  assert.equal(door.handlePointerDown(), false);
+  door.testOpenAmount = 0;
+  door.update(1, false);
+  assert.equal(door.openAmount, 1);
+  assert.ok(frames >= 2, "frame bodies keep following the castle");
+  assert.equal(door.receiveDamage(8),0);
+  assert.equal(removed,1);
+  door.destroy();
+});
+
+it("nonlethal damage retains the existing opening timeline and rejects invalid amounts", () => {
+  const {door,layer}=fixture();
+  const activeRoot = new Entity("Active test scene");
+  activeRoot._enabledInHierarchy = true;
+  activeRoot.addChild(door.entity);
+  for (const amount of [NaN,Infinity,0,-1]) {
+    assert.equal(door.receiveDamage(amount),0);
+  }
+  door.receiveDamage(8);
+  door.update(1,true);
+  assert.equal(door.openAmount,.5);
+  assert.equal(layer.activeStateCurrentTime,2);
+  assert.equal(door.entity.findByName('Custom hinge').enabled,true);
+  door.receiveDamage(40);
+  assert.equal(door.entity.findByName('Custom hinge').enabled,false);
+  assert.equal(door.entity.enabled,true);
+  door.destroy();
+  assert.equal(door.receiveDamage(8),0);
+});
