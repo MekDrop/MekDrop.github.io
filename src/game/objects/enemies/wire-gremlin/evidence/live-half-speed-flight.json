@@ -1,0 +1,1602 @@
+[
+  {
+    "elapsed": 31.431300000000007,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -3.832062244415283,
+      2.0029399394989014,
+      -8.768502235412598
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 31.685000000000002,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -3.733746290206909,
+      1.9997786283493042,
+      -8.668158531188965
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 31.951900000000002,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -3.5916318893432617,
+      2.0038554668426514,
+      -8.575637817382812
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 32.24550000000001,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -3.4334819316864014,
+      2.0039472579956055,
+      -8.468810081481934
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 32.49910000000001,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -3.2968780994415283,
+      2.0036022663116455,
+      -8.376537322998047
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 32.76600000000003,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -3.153109550476074,
+      2.00392484664917,
+      -8.279423713684082
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 33.01960000000004,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -3.01650333404541,
+      2.0038936138153076,
+      -8.187153816223145
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 33.28660000000005,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -2.872681140899658,
+      2.003997325897217,
+      -8.090019226074219
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 33.54020000000006,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -2.7360775470733643,
+      2.004073143005371,
+      -7.997782230377197
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 33.80710000000007,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -2.5923550128936768,
+      2.003687620162964,
+      -7.9006195068359375
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 34.060700000000075,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -2.455754518508911,
+      2.0032989978790283,
+      -7.8083648681640625
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 34.35440000000008,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -2.2974977493286133,
+      2.003999710083008,
+      -7.702504634857178
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 34.60790000000009,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -2.1609561443328857,
+      2.0039563179016113,
+      -7.610476016998291
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 34.874900000000096,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -2.0171666145324707,
+      2.0039992332458496,
+      -7.513293266296387
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 35.1418000000001,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -1.8734300136566162,
+      2.003999710083008,
+      -7.416147232055664
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 35.44870000000011,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -1.7081512212753296,
+      2.0039992332458496,
+      -7.304442405700684
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 35.70230000000012,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -1.5715771913528442,
+      2.0039994716644287,
+      -7.212136745452881
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 35.969300000000125,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -1.4277865886688232,
+      2.0039989948272705,
+      -7.114954471588135
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 36.22290000000014,
+    "state": "GremlinEntranceState",
+    "clip": "sabotage_start",
+    "position": [
+      -1.312518835067749,
+      2.0039989948272705,
+      -7.037050247192383
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 36.48980000000015,
+    "state": "GremlinEntranceState",
+    "clip": "sabotage_start",
+    "position": [
+      -1.3125213384628296,
+      2.0039987564086914,
+      -7.037050247192383
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 36.77010000000014,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -1.229899287223816,
+      2.003995180130005,
+      -6.98178768157959
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 37.02370000000015,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -1.0933605432510376,
+      2.003995180130005,
+      -6.889592170715332
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 37.27730000000016,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -0.9674440026283264,
+      2.0012896060943604,
+      -6.88533353805542
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 37.54420000000017,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -0.8275377750396729,
+      2.0039234161376953,
+      -6.867631912231445
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 37.81120000000018,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -0.682280421257019,
+      2.003986358642578,
+      -6.794626712799072
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 38.06470000000018,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -0.5587769150733948,
+      2.0039937496185303,
+      -6.687151908874512
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 38.32490000000019,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -0.43364977836608887,
+      2.0039987564086914,
+      -6.5733866691589355
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 38.57850000000018,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -0.3109462857246399,
+      2.000131845474243,
+      -6.4602155685424805
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 38.83860000000017,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -0.18728137016296387,
+      1.9999817609786987,
+      -6.349164009094238
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 39.10560000000018,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -0.07622890919446945,
+      1.999977707862854,
+      -6.249690532684326
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 39.36570000000019,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      0.010151303373277187,
+      1.999984860420227,
+      -6.172313690185547
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 39.619400000000184,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      0.12459751218557358,
+      1.999981164932251,
+      -6.069803714752197
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 39.90620000000019,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      0.2513926029205322,
+      1.9998725652694702,
+      -5.95664644241333
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 40.173200000000186,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      0.2008633315563202,
+      1.999993920326233,
+      -5.96944522857666
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 40.46680000000019,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -0.12937888503074646,
+      1.9999769926071167,
+      -6.179365634918213
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 40.7204000000002,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -0.417292058467865,
+      1.9999327659606934,
+      -6.363020420074463
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 40.98730000000019,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -0.5383427739143372,
+      2.0039970874786377,
+      -6.580992698669434
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 41.2409000000002,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -0.7272753119468689,
+      2.0039801597595215,
+      -6.823147296905518
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 41.494500000000194,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -1.0540024042129517,
+      2.0046956539154053,
+      -7.0112690925598145
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 41.801500000000196,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -1.4542797803878784,
+      2.0039820671081543,
+      -7.239185810089111
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 42.0684000000002,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -1.8022756576538086,
+      2.0039989948272705,
+      -7.43712043762207
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 42.32200000000021,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -2.132930040359497,
+      2.003999710083008,
+      -7.625192165374756
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 42.57560000000022,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -2.4635543823242188,
+      2.0034890174865723,
+      -7.813558578491211
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 42.85590000000024,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -2.829068899154663,
+      2.003999710083008,
+      -8.020724296569824
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 43.10960000000024,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -3.1598100662231445,
+      2.0039985179901123,
+      -8.208786010742188
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 43.36310000000025,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -3.4902844429016113,
+      2.003822088241577,
+      -8.396859169006348
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 43.616700000000264,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -3.8208882808685303,
+      2.003955364227295,
+      -8.58502197265625
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 43.91030000000025,
+    "state": "GremlinTerritorialState",
+    "clip": "territorial_warn",
+    "position": [
+      -3.9329049587249756,
+      2.0008649826049805,
+      -8.650064468383789
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 44.16400000000025,
+    "state": "GremlinTerritorialState",
+    "clip": "territorial_warn",
+    "position": [
+      -3.9465982913970947,
+      2.000920534133911,
+      -8.657604217529297
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": true,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 44.43080000000027,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -3.992220878601074,
+      2.000056266784668,
+      -8.678144454956055
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 44.71110000000027,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -4.220287799835205,
+      2.0035667419433594,
+      -8.71827507019043
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 44.97810000000028,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -4.308235168457031,
+      2.00132155418396,
+      -8.649049758911133
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 45.2317000000003,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -4.570570468902588,
+      2.003999710083008,
+      -8.613264083862305
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 45.485200000000304,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -4.749605655670166,
+      2.003877878189087,
+      -8.58633804321289
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 45.75220000000031,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -4.896354675292969,
+      2.003847360610962,
+      -8.49189567565918
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 46.019100000000314,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -5.17320442199707,
+      2.0038599967956543,
+      -8.44299030303955
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 46.286100000000324,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -5.534799575805664,
+      2.0039236545562744,
+      -8.567331314086914
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 46.552900000000335,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -5.8961591720581055,
+      2.000478744506836,
+      -8.739822387695312
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 46.81990000000034,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -6.258709907531738,
+      2.002162456512451,
+      -8.911547660827637
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 47.073500000000344,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -6.602260589599609,
+      2.0035336017608643,
+      -9.06816291809082
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 47.34050000000034,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -6.96354341506958,
+      2.003477096557617,
+      -9.240998268127441
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 47.607400000000354,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -7.3246917724609375,
+      2.0039613246917725,
+      -9.413779258728027
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 47.901000000000344,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -7.721965789794922,
+      2.003882884979248,
+      -9.603849411010742
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 48.154500000000354,
+    "state": "GremlinClimbState",
+    "clip": "climb_start",
+    "position": [
+      -7.9141974449157715,
+      2.003985643386841,
+      -9.695636749267578
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 48.40820000000036,
+    "state": "GremlinClimbState",
+    "clip": "climb_loop",
+    "position": [
+      -7.970169544219971,
+      2.17692494392395,
+      -9.723245620727539
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 48.66170000000037,
+    "state": "GremlinClimbState",
+    "clip": "climb_loop",
+    "position": [
+      -7.970169544219971,
+      2.4557764530181885,
+      -9.723245620727539
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 48.955400000000374,
+    "state": "GremlinSabotageState",
+    "clip": "sabotage_start",
+    "position": [
+      -7.978635311126709,
+      2.5207831859588623,
+      -9.679665565490723
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": true,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 49.20890000000037,
+    "state": "GremlinSabotageState",
+    "clip": "sabotage_loop",
+    "position": [
+      -7.978635311126709,
+      2.520381212234497,
+      -9.679778099060059
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": true,
+    "towerDisabled": true,
+    "sabotageProgress": 0.04,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 49.462600000000364,
+    "state": "GremlinSabotageState",
+    "clip": "sabotage_loop",
+    "position": [
+      -7.978635311126709,
+      2.5203676223754883,
+      -9.679780006408691
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": true,
+    "towerDisabled": true,
+    "sabotageProgress": 0.2936999999999972,
+    "timeScale": 1
+  },
+  {
+    "elapsed": 49.716150000000354,
+    "state": "GremlinSabotageState",
+    "clip": "sabotage_loop",
+    "position": [
+      -7.978635311126709,
+      2.5203676223754883,
+      -9.679780006408691
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": true,
+    "towerDisabled": true,
+    "sabotageProgress": 0.5472500000000001,
+    "timeScale": 0.5
+  },
+  {
+    "elapsed": 49.969750000000325,
+    "state": "GremlinSabotageState",
+    "clip": "sabotage_loop",
+    "position": [
+      -7.978635311126709,
+      2.5203676223754883,
+      -9.679780006408691
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": true,
+    "towerDisabled": true,
+    "sabotageProgress": 0.8008499999999985,
+    "timeScale": 0.5
+  },
+  {
+    "elapsed": 50.22330000000029,
+    "state": "GremlinAirborneState",
+    "clip": "airborne_reach",
+    "position": [
+      -4.550000190734863,
+      2.115797519683838,
+      -7.9598493576049805
+    ],
+    "airborne": true,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 0.5
+  },
+  {
+    "elapsed": 50.48360000000026,
+    "state": "GremlinMissedLandingState",
+    "clip": "missed_land_stun",
+    "position": [
+      -4.549997806549072,
+      2.0039989948272705,
+      -8.133332252502441
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 0.5
+  },
+  {
+    "elapsed": 50.73720000000022,
+    "state": "GremlinMissedLandingState",
+    "clip": "missed_land_stun",
+    "position": [
+      -4.55000114440918,
+      2.0039989948272705,
+      -8.133332252502441
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 0.5
+  },
+  {
+    "elapsed": 50.99080000000019,
+    "state": "GremlinMissedLandingState",
+    "clip": "missed_land_stun",
+    "position": [
+      -4.5499982833862305,
+      2.0039989948272705,
+      -8.133332252502441
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 0.5
+  },
+  {
+    "elapsed": 51.25105000000015,
+    "state": "GremlinAngryState",
+    "clip": "angry",
+    "position": [
+      -4.550000190734863,
+      2.0039989948272705,
+      -8.133332252502441
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 0.5
+  },
+  {
+    "elapsed": 51.50460000000012,
+    "state": "GremlinAngryState",
+    "clip": "angry",
+    "position": [
+      -4.550000190734863,
+      2.0039989948272705,
+      -8.133332252502441
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 0.5
+  },
+  {
+    "elapsed": 51.76490000000009,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -4.592902183532715,
+      2.0039992332458496,
+      -8.153353691101074
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 0.5
+  },
+  {
+    "elapsed": 52.02515000000005,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -4.946653366088867,
+      2.0039985179901123,
+      -8.318442344665527
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 0.5
+  },
+  {
+    "elapsed": 52.27875000000001,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -5.291365623474121,
+      2.0037600994110107,
+      -8.479303359985352
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 0.5
+  },
+  {
+    "elapsed": 52.532299999999985,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -5.636009216308594,
+      2.003974437713623,
+      -8.640134811401367
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 0.5
+  },
+  {
+    "elapsed": 52.78589999999995,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -5.981270790100098,
+      2.00203275680542,
+      -8.80199909210205
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 0.5
+  },
+  {
+    "elapsed": 53.05284999999991,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -6.34477424621582,
+      2.0013482570648193,
+      -8.97127628326416
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 0.5
+  },
+  {
+    "elapsed": 53.30644999999988,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -6.689692974090576,
+      2.0039420127868652,
+      -9.131634712219238
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 0.5
+  },
+  {
+    "elapsed": 53.56669999999986,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -7.043428421020508,
+      2.0039963722229004,
+      -9.2967529296875
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 0.5
+  },
+  {
+    "elapsed": 53.82029999999983,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -7.388124465942383,
+      2.003999710083008,
+      -9.45765209197998
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 0.5
+  },
+  {
+    "elapsed": 54.0805499999998,
+    "state": "GremlinPursueState",
+    "clip": "run",
+    "position": [
+      -7.741860389709473,
+      2.003894329071045,
+      -9.622763633728027
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 0.5
+  },
+  {
+    "elapsed": 54.33414999999976,
+    "state": "GremlinClimbState",
+    "clip": "climb_start",
+    "position": [
+      -7.934909343719482,
+      2.003598928451538,
+      -9.71249771118164
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 0.5
+  },
+  {
+    "elapsed": 54.594449999999725,
+    "state": "GremlinClimbState",
+    "clip": "climb_loop",
+    "position": [
+      -7.973663806915283,
+      2.216825485229492,
+      -9.731861114501953
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 0.5
+  },
+  {
+    "elapsed": 54.854699999999696,
+    "state": "GremlinClimbState",
+    "clip": "climb_loop",
+    "position": [
+      -7.973682880401611,
+      2.4743804931640625,
+      -9.715652465820312
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 0.5
+  },
+  {
+    "elapsed": 55.10824999999966,
+    "state": "GremlinSabotageState",
+    "clip": "sabotage_start",
+    "position": [
+      -7.97821569442749,
+      2.5145013332366943,
+      -9.683162689208984
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": true,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 0.5
+  },
+  {
+    "elapsed": 55.36184999999961,
+    "state": "GremlinSabotageState",
+    "clip": "sabotage_loop",
+    "position": [
+      -7.977723598480225,
+      2.5144903659820557,
+      -9.68305778503418
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": true,
+    "towerDisabled": true,
+    "sabotageProgress": 0.02669999999999709,
+    "timeScale": 0.5
+  },
+  {
+    "elapsed": 55.6154499999996,
+    "state": "GremlinSabotageState",
+    "clip": "sabotage_loop",
+    "position": [
+      -7.977707386016846,
+      2.5144903659820557,
+      -9.683055877685547
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": true,
+    "towerDisabled": true,
+    "sabotageProgress": 0.280300000000003,
+    "timeScale": 0.5
+  },
+  {
+    "elapsed": 55.869049999999554,
+    "state": "GremlinSabotageState",
+    "clip": "sabotage_loop",
+    "position": [
+      -7.977707386016846,
+      2.5144903659820557,
+      -9.683055877685547
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": true,
+    "towerDisabled": true,
+    "sabotageProgress": 0.5339000000000014,
+    "timeScale": 0.5
+  },
+  {
+    "elapsed": 56.12929999999952,
+    "state": "GremlinSabotageState",
+    "clip": "sabotage_loop",
+    "position": [
+      -7.977707386016846,
+      2.5144903659820557,
+      -9.683055877685547
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": true,
+    "towerDisabled": true,
+    "sabotageProgress": 0.7941500000000011,
+    "timeScale": 0.5
+  },
+  {
+    "elapsed": 56.38289999999947,
+    "state": "GremlinSabotageState",
+    "clip": "sabotage_loop",
+    "position": [
+      -7.977707386016846,
+      2.5144903659820557,
+      -9.683055877685547
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": true,
+    "towerDisabled": true,
+    "sabotageProgress": 1.0477499999999995,
+    "timeScale": 0.5
+  },
+  {
+    "elapsed": 56.63644999999945,
+    "state": "GremlinSabotageState",
+    "clip": "sabotage_loop",
+    "position": [
+      -7.977707386016846,
+      2.5144903659820557,
+      -9.683055877685547
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": true,
+    "towerDisabled": true,
+    "sabotageProgress": 1.3013000000000021,
+    "timeScale": 0.5
+  },
+  {
+    "elapsed": 56.89004999999941,
+    "state": "GremlinSabotageState",
+    "clip": "sabotage_loop",
+    "position": [
+      -7.977707386016846,
+      2.5144903659820557,
+      -9.683055877685547
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": true,
+    "towerDisabled": true,
+    "sabotageProgress": 1.5549000000000004,
+    "timeScale": 0.5
+  },
+  {
+    "elapsed": 57.1502999999994,
+    "state": "GremlinSabotageState",
+    "clip": "sabotage_loop",
+    "position": [
+      -7.977707386016846,
+      2.5144903659820557,
+      -9.683055877685547
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": true,
+    "towerDisabled": true,
+    "sabotageProgress": 1.8151500000000003,
+    "timeScale": 0.5
+  },
+  {
+    "elapsed": 57.403899999999354,
+    "state": "GremlinSabotageState",
+    "clip": "sabotage_loop",
+    "position": [
+      -7.977707386016846,
+      2.5144903659820557,
+      -9.683055877685547
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": true,
+    "towerDisabled": true,
+    "sabotageProgress": 2.0687499999999988,
+    "timeScale": 0.5
+  }
+]

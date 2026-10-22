@@ -1,0 +1,402 @@
+[
+  {
+    "clip": "idle",
+    "size": [
+      512,
+      512
+    ],
+    "visible": 29673,
+    "transparent": 232471,
+    "bounds": [
+      147,
+      111,
+      365,
+      378
+    ],
+    "clearMargins": true
+  },
+  {
+    "clip": "walk",
+    "size": [
+      512,
+      512
+    ],
+    "visible": 29315,
+    "transparent": 232829,
+    "bounds": [
+      149,
+      111,
+      365,
+      373
+    ],
+    "clearMargins": true
+  },
+  {
+    "clip": "run",
+    "size": [
+      512,
+      512
+    ],
+    "visible": 29178,
+    "transparent": 232966,
+    "bounds": [
+      153,
+      113,
+      366,
+      376
+    ],
+    "clearMargins": true
+  },
+  {
+    "clip": "turn",
+    "size": [
+      512,
+      512
+    ],
+    "visible": 31487,
+    "transparent": 230657,
+    "bounds": [
+      139,
+      130,
+      354,
+      376
+    ],
+    "clearMargins": true
+  },
+  {
+    "clip": "climb_start",
+    "size": [
+      512,
+      512
+    ],
+    "visible": 29661,
+    "transparent": 232483,
+    "bounds": [
+      151,
+      107,
+      365,
+      378
+    ],
+    "clearMargins": true
+  },
+  {
+    "clip": "climb_loop",
+    "size": [
+      512,
+      512
+    ],
+    "visible": 30686,
+    "transparent": 231458,
+    "bounds": [
+      144,
+      105,
+      359,
+      383
+    ],
+    "clearMargins": true
+  },
+  {
+    "clip": "climb_top",
+    "size": [
+      512,
+      512
+    ],
+    "visible": 30039,
+    "transparent": 232105,
+    "bounds": [
+      149,
+      107,
+      364,
+      381
+    ],
+    "clearMargins": true
+  },
+  {
+    "clip": "attach_tower",
+    "size": [
+      512,
+      512
+    ],
+    "visible": 29639,
+    "transparent": 232505,
+    "bounds": [
+      151,
+      107,
+      365,
+      378
+    ],
+    "clearMargins": true
+  },
+  {
+    "clip": "sabotage_start",
+    "size": [
+      512,
+      512
+    ],
+    "visible": 29683,
+    "transparent": 232461,
+    "bounds": [
+      153,
+      109,
+      365,
+      379
+    ],
+    "clearMargins": true
+  },
+  {
+    "clip": "sabotage_loop",
+    "size": [
+      512,
+      512
+    ],
+    "visible": 29183,
+    "transparent": 232961,
+    "bounds": [
+      158,
+      111,
+      366,
+      381
+    ],
+    "clearMargins": true
+  },
+  {
+    "clip": "sabotage_end",
+    "size": [
+      512,
+      512
+    ],
+    "visible": 29305,
+    "transparent": 232839,
+    "bounds": [
+      155,
+      111,
+      365,
+      379
+    ],
+    "clearMargins": true
+  },
+  {
+    "clip": "detach",
+    "size": [
+      512,
+      512
+    ],
+    "visible": 24511,
+    "transparent": 237633,
+    "bounds": [
+      124,
+      169,
+      336,
+      380
+    ],
+    "clearMargins": true
+  },
+  {
+    "clip": "territorial_warn",
+    "size": [
+      512,
+      512
+    ],
+    "visible": 27843,
+    "transparent": 234301,
+    "bounds": [
+      172,
+      121,
+      362,
+      383
+    ],
+    "clearMargins": true
+  },
+  {
+    "clip": "pliers_attack",
+    "size": [
+      512,
+      512
+    ],
+    "visible": 29201,
+    "transparent": 232943,
+    "bounds": [
+      151,
+      113,
+      367,
+      380
+    ],
+    "clearMargins": true
+  },
+  {
+    "clip": "confused",
+    "size": [
+      512,
+      512
+    ],
+    "visible": 27418,
+    "transparent": 234726,
+    "bounds": [
+      152,
+      119,
+      369,
+      375
+    ],
+    "clearMargins": true
+  },
+  {
+    "clip": "recover",
+    "size": [
+      512,
+      512
+    ],
+    "visible": 27030,
+    "transparent": 235114,
+    "bounds": [
+      139,
+      134,
+      353,
+      381
+    ],
+    "clearMargins": true
+  },
+  {
+    "clip": "hit",
+    "size": [
+      512,
+      512
+    ],
+    "visible": 28275,
+    "transparent": 233869,
+    "bounds": [
+      142,
+      125,
+      354,
+      390
+    ],
+    "clearMargins": true
+  },
+  {
+    "clip": "carried_ready",
+    "size": [
+      512,
+      512
+    ],
+    "visible": 29299,
+    "transparent": 232845,
+    "bounds": [
+      157,
+      112,
+      368,
+      381
+    ],
+    "clearMargins": true
+  },
+  {
+    "clip": "airborne_reach",
+    "size": [
+      512,
+      512
+    ],
+    "visible": 28544,
+    "transparent": 233600,
+    "bounds": [
+      160,
+      110,
+      362,
+      369
+    ],
+    "clearMargins": true
+  },
+  {
+    "clip": "cling_land",
+    "size": [
+      512,
+      512
+    ],
+    "visible": 32293,
+    "transparent": 229851,
+    "bounds": [
+      148,
+      105,
+      364,
+      392
+    ],
+    "clearMargins": true
+  },
+  {
+    "clip": "missed_land_stun",
+    "size": [
+      512,
+      512
+    ],
+    "visible": 24360,
+    "transparent": 237784,
+    "bounds": [
+      124,
+      169,
+      336,
+      378
+    ],
+    "clearMargins": true
+  },
+  {
+    "clip": "angry",
+    "size": [
+      512,
+      512
+    ],
+    "visible": 26159,
+    "transparent": 235985,
+    "bounds": [
+      176,
+      127,
+      351,
+      382
+    ],
+    "clearMargins": true
+  },
+  {
+    "clip": "death",
+    "size": [
+      512,
+      512
+    ],
+    "visible": 32217,
+    "transparent": 229927,
+    "bounds": [
+      150,
+      116,
+      341,
+      406
+    ],
+    "clearMargins": true
+  },
+  {
+    "clip": "stun",
+    "size": [
+      512,
+      512
+    ],
+    "visible": 25351,
+    "transparent": 236793,
+    "bounds": [
+      134,
+      149,
+      347,
+      381
+    ],
+    "clearMargins": true
+  },
+  {
+    "clip": "knockback",
+    "size": [
+      512,
+      512
+    ],
+    "visible": 27920,
+    "transparent": 234224,
+    "bounds": [
+      142,
+      123,
+      354,
+      385
+    ],
+    "clearMargins": true
+  }
+]

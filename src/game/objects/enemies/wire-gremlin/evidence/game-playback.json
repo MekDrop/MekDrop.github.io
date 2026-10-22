@@ -1,0 +1,208 @@
+{
+  "route": "/en-US/map/test_enemy-wire-gremlin",
+  "engine": "production PlayCanvas",
+  "results": [
+    {
+      "clip": "idle",
+      "frames": 118,
+      "distinctJointPoses": 118,
+      "finite": true,
+      "duration": 2,
+      "passed": true
+    },
+    {
+      "clip": "walk",
+      "frames": 64,
+      "distinctJointPoses": 64,
+      "finite": true,
+      "duration": 1.2,
+      "passed": true
+    },
+    {
+      "clip": "run",
+      "frames": 58,
+      "distinctJointPoses": 58,
+      "finite": true,
+      "duration": 0.8,
+      "passed": true
+    },
+    {
+      "clip": "turn",
+      "frames": 23,
+      "distinctJointPoses": 21,
+      "finite": true,
+      "duration": 0.6,
+      "passed": true
+    },
+    {
+      "clip": "climb_start",
+      "frames": 41,
+      "distinctJointPoses": 32,
+      "finite": true,
+      "duration": 0.5,
+      "passed": true
+    },
+    {
+      "clip": "climb_loop",
+      "frames": 84,
+      "distinctJointPoses": 84,
+      "finite": true,
+      "duration": 1.2,
+      "passed": true
+    },
+    {
+      "clip": "climb_top",
+      "frames": 36,
+      "distinctJointPoses": 28,
+      "finite": true,
+      "duration": 0.7,
+      "passed": true
+    },
+    {
+      "clip": "attach_tower",
+      "frames": 34,
+      "distinctJointPoses": 23,
+      "finite": true,
+      "duration": 0.4,
+      "passed": true
+    },
+    {
+      "clip": "sabotage_start",
+      "frames": 18,
+      "distinctJointPoses": 14,
+      "finite": true,
+      "duration": 0.4,
+      "passed": true
+    },
+    {
+      "clip": "sabotage_loop",
+      "frames": 72,
+      "distinctJointPoses": 69,
+      "finite": true,
+      "duration": 1,
+      "passed": true
+    },
+    {
+      "clip": "sabotage_end",
+      "frames": 38,
+      "distinctJointPoses": 26,
+      "finite": true,
+      "duration": 0.4,
+      "passed": true
+    },
+    {
+      "clip": "detach",
+      "frames": 44,
+      "distinctJointPoses": 32,
+      "finite": true,
+      "duration": 0.4666666666666667,
+      "passed": true
+    },
+    {
+      "clip": "territorial_warn",
+      "frames": 36,
+      "distinctJointPoses": 26,
+      "finite": true,
+      "duration": 0.7,
+      "passed": true
+    },
+    {
+      "clip": "pliers_attack",
+      "frames": 66,
+      "distinctJointPoses": 55,
+      "finite": true,
+      "duration": 0.9333333333333333,
+      "passed": true
+    },
+    {
+      "clip": "confused",
+      "frames": 93,
+      "distinctJointPoses": 93,
+      "finite": true,
+      "duration": 1.2,
+      "passed": true
+    },
+    {
+      "clip": "recover",
+      "frames": 41,
+      "distinctJointPoses": 32,
+      "finite": true,
+      "duration": 0.5,
+      "passed": true
+    },
+    {
+      "clip": "hit",
+      "frames": 26,
+      "distinctJointPoses": 16,
+      "finite": true,
+      "duration": 0.3,
+      "passed": true
+    },
+    {
+      "clip": "carried_ready",
+      "frames": 84,
+      "distinctJointPoses": 84,
+      "finite": true,
+      "duration": 1.2,
+      "passed": true
+    },
+    {
+      "clip": "airborne_reach",
+      "frames": 60,
+      "distinctJointPoses": 59,
+      "finite": true,
+      "duration": 1,
+      "passed": true
+    },
+    {
+      "clip": "cling_land",
+      "frames": 31,
+      "distinctJointPoses": 20,
+      "finite": true,
+      "duration": 0.3333333333333333,
+      "passed": true
+    },
+    {
+      "clip": "missed_land_stun",
+      "frames": 65,
+      "distinctJointPoses": 54,
+      "finite": true,
+      "duration": 0.8,
+      "passed": true
+    },
+    {
+      "clip": "angry",
+      "frames": 58,
+      "distinctJointPoses": 47,
+      "finite": true,
+      "duration": 0.6666666666666666,
+      "passed": true
+    },
+    {
+      "clip": "death",
+      "frames": 112,
+      "distinctJointPoses": 75,
+      "finite": true,
+      "duration": 1.5,
+      "passed": true
+    },
+    {
+      "clip": "stun",
+      "frames": 92,
+      "distinctJointPoses": 81,
+      "finite": true,
+      "duration": 1.2,
+      "passed": true
+    },
+    {
+      "clip": "knockback",
+      "frames": 46,
+      "distinctJointPoses": 35,
+      "finite": true,
+      "duration": 0.5333333333333333,
+      "passed": true
+    }
+  ],
+  "assetSha256": "052b75be64869c6eb9081c1f86219e40e3f2c94f5066f19f35c58d72b70cc477",
+  "timeScale": 1
+}

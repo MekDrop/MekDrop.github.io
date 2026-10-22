@@ -1,0 +1,61 @@
+{
+  "method": "Baked root-bone lift for grounded actions; no runtime skeleton offsets. Fresh import selects the skinned body, excluding importer bone-display helper meshes.",
+  "changes": [
+    {
+      "clip": "idle",
+      "maxGroundCorrectionMetres": 0
+    },
+    {
+      "clip": "walk",
+      "maxGroundCorrectionMetres": 0.027893155813217163
+    },
+    {
+      "clip": "run",
+      "maxGroundCorrectionMetres": 0.03340454027056694
+    },
+    {
+      "clip": "turn",
+      "maxGroundCorrectionMetres": 0
+    },
+    {
+      "clip": "territorial_warn",
+      "maxGroundCorrectionMetres": 0
+    },
+    {
+      "clip": "pliers_attack",
+      "maxGroundCorrectionMetres": 0
+    },
+    {
+      "clip": "confused",
+      "maxGroundCorrectionMetres": 0
+    },
+    {
+      "clip": "recover",
+      "maxGroundCorrectionMetres": 0
+    },
+    {
+      "clip": "hit",
+      "maxGroundCorrectionMetres": 0
+    },
+    {
+      "clip": "missed_land_stun",
+      "maxGroundCorrectionMetres": 0.08534608036279678
+    },
+    {
+      "clip": "angry",
+      "maxGroundCorrectionMetres": 0
+    },
+    {
+      "clip": "death",
+      "maxGroundCorrectionMetres": 0.4800891578197479
+    },
+    {
+      "clip": "stun",
+      "maxGroundCorrectionMetres": 0
+    },
+    {
+      "clip": "knockback",
+      "maxGroundCorrectionMetres": 0.0033806338906288147
+    }
+  ]
+}

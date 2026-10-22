@@ -1,0 +1,57 @@
+[
+  {
+    "file": "game-pose-board-1.png",
+    "clips": [
+      "idle",
+      "walk",
+      "run",
+      "turn",
+      "climb_start"
+    ],
+    "capture": "40% of duration; death at 95%, through the production renderer"
+  },
+  {
+    "file": "game-pose-board-2.png",
+    "clips": [
+      "climb_loop",
+      "climb_top",
+      "attach_tower",
+      "sabotage_start",
+      "sabotage_loop"
+    ],
+    "capture": "40% of duration; death at 95%, through the production renderer"
+  },
+  {
+    "file": "game-pose-board-3.png",
+    "clips": [
+      "sabotage_end",
+      "detach",
+      "territorial_warn",
+      "pliers_attack",
+      "confused"
+    ],
+    "capture": "40% of duration; death at 95%, through the production renderer"
+  },
+  {
+    "file": "game-pose-board-4.png",
+    "clips": [
+      "recover",
+      "hit",
+      "carried_ready",
+      "airborne_reach",
+      "cling_land"
+    ],
+    "capture": "40% of duration; death at 95%, through the production renderer"
+  },
+  {
+    "file": "game-pose-board-5.png",
+    "clips": [
+      "missed_land_stun",
+      "angry",
+      "death",
+      "stun",
+      "knockback"
+    ],
+    "capture": "40% of duration; death at 95%, through the production renderer"
+  }
+]

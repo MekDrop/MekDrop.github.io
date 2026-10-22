@@ -1,0 +1,418 @@
+{
+  "engine": "Production PlayCanvas and Ammo",
+  "route": "http://localhost:9000/en-US/map/test_enemy-wire-gremlin",
+  "assetSha256": "052b75be64869c6eb9081c1f86219e40e3f2c94f5066f19f35c58d72b70cc477",
+  "castleToRoyal": {
+    "passed": true,
+    "contactDistance": 0.8499769646577761,
+    "contact": {
+      "elapsed": 47.87690000000008,
+      "state": "GremlinAttackState",
+      "clip": "pliers_attack",
+      "position": [
+        2.8716259002685547,
+        1.9999860525131226,
+        -3.2908730506896973
+      ],
+      "velocity": [
+        6.30370209364628e-8,
+        0.00000286102294921875,
+        0.000018891396393883042
+      ],
+      "goal": "royal",
+      "targetPosition": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "royalPosition": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "airborne": false,
+      "carried": false,
+      "attached": false,
+      "towerDisabled": false,
+      "sabotageProgress": 0,
+      "timeScale": 1,
+      "timestamp": "2026-10-22T14:13:45.938Z",
+      "source": "http://localhost:9000/src/game/objects/enemies/wire-gremlin/WireGremlin.js?t=1792678304664"
+    }
+  },
+  "directThrownAttachment": {
+    "passed": true,
+    "airborne": {
+      "elapsed": 341.0102499999776,
+      "state": "GremlinAirborneState",
+      "clip": "airborne_reach",
+      "position": [
+        -4.550000190734863,
+        2.7680559158325195,
+        -8.374234199523926
+      ],
+      "velocity": [
+        0,
+        -2.413784980773926,
+        -4
+      ],
+      "goal": "royal",
+      "targetPosition": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "royalPosition": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "airborne": true,
+      "carried": false,
+      "attached": false,
+      "towerDisabled": false,
+      "sabotageProgress": 0,
+      "timeScale": 0.5,
+      "timestamp": "2026-10-22T14:24:04.001Z",
+      "source": "http://localhost:9000/src/game/objects/enemies/wire-gremlin/WireGremlin.js?t=1792678582760"
+    },
+    "cling": {
+      "elapsed": 341.2669999999776,
+      "state": "GremlinClingLandState",
+      "clip": "cling_land",
+      "position": [
+        -4.549990177154541,
+        2.5002267360687256,
+        -8.687002182006836
+      ],
+      "velocity": [
+        -0.00012016295659122989,
+        0.18061065673828125,
+        0.07188033312559128
+      ],
+      "goal": "tower",
+      "targetPosition": [
+        -4.55,
+        2.0139999389648438,
+        -9
+      ],
+      "royalPosition": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "airborne": false,
+      "carried": false,
+      "attached": true,
+      "towerDisabled": false,
+      "sabotageProgress": 0,
+      "timeScale": 0.5,
+      "timestamp": "2026-10-22T14:24:04.501Z",
+      "source": "http://localhost:9000/src/game/objects/enemies/wire-gremlin/WireGremlin.js?t=1792678582760"
+    }
+  },
+  "attachedBellPauseAndResume": {
+    "passed": true,
+    "pause": {
+      "elapsed": 67.6338999999967,
+      "state": "GremlinConfusedState",
+      "clip": "confused",
+      "position": [
+        -4.549980163574219,
+        2.464594841003418,
+        -8.69506549835205
+      ],
+      "velocity": [
+        0.000004011433247796958,
+        0.0000023245811462402344,
+        0.00001075893669622019
+      ],
+      "goal": "tower",
+      "targetPosition": [
+        -4.55,
+        2.0139999389648438,
+        -9
+      ],
+      "royalPosition": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "airborne": false,
+      "carried": false,
+      "attached": true,
+      "towerDisabled": false,
+      "sabotageProgress": 5.238650000000002,
+      "timeScale": 0.5,
+      "timestamp": "2026-10-22T14:06:39.952Z",
+      "source": "http://localhost:9000/src/game/objects/enemies/wire-gremlin/WireGremlin.js?t=1792677787985"
+    },
+    "resume": {
+      "elapsed": 70.4634499999961,
+      "state": "GremlinSabotageState",
+      "clip": "sabotage_loop",
+      "position": [
+        -4.549980163574219,
+        2.464594841003418,
+        -8.69506549835205
+      ],
+      "velocity": [
+        0.000004011436885775765,
+        0.0000023245811462402344,
+        0.000010759140423033386
+      ],
+      "goal": "tower",
+      "targetPosition": [
+        -4.55,
+        2.0139999389648438,
+        -9
+      ],
+      "royalPosition": [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      "airborne": false,
+      "carried": false,
+      "attached": true,
+      "towerDisabled": true,
+      "sabotageProgress": 5.385449999999988,
+      "timeScale": 0.5,
+      "timestamp": "2026-10-22T14:06:45.607Z",
+      "source": "http://localhost:9000/src/game/objects/enemies/wire-gremlin/WireGremlin.js?t=1792677787985"
+    }
+  },
+  "carried": {
+    "elapsed": 81.45404999999889,
+    "state": "GremlinCarriedState",
+    "clip": "carried_ready",
+    "position": [
+      2.9843952655792236,
+      3.1035232543945312,
+      -10.965256690979004
+    ],
+    "velocity": [
+      0,
+      0.00000286102294921875,
+      0
+    ],
+    "goal": "royal",
+    "targetPosition": [
+      3.625,
+      2.1670000553131104,
+      -2.9345099925994873
+    ],
+    "royalPosition": [
+      3.625,
+      2.1670000553131104,
+      -2.9345099925994873
+    ],
+    "airborne": false,
+    "carried": true,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 0.5,
+    "timestamp": "2026-10-22T14:19:01.196Z",
+    "source": "http://localhost:9000/src/game/objects/enemies/wire-gremlin/WireGremlin.js?t=1792678582760"
+  },
+  "externalStun": {
+    "elapsed": 221.58479999996985,
+    "state": "GremlinStunnedState",
+    "clip": "stun",
+    "position": [
+      -5.004212856292725,
+      1.998740553855896,
+      -8.727109909057617
+    ],
+    "velocity": [
+      -0.027252940461039543,
+      -0.0059413909912109375,
+      -0.07438483089208603
+    ],
+    "goal": "royal",
+    "targetPosition": [
+      3.625,
+      2.1670000553131104,
+      -2.9345099925994873
+    ],
+    "royalPosition": [
+      3.625,
+      2.1670000553131104,
+      -2.9345099925994873
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 1,
+    "timestamp": "2026-10-22T14:21:52.257Z",
+    "source": "http://localhost:9000/src/game/objects/enemies/wire-gremlin/WireGremlin.js?t=1792678582760"
+  },
+  "hit": {
+    "elapsed": 20.113399999999867,
+    "state": "GremlinHitState",
+    "clip": "hit",
+    "position": [
+      -4.880517959594727,
+      2.551481246948242,
+      -8.57338809967041
+    ],
+    "velocity": [
+      0.0005474230274558067,
+      -0.0008167028427124023,
+      -0.0008752108551561832
+    ],
+    "goal": "tower",
+    "targetPosition": [
+      -4.55,
+      2.0139999389648438,
+      -9
+    ],
+    "royalPosition": [
+      3.625,
+      2.1670000553131104,
+      -2.9345099925994873
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": true,
+    "towerDisabled": false,
+    "sabotageProgress": 4.017400000000004,
+    "timeScale": 1,
+    "timestamp": "2026-10-22T13:55:27.390Z",
+    "source": "http://localhost:9000/src/game/objects/enemies/wire-gremlin/WireGremlin.js?t=1792677278462"
+  },
+  "missedLanding": {
+    "elapsed": 103.69374999999299,
+    "state": "GremlinMissedLandingState",
+    "clip": "missed_land_stun",
+    "position": [
+      -4.55000114440918,
+      2.003666400909424,
+      -8.133270263671875
+    ],
+    "velocity": [
+      -0.000013466598829836585,
+      0.004574775695800781,
+      0.0009069052757695317
+    ],
+    "goal": "royal",
+    "targetPosition": [
+      3.625,
+      2.1670000553131104,
+      -2.9345099925994873
+    ],
+    "royalPosition": [
+      3.625,
+      2.1670000553131104,
+      -2.9345099925994873
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 0.5,
+    "timestamp": "2026-10-22T14:01:43.401Z",
+    "source": "http://localhost:9000/src/game/objects/enemies/wire-gremlin/WireGremlin.js?t=1792677535363"
+  },
+  "anger": {
+    "elapsed": 104.4545499999928,
+    "state": "GremlinAngryState",
+    "clip": "angry",
+    "position": [
+      -4.549996852874756,
+      2.0036306381225586,
+      -8.132467269897461
+    ],
+    "velocity": [
+      -0.000035905039112549275,
+      0.004689216613769531,
+      3.5817583921016194e-7
+    ],
+    "goal": "royal",
+    "targetPosition": [
+      3.625,
+      2.1670000553131104,
+      -2.9345099925994873
+    ],
+    "royalPosition": [
+      3.625,
+      2.1670000553131104,
+      -2.9345099925994873
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 0.5,
+    "timestamp": "2026-10-22T14:01:44.923Z",
+    "source": "http://localhost:9000/src/game/objects/enemies/wire-gremlin/WireGremlin.js?t=1792677535363"
+  },
+  "deathRelease": {
+    "elapsed": 343.95454999997787,
+    "state": "GremlinDeadState",
+    "clip": "death",
+    "position": [
+      -4.549999237060547,
+      2.491909980773926,
+      -8.681035995483398
+    ],
+    "velocity": [
+      0,
+      -1.100000023841858,
+      0
+    ],
+    "goal": "royal",
+    "targetPosition": [
+      3.625,
+      2.1670000553131104,
+      -2.9345099925994873
+    ],
+    "royalPosition": [
+      3.625,
+      2.1670000553131104,
+      -2.9345099925994873
+    ],
+    "airborne": false,
+    "carried": false,
+    "attached": false,
+    "towerDisabled": false,
+    "sabotageProgress": 0,
+    "timeScale": 0.5,
+    "timestamp": "2026-10-22T14:24:10.490Z",
+    "source": "http://localhost:9000/src/game/objects/enemies/wire-gremlin/WireGremlin.js?t=1792678582760"
+  },
+  "timeScales": [
+    1,
+    0.5
+  ],
+  "observedStates": [
+    "GremlinPursueState",
+    "GremlinTerritorialState",
+    "GremlinClimbState",
+    "GremlinClimbTopState",
+    "GremlinAttachState",
+    "GremlinSabotageState",
+    "GremlinDetachState",
+    "GremlinEntranceState",
+    "GremlinHitState",
+    "GremlinAttackState",
+    "GremlinAirborneState",
+    "GremlinMissedLandingState",
+    "GremlinAngryState",
+    "GremlinClingLandState",
+    "GremlinConfusedState",
+    "GremlinRecoveryState",
+    "GremlinPlaybackState",
+    "GremlinEntranceEndState",
+    "GremlinTerritorialAttackState",
+    "GremlinCarriedState",
+    "GremlinStunnedState",
+    "GremlinDeadState"
+  ],
+  "scope": "Saved fixture scenarios, focused interaction tests, fresh-import sampling and production pose review. Bell lease behavior was captured before the later root-bone grounding correction; that correction changes authored transforms only."
+}

@@ -1,0 +1,77 @@
+[
+  {
+    "file": "clip-board-1.png",
+    "rows": [
+      "idle",
+      "walk",
+      "run",
+      "turn",
+      "climb_start"
+    ],
+    "columns": [
+      "start",
+      "middle",
+      "end"
+    ]
+  },
+  {
+    "file": "clip-board-2.png",
+    "rows": [
+      "climb_loop",
+      "climb_top",
+      "attach_tower",
+      "sabotage_start",
+      "sabotage_loop"
+    ],
+    "columns": [
+      "start",
+      "middle",
+      "end"
+    ]
+  },
+  {
+    "file": "clip-board-3.png",
+    "rows": [
+      "sabotage_end",
+      "detach",
+      "territorial_warn",
+      "pliers_attack",
+      "confused"
+    ],
+    "columns": [
+      "start",
+      "middle",
+      "end"
+    ]
+  },
+  {
+    "file": "clip-board-4.png",
+    "rows": [
+      "recover",
+      "hit",
+      "carried_ready",
+      "airborne_reach",
+      "cling_land"
+    ],
+    "columns": [
+      "start",
+      "middle",
+      "end"
+    ]
+  },
+  {
+    "file": "clip-board-5.png",
+    "rows": [
+      "missed_land_stun",
+      "angry",
+      "death",
+      "stun",
+      "knockback"
+    ],
+    "columns": [
+      "start",
+      "middle",
+      "end"
+    ]
+  }
+]

@@ -1,0 +1,19 @@
+{
+  "clip": "idle",
+  "size": [
+    512,
+    512
+  ],
+  "visible": 29673,
+  "transparent": 232471,
+  "bounds": [
+    147,
+    111,
+    365,
+    378
+  ],
+  "clearMargins": true,
+  "source": "Production renderer, isolated owning meshes and scene lights",
+  "pngMode": "RGBA",
+  "file": "../preview.png"
+}

@@ -1,0 +1,468 @@
+{
+  "schemaVersion": 1,
+  "enemy": "WireGremlin",
+  "status": "production_verified",
+  "sourceModel": "../../../models/enemies/wire-gremlin/wire-gremlin.blend",
+  "exportedModel": "../../../models/enemies/wire-gremlin/wire-gremlin.glb",
+  "clips": [
+    {
+      "name": "idle",
+      "durationSeconds": 2,
+      "looping": true,
+      "events": {},
+      "authored": true,
+      "freshImportVerified": true,
+      "gamePlaybackVerified": true,
+      "supportedStates": [
+        "GremlinPlaybackState",
+        "GremlinPursueState"
+      ],
+      "productionPoseReviewed": true,
+      "productionPose": "evidence/game-poses/idle.png"
+    },
+    {
+      "name": "walk",
+      "durationSeconds": 1.2,
+      "looping": true,
+      "events": {},
+      "authored": true,
+      "freshImportVerified": true,
+      "gamePlaybackVerified": true,
+      "supportedStates": [
+        "GremlinPlaybackState"
+      ],
+      "productionPoseReviewed": true,
+      "productionPose": "evidence/game-poses/walk.png"
+    },
+    {
+      "name": "run",
+      "durationSeconds": 0.8,
+      "looping": true,
+      "events": {},
+      "authored": true,
+      "freshImportVerified": true,
+      "gamePlaybackVerified": true,
+      "supportedStates": [
+        "GremlinPlaybackState",
+        "GremlinPursueState"
+      ],
+      "productionPoseReviewed": true,
+      "productionPose": "evidence/game-poses/run.png"
+    },
+    {
+      "name": "turn",
+      "durationSeconds": 0.6,
+      "looping": false,
+      "events": {},
+      "authored": true,
+      "freshImportVerified": true,
+      "gamePlaybackVerified": true,
+      "supportedStates": [
+        "GremlinPlaybackState"
+      ],
+      "productionPoseReviewed": true,
+      "productionPose": "evidence/game-poses/turn.png"
+    },
+    {
+      "name": "climb_start",
+      "durationSeconds": 0.5,
+      "looping": false,
+      "events": {},
+      "authored": true,
+      "freshImportVerified": true,
+      "gamePlaybackVerified": true,
+      "supportedStates": [
+        "GremlinPlaybackState",
+        "GremlinClimbState"
+      ],
+      "productionPoseReviewed": true,
+      "productionPose": "evidence/game-poses/climb_start.png"
+    },
+    {
+      "name": "climb_loop",
+      "durationSeconds": 1.2,
+      "looping": true,
+      "events": {},
+      "authored": true,
+      "freshImportVerified": true,
+      "gamePlaybackVerified": true,
+      "supportedStates": [
+        "GremlinPlaybackState",
+        "GremlinClimbState"
+      ],
+      "productionPoseReviewed": true,
+      "productionPose": "evidence/game-poses/climb_loop.png"
+    },
+    {
+      "name": "climb_top",
+      "durationSeconds": 0.7,
+      "looping": false,
+      "events": {},
+      "authored": true,
+      "freshImportVerified": true,
+      "gamePlaybackVerified": true,
+      "supportedStates": [
+        "GremlinPlaybackState",
+        "GremlinClimbTopState"
+      ],
+      "productionPoseReviewed": true,
+      "productionPose": "evidence/game-poses/climb_top.png"
+    },
+    {
+      "name": "attach_tower",
+      "durationSeconds": 0.4,
+      "looping": false,
+      "events": {},
+      "authored": true,
+      "freshImportVerified": true,
+      "gamePlaybackVerified": true,
+      "supportedStates": [
+        "GremlinPlaybackState",
+        "GremlinAttachState"
+      ],
+      "productionPoseReviewed": true,
+      "productionPose": "evidence/game-poses/attach_tower.png"
+    },
+    {
+      "name": "sabotage_start",
+      "durationSeconds": 0.4,
+      "looping": false,
+      "events": {},
+      "authored": true,
+      "freshImportVerified": true,
+      "gamePlaybackVerified": true,
+      "supportedStates": [
+        "GremlinPlaybackState",
+        "GremlinSabotageState",
+        "GremlinEntranceState"
+      ],
+      "productionPoseReviewed": true,
+      "productionPose": "evidence/game-poses/sabotage_start.png"
+    },
+    {
+      "name": "sabotage_loop",
+      "durationSeconds": 1,
+      "looping": true,
+      "events": {},
+      "authored": true,
+      "freshImportVerified": true,
+      "gamePlaybackVerified": true,
+      "supportedStates": [
+        "GremlinPlaybackState",
+        "GremlinSabotageState"
+      ],
+      "productionPoseReviewed": true,
+      "productionPose": "evidence/game-poses/sabotage_loop.png"
+    },
+    {
+      "name": "sabotage_end",
+      "durationSeconds": 0.4,
+      "looping": false,
+      "events": {},
+      "authored": true,
+      "freshImportVerified": true,
+      "gamePlaybackVerified": true,
+      "supportedStates": [
+        "GremlinPlaybackState",
+        "GremlinDetachState",
+        "GremlinEntranceEndState"
+      ],
+      "productionPoseReviewed": true,
+      "productionPose": "evidence/game-poses/sabotage_end.png"
+    },
+    {
+      "name": "detach",
+      "durationSeconds": 0.4666666666666667,
+      "looping": false,
+      "events": {},
+      "authored": true,
+      "freshImportVerified": true,
+      "gamePlaybackVerified": true,
+      "requestedDurationSeconds": 0.45,
+      "supportedStates": [
+        "GremlinPlaybackState",
+        "GremlinDetachState"
+      ],
+      "productionPoseReviewed": true,
+      "productionPose": "evidence/game-poses/detach.png"
+    },
+    {
+      "name": "territorial_warn",
+      "durationSeconds": 0.7,
+      "looping": false,
+      "events": {},
+      "authored": true,
+      "freshImportVerified": true,
+      "gamePlaybackVerified": true,
+      "supportedStates": [
+        "GremlinPlaybackState",
+        "GremlinTerritorialState"
+      ],
+      "productionPoseReviewed": true,
+      "productionPose": "evidence/game-poses/territorial_warn.png"
+    },
+    {
+      "name": "pliers_attack",
+      "durationSeconds": 0.9333333333333333,
+      "looping": false,
+      "events": {
+        "contact": 0.35
+      },
+      "authored": true,
+      "freshImportVerified": true,
+      "gamePlaybackVerified": true,
+      "requestedDurationSeconds": 0.95,
+      "supportedStates": [
+        "GremlinPlaybackState",
+        "GremlinTerritorialState",
+        "GremlinAttackState",
+        "GremlinTerritorialAttackState"
+      ],
+      "productionPoseReviewed": true,
+      "productionPose": "evidence/game-poses/pliers_attack.png"
+    },
+    {
+      "name": "confused",
+      "durationSeconds": 1.2,
+      "looping": true,
+      "events": {},
+      "authored": true,
+      "freshImportVerified": true,
+      "gamePlaybackVerified": true,
+      "supportedStates": [
+        "GremlinPlaybackState",
+        "GremlinConfusedState"
+      ],
+      "productionPoseReviewed": true,
+      "productionPose": "evidence/game-poses/confused.png"
+    },
+    {
+      "name": "recover",
+      "durationSeconds": 0.5,
+      "looping": false,
+      "events": {},
+      "authored": true,
+      "freshImportVerified": true,
+      "gamePlaybackVerified": true,
+      "supportedStates": [
+        "GremlinPlaybackState",
+        "GremlinRecoveryState"
+      ],
+      "productionPoseReviewed": true,
+      "productionPose": "evidence/game-poses/recover.png"
+    },
+    {
+      "name": "hit",
+      "durationSeconds": 0.3,
+      "looping": false,
+      "events": {},
+      "authored": true,
+      "freshImportVerified": true,
+      "gamePlaybackVerified": true,
+      "supportedStates": [
+        "GremlinPlaybackState",
+        "GremlinHitState"
+      ],
+      "productionPoseReviewed": true,
+      "productionPose": "evidence/game-poses/hit.png"
+    },
+    {
+      "name": "carried_ready",
+      "durationSeconds": 1.2,
+      "looping": true,
+      "events": {},
+      "authored": true,
+      "freshImportVerified": true,
+      "gamePlaybackVerified": true,
+      "supportedStates": [
+        "GremlinPlaybackState",
+        "GremlinCarriedState"
+      ],
+      "productionPoseReviewed": true,
+      "productionPose": "evidence/game-poses/carried_ready.png"
+    },
+    {
+      "name": "airborne_reach",
+      "durationSeconds": 1,
+      "looping": true,
+      "events": {},
+      "authored": true,
+      "freshImportVerified": true,
+      "gamePlaybackVerified": true,
+      "supportedStates": [
+        "GremlinPlaybackState",
+        "GremlinAirborneState"
+      ],
+      "productionPoseReviewed": true,
+      "productionPose": "evidence/game-poses/airborne_reach.png"
+    },
+    {
+      "name": "cling_land",
+      "durationSeconds": 0.3333333333333333,
+      "looping": false,
+      "events": {},
+      "authored": true,
+      "freshImportVerified": true,
+      "gamePlaybackVerified": true,
+      "requestedDurationSeconds": 0.35,
+      "supportedStates": [
+        "GremlinPlaybackState",
+        "GremlinClingLandState"
+      ],
+      "productionPoseReviewed": true,
+      "productionPose": "evidence/game-poses/cling_land.png"
+    },
+    {
+      "name": "missed_land_stun",
+      "durationSeconds": 0.8,
+      "looping": false,
+      "events": {},
+      "authored": true,
+      "freshImportVerified": true,
+      "gamePlaybackVerified": true,
+      "supportedStates": [
+        "GremlinPlaybackState",
+        "GremlinMissedLandingState"
+      ],
+      "productionPoseReviewed": true,
+      "productionPose": "evidence/game-poses/missed_land_stun.png"
+    },
+    {
+      "name": "angry",
+      "durationSeconds": 0.6666666666666666,
+      "looping": false,
+      "events": {},
+      "authored": true,
+      "freshImportVerified": true,
+      "gamePlaybackVerified": true,
+      "requestedDurationSeconds": 0.65,
+      "supportedStates": [
+        "GremlinPlaybackState",
+        "GremlinAngryState"
+      ],
+      "productionPoseReviewed": true,
+      "productionPose": "evidence/game-poses/angry.png"
+    },
+    {
+      "name": "death",
+      "durationSeconds": 1.5,
+      "looping": false,
+      "events": {},
+      "authored": true,
+      "freshImportVerified": true,
+      "gamePlaybackVerified": true,
+      "supportedStates": [
+        "GremlinPlaybackState",
+        "GremlinDeadState"
+      ],
+      "productionPoseReviewed": true,
+      "productionPose": "evidence/game-poses/death.png"
+    },
+    {
+      "name": "stun",
+      "durationSeconds": 1.2,
+      "looping": false,
+      "events": {},
+      "authored": true,
+      "freshImportVerified": true,
+      "gamePlaybackVerified": true,
+      "supportedStates": [
+        "GremlinPlaybackState",
+        "GremlinStunnedState"
+      ],
+      "productionPoseReviewed": true,
+      "productionPose": "evidence/game-poses/stun.png"
+    },
+    {
+      "name": "knockback",
+      "durationSeconds": 0.5333333333333333,
+      "looping": false,
+      "events": {},
+      "authored": true,
+      "freshImportVerified": true,
+      "gamePlaybackVerified": true,
+      "requestedDurationSeconds": 0.55,
+      "supportedStates": [
+        "GremlinPlaybackState"
+      ],
+      "productionPoseReviewed": true,
+      "productionPose": "evidence/game-poses/knockback.png"
+    }
+  ],
+  "verifiedClips": [],
+  "supportedStates": [
+    "GremlinAirborneState",
+    "GremlinAngryState",
+    "GremlinAttackState",
+    "GremlinCarriedState",
+    "GremlinClimbState",
+    "GremlinConfusedState",
+    "GremlinDeadState",
+    "GremlinEntranceState",
+    "GremlinHitState",
+    "GremlinMissedLandingState",
+    "GremlinPlaybackState",
+    "GremlinPursueState",
+    "GremlinRecoveryState",
+    "GremlinSabotageState",
+    "GremlinStunnedState",
+    "GremlinTerritorialState"
+  ],
+  "freshImportSampledClips": [
+    "idle",
+    "walk",
+    "run",
+    "turn",
+    "climb_start",
+    "climb_loop",
+    "climb_top",
+    "attach_tower",
+    "sabotage_start",
+    "sabotage_loop",
+    "sabotage_end",
+    "detach",
+    "territorial_warn",
+    "pliers_attack",
+    "confused",
+    "recover",
+    "hit",
+    "carried_ready",
+    "airborne_reach",
+    "cling_land",
+    "missed_land_stun",
+    "angry",
+    "death",
+    "stun",
+    "knockback"
+  ],
+  "gamePlaybackVerifiedClips": [
+    "idle",
+    "walk",
+    "run",
+    "turn",
+    "climb_start",
+    "climb_loop",
+    "climb_top",
+    "attach_tower",
+    "sabotage_start",
+    "sabotage_loop",
+    "sabotage_end",
+    "detach",
+    "territorial_warn",
+    "pliers_attack",
+    "confused",
+    "recover",
+    "hit",
+    "carried_ready",
+    "airborne_reach",
+    "cling_land",
+    "missed_land_stun",
+    "angry",
+    "death",
+    "stun",
+    "knockback"
+  ],
+  "gamePlaybackEvidence": "evidence/game-playback.json",
+  "assetSha256": "052b75be64869c6eb9081c1f86219e40e3f2c94f5066f19f35c58d72b70cc477",
+  "productionPoseValidation": "evidence/game-pose-validation.json"
+}

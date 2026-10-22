@@ -252,11 +252,11 @@ export class MapTestControlsHud extends GamePanelHud {
      *
      * @param {import("playcanvas").Entity} panel
      */
-      (panel) => panel.enabledInHierarchy && this.#contains(panel, event)) || this.#buttons.some(
+      (panel) => panel.enabled && this.#contains(panel, event)) || this.#buttons.some(
       /**
        * @param {{entity: import("playcanvas").Entity}} button
        */
-      (button) => button.entity.enabledInHierarchy && this.#contains(button.entity, event));
+      (button) => button.entity.enabled && this.#contains(button.entity, event));
     if (!inside && this.#pointer === null) {
       return;
     }
@@ -266,7 +266,7 @@ export class MapTestControlsHud extends GamePanelHud {
      *
      * @param {{entity: import("playcanvas").Entity}} button
      */
-      (button) => button.entity.enabledInHierarchy && this.#contains(button.entity, event));
+      (button) => button.entity.enabled && this.#contains(button.entity, event));
     if (event.type === INPUT_EVENT_TYPE.POINTER_DOWN && event.button === 0) {
       this.#pointer = event.pointerId;
       this.#pressed = index;

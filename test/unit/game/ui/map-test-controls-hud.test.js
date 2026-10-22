@@ -5,7 +5,7 @@ import { gameUiTheme } from "../../../../src/game/ui/GameUiTheme.js";
 
 class Entity {
   children = [];
-  enabled = true;
+  #enabled = true;
   constructor(name) {
     this.name = name;
   }
@@ -21,8 +21,11 @@ class Entity {
   setLocalPosition(x, y) {
     this.x = x; this.y = y;
   }
-  get enabledInHierarchy() {
-    return this.enabled && (this.parent?.enabledInHierarchy ?? true);
+  set enabled(value) {
+    this.#enabled = value;
+  }
+  get enabled() {
+    return this.#enabled && (this.parent?.enabled ?? true);
   }
   destroy() {}
 }

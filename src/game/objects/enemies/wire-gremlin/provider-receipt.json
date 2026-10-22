@@ -1,0 +1,47 @@
+{
+  "provider": "Tripo3D",
+  "checkedDate": "2026-10-22",
+  "credentialSource": "existing default Tripo CLI profile; secret not copied or printed",
+  "workflowDiscovery": {
+    "gameDevCliOnPath": false,
+    "tripoCliOnPath": true,
+    "configuredMcpToolsAvailable": false
+  },
+  "doctor": {
+    "ok": true,
+    "apiReachability": true,
+    "apiKeyConfigured": true,
+    "region": "ov",
+    "availableCredits": 0,
+    "frozenCredits": 0
+  },
+  "billableRequestSubmitted": true,
+  "jobIds": [
+    "98f2e37a-a6ff-40ad-b2d8-08374b554915"
+  ],
+  "actualCreditsConsumed": 50,
+  "chargesNote": "Studio displayed 30 for generation and 20 for rigging; observed balances 22610 -> 22580 -> 22560. Internal rig task ID not exposed separately by UI.",
+  "blockingReason": null,
+  "reference": "info.png",
+  "generatedModel": "src/game/models/enemies/wire-gremlin/source/tripo-original.glb",
+  "refinedBlend": "src/game/models/enemies/wire-gremlin/wire-gremlin.blend",
+  "exportedGlb": "src/game/models/enemies/wire-gremlin/wire-gremlin.glb",
+  "webStudio": {
+    "jobId": "98f2e37a-a6ff-40ad-b2d8-08374b554915",
+    "url": "https://studio.tripo3d.ai/workspace/rigging/98f2e37a-a6ff-40ad-b2d8-08374b554915",
+    "model": "H3.1 - Best Quality",
+    "privacy": "Private",
+    "geometryAndTexture": true,
+    "generationDisplayedCredits": 30,
+    "rigDisplayedCredits": 20,
+    "balanceBefore": 22610,
+    "balanceAfterGeneration": 22580,
+    "balanceAfterRig": 22560,
+    "originalGlb": "src/game/models/enemies/wire-gremlin/source/tripo-original.glb",
+    "originalBlend": "src/game/models/enemies/wire-gremlin/source/tripo-original.blend",
+    "rigExportDownloaded": true,
+    "rigSourceGlb": "src/game/models/enemies/wire-gremlin/source/tripo-rigged.glb",
+    "rigSourceBlend": "src/game/models/enemies/wire-gremlin/source/tripo-rigged.blend"
+  },
+  "refinement": "Provider skeleton rejected after actual fresh-import deformation; local anatomical rig, normalized weights, UV seam welding, two-hand grip bake and 25 authored clips preserve the initial Tripo mesh."
+}
