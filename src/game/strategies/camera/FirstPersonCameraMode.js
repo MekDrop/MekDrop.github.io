@@ -4,7 +4,6 @@ const FIELD_OF_VIEW = 70;
 const NEAR_CLIP = 0.01;
 const MAXIMUM_DOWNWARD_PITCH = 80;
 const MAXIMUM_UPWARD_PITCH = 60;
-const MAXIMUM_YAW = 80;
 const BODY_TURN_TOLERANCE = 0.001;
 
 /**
@@ -36,11 +35,6 @@ export class FirstPersonCameraMode extends AbstractCameraMode {
    * @type {null}
    */
   #yaw = null;
-  /**
-   *
-   * @type {null}
-   */
-  #centerYaw = null;
   /**
    *
    * @type {number}
@@ -136,7 +130,6 @@ export class FirstPersonCameraMode extends AbstractCameraMode {
     this.#direction = null;
     this.#right = null;
     this.#yaw = null;
-    this.#centerYaw = null;
     this.#pitch = 0;
   }
 
@@ -149,8 +142,7 @@ export class FirstPersonCameraMode extends AbstractCameraMode {
     if (!Number.isFinite(yawDegrees) || !Number.isFinite(pitchDegrees)) {
       return;
     }
-    const centerYaw = this.#centerYaw ?? this.#yaw ?? 0;
-    this.#yaw = (this.#yaw ?? centerYaw) + yawDegrees;
+    this.#yaw = (this.#yaw ?? 0) + yawDegrees;
     this.#pitch = Math.max(
       -MAXIMUM_DOWNWARD_PITCH,
       Math.min(MAXIMUM_UPWARD_PITCH, this.#pitch - pitchDegrees),
@@ -173,16 +165,13 @@ export class FirstPersonCameraMode extends AbstractCameraMode {
     const { gameCamera } = this;
     const centerYaw =
       (Math.atan2(pose.direction.x, pose.direction.z) * 180) / Math.PI;
-    this.#centerYaw = centerYaw;
     this.#yaw ??= centerYaw;
-    const relativeYaw = normalizeDegrees(this.#yaw - centerYaw);
-    const limitedYaw = Math.max(-MAXIMUM_YAW, Math.min(MAXIMUM_YAW, relativeYaw));
-    const bodyTurn = relativeYaw - limitedYaw;
-    if (Math.abs(bodyTurn) > BODY_TURN_TOLERANCE) {
-      hero.firstPersonFacingYaw = normalizeDegrees(centerYaw + bodyTurn);
-      pose = hero.firstPersonCameraPose;
-    }
     this.#yaw = normalizeDegrees(this.#yaw);
+    // FPS yaw turns the body with the view. A free-look dead zone lets the
+    // camera look sideways across the actor's shoulder before the body follows.
+    if (Math.abs(normalizeDegrees(this.#yaw - centerYaw)) > BODY_TURN_TOLERANCE) {
+      hero.firstPersonFacingYaw = this.#yaw;
+    }
     hero.firstPersonLook = {
       yaw: this.#yaw,
       pitch: this.#pitch,

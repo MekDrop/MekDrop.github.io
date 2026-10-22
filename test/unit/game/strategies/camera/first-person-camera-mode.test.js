@@ -176,7 +176,7 @@ describe("first-person camera", () => {
     assert.equal(mode.state.position.y, 3.2);
   });
 
-  it("turns the hero beyond either free-look limit and keeps turning across the yaw seam", () => {
+  it("turns the body immediately with the view, including reversals and the yaw seam", () => {
     const { gameCamera } = cameraFixture();
     const mode = new FirstPersonCameraMode(gameCamera);
     let bodyYaw = 0;
@@ -205,23 +205,23 @@ describe("first-person camera", () => {
     mode.update({ hero: turningHero });
     mode.lookBy(40, 0);
     mode.update({ hero: turningHero });
-    assert.equal(bodyYaw, 0);
+    assert.equal(bodyYaw, 40);
     mode.lookBy(60, 0);
     mode.update({ hero: turningHero });
-    assert.equal(bodyYaw, 20);
+    assert.equal(bodyYaw, 100);
     for (let step = 0; step < 20; step += 1) {
       mode.lookBy(30, 0);
       mode.update({ hero: turningHero });
     }
-    assert.equal(bodyYaw, -100);
+    assert.equal(bodyYaw, -20);
     mode.lookBy(-170, 0);
     mode.update({ hero: turningHero });
-    assert.equal(bodyYaw, -110);
+    assert.equal(bodyYaw, 170);
     const viewYaw = Math.atan2(mode.state.direction.x, mode.state.direction.z) * 180 / Math.PI;
     assert.ok(Math.abs(viewYaw - 170) < 0.001);
   });
 
-  it("ignores rounding drift at the body turn limit", () => {
+  it("ignores rounding drift without introducing a body-turn dead zone", () => {
     const { gameCamera } = cameraFixture();
     const mode = new FirstPersonCameraMode(gameCamera);
     let turns = 0;
@@ -233,7 +233,7 @@ describe("first-person camera", () => {
     };
     mode.enter();
     mode.update({ hero: stationaryHero });
-    mode.lookBy(80 + 1e-10, 0);
+    mode.lookBy(1e-10, 0);
     for (let frame = 0; frame < 60; frame += 1) {
       mode.update({ hero: stationaryHero });
     }

@@ -781,6 +781,16 @@ export class Hero {
   #firstPersonCameraEnabled = false;
 
   /**
+   * @type {number}
+   */
+  #firstPersonEyeHeight = HERO_COLLISION_HEIGHT * 0.8;
+
+  /**
+   * @type {number}
+   */
+  #firstPersonEyeDistance = 0;
+
+  /**
    *
    * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, mapData: import("src/game/objects/ObjectTypes.js").GameMapData, spawnCenter: {x: number, y: number, z: number}, getViewRotation: () => number, getViewDirection: () => {x: number, y: number, z: number}, onPositionChange: (position: {x: number, y: number, z: number}) => void, onFacingChange: (yaw: number) => void, onMovementInput: (x: number, z: number) => void, heroConfigurationStore: HeroConfigurationStore, presentation: HeroPresentation, collisionWorld: import("src/game/collision/GroundCollisionWorld.js").GroundCollisionWorld, modelLibrary: import("src/game/models/GameModelLibrary.js").GameModelLibrary}} options
    * @param {typeof import("playcanvas")} options.pc
@@ -1534,17 +1544,14 @@ export class Hero {
    */
   get firstPersonCameraPose() {
     const direction = this.facingDirection;
-    const body = this.#entity.getPosition();
-    const left = this.#leftEyeEntity?.getPosition();
-    const right = this.#rightEyeEntity?.getPosition();
-    const anchor = left && right ? {
-      x: (left.x + right.x) / 2,
-      y: (left.y + right.y) / 2,
-      z: (left.z + right.z) / 2,
-    } : {
-      x: body.x,
-      y: body.y + HERO_COLLISION_HEIGHT * 0.8,
-      z: body.z,
+    const body = this.#modelRoot?.getPosition() ?? this.#entity.getPosition();
+    const yaw = this.#facingYaw * Math.PI / 180;
+    // The eye anchor stays ahead of the chest, with the body aligned to view
+    // yaw. Neck pitch and authored animation sway cannot rotate it sideways.
+    const anchor = {
+      x: body.x + Math.sin(yaw) * this.#firstPersonEyeDistance,
+      y: body.y + this.#firstPersonEyeHeight,
+      z: body.z + Math.cos(yaw) * this.#firstPersonEyeDistance,
     };
 
     return {
@@ -1558,7 +1565,7 @@ export class Hero {
   }
 
   /**
-   * Turn the body when first-person look reaches the free-look limit.
+   * Keep the body aligned with first-person view yaw.
    * @param {number} yaw
    */
   set firstPersonFacingYaw(yaw) {
@@ -1579,35 +1586,38 @@ export class Hero {
       return;
     }
     const local = this.#modelRoot.getLocalPosition().clone();
-    const left = this.#leftEyeEntity.getPosition();
-    const right = this.#rightEyeEntity.getPosition();
-    // Remove the current root correction before sampling the authored eye pose.
-    // This captures capsule steps and animation handoffs without feeding the
-    // previous presentation offset back into the filter.
-    const rawEyeHeight = (left.y + right.y) / 2 - local.y;
+    // Remove the current root correction before easing capsule steps, without
+    // feeding the previous presentation offset back into the filter.
+    const rawEyeHeight = this.#modelRoot.getPosition().y + this.#firstPersonEyeHeight - local.y;
     if (this.#stairCameraFrame !== this.#stairCameraSampleFrame) {
+      const onStairs = this.#capsuleSupportOnly || this.#automaticStepGroundingRemaining > 0;
       this.#stairCameraOffset = this.#stairCameraHeight.update(rawEyeHeight, this.#stairCameraDeltaTime, {
-        onStairs: this.#capsuleSupportOnly || this.#automaticStepGroundingRemaining > 0,
-        freeMotion: this.#physics.scripted || Math.abs(this.#velocity.y) > 3,
+        onStairs,
+        // Descending a riser can exceed the free-fall speed threshold before
+        // contact. Keep easing until stair support ends; jumps stay immediate.
+        freeMotion: this.#physics.scripted || Boolean(this.#jumpMovement) ||
+          (!onStairs && Math.abs(this.#velocity.y) > 3),
       });
       this.#stairCameraEyeHeight = rawEyeHeight + this.#stairCameraOffset;
       this.#stairCameraSampleFrame = this.#stairCameraFrame;
     }
-    // Move the visible actor, then read its eyes. The camera never floats
-    // separately from the face, including after a late capsule correction.
+    // Apply the stair correction to the actor and calibrated eye anchor together.
     this.#modelRoot.setLocalPosition(local.x, this.#stairCameraEyeHeight - rawEyeHeight, local.z);
   }
 
   /**
-   * Align the head before sampling the eyes, including a same-frame body turn.
+   * Align the head and eye anchor, including a same-frame body turn.
    * @param {{yaw:number,pitch:number}} look
    */
   set firstPersonLook(look) {
     if (!this.#firstPersonCameraEnabled || !this.#headEntity) {
       return;
     }
-    this.#headLookYaw = ((look.yaw - this.#facingYaw + 540) % 360) - 180;
-    this.#headEntity.setLocalEulerAngles(-look.pitch, this.#headLookYaw, 0);
+    // Reapply body yaw after animation sampling as well as on mouse input.
+    // The head pitches on the body; it never yaws independently into a shoulder.
+    this.firstPersonFacingYaw = look.yaw;
+    this.#headLookYaw = 0;
+    this.#headEntity.setLocalEulerAngles(-look.pitch, 0, 0);
     this.#syncFirstPersonPresentation();
   }
 
@@ -3831,6 +3841,21 @@ export class Hero {
       this.#modelLibrary,
       this.#modelUrl,
     );
+    // The standing clip lifts the head above the GLB bind pose. Calibrating
+    // before sampling Idle places the camera down at shoulder level.
+    this.#modelRoot.anim.update(0);
+    this.#firstPersonEyeHeight = HERO_COLLISION_HEIGHT * 0.8;
+    this.#firstPersonEyeDistance = 0;
+    if (this.#leftEyeEntity && this.#rightEyeEntity) {
+      const left = this.#leftEyeEntity.getPosition();
+      const right = this.#rightEyeEntity.getPosition();
+      this.#firstPersonEyeHeight = (left.y + right.y) / 2 - this.#modelRoot.getPosition().y;
+      const origin = this.#modelRoot.getPosition();
+      this.#firstPersonEyeDistance = Math.hypot(
+        (left.x + right.x) / 2 - origin.x,
+        (left.z + right.z) / 2 - origin.z,
+      );
+    }
     if (this.#findModelEntity("Boot cuff") && this.#findModelEntity("Boot cuff.001")) {
       this.#footPlacement = new HeroFootPlacement({
         pc: this.#pc,
