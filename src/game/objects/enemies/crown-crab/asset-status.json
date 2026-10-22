@@ -1,0 +1,96 @@
+{
+  "enemy": "CrownCrab",
+  "slug": "crown-crab",
+  "status": "generated-static-source-needs-rig-and-refinement",
+  "reference": "info.png",
+  "referenceReviewed": true,
+  "referenceFindings": [
+    "Use the main upper-left portrait, excluding lettering and secondary characters.",
+    "Angular red armor, oversized asymmetrical pincers, broad low body and multiple articulated legs.",
+    "Gold block-built crown, angry pale eyes with dark pupils, pale exposed mouth and rear underside."
+  ],
+  "provider": {
+    "name": "Tripo3D",
+    "cli": "tripo",
+    "credentialConfigured": true,
+    "credentialSource": "profile:default",
+    "availableCredits": 0,
+    "frozenCredits": 0,
+    "otherConfiguredProfiles": 0,
+    "doctorReachable": true,
+    "gameDevCliAvailable": false,
+    "checks": [
+      "tripo doctor --json",
+      "tripo balance --json",
+      "tripo generate image-to-model --help"
+    ],
+    "jobsSubmitted": [
+      "0daf7361-b6df-4e83-a53b-b559decf3051"
+    ],
+    "charges": [],
+    "creditsConsumedByThisTask": null,
+    "webAccount": {
+      "availableCreditsObservedBefore": 23110,
+      "credentialVia": "existing browser session",
+      "privacy": "Private",
+      "generationModel": "H3.1",
+      "mode": "Geometry & Texture",
+      "quotedGenerationCredits": 30,
+      "actualJobCharge": null,
+      "balanceDeltaNotAttributable": "Other jobs share this account",
+      "jobId": "0daf7361-b6df-4e83-a53b-b559decf3051",
+      "url": "https://studio.tripo3d.ai/workspace/generate/0daf7361-b6df-4e83-a53b-b559decf3051",
+      "portraitIsolation": "Tripo Edit Image / Nano Banana, quoted UI Edit 10 0; actual charge unknown",
+      "completed": true,
+      "export": {
+        "format": "GLB",
+        "textureResolution": "2k",
+        "filename": "crown-crab-tripo-original.glb",
+        "bytes": 2213088,
+        "sha256": "bf07268459cc74db0e02400a5a26e308605acd9e0f3c0ac462456ef31e243f8f"
+      }
+    }
+  },
+  "plannedModel": "src/game/models/enemies/crown-crab/crown-crab.glb",
+  "plannedEditableSource": "src/game/models/enemies/crown-crab/crown-crab.blend",
+  "generatedModel": "src/game/objects/enemies/crown-crab/provider/original.glb",
+  "refinedModel": null,
+  "preview": null,
+  "registrationEnabled": false,
+  "testMapUrl": null,
+  "verification": {
+    "unitTests": "test/unit/game/objects/enemies/crown-crab/crown-crab.test.js",
+    "unitTestScope": "Yuka transitions and capability interactions with real PlayCanvas Entity transforms; rigid bodies and recipients are test doubles, not an Ammo integration check.",
+    "actualGamePlayback": false,
+    "ammoContactAndThrows": false,
+    "referenceRenderComparison": false,
+    "freshGlbImport": false,
+    "transparentPreview": false,
+    "offlineSourceRenders": {
+      "views": [
+        "front",
+        "side",
+        "rear",
+        "game"
+      ],
+      "directory": "tmp",
+      "reviewed": true,
+      "findings": [
+        "Identity, red armor, crown and angry face preserved.",
+        "Claws raised rather than down and forward as in primary reference.",
+        "Body narrower and crown taller than reference; local refinement required.",
+        "Single connected textured mesh, no bones and no clips; not production-ready."
+      ]
+    }
+  },
+  "remaining": [
+    "Initial Tripo generation complete. Preserve original and receipts; no replacement generation submitted.",
+    "Refine proportions and claw pose locally; rig nonhumanoid crab, author and verify embedded clips.",
+    "Add animation enum under src/game/enum per repo rule, and production clip playback adapter.",
+    "Finish front-of-queue negotiation and verify door clearance and royal reachability in real game physics.",
+    "Add valid leaf registration and enemy-crown-crab test map with HUD controls only after the model exists.",
+    "Verify all clips from fresh GLB import and actual game playback, then capture transparent preview.png."
+  ],
+  "editableStaticSource": "src/game/models/enemies/crown-crab/crown-crab.blend",
+  "staticExport": "src/game/models/enemies/crown-crab/crown-crab.glb"
+}

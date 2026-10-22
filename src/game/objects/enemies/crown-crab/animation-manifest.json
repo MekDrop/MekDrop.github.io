@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "status": "planned-not-authored",
+  "model": null,
+  "clips": [],
+  "verifiedClips": [],
+  "requiredClips": [
+    "idle", "scuttle_forward", "scuttle_sideways", "run", "turn",
+    "claw_windup", "claw_snap", "claw_recover", "door_claw",
+    "front_block", "rear_hit", "angry_warn", "duel", "stun", "stun_recover",
+    "pickup_struggle", "airborne_tumble", "land", "land_recover", "revenge_run", "death"
+  ],
+  "behaviorStates": [
+    "CrownCrabPursueState", "CrownCrabClawState", "CrownCrabAngryState",
+    "CrownCrabStunnedState", "CrownCrabCarriedState", "CrownCrabAirborneState",
+    "CrownCrabLandingState", "CrownCrabDeathState"
+  ],
+  "logicTimingSeconds": {
+    "clawContact": 0.45,
+    "clawRecoveryStart": 0.65,
+    "clawEnd": 1.1,
+    "angryWarning": 0.65,
+    "landingRecoveryStart": 0.2,
+    "landingEnd": 0.6,
+    "deathCleanup": 1.5
+  },
+  "timingNote": "These are logic timings, not measured clip durations. Align with authored clip contacts before registration."
+}
