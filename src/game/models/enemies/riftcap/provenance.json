@@ -1,0 +1,67 @@
+{
+  "checkedAt": "2026-10-22",
+  "provider": "Tripo3D",
+  "intendedOperation": "image-to-model",
+  "reference": "src/game/objects/enemies/riftcap/info.png",
+  "referenceSha256": "cf069e4ef6961be8adf1e434e1c658822ea8929190b501d70be8dce16dd39f07",
+  "referenceIdentity": "Main left portrait only: purple hooded combat healer, cyan eyes, gold trim, brown boots and cube staff, orbiting green cube. Exclude lettering and secondary figures.",
+  "permission": "User authorized design-image uploads, generation/rigging/animation/refinement and any credit ceiling. No credit purchases authorized.",
+  "installedCli": "tripo",
+  "gameDevCliAvailable": false,
+  "doctor": {
+    "credentialConfigured": true,
+    "source": "profile:default",
+    "apiReachable": true
+  },
+  "balance": {
+    "balance": 0,
+    "frozen": 0
+  },
+  "jobIds": [
+    "e1c451da-5c69-460d-a170-b59898df433b"
+  ],
+  "submitted": true,
+  "chargesCredits": 30,
+  "generationParameters": null,
+  "blockedReason": null,
+  "intendedModel": "src/game/models/enemies/riftcap/riftcap.glb",
+  "intendedEditableSource": "src/game/models/enemies/riftcap/riftcap.blend",
+  "visualReferenceCompared": true,
+  "modelGenerated": true,
+  "clipsAuthored": true,
+  "studioGeneration": {
+    "status": "completed_downloaded",
+    "texture8K": false,
+    "creditsBefore": 22700,
+    "reference": "reference-clean.png",
+    "observedDebitCredits": 30,
+    "url": "https://studio.tripo3d.ai/workspace/generate/e1c451da-5c69-460d-a170-b59898df433b",
+    "quoteCredits": 30,
+    "generateInParts": false,
+    "privacy": "Private",
+    "operation": "image-to-model",
+    "jobId": "e1c451da-5c69-460d-a170-b59898df433b",
+    "creditsAfter": 22670,
+    "model": "H3.1 - Best Quality",
+    "prompt": null,
+    "negativePrompt": null,
+    "exportFormat": "GLB",
+    "textureResolution": "2k",
+    "riggingCredits": 0,
+    "replacementGenerations": 0
+  },
+  "sourceDownload": "tmp/riftcap-asset/tripo-original.glb",
+  "sourceSha256": "460f03173062eec0b4dbd8919261bc8acdd075ab35db634a275ac634b151d2e7",
+  "cleanReferenceSha256": "011eae2926517579c552d16ec814f5bc9f4e99c115fd5a5fa783f935836989fd",
+  "generatedAsset": "src/game/models/enemies/riftcap/riftcap.glb",
+  "editableAsset": "src/game/models/enemies/riftcap/riftcap.blend",
+  "generatedAssetSha256": "df80c148bc5e3054c1ea53f2b39ddac7eeae58aaadac92a9e1eeef385b1bf5de",
+  "editableAssetSha256": "0c48fe89f871f8225881274cd9113fa40e582ff622a7d4d3341e5078eeb7a5c0",
+  "refinements": [
+    "Grounded body-centered 1.4m maximum height",
+    "Preserved Tripo UV-painted mesh and texture; welded coincident seam vertices",
+    "Removed excessive metallic/specular material response; matte cloth/wood/gold and texture-derived low emission",
+    "Tailored 20-bone cloak/arms/legs/staff/orbit-cube rig with normalized at-most-two-influence weights",
+    "32 distinct authored embedded clips; corrected turn to local yaw axis"
+  ]
+}

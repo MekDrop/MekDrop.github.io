@@ -1,0 +1,595 @@
+{
+  "schemaVersion": 2,
+  "status": "fresh_glb_import_sampled_runtime_pending",
+  "model": "riftcap.glb",
+  "rig": "RiftcapRig",
+  "bones": [
+    "Root",
+    "Hips",
+    "Spine",
+    "Hood",
+    "UpperArm.L",
+    "Forearm.L",
+    "UpperArm.R",
+    "Forearm.R",
+    "Thigh.L",
+    "Shin.L",
+    "Foot.L",
+    "Thigh.R",
+    "Shin.R",
+    "Foot.R",
+    "OrbitCube",
+    "StaffCube",
+    "StaffSpark.1",
+    "StaffSpark.2",
+    "StaffSpark.3",
+    "StaffSpark.4"
+  ],
+  "providerJobId": "e1c451da-5c69-460d-a170-b59898df433b",
+  "clips": {
+    "idle": {
+      "exported": true,
+      "verified": false,
+      "durationSeconds": 2,
+      "loop": true,
+      "events": [],
+      "freshImport": true,
+      "runtimePlayback": false,
+      "offlineSamplesFinite": true,
+      "offlineGeometryChanges": true,
+      "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
+      "sampledImages": [
+        "tmp/riftcap-asset/fresh-import/idle_start.png",
+        "tmp/riftcap-asset/fresh-import/idle_middle.png",
+        "tmp/riftcap-asset/fresh-import/idle_end.png"
+      ]
+    },
+    "walk": {
+      "exported": true,
+      "verified": false,
+      "durationSeconds": 0.5,
+      "loop": true,
+      "events": [],
+      "freshImport": true,
+      "runtimePlayback": false,
+      "offlineSamplesFinite": true,
+      "offlineGeometryChanges": true,
+      "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
+      "sampledImages": [
+        "tmp/riftcap-asset/fresh-import/walk_start.png",
+        "tmp/riftcap-asset/fresh-import/walk_middle.png",
+        "tmp/riftcap-asset/fresh-import/walk_end.png"
+      ]
+    },
+    "run": {
+      "exported": true,
+      "verified": false,
+      "durationSeconds": 0.40000001589457196,
+      "loop": true,
+      "events": [],
+      "freshImport": true,
+      "runtimePlayback": false,
+      "offlineSamplesFinite": true,
+      "offlineGeometryChanges": true,
+      "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
+      "sampledImages": [
+        "tmp/riftcap-asset/fresh-import/run_start.png",
+        "tmp/riftcap-asset/fresh-import/run_middle.png",
+        "tmp/riftcap-asset/fresh-import/run_end.png"
+      ]
+    },
+    "turn": {
+      "exported": true,
+      "verified": false,
+      "durationSeconds": 0.6000000238418579,
+      "loop": false,
+      "events": [],
+      "freshImport": true,
+      "runtimePlayback": false,
+      "offlineSamplesFinite": true,
+      "offlineGeometryChanges": true,
+      "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
+      "sampledImages": [
+        "tmp/riftcap-asset/fresh-import/turn_start.png",
+        "tmp/riftcap-asset/fresh-import/turn_middle.png",
+        "tmp/riftcap-asset/fresh-import/turn_end.png"
+      ]
+    },
+    "bolt_windup": {
+      "exported": true,
+      "verified": false,
+      "durationSeconds": 0.4666666587193807,
+      "loop": false,
+      "events": [],
+      "freshImport": true,
+      "runtimePlayback": false,
+      "offlineSamplesFinite": true,
+      "offlineGeometryChanges": true,
+      "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
+      "sampledImages": [
+        "tmp/riftcap-asset/fresh-import/bolt_windup_start.png",
+        "tmp/riftcap-asset/fresh-import/bolt_windup_middle.png",
+        "tmp/riftcap-asset/fresh-import/bolt_windup_end.png"
+      ]
+    },
+    "bolt_cast": {
+      "exported": true,
+      "verified": false,
+      "durationSeconds": 0.16666666666666666,
+      "loop": false,
+      "events": [
+        {
+          "name": "spell_contact",
+          "timeSeconds": 0
+        }
+      ],
+      "freshImport": true,
+      "runtimePlayback": false,
+      "offlineSamplesFinite": true,
+      "offlineGeometryChanges": true,
+      "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
+      "sampledImages": [
+        "tmp/riftcap-asset/fresh-import/bolt_cast_start.png",
+        "tmp/riftcap-asset/fresh-import/bolt_cast_middle.png",
+        "tmp/riftcap-asset/fresh-import/bolt_cast_end.png"
+      ]
+    },
+    "bolt_recover": {
+      "exported": true,
+      "verified": false,
+      "durationSeconds": 0.40000001589457196,
+      "loop": false,
+      "events": [],
+      "freshImport": true,
+      "runtimePlayback": false,
+      "offlineSamplesFinite": true,
+      "offlineGeometryChanges": true,
+      "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
+      "sampledImages": [
+        "tmp/riftcap-asset/fresh-import/bolt_recover_start.png",
+        "tmp/riftcap-asset/fresh-import/bolt_recover_middle.png",
+        "tmp/riftcap-asset/fresh-import/bolt_recover_end.png"
+      ]
+    },
+    "swap_windup": {
+      "exported": true,
+      "verified": false,
+      "durationSeconds": 0.4666666587193807,
+      "loop": false,
+      "events": [],
+      "freshImport": true,
+      "runtimePlayback": false,
+      "offlineSamplesFinite": true,
+      "offlineGeometryChanges": true,
+      "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
+      "sampledImages": [
+        "tmp/riftcap-asset/fresh-import/swap_windup_start.png",
+        "tmp/riftcap-asset/fresh-import/swap_windup_middle.png",
+        "tmp/riftcap-asset/fresh-import/swap_windup_end.png"
+      ]
+    },
+    "swap_cast": {
+      "exported": true,
+      "verified": false,
+      "durationSeconds": 0.16666666666666666,
+      "loop": false,
+      "events": [
+        {
+          "name": "spell_contact",
+          "timeSeconds": 0
+        }
+      ],
+      "freshImport": true,
+      "runtimePlayback": false,
+      "offlineSamplesFinite": true,
+      "offlineGeometryChanges": true,
+      "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
+      "sampledImages": [
+        "tmp/riftcap-asset/fresh-import/swap_cast_start.png",
+        "tmp/riftcap-asset/fresh-import/swap_cast_middle.png",
+        "tmp/riftcap-asset/fresh-import/swap_cast_end.png"
+      ]
+    },
+    "swap_recover": {
+      "exported": true,
+      "verified": false,
+      "durationSeconds": 0.40000001589457196,
+      "loop": false,
+      "events": [],
+      "freshImport": true,
+      "runtimePlayback": false,
+      "offlineSamplesFinite": true,
+      "offlineGeometryChanges": true,
+      "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
+      "sampledImages": [
+        "tmp/riftcap-asset/fresh-import/swap_recover_start.png",
+        "tmp/riftcap-asset/fresh-import/swap_recover_middle.png",
+        "tmp/riftcap-asset/fresh-import/swap_recover_end.png"
+      ]
+    },
+    "heal_start": {
+      "exported": true,
+      "verified": false,
+      "durationSeconds": 0.4666666587193807,
+      "loop": false,
+      "events": [],
+      "freshImport": true,
+      "runtimePlayback": false,
+      "offlineSamplesFinite": true,
+      "offlineGeometryChanges": true,
+      "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
+      "sampledImages": [
+        "tmp/riftcap-asset/fresh-import/heal_start_start.png",
+        "tmp/riftcap-asset/fresh-import/heal_start_middle.png",
+        "tmp/riftcap-asset/fresh-import/heal_start_end.png"
+      ]
+    },
+    "heal_loop": {
+      "exported": true,
+      "verified": false,
+      "durationSeconds": 1.2000000476837158,
+      "loop": true,
+      "events": [],
+      "freshImport": true,
+      "runtimePlayback": false,
+      "offlineSamplesFinite": true,
+      "offlineGeometryChanges": true,
+      "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
+      "sampledImages": [
+        "tmp/riftcap-asset/fresh-import/heal_loop_start.png",
+        "tmp/riftcap-asset/fresh-import/heal_loop_middle.png",
+        "tmp/riftcap-asset/fresh-import/heal_loop_end.png"
+      ]
+    },
+    "heal_end": {
+      "exported": true,
+      "verified": false,
+      "durationSeconds": 0.40000001589457196,
+      "loop": false,
+      "events": [],
+      "freshImport": true,
+      "runtimePlayback": false,
+      "offlineSamplesFinite": true,
+      "offlineGeometryChanges": true,
+      "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
+      "sampledImages": [
+        "tmp/riftcap-asset/fresh-import/heal_end_start.png",
+        "tmp/riftcap-asset/fresh-import/heal_end_middle.png",
+        "tmp/riftcap-asset/fresh-import/heal_end_end.png"
+      ]
+    },
+    "ward_windup": {
+      "exported": true,
+      "verified": false,
+      "durationSeconds": 0.4666666587193807,
+      "loop": false,
+      "events": [],
+      "freshImport": true,
+      "runtimePlayback": false,
+      "offlineSamplesFinite": true,
+      "offlineGeometryChanges": true,
+      "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
+      "sampledImages": [
+        "tmp/riftcap-asset/fresh-import/ward_windup_start.png",
+        "tmp/riftcap-asset/fresh-import/ward_windup_middle.png",
+        "tmp/riftcap-asset/fresh-import/ward_windup_end.png"
+      ]
+    },
+    "ward_cast": {
+      "exported": true,
+      "verified": false,
+      "durationSeconds": 0.16666666666666666,
+      "loop": false,
+      "events": [
+        {
+          "name": "spell_contact",
+          "timeSeconds": 0
+        }
+      ],
+      "freshImport": true,
+      "runtimePlayback": false,
+      "offlineSamplesFinite": true,
+      "offlineGeometryChanges": true,
+      "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
+      "sampledImages": [
+        "tmp/riftcap-asset/fresh-import/ward_cast_start.png",
+        "tmp/riftcap-asset/fresh-import/ward_cast_middle.png",
+        "tmp/riftcap-asset/fresh-import/ward_cast_end.png"
+      ]
+    },
+    "ward_recover": {
+      "exported": true,
+      "verified": false,
+      "durationSeconds": 0.40000001589457196,
+      "loop": false,
+      "events": [],
+      "freshImport": true,
+      "runtimePlayback": false,
+      "offlineSamplesFinite": true,
+      "offlineGeometryChanges": true,
+      "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
+      "sampledImages": [
+        "tmp/riftcap-asset/fresh-import/ward_recover_start.png",
+        "tmp/riftcap-asset/fresh-import/ward_recover_middle.png",
+        "tmp/riftcap-asset/fresh-import/ward_recover_end.png"
+      ]
+    },
+    "shatter_windup": {
+      "exported": true,
+      "verified": false,
+      "durationSeconds": 0.4666666587193807,
+      "loop": false,
+      "events": [],
+      "freshImport": true,
+      "runtimePlayback": false,
+      "offlineSamplesFinite": true,
+      "offlineGeometryChanges": true,
+      "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
+      "sampledImages": [
+        "tmp/riftcap-asset/fresh-import/shatter_windup_start.png",
+        "tmp/riftcap-asset/fresh-import/shatter_windup_middle.png",
+        "tmp/riftcap-asset/fresh-import/shatter_windup_end.png"
+      ]
+    },
+    "shatter_cast": {
+      "exported": true,
+      "verified": false,
+      "durationSeconds": 0.16666666666666666,
+      "loop": false,
+      "events": [
+        {
+          "name": "spell_contact",
+          "timeSeconds": 0
+        }
+      ],
+      "freshImport": true,
+      "runtimePlayback": false,
+      "offlineSamplesFinite": true,
+      "offlineGeometryChanges": true,
+      "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
+      "sampledImages": [
+        "tmp/riftcap-asset/fresh-import/shatter_cast_start.png",
+        "tmp/riftcap-asset/fresh-import/shatter_cast_middle.png",
+        "tmp/riftcap-asset/fresh-import/shatter_cast_end.png"
+      ]
+    },
+    "shatter_recover": {
+      "exported": true,
+      "verified": false,
+      "durationSeconds": 0.40000001589457196,
+      "loop": false,
+      "events": [],
+      "freshImport": true,
+      "runtimePlayback": false,
+      "offlineSamplesFinite": true,
+      "offlineGeometryChanges": true,
+      "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
+      "sampledImages": [
+        "tmp/riftcap-asset/fresh-import/shatter_recover_start.png",
+        "tmp/riftcap-asset/fresh-import/shatter_recover_middle.png",
+        "tmp/riftcap-asset/fresh-import/shatter_recover_end.png"
+      ]
+    },
+    "time_bubble_start": {
+      "exported": true,
+      "verified": false,
+      "durationSeconds": 0.4666666587193807,
+      "loop": false,
+      "events": [],
+      "freshImport": true,
+      "runtimePlayback": false,
+      "offlineSamplesFinite": true,
+      "offlineGeometryChanges": true,
+      "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
+      "sampledImages": [
+        "tmp/riftcap-asset/fresh-import/time_bubble_start_start.png",
+        "tmp/riftcap-asset/fresh-import/time_bubble_start_middle.png",
+        "tmp/riftcap-asset/fresh-import/time_bubble_start_end.png"
+      ]
+    },
+    "time_bubble_sustain": {
+      "exported": true,
+      "verified": false,
+      "durationSeconds": 1.2000000476837158,
+      "loop": true,
+      "events": [],
+      "freshImport": true,
+      "runtimePlayback": false,
+      "offlineSamplesFinite": true,
+      "offlineGeometryChanges": true,
+      "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
+      "sampledImages": [
+        "tmp/riftcap-asset/fresh-import/time_bubble_sustain_start.png",
+        "tmp/riftcap-asset/fresh-import/time_bubble_sustain_middle.png",
+        "tmp/riftcap-asset/fresh-import/time_bubble_sustain_end.png"
+      ]
+    },
+    "time_bubble_end": {
+      "exported": true,
+      "verified": false,
+      "durationSeconds": 0.40000001589457196,
+      "loop": false,
+      "events": [],
+      "freshImport": true,
+      "runtimePlayback": false,
+      "offlineSamplesFinite": true,
+      "offlineGeometryChanges": true,
+      "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
+      "sampledImages": [
+        "tmp/riftcap-asset/fresh-import/time_bubble_end_start.png",
+        "tmp/riftcap-asset/fresh-import/time_bubble_end_middle.png",
+        "tmp/riftcap-asset/fresh-import/time_bubble_end_end.png"
+      ]
+    },
+    "cast_interrupt": {
+      "exported": true,
+      "verified": false,
+      "durationSeconds": 0.20000000794728598,
+      "loop": false,
+      "events": [],
+      "freshImport": true,
+      "runtimePlayback": false,
+      "offlineSamplesFinite": true,
+      "offlineGeometryChanges": true,
+      "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
+      "sampledImages": [
+        "tmp/riftcap-asset/fresh-import/cast_interrupt_start.png",
+        "tmp/riftcap-asset/fresh-import/cast_interrupt_middle.png",
+        "tmp/riftcap-asset/fresh-import/cast_interrupt_end.png"
+      ]
+    },
+    "confused": {
+      "exported": true,
+      "verified": false,
+      "durationSeconds": 1.3999999364217122,
+      "loop": true,
+      "events": [],
+      "freshImport": true,
+      "runtimePlayback": false,
+      "offlineSamplesFinite": true,
+      "offlineGeometryChanges": true,
+      "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
+      "sampledImages": [
+        "tmp/riftcap-asset/fresh-import/confused_start.png",
+        "tmp/riftcap-asset/fresh-import/confused_middle.png",
+        "tmp/riftcap-asset/fresh-import/confused_end.png"
+      ]
+    },
+    "recover": {
+      "exported": true,
+      "verified": false,
+      "durationSeconds": 0.4666666587193807,
+      "loop": false,
+      "events": [],
+      "freshImport": true,
+      "runtimePlayback": false,
+      "offlineSamplesFinite": true,
+      "offlineGeometryChanges": true,
+      "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
+      "sampledImages": [
+        "tmp/riftcap-asset/fresh-import/recover_start.png",
+        "tmp/riftcap-asset/fresh-import/recover_middle.png",
+        "tmp/riftcap-asset/fresh-import/recover_end.png"
+      ]
+    },
+    "hit": {
+      "exported": true,
+      "verified": false,
+      "durationSeconds": 0.30000001192092896,
+      "loop": false,
+      "events": [],
+      "freshImport": true,
+      "runtimePlayback": false,
+      "offlineSamplesFinite": true,
+      "offlineGeometryChanges": true,
+      "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
+      "sampledImages": [
+        "tmp/riftcap-asset/fresh-import/hit_start.png",
+        "tmp/riftcap-asset/fresh-import/hit_middle.png",
+        "tmp/riftcap-asset/fresh-import/hit_end.png"
+      ]
+    },
+    "stunned": {
+      "exported": true,
+      "verified": false,
+      "durationSeconds": 1.1000000635782878,
+      "loop": true,
+      "events": [],
+      "freshImport": true,
+      "runtimePlayback": false,
+      "offlineSamplesFinite": true,
+      "offlineGeometryChanges": true,
+      "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
+      "sampledImages": [
+        "tmp/riftcap-asset/fresh-import/stunned_start.png",
+        "tmp/riftcap-asset/fresh-import/stunned_middle.png",
+        "tmp/riftcap-asset/fresh-import/stunned_end.png"
+      ]
+    },
+    "knockback": {
+      "exported": true,
+      "verified": false,
+      "durationSeconds": 0.4666666587193807,
+      "loop": false,
+      "events": [],
+      "freshImport": true,
+      "runtimePlayback": false,
+      "offlineSamplesFinite": true,
+      "offlineGeometryChanges": true,
+      "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
+      "sampledImages": [
+        "tmp/riftcap-asset/fresh-import/knockback_start.png",
+        "tmp/riftcap-asset/fresh-import/knockback_middle.png",
+        "tmp/riftcap-asset/fresh-import/knockback_end.png"
+      ]
+    },
+    "carried_struggle": {
+      "exported": true,
+      "verified": false,
+      "durationSeconds": 0.8000000317891439,
+      "loop": true,
+      "events": [],
+      "freshImport": true,
+      "runtimePlayback": false,
+      "offlineSamplesFinite": true,
+      "offlineGeometryChanges": true,
+      "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
+      "sampledImages": [
+        "tmp/riftcap-asset/fresh-import/carried_struggle_start.png",
+        "tmp/riftcap-asset/fresh-import/carried_struggle_middle.png",
+        "tmp/riftcap-asset/fresh-import/carried_struggle_end.png"
+      ]
+    },
+    "airborne": {
+      "exported": true,
+      "verified": false,
+      "durationSeconds": 0.6999999682108561,
+      "loop": true,
+      "events": [],
+      "freshImport": true,
+      "runtimePlayback": false,
+      "offlineSamplesFinite": true,
+      "offlineGeometryChanges": true,
+      "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
+      "sampledImages": [
+        "tmp/riftcap-asset/fresh-import/airborne_start.png",
+        "tmp/riftcap-asset/fresh-import/airborne_middle.png",
+        "tmp/riftcap-asset/fresh-import/airborne_end.png"
+      ]
+    },
+    "land": {
+      "exported": true,
+      "verified": false,
+      "durationSeconds": 0.4666666587193807,
+      "loop": false,
+      "events": [],
+      "freshImport": true,
+      "runtimePlayback": false,
+      "offlineSamplesFinite": true,
+      "offlineGeometryChanges": true,
+      "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
+      "sampledImages": [
+        "tmp/riftcap-asset/fresh-import/land_start.png",
+        "tmp/riftcap-asset/fresh-import/land_middle.png",
+        "tmp/riftcap-asset/fresh-import/land_end.png"
+      ]
+    },
+    "death": {
+      "exported": true,
+      "verified": false,
+      "durationSeconds": 1.5,
+      "loop": false,
+      "events": [],
+      "freshImport": true,
+      "runtimePlayback": false,
+      "offlineSamplesFinite": true,
+      "offlineGeometryChanges": true,
+      "evidence": "tmp/riftcap-asset/fresh-import/verification.json",
+      "sampledImages": [
+        "tmp/riftcap-asset/fresh-import/death_start.png",
+        "tmp/riftcap-asset/fresh-import/death_middle.png",
+        "tmp/riftcap-asset/fresh-import/death_end.png"
+      ]
+    }
+  }
+}

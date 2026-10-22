@@ -1,0 +1,14 @@
+{
+  "units": "metres",
+  "groundOffset": 0,
+  "wrapperYawDegrees": 180,
+  "uniformScale": 1,
+  "dimensions": [
+    1.3475,
+    1.4,
+    0.8355
+  ],
+  "boundsSource": "decoded GLB vertices, bind pose",
+  "runtimeVerified": false,
+  "note": "Offline calibration only. Grounding/facing/max animated extent must be confirmed in production renderer."
+}
