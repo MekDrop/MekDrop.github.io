@@ -1,0 +1,49 @@
+{
+  "checkedAt": "2026-10-22",
+  "route": "http://localhost:9000/map/test_enemy-riftcap",
+  "engine": "Production PlayCanvas scene with Ammo",
+  "method": "Live Hero through runtime.getHero(); production FrostPuffShot instantiated in the same scene, registered in the Riftcap diagnostic owner shots, and discovered by its real Time Bubble. Movement samples use Hero.setMovement; projectile suspension position measured after a physics synchronization interval.",
+  "runtime": {
+    "hero": {
+      "scale": 0.3,
+      "unsupported": false,
+      "animation": [
+        0.3,
+        0.3
+      ],
+      "overlap": 0.2,
+      "partialRelease": 0.3,
+      "restored": 1,
+      "afterTeardown": 1,
+      "destroyReleaseSafe": true
+    },
+    "movement": {
+      "normal": {
+        "distance": 0.7606009605626904,
+        "elapsed": 0.5205000000000001
+      },
+      "slow": {
+        "distance": 0.19451302289962769,
+        "elapsed": 0.5070999999999984
+      },
+      "restored": {
+        "distance": 0.8537461112058466,
+        "elapsed": 0.5339000000000015
+      }
+    },
+    "shot": {
+      "scale": 0.3,
+      "speed": 1.8000000490002503,
+      "remaining": 1.9579700000000004,
+      "pausedDistance": 0,
+      "pausedLifetime": 0,
+      "restoredSpeed": 6.000000163354861
+    }
+  },
+  "checks": {
+    "focusedTests": 45,
+    "failed": 0,
+    "lint": "passed"
+  },
+  "boundary": "FrostPuffShot collision/retained chill is covered by a focused unit test with an event/contact fixture; the live check measures Ammo speed, suspension, lifetime and restoration."
+}

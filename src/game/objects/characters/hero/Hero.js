@@ -158,6 +158,60 @@ export class Hero {
   #statusEffects = new ActorStatusEffects();
 
   /**
+   * @type {Map<unknown, number>}
+   */
+  #localTimeSources = new Map();
+  /**
+   * @type {Map<import("playcanvas").AnimComponent, {base:number,applied:number}>}
+   */
+  #localAnimationRates = new Map();
+
+  /**
+   * @returns {number}
+   */
+  get localTimeScale() {
+    return Math.min(1, ...this.#localTimeSources.values());
+  }
+
+  /**
+   * @param {unknown} source
+   * @param {number} factor
+   */
+  setLocalTimeScale(source, factor) {
+    if (!this.#physics || !Number.isFinite(factor)) {
+      return;
+    }
+    if (factor >= 1) {
+      this.#localTimeSources.delete(source);
+    } else {
+      this.#localTimeSources.set(source, Math.max(0, factor));
+    }
+    this.#physics.localTimeScale = this.localTimeScale;
+    this.#animationPlayback.rate = this.statusRate * this.localTimeScale;
+    this.#syncLocalAnimationRates();
+  }
+
+  #syncLocalAnimationRates() {
+    for (const animation of this.#entity?.findComponents("anim") ?? []) {
+      if (animation === this.#modelRoot?.anim) {
+        continue;
+      }
+      const previous = this.#localAnimationRates.get(animation);
+      const base = previous && animation.speed === previous.applied ? previous.base : animation.speed;
+      const applied = base * this.localTimeScale;
+      animation.speed = applied;
+      if (this.localTimeScale === 1) {
+        this.#localAnimationRates.delete(animation);
+      } else {
+        this.#localAnimationRates.set(animation, {
+          base,
+          applied,
+        });
+      }
+    }
+  }
+
+  /**
    * @returns {boolean}
    */
   get isDefender() {
@@ -2335,6 +2389,8 @@ export class Hero {
   }
 
   destroy() {
+    this.#localTimeSources.clear();
+    this.#localAnimationRates.clear();
     this.#buffs.clear();
     this.#presentation?.stateStore?.$reset();
     this.#updateHandle?.off();
@@ -2382,8 +2438,12 @@ export class Hero {
    * @type {(deltaTime: number) => void}
    */
   #update = (deltaTime) => {
+    deltaTime *= this.localTimeScale;
     this.#syncModelSelection();
-    this.#animationPlayback.rate = this.statusRate;
+    this.#animationPlayback.rate = this.statusRate * this.localTimeScale;
+    if (deltaTime === 0) {
+      return;
+    }
     this.#step(Math.min(deltaTime, MAX_FRAME_TIME));
     this.#syncIslandVisualPosition();
     if (this.statusRate > 0) {
@@ -2394,6 +2454,7 @@ export class Hero {
     for (const tool of this.#tools.values()) {
       tool.update?.(deltaTime * this.statusRate, this.#actionBehavior.toolAction);
     }
+    this.#syncLocalAnimationRates();
     this.#syncMood();
     this.#statusEffects.advance(deltaTime);
   };

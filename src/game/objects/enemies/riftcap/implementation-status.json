@@ -2,7 +2,7 @@
   "status": "runtime_binding_and_focused_ammo_verified_acceptance_pending",
   "checkedAt": "2026-10-22",
   "registered": true,
-  "scope": "Only Riftcap object/model/test-map directories and mirrored Riftcap tests. User explicitly declined cross-folder Hero and FrostPuffShot clock hooks. No shared enemy, factory, renderer, normal map, or spawn-table edits.",
+  "scope": "Original Riftcap scope extended by user authorization to implement Hero and FrostPuffShot local-clock support, including Hero physics and mirrored focused tests. Preserve unrelated work.",
   "runtimeClass": "Riftcap",
   "reference": "info.png",
   "assetProvenance": "src/game/models/enemies/riftcap/provenance.json",
@@ -24,7 +24,7 @@
   ],
   "unitVerification": {
     "command": "node --test test/unit/game/objects/enemies/riftcap/riftcap.test.js",
-    "passed": 15,
+    "passed": 16,
     "failed": 0,
     "boundary": "Unit tests use actual Yuka and PlayCanvas Entity/Vec3 with fake Ammo body/contact interfaces. These verify effect outcomes, calls and lifecycle, not actual physics-engine collision accuracy or visual playback.",
     "covered": [
@@ -43,7 +43,8 @@
       "Explicit local-time capability aggregation and restoration",
       "Unsupported private-clock actors are reported without partial slow",
       "Teardown releases wards, clocks and projectile resources",
-      "Changing an attack clip rate inside a bubble remains scaled once and restores its new rate"
+      "Changing an attack clip rate inside a bubble remains scaled once and restores its new rate",
+      "FrostPuffShot private lifetime clock, overlapping Time Bubble leases, suspension, release and retained collision effect"
     ]
   },
   "lint": {
@@ -105,15 +106,13 @@
     "runtimeEvidence": "evidence/runtime-verification.json"
   },
   "remainingBlockers": [
-    "Hero and FrostPuffShot private clocks cannot be integrated within the explicitly permitted scope. Unsupported actors remain reported.",
     "Visual foot sliding, loop seams, blends, complete interruption acceptance and projectile damage outcome remain unaccepted. See focused runtime evidence for exactly what passed.",
     "Focused Cypress runs in both Edge and Chrome stalled before producing a test result; owned runs were stopped. Direct Playwright production checks succeeded."
   ],
   "resume": [
     "Review evidence/runtime-verification.json for actual production results.",
     "Complete visual feet, loop seams, blends, interruption and projectile damage acceptance; verified clip flags remain false until visual acceptance.",
-    "Resolve the Cypress runner stall and rerun the saved focused spec.",
-    "Hero/FrostPuffShot private-clock Time Bubble support requires edits outside the permitted Riftcap scope."
+    "Resolve the Cypress runner stall and rerun the saved focused spec."
   ],
   "runtimeVerification": {
     "evidence": "evidence/runtime-verification.json",
@@ -132,8 +131,22 @@
     ],
     "remaining": [
       "Full visual foot/transition/loop inspection",
-      "Complete Cypress result",
-      "Hero/FrostPuffShot private-clock support outside permitted scope"
+      "Complete Cypress result"
+    ]
+  },
+  "localClockVerification": {
+    "status": "implemented_and_verified",
+    "evidence": "evidence/local-clock-verification.json",
+    "actors": [
+      "Hero",
+      "FrostPuffShot"
+    ],
+    "behavior": [
+      "Source aggregation uses minimum rate with independent release",
+      "Hero private update, movement, action/status timers and primary/attached animations use local time",
+      "Hero Ammo velocity and per-body gravity restore without changing the world clock",
+      "Frost projectile lifetime and flight slow together, suspend and resume with retained impact",
+      "Hero teardown followed by bubble release is safe"
     ]
   }
 }

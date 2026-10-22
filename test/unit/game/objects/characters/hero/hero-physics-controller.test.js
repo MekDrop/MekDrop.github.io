@@ -150,6 +150,35 @@ function createFixture({ maxSubSteps = 4, fixedTimeStep } = {}) {
 }
 
 describe("HeroPhysicsController", () => {
+  it("scales body velocity and gravity while preserving logical velocity through suspension", () => {
+    const { controller, entity } = createFixture();
+    controller.velocity = {
+      x: 4,
+      y: 6,
+      z: -2,
+    };
+    controller.localTimeScale = 0.5;
+    assert.deepEqual(entity.rigidbody.linearVelocity, new FakeVec3(2, 3, -1));
+    assert.deepEqual(controller.velocity, {
+      x: 4,
+      y: 6,
+      z: -2,
+    });
+    assert.equal(entity.rigidbody.gravityCalls.at(-1).y, -4.5);
+    controller.gravity = -10;
+    assert.equal(entity.rigidbody.gravityCalls.at(-1).y, -2.5);
+    controller.localTimeScale = 0;
+    assert.deepEqual(entity.rigidbody.linearVelocity, new FakeVec3(0, 0, -0));
+    assert.deepEqual(controller.velocity, {
+      x: 4,
+      y: 6,
+      z: -2,
+    });
+    controller.localTimeScale = 1;
+    assert.deepEqual(entity.rigidbody.linearVelocity, new FakeVec3(4, 6, -2));
+    assert.equal(entity.rigidbody.gravityCalls.at(-1).y, -10);
+    controller.destroy();
+  });
   it("holds resting stepped supports with Ammo friction and releases grip for movement", () => {
     const { controller, entity } = createFixture();
     assert.equal(entity.rigidbody.friction, 0);

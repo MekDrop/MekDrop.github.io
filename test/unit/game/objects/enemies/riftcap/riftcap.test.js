@@ -8,6 +8,34 @@ import { RiftcapTimeBubble } from "../../../../../../src/game/objects/enemies/ri
 import { RiftcapTimeLease } from "../../../../../../src/game/objects/enemies/riftcap/RiftcapTimeLease.js";
 import { RiftcapStoneWard } from "../../../../../../src/game/objects/enemies/riftcap/RiftcapStoneWard.js";
 import { RiftcapCubeBolt } from "../../../../../../src/game/objects/enemies/riftcap/RiftcapCubeBolt.js";
+import { FrostPuffShot } from "../../../../../../src/game/objects/enemies/frost-puff/FrostPuffShot.js";
+
+test("Frost Puff private projectile clock survives overlapping bubbles, suspension and release", () => {
+  const { owner, royal } = setup();
+  let chilled = 0;
+  owner.combat = { chill: () => chilled++ };
+  const shot = new FrostPuffShot(owner, royal);
+  owner.shots.add(shot);
+  const fast = {}, slow = {};
+  const lease = RiftcapTimeLease.acquire(shot, fast, 0.5);
+  RiftcapTimeLease.acquire(shot, slow, 0.25);
+  assert.equal(shot.entity.rigidbody.linearVelocity.length(), 1.5);
+  owner.app.fire("update", 1);
+  assert.equal(shot.remaining, 1.75);
+  lease.release(fast);
+  assert.equal(shot.localTimeScale, 0.25);
+  const pause = {};
+  RiftcapTimeLease.acquire(shot, pause, 0);
+  owner.app.fire("update", 10);
+  assert.equal(shot.remaining, 1.75);
+  assert.equal(shot.entity.rigidbody.linearVelocity.length(), 0);
+  lease.release(slow);
+  lease.release(pause);
+  assert.equal(shot.entity.rigidbody.linearVelocity.length(), 6);
+  shot.entity.collision.fire("collisionstart", { other: royal.entity });
+  assert.equal(chilled, 1);
+  assert.equal(owner.shots.size, 0);
+});
 
 class PhysicsEntity extends Entity {
   addComponent(type, options) {

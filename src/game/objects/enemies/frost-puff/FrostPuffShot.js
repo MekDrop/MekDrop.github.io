@@ -21,6 +21,58 @@ export class FrostPuffShot {
   #destroyed = false;
 
   /**
+   * @type {Map<unknown, number>}
+   */
+  #localTimeSources = new Map();
+  /**
+   * @type {number}
+   */
+  #localTimeScale = 1;
+  /**
+   * @type {import("playcanvas").Vec3|null}
+   */
+  #pausedVelocity = null;
+  /**
+   * @type {{setValue:(x:number,y:number,z:number)=>void}|null}
+   */
+  #gravityVector = null;
+
+  /**
+   * @returns {number}
+   */
+  get localTimeScale() {
+    return this.#localTimeScale;
+  }
+
+  /**
+   * @returns {number}
+   */
+  get remaining() {
+    return this.#remaining;
+  }
+
+  /**
+   * @param {unknown} source
+   * @param {number} factor
+   */
+  setLocalTimeScale(source, factor) {
+    if (this.#destroyed || !Number.isFinite(factor)) {
+      return;
+    }
+    if (factor >= 1) {
+      this.#localTimeSources.delete(source);
+    } else {
+      this.#localTimeSources.set(source, Math.max(0, factor));
+    }
+    const body = this.entity.rigidbody;
+    const velocity = this.#localTimeScale === 0 ? this.#pausedVelocity.clone() :
+      body.linearVelocity.clone().mulScalar(1 / this.#localTimeScale);
+    this.#localTimeScale = Math.min(1, ...this.#localTimeSources.values());
+    this.#pausedVelocity = velocity.clone();
+    body.linearVelocity = velocity.mulScalar(this.#localTimeScale);
+  }
+
+  /**
    * @param {import("./FrostPuff.js").FrostPuff} owner
    * @param {import("../shared/Enemy.js").EnemyActor} target
    */
@@ -55,6 +107,7 @@ export class FrostPuffShot {
       angularFactor: new pc.Vec3(0, 0, 0),
     });
     owner.app.root.addChild(this.entity);
+    this.#cancelGravity();
     this.entity.rigidbody.linearVelocity = direction.mulScalar(6);
     this.#contact = this.entity.collision.on("collisionstart", this.#impact, this);
     this.#handle = owner.app.on("update", this.#update, this);
@@ -83,14 +136,25 @@ export class FrostPuffShot {
    * @param {number} dt
    */
   #update(dt) {
-    this.#remaining -= dt;
+    this.#remaining -= dt * this.#localTimeScale;
     if (!this.owner.alive || this.#remaining <= 0 || this.owner.suppressesRivalContact(this.target)) {
       this.destroy();
 
       return;
     }
-    // Cancel world gravity using a force, retaining Ammo collision response.
+    this.#cancelGravity();
+  }
+
+  #cancelGravity() {
+    // Per-body gravity avoids a residual drift while the local clock is stopped.
     const body = this.entity.rigidbody;
+    const ammo = globalThis.Ammo;
+    if (body.body?.setGravity && ammo?.btVector3) {
+      this.#gravityVector ??= new ammo.btVector3(0, 0, 0);
+      body.body.setGravity(this.#gravityVector);
+
+      return;
+    }
     const gravity = this.owner.app.systems.rigidbody.gravity;
     body.applyForce(-gravity.x * body.mass, -gravity.y * body.mass, -gravity.z * body.mass);
   }
@@ -100,8 +164,13 @@ export class FrostPuffShot {
       return;
     }
     this.#destroyed = true;
+    this.#localTimeSources.clear();
     this.#contact?.off();
     this.#handle?.off();
+    if (this.#gravityVector) {
+      globalThis.Ammo.destroy(this.#gravityVector);
+      this.#gravityVector = null;
+    }
     this.entity.destroy();
     this.material.destroy();
     this.owner.shots.delete(this);

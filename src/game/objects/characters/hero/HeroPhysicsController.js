@@ -55,6 +55,29 @@ export class HeroPhysicsController {
   #supportContact = false;
 
   /**
+   * @type {number}
+   */
+  #localTimeScale = 1;
+  /**
+   * @type {{x:number,y:number,z:number}}
+   */
+  #pausedVelocity = {
+    x: 0,
+    y: 0,
+    z: 0,
+  };
+
+  /**
+   * @param {number} value
+   */
+  set localTimeScale(value) {
+    const velocity = this.velocity;
+    this.#localTimeScale = value;
+    this.velocity = velocity;
+    this.#applyGravity();
+  }
+
+  /**
    *
    * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, entity: import("playcanvas").Entity, radius: number, height: number, gravity: number, fixedTimeStep: number}} options
    * @param {typeof import("playcanvas")} options.pc
@@ -130,13 +153,16 @@ export class HeroPhysicsController {
    * @returns {{x: number, y: number, z: number}}
    */
   get velocity() {
+    if (this.#localTimeScale === 0) {
+      return { ...this.#pausedVelocity };
+    }
     const velocity = this.#entity.rigidbody?.linearVelocity;
 
     return velocity
       ? {
-        x: velocity.x,
-        y: velocity.y,
-        z: velocity.z,
+        x: velocity.x / this.#localTimeScale,
+        y: velocity.y / this.#localTimeScale,
+        z: velocity.z / this.#localTimeScale,
       }
       : {
         x: 0,
@@ -189,13 +215,14 @@ export class HeroPhysicsController {
   }
 
   set velocity(value) {
+    this.#pausedVelocity = { ...value };
     if (!this.#entity?.rigidbody) {
       return;
     }
     this.#entity.rigidbody.linearVelocity = new this.#pc.Vec3(
-      value.x,
-      value.y,
-      value.z,
+      value.x * this.#localTimeScale,
+      value.y * this.#localTimeScale,
+      value.z * this.#localTimeScale,
     );
     this.#entity.rigidbody.activate();
   }
@@ -215,11 +242,7 @@ export class HeroPhysicsController {
       this.#scripted = true;
     }
     this.#entity.setLocalPosition(position.x, position.y, position.z);
-    this.#entity.rigidbody.linearVelocity = new this.#pc.Vec3(
-      velocity.x,
-      velocity.y,
-      velocity.z,
-    );
+    this.velocity = velocity;
   }
 
   /**
@@ -361,7 +384,8 @@ export class HeroPhysicsController {
       return;
     }
     this.#gravityVector ??= new ammo.btVector3(0, this.#gravity, 0);
-    this.#gravityVector.setValue(0, this.#gravity, 0);
+    // Ammo still integrates flight; local seconds scale velocity and gravity.
+    this.#gravityVector.setValue(0, this.#gravity * this.#localTimeScale ** 2, 0);
     body.setGravity(this.#gravityVector);
     this.#entity.rigidbody.activate();
   }
