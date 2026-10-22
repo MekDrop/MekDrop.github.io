@@ -1,0 +1,40 @@
+{
+  "provider": "Tripo Studio",
+  "execution": "signed-in browser UI",
+  "assetId": "356416ac-3578-4d86-a0ee-b6a4d2c40f90",
+  "url": "https://studio.tripo3d.ai/workspace/generate/356416ac-3578-4d86-a0ee-b6a4d2c40f90",
+  "input": "model-reference.png",
+  "inputDerivation": "ImageGen isolation of main upper-left info.png character; no model substitution",
+  "model": "Tripo Smart Mesh P2.0",
+  "privacy": "Private",
+  "generationCount": 1,
+  "generationQuotedCredits": 100,
+  "textureQuotedCredits": 30,
+  "textureObservedBalanceBefore": 22890,
+  "textureObservedBalanceAfter": 22860,
+  "generationObservedBalanceBefore": 23110,
+  "generationObservedBalanceAfter": 22890,
+  "generationBalanceDifferenceAttribution": "Account is shared with simultaneous enemy jobs; 220-credit account difference cannot be attributed entirely to this 100-credit generation",
+  "mesh": {
+    "topology": "Quad",
+    "faces": 4755,
+    "vertices": 4329
+  },
+  "generationCompleted": true,
+  "textureCompleted": true,
+  "downloaded": true,
+  "replacementGenerations": 0,
+  "rigCompleted": true,
+  "rigPreset": "Mixamo biped",
+  "rigQuotedCredits": 20,
+  "rigObservedBalanceBefore": 22810,
+  "rigObservedBalanceAfter": 22790,
+  "downloads": {
+    "original": "C:/Users/mekdr/Downloads/horned-wrecker-tripo-original (1).glb",
+    "rigged": "C:/Users/mekdr/Downloads/horned-wrecker-tripo-rigged.glb"
+  },
+  "originalSha256": "0f9b301cba5e5769f59decab3acfe1b9d9ef01cf16a0757664fd6db2a9e699a6",
+  "riggedSha256": "c95717a273b1d26f02e1aae525bad5a3cad189bc9cb38c350fc1c5652693185d",
+  "finalGlbSha256": "b19864e54119d6921f5fad8a12f298d051f67cd77489af153ffa489c600c218b",
+  "finalBlendSha256": "5d67d7ae348c8f6cf6f59516baaba7cef74c0eea52123903c637376cc85f03ce"
+}

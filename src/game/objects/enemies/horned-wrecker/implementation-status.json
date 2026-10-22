@@ -1,0 +1,134 @@
+{
+  "enemy": "HornedWrecker",
+  "status": "incomplete-awaiting-runtime-verification",
+  "reference": "info.png",
+  "referenceReviewed": true,
+  "referenceFeatures": [
+    "huge broad red brute",
+    "oversized fists",
+    "curled angular tan horns",
+    "dark riveted cuffs",
+    "yellow eyes and low angry face"
+  ],
+  "provider": {
+    "provider": "Tripo Studio",
+    "execution": "signed-in browser UI",
+    "assetId": "356416ac-3578-4d86-a0ee-b6a4d2c40f90",
+    "url": "https://studio.tripo3d.ai/workspace/generate/356416ac-3578-4d86-a0ee-b6a4d2c40f90",
+    "input": "model-reference.png",
+    "inputDerivation": "ImageGen isolation of main upper-left info.png character; no model substitution",
+    "model": "Tripo Smart Mesh P2.0",
+    "privacy": "Private",
+    "generationCount": 1,
+    "generationQuotedCredits": 100,
+    "textureQuotedCredits": 30,
+    "textureObservedBalanceBefore": 22890,
+    "textureObservedBalanceAfter": 22860,
+    "generationObservedBalanceBefore": 23110,
+    "generationObservedBalanceAfter": 22890,
+    "generationBalanceDifferenceAttribution": "Account is shared with simultaneous enemy jobs; 220-credit account difference cannot be attributed entirely to this 100-credit generation",
+    "mesh": {
+      "topology": "Quad",
+      "faces": 4755,
+      "vertices": 4329
+    },
+    "generationCompleted": true,
+    "textureCompleted": true,
+    "downloaded": true,
+    "replacementGenerations": 0,
+    "rigCompleted": true,
+    "rigPreset": "Mixamo biped",
+    "rigQuotedCredits": 20,
+    "rigObservedBalanceBefore": 22810,
+    "rigObservedBalanceAfter": 22790,
+    "downloads": {
+      "original": "C:/Users/mekdr/Downloads/horned-wrecker-tripo-original (1).glb",
+      "rigged": "C:/Users/mekdr/Downloads/horned-wrecker-tripo-rigged.glb"
+    },
+    "originalSha256": "0f9b301cba5e5769f59decab3acfe1b9d9ef01cf16a0757664fd6db2a9e699a6",
+    "riggedSha256": "c95717a273b1d26f02e1aae525bad5a3cad189bc9cb38c350fc1c5652693185d",
+    "finalGlbSha256": "b19864e54119d6921f5fad8a12f298d051f67cd77489af153ffa489c600c218b",
+    "finalBlendSha256": "5d67d7ae348c8f6cf6f59516baaba7cef74c0eea52123903c637376cc85f03ce"
+  },
+  "behavior": {
+    "base": "../shared/Enemy.js",
+    "stateMachine": "NpcStateMachine (Yuka)",
+    "states": [
+      "WreckerBatterState",
+      "WreckerDeadState",
+      "WreckerFistRecoverState",
+      "WreckerFistSwingState",
+      "WreckerFistWindupState",
+      "WreckerHeadbuttState",
+      "WreckerPlaybackState",
+      "WreckerPursueState",
+      "WreckerRageState",
+      "WreckerRecoverState",
+      "WreckerSnortState",
+      "WreckerStompState",
+      "WreckerStunRecoverState",
+      "WreckerStunState"
+    ],
+    "bellConfusionState": false,
+    "registered": true,
+    "normalMapsModified": false
+  },
+  "verified": {
+    "unitTests": 9,
+    "unitCommand": "node --test test/unit/game/objects/enemies/horned-wrecker/horned-wrecker.test.js",
+    "focusedEslint": true,
+    "authoredClips": [
+      "idle_snort",
+      "heavy_walk",
+      "heavy_run",
+      "turn",
+      "irritated_glare",
+      "warning_snort",
+      "warning_stomp",
+      "rage_start",
+      "rage_charge_loop",
+      "charge_stop",
+      "fist_windup",
+      "fist_swing",
+      "fist_recover",
+      "door_batter",
+      "headbutt_reject_pickup",
+      "hit",
+      "external_stun",
+      "external_stun_recover",
+      "knockback",
+      "death"
+    ],
+    "freshImportSampledClips": 20,
+    "midpointRenderSheetReviewed": true,
+    "actualGamePlayback": false,
+    "physicsIntegrationInBrowser": false,
+    "transparentPreview": false
+  },
+  "remaining": [
+    "Complete actual-game clip/joint motion checks and export playback evidence using saved HUD controls",
+    "Review loop seams, foot sliding, contact frames, blends, interruptions, time scale and full death cleanup",
+    "Verify actual Ammo bump/headbutt/allied strike outcomes and entrance traversal with production royal",
+    "Verify unobstructed towers are ignored and obstructing towers are cleared in a real map",
+    "Verify ongoing pickup/swap event producers call the exposed capabilities",
+    "Capture production transparent preview.png, inspect it and verify nonempty transparent RGBA pixels",
+    "Resolve any deformation or behavior issues exposed by production checks before calling this complete"
+  ],
+  "assets": {
+    "blend": "src/game/models/enemies/horned-wrecker/horned-wrecker.blend",
+    "glb": "src/game/models/enemies/horned-wrecker/horned-wrecker.glb",
+    "originalsRetainedInDownloadsAndTmp": true,
+    "refinements": [
+      "removed invented tail and rear ornaments",
+      "flattened unsupported crest",
+      "rigid head weights on curled horns",
+      "flat-shaded matte surfaces"
+    ],
+    "visualFinding": "Front, side, rear and game-camera Blender renders reviewed. Main red brute, tan curled horns, fists and cuffs retained. White nostril puffs remain modeled, not dynamic VFX."
+  },
+  "testMapUrl": "http://localhost:9000/map/test_enemy-horned-wrecker",
+  "runtimeBlockers": [
+    "Shared dev server repeatedly showed lint overlays in other enemy files (MaskShamanChecks, HookClimbBehavior, CinderAnimationPlayback); these files were preserved",
+    "After overlays cleared, game tab remained black/unresponsive to DOM inspection; no production pixel or playback claim"
+  ]
+}
