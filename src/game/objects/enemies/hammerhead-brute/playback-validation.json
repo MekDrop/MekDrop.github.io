@@ -1,0 +1,125 @@
+{
+  "source": "src/game/objects/enemies/hammerhead-brute/playback-evidence.json",
+  "clips": [
+    {
+      "name": "idle",
+      "samples": 58,
+      "movingNonRootJoints": 5,
+      "finitePositivePlayback": true,
+      "timeAdvances": true
+    },
+    {
+      "name": "heavy_walk",
+      "samples": 38,
+      "movingNonRootJoints": 6,
+      "finitePositivePlayback": true,
+      "timeAdvances": true
+    },
+    {
+      "name": "heavy_run",
+      "samples": 25,
+      "movingNonRootJoints": 5,
+      "finitePositivePlayback": true,
+      "timeAdvances": true
+    },
+    {
+      "name": "turn",
+      "samples": 23,
+      "movingNonRootJoints": 5,
+      "finitePositivePlayback": true,
+      "timeAdvances": true
+    },
+    {
+      "name": "hammer_windup",
+      "samples": 35,
+      "movingNonRootJoints": 7,
+      "finitePositivePlayback": true,
+      "timeAdvances": true
+    },
+    {
+      "name": "hammer_swing",
+      "samples": 16,
+      "movingNonRootJoints": 5,
+      "finitePositivePlayback": true,
+      "timeAdvances": true
+    },
+    {
+      "name": "hammer_contact",
+      "samples": 8,
+      "movingNonRootJoints": 5,
+      "finitePositivePlayback": true,
+      "timeAdvances": true
+    },
+    {
+      "name": "hammer_recover",
+      "samples": 27,
+      "movingNonRootJoints": 5,
+      "finitePositivePlayback": true,
+      "timeAdvances": true
+    },
+    {
+      "name": "overhead_door_bash",
+      "samples": 49,
+      "movingNonRootJoints": 5,
+      "finitePositivePlayback": true,
+      "timeAdvances": true
+    },
+    {
+      "name": "brace",
+      "samples": 24,
+      "movingNonRootJoints": 5,
+      "finitePositivePlayback": true,
+      "timeAdvances": true
+    },
+    {
+      "name": "hit",
+      "samples": 13,
+      "movingNonRootJoints": 4,
+      "finitePositivePlayback": true,
+      "timeAdvances": true
+    },
+    {
+      "name": "stun",
+      "samples": 37,
+      "movingNonRootJoints": 5,
+      "finitePositivePlayback": true,
+      "timeAdvances": true
+    },
+    {
+      "name": "stun_recover",
+      "samples": 21,
+      "movingNonRootJoints": 5,
+      "finitePositivePlayback": true,
+      "timeAdvances": true
+    },
+    {
+      "name": "knockback",
+      "samples": 19,
+      "movingNonRootJoints": 4,
+      "finitePositivePlayback": true,
+      "timeAdvances": true
+    },
+    {
+      "name": "angry",
+      "samples": 27,
+      "movingNonRootJoints": 5,
+      "finitePositivePlayback": true,
+      "timeAdvances": true
+    },
+    {
+      "name": "reject_pickup",
+      "samples": 24,
+      "movingNonRootJoints": 3,
+      "finitePositivePlayback": true,
+      "timeAdvances": true
+    },
+    {
+      "name": "death",
+      "samples": 70,
+      "movingNonRootJoints": 3,
+      "finitePositivePlayback": true,
+      "timeAdvances": true
+    }
+  ],
+  "allPass": true
+}

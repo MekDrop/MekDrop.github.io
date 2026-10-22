@@ -1,0 +1,44 @@
+{
+  "provider": "Tripo3D",
+  "checkedDate": "2026-10-22",
+  "tooling": {
+    "gameDev": "not on PATH",
+    "fallback": "Tripo Studio browser UI"
+  },
+  "credentialConfigured": true,
+  "apiReachable": true,
+  "balance": 22640,
+  "frozen": 0,
+  "submittedJobId": "57e1520f-d45b-420d-865b-64821cc7badf",
+  "submittedParameters": {
+    "model": "H3.1 Best Quality",
+    "privacy": "Private",
+    "mode": "Geometry & Texture",
+    "generateInParts": false,
+    "texture8K": false
+  },
+  "chargesCredits": null,
+  "status": "generated-downloaded-locally-refined",
+  "reference": "info.png",
+  "referenceFindings": "Main silhouette, giant stone hammer, blue body, masonry head, pale chest and yellow eyes closely match main portrait; reverse armor is provider-inferred, hands/feet differ slightly. Front/side/rear/game views opened. No replacement generation.",
+  "intendedModelPaths": [
+    "src/game/models/enemies/hammerhead-brute/hammerhead-brute.blend",
+    "src/game/models/enemies/hammerhead-brute/hammerhead-brute.glb"
+  ],
+  "previousApiBalance": 0,
+  "quotedGenerationCredits": 30,
+  "generationBalanceDelta": 30,
+  "referenceEditBalanceDelta": 30,
+  "chargeNote": "UI balance deltas recorded; concurrent sibling tasks mean deltas cannot establish per-job actual billed charges. Generation control quoted 30; edit control displayed Edit 10 0.",
+  "referenceImage": "C:/Users/mekdr/AppData/Roaming/clairvoyance/pictures/generated/hammerhead-brute-tripo-reference.png",
+  "referenceEditPrompt": "Extract only the single large main character shown at upper left of this design sheet, including his full giant stone hammer, body, both feet and hands. Remove all typography, panels, cameo characters, scenery and loose rocks. Keep the exact original blocky cubist proportions, cobalt-blue body, blue-gray masonry hammer-shaped head and side blocks, glowing yellow eyes, pale stone breastplate and brown belt. One complete character only, full body, centered on a clean plain light gray background, no base, no text, no new accessories. Preserve the existing pose and stone hammer held upright.",
+  "sourcePage": "https://studio.tripo3d.ai/workspace/generate/57e1520f-d45b-420d-865b-64821cc7badf",
+  "sourceSha256": "a49f534da31b5cdc64de2d195b99bb1ab5e9526378eec5309e109e6ae09b5dbc",
+  "referenceSha256": "124e55377bc0b5fcf22fbd0e0a573f3d3683bda4b86f57cfe0bd56eb2979516d",
+  "exportSha256": "4b7ea1f840f1542db8b8753c9eab2b7dc1388485271bd357b17089506d03a632",
+  "sourceBytes": 2353616,
+  "refinement": "Matte material; flat normals; custom short-limb 16-bone rig; foot IK; connected-component rigid masonry weights; 17 bespoke embedded actions; scale 2.65 with body-center offset (.12,.025,0). Original UV and Tripo mesh preserved.",
+  "paidAttempts": 1,
+  "providerRiggingJobs": [],
+  "providerAnimationJobs": []
+}
