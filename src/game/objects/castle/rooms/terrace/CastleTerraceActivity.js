@@ -8,6 +8,10 @@ import { TerraceServiceActions } from "./TerraceServiceActions.js";
  */
 export class CastleTerraceActivity {
   /**
+   * @type {import("../../../characters/royal/AbstractRoyal.js").AbstractRoyal}
+   */
+  #royal;
+  /**
    *
    * @returns {Array<string>}
    */
@@ -124,6 +128,7 @@ export class CastleTerraceActivity {
   }) {
     this.#position = position;
     this.#servant = servant;
+    this.#royal = royal;
     this.#doors = doors;
     this.#entity = new pc.Entity("Castle terrace activity");
     this.#entity.setLocalPosition(layout.x, layout.y, layout.z);
@@ -345,21 +350,34 @@ export class CastleTerraceActivity {
   /**
    *
    * @param {number} deltaTime
+   * @param {number} royalRate
    */
-  update(deltaTime) {
+  update(deltaTime, royalRate = 1) {
     if (this.#stopped) {
       return;
     }
+    const royalDelta = deltaTime * royalRate;
+    const servantDelta = deltaTime * this.#servant.statusRate;
     this.#syncParticipantActions();
-    this.#royalActions.update(deltaTime);
-    this.#servantMotion.update(deltaTime);
+    if (royalDelta > 0) {
+      this.#royalActions.update(royalDelta);
+    }
+    if (servantDelta > 0) {
+      this.#servantMotion.update(servantDelta);
+    }
     if (!this.#doorActions.inspecting) {
       this.#wishFulfillment.update(this.#triggered);
-      this.#royalBehavior.update(deltaTime);
-      this.#servantBehavior?.update(deltaTime);
+      if (royalDelta > 0) {
+        this.#royalBehavior.update(royalDelta);
+      }
+      if (servantDelta > 0) {
+        this.#servantBehavior?.update(servantDelta);
+      }
       this.#wishFulfillment.update(this.#triggered);
     }
-    this.#doorActions.update(deltaTime, this.#activeBehavior.stagePhase);
+    if (servantDelta > 0) {
+      this.#doorActions.update(servantDelta, this.#activeBehavior.stagePhase);
+    }
   }
 
   stop() {
@@ -400,8 +418,10 @@ export class CastleTerraceActivity {
 
   #syncParticipantActions() {
     this.#stage.enabled = true;
-    this.#royalActions.sync(this.#royalBehavior);
-    if (this.#serviceActions && !this.#doorActions?.inspecting) {
+    if (this.#royal.statusRate > 0) {
+      this.#royalActions.sync(this.#royalBehavior);
+    }
+    if (this.#servant.statusRate > 0 && this.#serviceActions && !this.#doorActions?.inspecting) {
       this.#serviceActions.sync(this.#servantBehavior, this.#royalBehavior);
     }
   }

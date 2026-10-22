@@ -46,6 +46,17 @@
       "sourceBlendSizeBytes": 3477487,
       "actualBlendSizeBytes": 3477487,
       "glbBytes": 2952448
+    },
+    {
+      "command": "Focused Frost Puff, actor status, servant, Hero movement speed and animation playback Node tests",
+      "result": "passed",
+      "passed": 26,
+      "failed": 0,
+      "evidenceBoundary": "Includes actual servant status API and extracted production Hero movement calculation; no GPU or live Ammo scene claims."
+    },
+    {
+      "command": "Scoped ESLint of changed production status integration files and matching tests",
+      "result": "passed"
     }
   ],
   "states": [
@@ -173,22 +184,36 @@
     "actualAssetComparison": "Inspected original and refined multiview renders against info.png; details in reference-match.json and evidence/refined-multiview.png."
   },
   "blockers": [
-    "Actual browser test-route attempts repeatedly rendered an empty q-app with no canvas, including a fresh tab at /map/test_enemy-frost-puff and the explicit /en-US/map/test_enemy-frost-puff route. Earlier shared-checkout ESLint overlays were transient; the final empty-app boot cause was not established. No router, renderer, sibling enemy or global server setting was modified.",
+    "Browser test-route startup still fails to reach a playable canvas. The isolated copy at port 9077 also produced an empty application root, then browser inspection timed out. Its development server was restarted after a pre-existing sitemap close hook failed on configuration reload. No production router or renderer settings changed.",
     "Actual game playback, per-clip controls, runtime blend transitions, hover forces, Ammo contacts, carry/throw/landing and transparent production preview still pending.",
-    "Production Hero has applyBuff for fixed hero buffs but no shared applyStatus receiver. Frost effects currently affect capability-compatible actors; actual hero freeze integration remains incomplete. No out-of-scope hero/shared files modified.",
     "Opening-following uses local Ammo ray probes rather than complete maze navigation; actual castle opening pursuit and royal-arrival lifecycle require real-map acceptance."
   ],
-  "activationGate": "Valid leaf registration now exists. Complete actual-game checks and preview, and resolve the existing Hero status-capability gap before declaring the full enemy complete.",
-  "scope": "Own object, model metadata, saved test map and mirrored unit-test directories only; no shared enemy, factory, renderer or normal map/spawn edits.",
+  "activationGate": "Complete actual-game checks and transparent preview before declaring the full enemy complete. Friendly actor status integration is implemented and unit-tested.",
+  "scope": "Own Frost Puff object/model/test-map files plus user-authorized shared friendly actor status integration in Hero, Servant, AbstractRoyal, animation playback, and castle resident activity owners. Shared enemy files, factory, renderer and normal map/spawn pools remain untouched by this task.",
   "providerReceipt": "src/game/objects/enemies/frost-puff/provider-receipt.json",
   "assetEvidenceDirectory": "src/game/objects/enemies/frost-puff/evidence",
   "runtimeAttempts": {
     "browser": "Opera via cua_repl",
     "urls": [
       "http://localhost:9000/map/test_enemy-frost-puff",
-      "http://localhost:9000/en-US/map/test_enemy-frost-puff"
+      "http://localhost:9000/en-US/map/test_enemy-frost-puff",
+      "http://localhost:9077/en-US/map/test_enemy-frost-puff",
+      "http://127.0.0.1:9077/map/test_enemy-frost-puff"
     ],
     "result": "blank application root; no game canvas; no production capture possible",
     "previewImageCreated": false
+  },
+  "friendlyStatusIntegration": {
+    "implemented": true,
+    "actors": [
+      "Hero",
+      "Servant",
+      "King",
+      "Queen",
+      "Princess"
+    ],
+    "statusClock": "Elapsed game time independent of frozen action time",
+    "behavior": "Slow scales movement and action playback; stun/freeze pauses actions while status clocks expire. Hero keeps dynamic Ammo gravity and contact.",
+    "runtimeVerified": false
   }
 }

@@ -26,6 +26,24 @@ export class HeroAnimationPlayback {
    */
   #animation = null;
   /**
+   * @type {number}
+   */
+  #rate = 1;
+  /**
+   * @type {number}
+   */
+  #speed = 1;
+
+  /**
+   * @param {number} value
+   */
+  set rate(value) {
+    this.#rate = value;
+    if (this.#animation) {
+      this.#animation.speed = this.#speed * value;
+    }
+  }
+  /**
    * @type {string|null}
    */
   #state = null;
@@ -92,7 +110,8 @@ export class HeroAnimationPlayback {
     if (!animation) {
       return;
     }
-    animation.speed = duration > 0 ? this.#durations.get(name) / duration : speed;
+    this.#speed = duration > 0 ? this.#durations.get(name) / duration : speed;
+    animation.speed = this.#speed * this.#rate;
     animation.baseLayer.playing = !LADDER_TOP_ANIMATIONS.has(name);
     if (
       restart ||

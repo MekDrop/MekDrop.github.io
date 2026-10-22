@@ -1,3 +1,4 @@
+import { ActorStatusEffects } from "../../shared/ActorStatusEffects.js";
 import { HeroStairCameraHeight } from "./HeroStairCameraHeight.js";
 import { HeroLocomotion } from "./HeroLocomotion.js";
 import { HeroTurning } from "./HeroTurning.js";
@@ -152,6 +153,34 @@ const HAIR_ENTITY_NAME = /(?:hair|nape lock|swept fringe|layered lock)/i;
 
 export class Hero {
   /**
+   * @type {ActorStatusEffects}
+   */
+  #statusEffects = new ActorStatusEffects();
+
+  /**
+   * @returns {boolean}
+   */
+  get isDefender() {
+    return true;
+  }
+
+  /**
+   * @returns {number}
+   */
+  get statusRate() {
+    return this.#statusEffects.rate;
+  }
+
+  /**
+   * @param {string} name
+   * @param {{duration: number, factor?: number}} options
+   * @returns {boolean}
+   */
+  applyStatus(name, options) {
+    return this.#statusEffects.apply(name, options);
+  }
+
+  /**
    * @type {HeroLadderClimb}
    */
   #ladderClimb = new HeroLadderClimb();
@@ -214,7 +243,7 @@ export class Hero {
   get mood() {
     return {
       ...this.#emotionBehavior.state,
-      speedMultiplier: this.#buffs.modifyStat(HERO_STAT.MOVEMENT_SPEED, 1),
+      speedMultiplier: this.#buffs.modifyStat(HERO_STAT.MOVEMENT_SPEED, this.statusRate),
       escaping: this.#angryEscapeBehavior.active,
       target: this.#angryEscapeBehavior.target,
     };
@@ -234,8 +263,8 @@ export class Hero {
    */
   get stats() {
     return {
-      walkSpeed: this.#buffs.modifyStat(HERO_STAT.MOVEMENT_SPEED, MOVE_SPEED),
-      runSpeed: this.#buffs.modifyStat(HERO_STAT.MOVEMENT_SPEED, RUN_SPEED),
+      walkSpeed: this.#buffs.modifyStat(HERO_STAT.MOVEMENT_SPEED, MOVE_SPEED * this.statusRate),
+      runSpeed: this.#buffs.modifyStat(HERO_STAT.MOVEMENT_SPEED, RUN_SPEED * this.statusRate),
     };
   }
 
@@ -1455,7 +1484,7 @@ export class Hero {
    * @returns {number}
    */
   get #actionsLocked() {
-    return this.#angryEscapeBehavior.active || !this.#emotionBehavior.acceptsActions;
+    return this.statusRate === 0 || this.#angryEscapeBehavior.active || !this.#emotionBehavior.acceptsActions;
   }
 
   /**
@@ -1463,6 +1492,9 @@ export class Hero {
    * @param {boolean} attempt
    */
   #acceptAction(attempt = true) {
+    if (this.statusRate === 0) {
+      return false;
+    }
     const acceptsEmotion = attempt
       ? this.#attemptEmotionAction().accepted
       : this.#emotionBehavior.acceptsActions;
@@ -2351,15 +2383,19 @@ export class Hero {
    */
   #update = (deltaTime) => {
     this.#syncModelSelection();
+    this.#animationPlayback.rate = this.statusRate;
     this.#step(Math.min(deltaTime, MAX_FRAME_TIME));
     this.#syncIslandVisualPosition();
-    this.#animate(deltaTime);
+    if (this.statusRate > 0) {
+      this.#animate(deltaTime * this.statusRate);
+    }
     this.#hairPhysics?.update();
-    this.#clothPhysics?.update(deltaTime);
+    this.#clothPhysics?.update(deltaTime * this.statusRate);
     for (const tool of this.#tools.values()) {
-      tool.update?.(deltaTime, this.#actionBehavior.toolAction);
+      tool.update?.(deltaTime * this.statusRate, this.#actionBehavior.toolAction);
     }
     this.#syncMood();
+    this.#statusEffects.advance(deltaTime);
   };
 
   #syncModelSelection() {
@@ -2433,6 +2469,18 @@ export class Hero {
     if (this.#actionBehavior.gameOver) {
       return;
     }
+    if (this.statusRate === 0) {
+      this.#clearActionInput();
+      this.#physics.velocity = {
+        x: 0,
+        y: this.#velocity.y,
+        z: 0,
+      };
+      this.#syncState();
+
+      return;
+    }
+    deltaTime *= this.statusRate;
     if (this.#actionBehavior.exclusive) {
       this.#ladderClimb.reset();
       if (this.#climbMotion) {
@@ -2588,7 +2636,7 @@ export class Hero {
     const runSpeed = jumping ? JUMP_RUN_SPEED : RUN_SPEED;
     const speed = this.#buffs.modifyStat(
       HERO_STAT.MOVEMENT_SPEED,
-      this.#running ? runSpeed : walkSpeed,
+      (this.#running ? runSpeed : walkSpeed) * this.statusRate,
     );
 
     return {

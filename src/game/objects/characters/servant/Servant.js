@@ -1,3 +1,4 @@
+import { ActorStatusEffects } from "../../shared/ActorStatusEffects.js";
 import servantModelUrl from "../../../models/castle/leisure/servant.glb?url";
 import { DynamicRenderBatch } from "../../../rendering/DynamicRenderBatch.js";
 import { CHARACTER_HEIGHT } from "../../../config/character-size.js";
@@ -7,6 +8,31 @@ import { TerraceServantBehavior } from "../../castle/rooms/terrace/TerraceServan
 import { TerraceServiceActions } from "../../castle/rooms/terrace/TerraceServiceActions.js";
 
 export class Servant {
+  /**
+   * @type {ActorStatusEffects}
+   */
+  #statusEffects = new ActorStatusEffects();
+  /**
+   * @type {import("playcanvas").EventHandle|null}
+   */
+  #statusUpdateHandle = null;
+
+  /**
+   * @returns {number}
+   */
+  get statusRate() {
+    return this.#statusEffects.rate;
+  }
+
+  /**
+   * @param {string} name
+   * @param {{duration: number, factor?: number}} options
+   * @returns {boolean}
+   */
+  applyStatus(name, options) {
+    return this.#statusEffects.apply(name, options);
+  }
+
   /**
    * @type {typeof import("playcanvas")}
    */
@@ -81,6 +107,7 @@ export class Servant {
     this.#pc = pc;
     this.#runtime = runtime;
     this.#app = app;
+    this.#statusUpdateHandle = app?.on("update", this.advanceStatus, this) ?? null;
     this.#definition = definition;
     this.#entity = new pc.Entity(`${definition.id} servant`);
     this.#entity.tags.add("map-object", definition.id, this.constructor.name);
@@ -88,6 +115,20 @@ export class Servant {
       .getAll("castle")
       .at(definition.castleIndex ?? 0);
     castle?.attachServant(this);
+  }
+
+  /**
+   * @param {number} deltaTime
+   */
+  advanceStatus(deltaTime) {
+    this.#statusEffects.advance(deltaTime);
+  }
+
+  /**
+   * @returns {import("playcanvas").Entity}
+   */
+  get statusEntity() {
+    return this.#resident?.entity ?? this.#entity;
   }
 
   get entity() {
@@ -250,6 +291,8 @@ export class Servant {
   }
 
   destroy() {
+    this.#statusUpdateHandle?.off();
+    this.#statusUpdateHandle = null;
     this.#renderBatch?.destroy();
     this.#renderBatch = null;
     this.#resident?.destroy();

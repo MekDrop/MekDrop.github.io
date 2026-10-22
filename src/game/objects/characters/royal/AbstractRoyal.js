@@ -1,3 +1,4 @@
+import { ActorStatusEffects } from "../../shared/ActorStatusEffects.js";
 import { CastleTerraceActivity } from "../../castle/rooms/terrace/CastleTerraceActivity.js";
 import { DynamicRenderBatch } from "../../../rendering/DynamicRenderBatch.js";
 import { SeatedRoyal } from "../../castle/residents/SeatedRoyal.js";
@@ -9,6 +10,27 @@ import { TerraceRoyalActions } from "../../castle/rooms/terrace/TerraceRoyalActi
  * @abstract
  */
 export class AbstractRoyal {
+  /**
+   * @type {ActorStatusEffects}
+   */
+  #statusEffects = new ActorStatusEffects();
+
+  /**
+   * @returns {number}
+   */
+  get statusRate() {
+    return this.#statusEffects.rate;
+  }
+
+  /**
+   * @param {string} name
+   * @param {{duration: number, factor?: number}} options
+   * @returns {boolean}
+   */
+  applyStatus(name, options) {
+    return this.#statusEffects.apply(name, options);
+  }
+
   /**
    * @type {typeof import("playcanvas")}
    */
@@ -286,8 +308,9 @@ export class AbstractRoyal {
       return;
     }
     try {
-      this.#activity?.update(deltaTime);
-      this.#audienceActor?.update(deltaTime);
+      this.#activity?.update(deltaTime, this.statusRate);
+      this.#audienceActor?.update(deltaTime * this.statusRate, this.statusRate);
+      this.#statusEffects.advance(deltaTime);
     } catch (error) {
       this.#updateFailed = true;
       this.#activity?.stop();

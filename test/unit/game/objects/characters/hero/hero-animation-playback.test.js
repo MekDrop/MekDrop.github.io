@@ -50,3 +50,32 @@ it("keeps the supporting-leg phase when blending between walking and running", (
   playback.play(HERO_ANIMATION.WALK, 1, false);
   assert.deepEqual(transitions.at(-1), [HERO_ANIMATION.WALK, 0.22, 0.25]);
 });
+
+it("pauses an active action through freeze and restores its authored playback speed", () => {
+  const animation = {
+    speed: 1,
+    addAnimationState: () => {},
+    baseLayer: {
+      play: () => {},
+      transition: () => {},
+    },
+  };
+  const playback = new HeroAnimationPlayback();
+  const tracks = new Map(Object.values(HERO_ANIMATION).map(name => [name, { duration: 1 }]));
+  playback.initialize({
+    anim: animation,
+    addComponent: () => {},
+  }, {
+    getAnimationTracks: () => tracks,
+  }, "hero.glb");
+  playback.play(HERO_ANIMATION.DODGE_LEFT, 1, true, 0.5);
+  assert.equal(animation.speed, 2);
+  playback.rate = 0;
+  assert.equal(animation.speed, 0);
+  playback.play(HERO_ANIMATION.DODGE_LEFT, 1, false, 0.5);
+  assert.equal(animation.speed, 0);
+  playback.rate = 0.45;
+  assert.equal(animation.speed, 0.9);
+  playback.rate = 1;
+  assert.equal(animation.speed, 2);
+});

@@ -1,3 +1,4 @@
+import { ActorStatusEffects } from "../../../../../../src/game/objects/shared/ActorStatusEffects.js";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { it } from "node:test";
@@ -7,7 +8,7 @@ import { CastleGenerator } from "../../../../../../src/game/generator/castle/Cas
 import { CastleResidentialLayout } from "../../../../../../src/game/objects/castle/residents/CastleResidentialLayout.js";
 
 const source = readFileSync(new URL("../../../../../../src/game/objects/characters/servant/Servant.js", import.meta.url), "utf8").replace(/^import[^\n]+\r?\n/gm, "");
-const Servant = new Function("servantModelUrl", "CHARACTER_HEIGHT", "TerraceActor", "CastleResidentMotion", `${source.replace("export class", "class")}\nreturn Servant;`)("servant.glb", 1.8, class {
+const Servant = new Function("ActorStatusEffects", "servantModelUrl", "CHARACTER_HEIGHT", "TerraceActor", "CastleResidentMotion", `${source.replace("export class", "class")}\nreturn Servant;`)(ActorStatusEffects, "servant.glb", 1.8, class {
   entity = new pc.Entity(); height = 1; pose() {}
 }, CastleResidentMotion);
 it("places the idle servant clear of all service furniture and map props in every orientation", async () => {
@@ -131,4 +132,21 @@ it("keeps the servant in its room when a terrace participant is created", async 
   assert.equal(participant.inspector.entity, resident);
   assert.equal(servant.entity.children.length, 2);
   assert.equal(resident.enabled, true);
+});
+
+
+it("exposes frost status on the actual servant and expires it independently of movement", () => {
+  const app = new pc.EventHandler();
+  const servant = new Servant({
+    pc,
+    app,
+    definition: { id: "frozen-servant" },
+    runtime: { objects: { getAll: () => [] } },
+  });
+  assert.equal(servant.applyStatus("stun", { duration: 1.4 }), true);
+  assert.equal(servant.statusRate, 0);
+  assert.equal(servant.statusEntity, servant.entity);
+  app.fire("update", 1.4);
+  assert.equal(servant.statusRate, 1);
+  servant.destroy();
 });

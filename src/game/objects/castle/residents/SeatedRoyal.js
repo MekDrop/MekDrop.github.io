@@ -328,14 +328,18 @@ export class SeatedRoyal {
   /**
    *
    * @param {number} deltaTime
+   * @param {number} statusRate
    */
-  update(deltaTime) {
-    if (this.#gameOverBehavior.stateMachine.reacting) {
+  update(deltaTime, statusRate = 1) {
+    if (statusRate === 0 || this.#gameOverBehavior.stateMachine.reacting) {
       this.#suspendedAnimationSpeed ??= this.#model.anim.speed;
       this.#model.anim.speed = 0;
     } else if (this.#suspendedAnimationSpeed !== null) {
       this.#model.anim.speed = this.#suspendedAnimationSpeed;
       this.#suspendedAnimationSpeed = null;
+    }
+    if (statusRate === 0) {
+      return;
     }
     if (this.#returning) {
       this.#navigation.update(deltaTime);

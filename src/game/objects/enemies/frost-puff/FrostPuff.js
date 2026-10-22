@@ -70,6 +70,14 @@ export class FrostPuff extends Enemy {
   }
 
   /**
+   * Moving friendly residents keep their model below a fixed map root.
+   * @param {import("../shared/Enemy.js").EnemyActor} actor
+   */
+  targetPosition(actor) {
+    return actor?.statusEntity?.getPosition() ?? super.targetPosition(actor);
+  }
+
+  /**
    * Attach only the actual authored GLB, with no fallback mesh.
    */
   onSceneReady() {

@@ -14,6 +14,7 @@ const Driver = new Function("HERO_STAT", `${constants}\nreturn class { ${method}
  */
 function walker() {
   return Object.assign(new Driver(), {
+    statusRate: 1,
     grounded: false,
     jumpsUsed: 1,
     jumpMovement: false,
@@ -48,4 +49,16 @@ it("retains the intentional jump reach, including the launch frame before takeof
   assert.equal(hero.desiredVelocity().x, 4.2);
   hero.running = true;
   assert.equal(hero.desiredVelocity().x, 6.3);
+});
+
+
+it("scales actual hero velocity with frost while preserving buff composition", () => {
+  const hero = walker();
+  hero.statusRate = 0.45;
+  hero.buffs.modifyStat = (stat, value) => value * 1.2;
+  assert.ok(Math.abs(hero.desiredVelocity().x - 1.8 * 0.45 * 1.2) < 1e-10);
+  hero.statusRate = 0;
+  assert.equal(hero.desiredVelocity().x, 0);
+  hero.statusRate = 1;
+  assert.equal(hero.desiredVelocity().x, 1.8 * 1.2);
 });
