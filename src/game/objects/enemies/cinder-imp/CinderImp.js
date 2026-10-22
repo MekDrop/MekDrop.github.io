@@ -268,6 +268,9 @@ export class CinderImp extends Enemy {
    * @returns {import("../shared/Enemy.js").EnemyActor|null}
    */
   chooseTarget() {
+    if (this.grudgesSuppressed) {
+      return this.resolveRoyalTarget();
+    }
     if (this.elapsed < this.revengeUntil && this.thrower?.alive !== false && this.thrower?.entity) {
       return this.thrower;
     }
@@ -377,6 +380,9 @@ export class CinderImp extends Enemy {
    */
   performFire(dt) {
     const target = this.attackTarget;
+    if (this.suppressesRivalContact(target)) {
+      return;
+    }
     if (!this.canReachWithFire(target)) {
       return;
     }

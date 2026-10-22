@@ -18,6 +18,11 @@ export class CinderRivalAttackState extends State {
    * @param {import("../CinderImp.js").CinderImp} owner
    */
   execute(owner) {
+    if (owner.suppressesRivalContact(owner.attackTarget)) {
+      owner.transition("CinderFireRecoverState");
+
+      return;
+    }
     const previous = owner.phaseTime;
     owner.phaseTime += owner.deltaTime;
     const contact = Math.max(0, Math.min(owner.phaseTime, 0.28) - Math.max(previous, 0.18));

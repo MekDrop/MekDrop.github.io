@@ -29,7 +29,8 @@ export class CrownCrabPursueState extends State {
 
       return;
     }
-    crab.requestAnimation(crab.revengeTarget ? "revenge_run" : "scuttle_forward");
-    crab.moveToward(target, crab.revengeTarget ? 2.2 : 1.2);
+    const revenge = crab.revengeTarget && !crab.grudgesSuppressed;
+    crab.requestAnimation(revenge ? "revenge_run" : "scuttle_forward");
+    crab.moveToward(target, revenge ? 2.2 : 1.2);
   }
 }

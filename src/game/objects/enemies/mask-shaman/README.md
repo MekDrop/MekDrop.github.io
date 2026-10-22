@@ -1,7 +1,8 @@
 # Mask Shaman
 
 Asset authoring and offline verification are complete. **Actual-game acceptance
-is unfinished.** No normal/generated/story map or spawn pool was changed.
+is unfinished.** The discipline consumer follow-up is implemented and unit-tested;
+its live acceptance and sibling commit dependencies remain open. No normal/generated/story map or spawn pool was changed.
 
 ## Provider and artwork
 
@@ -69,8 +70,11 @@ Volatile allies can query `source.suppressesGrudgesFor(ally)` on nearby actors,
 without sibling imports. It is true for another living, uncarried, non-airborne
 enemy within 3.5 metres while concentration is active. Grudges are never erased;
 multiple shaman sources are independent. Ally targeting/infighting belongs to the
-ally. No sibling files were edited; sibling consumption is still an integration
-check.
+ally. The shared Enemy capability query and actual Cinder Imp, Frost Puff, Crown Crab
+and Wire Gremlin consumers now suspend deliberate rivalry selection/contact.
+Ordinary defender attacks, royal attacks and incidental splash retain their paths.
+Consumer tests cover pending contacts, independent sources, range exit, interruption
+and resumed grudges. Sibling-dependent edits remain pending; see discipline-integration.md.
 
 ## Verification and remaining work
 
@@ -108,7 +112,18 @@ Outstanding acceptance:
 - [ ] Half-speed gameplay and death cleanup in the live renderer.
 - [ ] Other enemies consuming the aura and demonstrated infighting outcomes.
 
-Sibling targeting still ignores `suppressesGrudgesFor`. Completing that requires
-changes outside the delegated Mask Shaman directories; no sibling or shared Enemy
-files have been edited by this task. Suggested integration is recorded in
-`discipline-integration.md`.
+Follow-up verification on 2026-10-22: 73 focused tests passed across the five
+enemy directories. Changed consumer source passed scoped ESLint. No appearance
+assets changed, so the transparent production preview was retained.
+
+The actual app reached its object-data-cache loading screen; browser navigation
+also timed out or was denied inside the sandbox. These attempts do not establish
+continuous blend quality, facing, foot contact, half-speed gameplay, death cleanup
+or rendered infighting outcomes. No acceptance box above was marked complete.
+
+`evidence/discipline-followup-status.json` records the limits. The authored
+`/map/test_enemy-discipline` fixture contains production models and HUD controls
+for staging rivals, overlapping sources, interruption and range exit. It remains
+unverified and depends on the sibling Crown Crab registration/model work.
+Wire Gremlin has no registered production model or compatible tower mechanism;
+its dispute guard is logic-tested only. No replacement asset or stand-in was added.

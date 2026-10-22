@@ -13,7 +13,7 @@ export class CrownCrabAngryState extends State {
    * @param {import("../CrownCrab.js").CrownCrab} crab
    */
   execute(crab) {
-    if (crab.elapsed >= crab.warningUntil) {
+    if (crab.grudgesSuppressed || crab.elapsed >= crab.warningUntil) {
       crab.resumePursuit();
     }
   }

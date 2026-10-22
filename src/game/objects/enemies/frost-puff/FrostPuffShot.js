@@ -26,6 +26,7 @@ export class FrostPuffShot {
    */
   constructor(owner, target) {
     this.owner = owner;
+    this.target = target;
     const pc = owner.pc;
     const start = owner.position.clone().add(new pc.Vec3(0, 0.45, 0));
     const destination = owner.targetPosition(target).clone().add(new pc.Vec3(0, 0.45, 0));
@@ -69,7 +70,9 @@ export class FrostPuffShot {
     for (const actor of this.owner.actors) {
       const root = actor.entity;
       if (root && (root === result.other || result.other.isDescendantOf(root))) {
-        this.owner.combat.chill(actor);
+        if (actor !== this.target || !this.owner.suppressesRivalContact(actor)) {
+          this.owner.combat.chill(actor);
+        }
         break;
       }
     }
@@ -81,7 +84,7 @@ export class FrostPuffShot {
    */
   #update(dt) {
     this.#remaining -= dt;
-    if (!this.owner.alive || this.#remaining <= 0) {
+    if (!this.owner.alive || this.#remaining <= 0 || this.owner.suppressesRivalContact(this.target)) {
       this.destroy();
 
       return;

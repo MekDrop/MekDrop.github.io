@@ -15,6 +15,11 @@ export class FrostPuffCastState extends State {
    * @param {import("../FrostPuff.js").FrostPuff} owner
    */
   execute(owner) {
+    if (owner.suppressesRivalContact(owner.shotTarget)) {
+      owner.behavior.changeTo(FrostPuffPursueState.name);
+
+      return;
+    }
     const previous = this.time;
     this.time += owner.deltaTime;
     if (previous < 0.4 && this.time >= 0.4) {

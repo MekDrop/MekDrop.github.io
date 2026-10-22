@@ -75,7 +75,8 @@ export class FrostPuffCombat {
    * @returns {boolean}
    */
   #isShotTarget(actor) {
-    return this.canChill(actor) && (actor.isDefender === true || actor.enemyType === "CinderImp") &&
+    return this.canChill(actor) && !this.owner.suppressesRivalContact(actor) &&
+      (actor.isDefender === true || actor.enemyType === "CinderImp") &&
       this.owner.distanceTo(actor) <= 4.5 && this.owner.hasLineOfSight(actor);
   }
 

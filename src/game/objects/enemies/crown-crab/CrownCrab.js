@@ -67,6 +67,9 @@ export class CrownCrab extends Enemy {
    * @returns {Enemy|null}
    */
   get pursuitTarget() {
+    if (this.grudgesSuppressed) {
+      return this.resolveRoyalTarget();
+    }
     if (this.revengeTarget?.alive === false) {
       this.revengeTarget = null;
     }
@@ -104,6 +107,11 @@ export class CrownCrab extends Enemy {
    * @param {Enemy} target
    */
   startClaw(target) {
+    if (this.suppressesRivalContact(target)) {
+      this.resumePursuit();
+
+      return;
+    }
     this.attackTarget = target;
     this.behavior.changeTo(CrownCrabClawState.name);
   }
@@ -174,7 +182,7 @@ export class CrownCrab extends Enemy {
    * @returns {CrownCrab|null}
    */
   findRival() {
-    if (this.revengeTarget || this.angerTarget || this.elapsed < this.duelCooldownUntil) {
+    if (this.grudgesSuppressed || this.revengeTarget || this.angerTarget || this.elapsed < this.duelCooldownUntil) {
       return null;
     }
     const royal = this.resolveRoyalTarget();
@@ -234,6 +242,9 @@ export class CrownCrab extends Enemy {
    * @returns {boolean}
    */
   applyClawContact(target) {
+    if (this.suppressesRivalContact(target)) {
+      return false;
+    }
     if (!target || target.alive === false || this.distanceTo(target) > 1.4) {
       return false;
     }

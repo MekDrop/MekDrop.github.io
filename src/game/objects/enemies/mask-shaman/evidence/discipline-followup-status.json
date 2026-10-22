@@ -1,0 +1,36 @@
+{
+  "date": "2026-10-22",
+  "status": "partial_dependency_and_live_acceptance_blocked",
+  "unitTests": {
+    "passed": 73,
+    "failed": 0,
+    "scope": [
+      "mask-shaman",
+      "cinder-imp",
+      "frost-puff",
+      "crown-crab",
+      "wire-gremlin"
+    ],
+    "limitations": "Entity/body doubles verify logic, not Ammo solver or visual quality."
+  },
+  "lint": "Changed consumer source and new core checks passed scoped ESLint.",
+  "live": {
+    "status": "blocked",
+    "route": "/map/test_enemy-mask-shaman",
+    "observed": "Actual app reached Loading object data cache screen. Browser navigation also timed out or was denied inside the sandbox.",
+    "verified": false,
+    "outstanding": [
+      "Continuous blends",
+      "Facing",
+      "Gameplay foot contact",
+      "Half-speed gameplay",
+      "Death cleanup",
+      "Rendered discipline outcomes"
+    ]
+  },
+  "dependencies": {
+    "wireGremlin": "Untracked sibling class and states; model/registration/tower capabilities unfinished in verification.json. No primitive stand-in added.",
+    "crownCrab": "Uncommitted sibling model, playback and queue implementation. Follow-up preserves these changes."
+  },
+  "preview": "No model, material or geometry changed; existing transparent preview retained."
+}

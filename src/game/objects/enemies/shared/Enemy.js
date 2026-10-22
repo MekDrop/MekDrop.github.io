@@ -95,6 +95,32 @@ export class Enemy {
   }
 
   /**
+   * Query independent live sources; remembered grudges remain owned by consumers.
+   * @returns {boolean}
+   */
+  get grudgesSuppressed() {
+    return this.alive && this.actors.some(this.#suppressesGrudges.bind(this));
+  }
+
+  /**
+   * @param {EnemyActor & {suppressesGrudgesFor?: (actor: Enemy) => boolean}} source
+   * @returns {boolean}
+   */
+  #suppressesGrudges(source) {
+    return source !== this && source?.alive !== false && source?.suppressesGrudgesFor?.(this) === true;
+  }
+
+  /**
+   * Contact guards apply to deliberate enemy attacks, leaving splash unchanged.
+   * @param {EnemyActor & {isEnemy?: boolean}} target
+   * @returns {boolean}
+   */
+  suppressesRivalContact(target) {
+    return target?.isEnemy === true && target.isRoyal !== true &&
+      typeof target.beginGameOver !== "function" && this.grudgesSuppressed;
+  }
+
+  /**
    * Resolve an actual royal actor, including its currently active visual actor.
    */
   resolveRoyalTarget() {

@@ -24,6 +24,11 @@ export class CrownCrabClawState extends State {
    * @param {import("../CrownCrab.js").CrownCrab} crab
    */
   execute(crab) {
+    if (crab.suppressesRivalContact(crab.attackTarget)) {
+      crab.resumePursuit();
+
+      return;
+    }
     this.#time += crab.deltaTime;
     if (!this.#contactApplied && this.#time >= 0.45) {
       this.#contactApplied = true;
