@@ -1,0 +1,41 @@
+{
+  "date": "2026-10-22",
+  "originalScope": "Ignores towers unless obstructing route to royal.",
+  "originalScopeSource": "Original human-authored task preview recovered through read_thread for 01a161a1-977f-7562-b5ba-dd918f4fcbae",
+  "swap": {
+    "producer": "src/game/objects/enemies/riftcap/RiftcapSpellbook.js:swap",
+    "callback": "onUnwillingSwap",
+    "fix": "HornedWrecker now forwards the production callback to onUnwantedSwap.",
+    "check": "Real RiftcapSpellbook.swap with clear physics queries swaps positions and causes snort, stomp, rage in a focused unit test.",
+    "liveProducerCheck": false
+  },
+  "pickup": {
+    "producers": [
+      "PitcherOgre.canPickUp/pickUp",
+      "RiftcapSpellbook.canSwap/swap when carried"
+    ],
+    "finding": "Both preflight canBeCarriedBy. Pitcher Ogre also excludes radius above 0.6 and height above 1.4. Neither chooses Wrecker as a passenger. No production Hero enemy-pickup producer was found.",
+    "directAttempt": "beginCarry rejects and headbutts; previously exercised with actual Hero as aggressor in the production test map.",
+    "queryIsSideEffectFree": true
+  },
+  "towers": {
+    "required": true,
+    "implemented": false,
+    "finding": "Current Wrecker only destroys doors and their stone jambs. Castle tower rooms are integrated masonry; the signal-tower adapter exposes sabotage leases, not receiveDamage. No standalone production damageable tower implementation was found in objects.",
+    "remaining": "Implement and exercise obstruction-only tower destruction without turning distant towers into strategic targets. Do not substitute door-jamb destruction as evidence."
+  },
+  "visual": {
+    "renderer": "Production PlayCanvas map/test_enemy-horned-wrecker, HUD clip controls",
+    "inspectedThisPass": [
+      "idle_snort",
+      "heavy_walk",
+      "heavy_run"
+    ],
+    "finding": "Isometric silhouette and changing leg poses visible. Stationary clip inspection cannot establish planted-foot world-space stability during actual locomotion.",
+    "footPlantAccepted": false,
+    "blendContactAccepted": false,
+    "screenshots": [
+      "tmp/horned-wrecker/walk-quality.png"
+    ]
+  }
+}

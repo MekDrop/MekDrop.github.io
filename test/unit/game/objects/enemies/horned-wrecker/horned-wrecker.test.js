@@ -4,12 +4,43 @@ import { readFileSync } from "node:fs";
 import * as pc from "playcanvas";
 import { State } from "yuka";
 import { HornedWrecker } from "../../../../../../src/game/objects/enemies/horned-wrecker/HornedWrecker.js";
+import { RiftcapSpellbook } from "../../../../../../src/game/objects/enemies/riftcap/RiftcapSpellbook.js";
 
 const create = () => new HornedWrecker({
   pc,
   app: {},
   definition: { id: "wrecker" },
   runtime: { objects: [] },
+});
+
+test("production Riftcap swap producer provokes the unwilling Wrecker", () => {
+  const actor = create();
+  actor.entity.rigidbody = {
+    teleport: (position) => actor.entity.setPosition(position),
+    linearVelocity: new pc.Vec3(),
+  };
+  const entity = new pc.Entity("caster");
+  entity.setPosition(2, 0, 0);
+  entity.rigidbody = { teleport: (position) => entity.setPosition(position) };
+  const caster = {
+    pc,
+    entity,
+    position: entity.getPosition(),
+    radius: 0.35,
+    height: 1,
+    app: { systems: { rigidbody: { raycastAll: () => [] } } },
+    combatActors: [],
+    distanceTo: () => 2,
+    stop: () => {},
+  };
+  const spells = new RiftcapSpellbook(caster);
+  assert.equal(spells.swap(actor), true);
+  assert.equal(actor.position.x, 2);
+  assert.equal(actor.stateName, "WreckerSnortState");
+  actor.update(0.65);
+  assert.equal(actor.stateName, "WreckerStompState");
+  actor.update(0.8);
+  assert.equal(actor.stateName, "WreckerRageState");
 });
 
 test("bell immunity survives amplification and direct confusion statuses", () => {

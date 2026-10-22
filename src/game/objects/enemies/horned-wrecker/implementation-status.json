@@ -74,7 +74,7 @@
     "normalMapsModified": false
   },
   "verified": {
-    "unitTests": 16,
+    "unitTests": 17,
     "unitCommand": "node --test test/unit/game/objects/enemies/horned-wrecker/horned-wrecker.test.js",
     "focusedEslint": true,
     "authoredClips": [
@@ -134,8 +134,9 @@
     "runtimeLoopContinuityEvidence": "runtime-continuity.json"
   },
   "remaining": [
-    "Complete visual foot-plant and blend/contact quality review beyond the sampled clip/joint/loop checks",
-    "Verify obstructing tower destruction and production pickup/swap event producers"
+    "Complete moving foot-plant and blend/contact quality review beyond stationary HUD clip inspection",
+    "Implement original obstruction-only tower destruction requirement; current production towers lack a damage lifecycle",
+    "Exercise actual production swap callback in the real map after the callback-name integration fix"
   ],
   "assets": {
     "blend": "src/game/models/enemies/horned-wrecker/horned-wrecker.blend",
@@ -161,7 +162,7 @@
       "Ignore floor support contacts when provoking rage",
       "Test-only idle, keyboard shortcuts and dual time-scale playback capture"
     ],
-    "checks": "26 focused checks pass (16 Wrecker, 1 generated-castle breach, 9 door); changed-file ESLint and diff check pass. Three focused subtraction checks also pass.",
+    "checks": "17 focused Wrecker checks pass including actual Riftcap swap-producer integration; changed-file ESLint passes. Prior 26-check door/breach baseline retained.",
     "runtimeAcceptanceComplete": false,
     "sharedHudFixRequested": false,
     "waitingForOtherChats": false,
@@ -173,6 +174,7 @@
       "Two old window-layout expectations also fail against the unchanged HEAD module",
       "Unchanged masonry coalescing test fails its compression-ratio expectation"
     ],
-    "runtimeBehaviorComplete": true
+    "runtimeBehaviorComplete": true,
+    "integrationReview": "integration-review.json"
   }
 }

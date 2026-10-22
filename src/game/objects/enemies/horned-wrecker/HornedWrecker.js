@@ -193,6 +193,13 @@ export class HornedWrecker extends Enemy {
   }
 
   /**
+   * Production Riftcap swaps report unwilling passengers after teleporting.
+   */
+  onUnwillingSwap() {
+    return this.onUnwantedSwap();
+  }
+
+  /**
    * Reject all bell-derived stun sources, including amplified secondary ringing.
    * @param {string} name
    * @param {{duration?:number,kind?:string,source?:import("../shared/Enemy.js").EnemyActor,bellEventId?:string}} options
