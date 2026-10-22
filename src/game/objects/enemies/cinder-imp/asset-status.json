@@ -1,0 +1,130 @@
+{
+  "schemaVersion": 1,
+  "enemy": "cinder-imp",
+  "reference": "src/game/objects/enemies/cinder-imp/info.png",
+  "provider": "Tripo3D",
+  "cli": "tripo-cli 0.5.2",
+  "checkedAt": "2026-10-22",
+  "credentialConfigured": true,
+  "apiReachable": true,
+  "balance": {
+    "availableCredits": 0,
+    "frozenCredits": 0
+  },
+  "preferredWorkflowCli": {
+    "name": "game-dev",
+    "availableOnPath": false
+  },
+  "status": "generated-refined-offline-validated-production-checks-in-progress",
+  "submittedJobs": [
+    {
+      "id": "e5f1b5e9-d714-4bed-bc58-c91672ebbf28",
+      "operation": "image-to-model",
+      "model": "H3.1",
+      "mode": "Geometry & Texture",
+      "privacy": "Private",
+      "generateInParts": false,
+      "eightKTexture": false,
+      "source": "src/game/objects/enemies/cinder-imp/portrait.png",
+      "quoteCredits": 30,
+      "observedBalanceDeltaCredits": 30,
+      "status": "completed",
+      "url": "https://studio.tripo3d.ai/workspace/generate/e5f1b5e9-d714-4bed-bc58-c91672ebbf28",
+      "textPrompt": null,
+      "inputMethod": "Image-only browser upload; no Tripo text prompt entered"
+    }
+  ],
+  "actualCharges": {
+    "credits": 30,
+    "basis": "Browser generation quote 30; account balance changed 22790 to 22760 immediately after this submission. Other sibling jobs share the account."
+  },
+  "originalProviderOutput": "src/game/models/enemies/cinder-imp/provider/tripo-original.zip",
+  "refinedBlend": "src/game/models/enemies/cinder-imp/cinder-imp.blend",
+  "exportedGlb": "src/game/models/enemies/cinder-imp/cinder-imp.glb",
+  "productionPreview": "src/game/objects/enemies/cinder-imp/preview.png",
+  "plannedPrompt": "One game-ready stylized cubist Cinder Imp matching the MAIN large left-hand character portrait. Compact coal-black purple-charcoal imp, enormous square head, squat body and short legs, chunky angular orange horns, furnace-bright orange and yellow eyes and broad glowing mouth, blocky red-orange heated fists and feet. Faithful silhouette, proportions and palette. Single isolated character only. No text, panels, castle, royal, secondary characters or floating decorative cubes. Preserve distinct arms, hands, legs, feet and horns for custom nonhumanoid-compatible rigging.",
+  "attemptPolicy": {
+    "initialGeneration": 1,
+    "replacementOnlyForMaterialMismatch": 1,
+    "preferLocalRefinement": true
+  },
+  "visualReferenceFindings": [
+    "Main portrait is the large upper-left imp; all right/lower panels are excluded from source identity.",
+    "Charcoal and purple-gray faceted head dominates the silhouette; short bent legs, big heated fists, asymmetric chunky horns.",
+    "Bright rectangular yellow-orange eyes and broad furnace mouth provide the face read at isometric distance."
+  ],
+  "verification": {
+    "referenceViewed": true,
+    "providerModelGenerated": true,
+    "frontSideRearComparison": true,
+    "rigWeightsChecked": true,
+    "everyClipFreshImported": true,
+    "productionPlayback": true,
+    "transparentPreview": true
+  },
+  "apiAccountSnapshot": {
+    "availableCredits": 0,
+    "frozenCredits": 0
+  },
+  "browserAccount": {
+    "balanceBefore": 22790,
+    "balanceAfterSubmission": 22760,
+    "costQuotedCredits": 30
+  },
+  "portrait": {
+    "path": "src/game/objects/enemies/cinder-imp/portrait.png",
+    "provider": "OpenAI image_gen",
+    "source": "info.png",
+    "purpose": "Isolate main upper-left portrait; remove panels, captions, cameos and floating embers",
+    "transparent": true,
+    "prompt": "Edit target: provided Cinder Imp infographic. Extract ONLY the large main imp portrait in upper-left (roughly x20..570 y125..600). Make a single isolated full-body character on transparent background, centered with clear margins, preserving its exact cubist voxel geometry, proportions, pose, charcoal-purple square head/body, chunky angular glowing orange horns, rectangular yellow-orange eyes, broad furnace mouth, red-orange heated block fists and feet. Keep all limbs fully visible. Remove ALL text, panels, background, ground shadow, floating ember cubes and ALL secondary small characters/cameos. Do not redesign or add anatomy, weapons or accessories. This clean character cutout is the image-to-3D source.",
+    "charge": "Not exposed by image_gen"
+  },
+  "meshMetrics": {
+    "triangles": 4434,
+    "vertices": 13302,
+    "bones": 14,
+    "uvLayers": 1
+  },
+  "refinement": [
+    "Retained Tripo surface, UVs and base-colour texture.",
+    "Reduced metallic/glossy response, removed noisy normal-map shading, and added subtle furnace emission.",
+    "Normalized horn-tip height to 1.1 metres and settled the raised foot.",
+    "Authored a bespoke furnace-core/limb rig with two foot IK controls and normalized one-bone vertex assignments.",
+    "Authored and baked 20 distinct clips; repaired tumble pivot and death ground clearance."
+  ],
+  "assetHashes": {
+    "src\\game\\models\\enemies\\cinder-imp\\cinder-imp.blend": "ef6d49f4ed6c0ff5bc8e0598580b69c02218d9e9448e00b47815d0e8e854901d",
+    "src\\game\\models\\enemies\\cinder-imp\\cinder-imp.glb": "5e96e79bc2edfbb0543ad52357f5f4dd8838384438fa7b89c3b16217e35a60b7",
+    "src\\game\\models\\enemies\\cinder-imp\\provider\\tripo-original.zip": "668ab106ac12d0049ed4dc733a61f91cb50ea25a6d023d40e19164849334818b"
+  },
+  "previewAlpha": {
+    "visible": 49295,
+    "transparent": 212849,
+    "bounds": [
+      93,
+      110,
+      423,
+      388
+    ]
+  },
+  "runtimeCalibration": {
+    "heightMetres": 1.1,
+    "modelYawDegrees": 180,
+    "modelGroundOffset": 0,
+    "walkMetresPerSecond": 1.056,
+    "mouthOffsetInFurnaceBone": {
+      "x": 0,
+      "y": -0.0528,
+      "z": 0.2707
+    },
+    "verification": "Standing placement inspected in production after shared root coordinate repair; all 20 clips played and sampled on the instantiated hierarchy. Fire, steam, throw, and royal-route interactive acceptance remains pending."
+  },
+  "remainingAcceptance": [
+    "Production fire mouth direction and steam appearance",
+    "Interactive carry, throw, landing and revenge",
+    "Castle door route and crate burning in the production scene",
+    "Interactive interruption, time scaling and death cleanup"
+  ],
+  "latestBrowserBlocker": "2026-10-22: Quasar ESLint overlay reports four jsdoc/multiline-blocks errors in mushroom-brute/MushroomBrute.js; MainLayout dynamic import failed."
+}

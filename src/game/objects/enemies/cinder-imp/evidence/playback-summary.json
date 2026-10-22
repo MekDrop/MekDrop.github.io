@@ -1,0 +1,249 @@
+[
+  {
+    "name": "idle",
+    "duration": 2,
+    "samples": 40,
+    "timeProgress": 2.0013999999999803,
+    "movingJoints": [
+      "Furnace",
+      "UpperArm.L",
+      "Shin.L",
+      "Foot.R"
+    ],
+    "finite": true
+  },
+  {
+    "name": "walk",
+    "duration": 0.6000000238418579,
+    "samples": 18,
+    "timeProgress": 0.6940999999999912,
+    "movingJoints": [
+      "Furnace",
+      "UpperArm.L",
+      "Shin.L",
+      "Foot.R"
+    ],
+    "finite": true
+  },
+  {
+    "name": "run",
+    "duration": 0.36666667461395264,
+    "samples": 11,
+    "timeProgress": 0.4004000000000087,
+    "movingJoints": [
+      "Furnace",
+      "UpperArm.L",
+      "Shin.L",
+      "Foot.R"
+    ],
+    "finite": true
+  },
+  {
+    "name": "turn_left",
+    "duration": 0.5,
+    "samples": 14,
+    "timeProgress": 0.45990000000000875,
+    "movingJoints": [
+      "Furnace",
+      "Shin.L",
+      "Foot.R"
+    ],
+    "finite": true
+  },
+  {
+    "name": "turn_right",
+    "duration": 0.5,
+    "samples": 15,
+    "timeProgress": 0.47339999999999416,
+    "movingJoints": [
+      "Furnace",
+      "Shin.L",
+      "Foot.R"
+    ],
+    "finite": true
+  },
+  {
+    "name": "fire_windup",
+    "duration": 0.4000000059604645,
+    "samples": 13,
+    "timeProgress": 0.3600000059604645,
+    "movingJoints": [
+      "Furnace",
+      "UpperArm.L",
+      "Shin.L",
+      "Foot.R"
+    ],
+    "finite": true
+  },
+  {
+    "name": "fire_loop",
+    "duration": 0.6666666865348816,
+    "samples": 22,
+    "timeProgress": 0.7073999999999941,
+    "movingJoints": [
+      "Furnace",
+      "UpperArm.L",
+      "Shin.L",
+      "Foot.R"
+    ],
+    "finite": true
+  },
+  {
+    "name": "fire_recover",
+    "duration": 0.3333333432674408,
+    "samples": 13,
+    "timeProgress": 0.2799333432674321,
+    "movingJoints": [
+      "Furnace",
+      "Shin.L",
+      "Foot.R"
+    ],
+    "finite": true
+  },
+  {
+    "name": "hit",
+    "duration": 0.30000001192092896,
+    "samples": 14,
+    "timeProgress": 0.2733000119209173,
+    "movingJoints": [
+      "Furnace",
+      "Shin.L",
+      "Foot.R"
+    ],
+    "finite": true
+  },
+  {
+    "name": "stun",
+    "duration": 1.2000000476837158,
+    "samples": 42,
+    "timeProgress": 1.2946999999999973,
+    "movingJoints": [
+      "Furnace",
+      "UpperArm.L",
+      "Shin.L",
+      "Foot.R"
+    ],
+    "finite": true
+  },
+  {
+    "name": "stun_recover",
+    "duration": 0.3333333432674408,
+    "samples": 13,
+    "timeProgress": 0.26663334326742916,
+    "movingJoints": [
+      "Furnace",
+      "Shin.L",
+      "Foot.R"
+    ],
+    "finite": true
+  },
+  {
+    "name": "angry_warn",
+    "duration": 0.46666666865348816,
+    "samples": 19,
+    "timeProgress": 0.4400666686534823,
+    "movingJoints": [
+      "Furnace",
+      "UpperArm.L",
+      "Shin.L",
+      "Foot.R"
+    ],
+    "finite": true
+  },
+  {
+    "name": "rival_attack",
+    "duration": 0.6666666865348816,
+    "samples": 28,
+    "timeProgress": 0.63996668653487,
+    "movingJoints": [
+      "Furnace",
+      "Forearm.R",
+      "Shin.L",
+      "Foot.R"
+    ],
+    "finite": true
+  },
+  {
+    "name": "carried_struggle",
+    "duration": 0.800000011920929,
+    "samples": 28,
+    "timeProgress": 0.9076000000000057,
+    "movingJoints": [
+      "Furnace",
+      "UpperArm.L",
+      "Shin.L",
+      "Foot.R"
+    ],
+    "finite": true
+  },
+  {
+    "name": "airborne_tumble",
+    "duration": 0.800000011920929,
+    "samples": 24,
+    "timeProgress": 0.880800000000003,
+    "movingJoints": [
+      "Root"
+    ],
+    "finite": true
+  },
+  {
+    "name": "land",
+    "duration": 0.20000000298023224,
+    "samples": 8,
+    "timeProgress": 0.1599000029802264,
+    "movingJoints": [
+      "Furnace",
+      "Shin.L",
+      "Foot.R"
+    ],
+    "finite": true
+  },
+  {
+    "name": "land_recover",
+    "duration": 0.3333333432674408,
+    "samples": 13,
+    "timeProgress": 0.30663334326742914,
+    "movingJoints": [
+      "Furnace",
+      "Shin.L",
+      "Foot.R"
+    ],
+    "finite": true
+  },
+  {
+    "name": "death",
+    "duration": 1.2000000476837158,
+    "samples": 31,
+    "timeProgress": 1.1600000476837158,
+    "movingJoints": [
+      "Root",
+      "UpperArm.L"
+    ],
+    "finite": true
+  },
+  {
+    "name": "victory",
+    "duration": 1.399999976158142,
+    "samples": 37,
+    "timeProgress": 1.3064999761581422,
+    "movingJoints": [
+      "Furnace",
+      "UpperArm.L",
+      "Shin.L",
+      "Foot.R"
+    ],
+    "finite": true
+  },
+  {
+    "name": "knockback",
+    "duration": 0.4000000059604645,
+    "samples": 14,
+    "timeProgress": 0.35990000596048777,
+    "movingJoints": [
+      "Furnace",
+      "Shin.L",
+      "Foot.R"
+    ],
+    "finite": true
+  }
+]

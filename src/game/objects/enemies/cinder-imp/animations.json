@@ -1,0 +1,373 @@
+{
+  "schemaVersion": 1,
+  "enemy": "cinder-imp",
+  "status": "all-clips-fresh-imported-and-production-playback-verified",
+  "model": "src/game/models/enemies/cinder-imp/cinder-imp.glb",
+  "rig": "CinderImpRig",
+  "verifiedClips": [
+    "idle",
+    "walk",
+    "run",
+    "turn_left",
+    "turn_right",
+    "victory",
+    "fire_windup",
+    "fire_loop",
+    "fire_recover",
+    "angry_warn",
+    "rival_attack",
+    "hit",
+    "stun",
+    "stun_recover",
+    "knockback",
+    "carried_struggle",
+    "airborne_tumble",
+    "land",
+    "land_recover",
+    "death"
+  ],
+  "clips": [
+    {
+      "name": "idle",
+      "durationSeconds": 2.0,
+      "looping": true,
+      "events": [],
+      "verification": {
+        "freshImport": true,
+        "timelineSamples": true,
+        "productionPlayback": true
+      },
+      "supportedStates": [
+        "CinderPursueState",
+        "CinderPlaybackState"
+      ],
+      "inspectionOnly": false
+    },
+    {
+      "name": "walk",
+      "durationSeconds": 0.6000000238418579,
+      "looping": true,
+      "events": [],
+      "verification": {
+        "freshImport": true,
+        "timelineSamples": true,
+        "productionPlayback": true
+      },
+      "supportedStates": [
+        "CinderPursueState"
+      ],
+      "inspectionOnly": false
+    },
+    {
+      "name": "run",
+      "durationSeconds": 0.36666667461395264,
+      "looping": true,
+      "events": [],
+      "verification": {
+        "freshImport": true,
+        "timelineSamples": true,
+        "productionPlayback": true
+      },
+      "supportedStates": [
+        "CinderPlaybackState"
+      ],
+      "inspectionOnly": true
+    },
+    {
+      "name": "turn_left",
+      "durationSeconds": 0.5,
+      "looping": false,
+      "events": [],
+      "verification": {
+        "freshImport": true,
+        "timelineSamples": true,
+        "productionPlayback": true
+      },
+      "supportedStates": [
+        "CinderPlaybackState"
+      ],
+      "inspectionOnly": true
+    },
+    {
+      "name": "turn_right",
+      "durationSeconds": 0.5,
+      "looping": false,
+      "events": [],
+      "verification": {
+        "freshImport": true,
+        "timelineSamples": true,
+        "productionPlayback": true
+      },
+      "supportedStates": [
+        "CinderPlaybackState"
+      ],
+      "inspectionOnly": true
+    },
+    {
+      "name": "victory",
+      "durationSeconds": 1.3999999364217122,
+      "looping": false,
+      "events": [],
+      "verification": {
+        "freshImport": true,
+        "timelineSamples": true,
+        "productionPlayback": true
+      },
+      "supportedStates": [
+        "CinderVictoryState"
+      ],
+      "inspectionOnly": false
+    },
+    {
+      "name": "fire_windup",
+      "durationSeconds": 0.40000001589457196,
+      "looping": false,
+      "events": [],
+      "verification": {
+        "freshImport": true,
+        "timelineSamples": true,
+        "productionPlayback": true
+      },
+      "supportedStates": [
+        "CinderFireWindupState"
+      ],
+      "inspectionOnly": false
+    },
+    {
+      "name": "fire_loop",
+      "durationSeconds": 0.6666666666666666,
+      "looping": true,
+      "events": [
+        {
+          "name": "contact_start",
+          "timeSeconds": 0
+        },
+        {
+          "name": "contact_end",
+          "timeSeconds": 0.6666666666666666
+        }
+      ],
+      "verification": {
+        "freshImport": true,
+        "timelineSamples": true,
+        "productionPlayback": true
+      },
+      "supportedStates": [
+        "CinderFireLoopState"
+      ],
+      "inspectionOnly": false
+    },
+    {
+      "name": "fire_recover",
+      "durationSeconds": 0.3333333333333333,
+      "looping": false,
+      "events": [],
+      "verification": {
+        "freshImport": true,
+        "timelineSamples": true,
+        "productionPlayback": true
+      },
+      "supportedStates": [
+        "CinderFireRecoverState"
+      ],
+      "inspectionOnly": false
+    },
+    {
+      "name": "angry_warn",
+      "durationSeconds": 0.4666666587193807,
+      "looping": false,
+      "events": [],
+      "verification": {
+        "freshImport": true,
+        "timelineSamples": true,
+        "productionPlayback": true
+      },
+      "supportedStates": [
+        "CinderWarnState"
+      ],
+      "inspectionOnly": false
+    },
+    {
+      "name": "rival_attack",
+      "durationSeconds": 0.6666666666666666,
+      "looping": false,
+      "events": [
+        {
+          "name": "contact_start",
+          "timeSeconds": 0.1846153846153846
+        },
+        {
+          "name": "contact_end",
+          "timeSeconds": 0.28717948717948716
+        }
+      ],
+      "verification": {
+        "freshImport": true,
+        "timelineSamples": true,
+        "productionPlayback": true
+      },
+      "supportedStates": [
+        "CinderRivalAttackState"
+      ],
+      "inspectionOnly": false
+    },
+    {
+      "name": "hit",
+      "durationSeconds": 0.30000001192092896,
+      "looping": false,
+      "events": [],
+      "verification": {
+        "freshImport": true,
+        "timelineSamples": true,
+        "productionPlayback": true
+      },
+      "supportedStates": [
+        "CinderHitState"
+      ],
+      "inspectionOnly": false
+    },
+    {
+      "name": "stun",
+      "durationSeconds": 1.2000000476837158,
+      "looping": true,
+      "events": [],
+      "verification": {
+        "freshImport": true,
+        "timelineSamples": true,
+        "productionPlayback": true
+      },
+      "supportedStates": [
+        "CinderStunState"
+      ],
+      "inspectionOnly": false
+    },
+    {
+      "name": "stun_recover",
+      "durationSeconds": 0.3333333333333333,
+      "looping": false,
+      "events": [],
+      "verification": {
+        "freshImport": true,
+        "timelineSamples": true,
+        "productionPlayback": true
+      },
+      "supportedStates": [
+        "CinderStunRecoverState"
+      ],
+      "inspectionOnly": false
+    },
+    {
+      "name": "knockback",
+      "durationSeconds": 0.40000001589457196,
+      "looping": false,
+      "events": [],
+      "verification": {
+        "freshImport": true,
+        "timelineSamples": true,
+        "productionPlayback": true
+      },
+      "supportedStates": [
+        "CinderKnockbackState"
+      ],
+      "inspectionOnly": false
+    },
+    {
+      "name": "carried_struggle",
+      "durationSeconds": 0.8000000317891439,
+      "looping": true,
+      "events": [],
+      "verification": {
+        "freshImport": true,
+        "timelineSamples": true,
+        "productionPlayback": true
+      },
+      "supportedStates": [
+        "CinderCarriedState"
+      ],
+      "inspectionOnly": false
+    },
+    {
+      "name": "airborne_tumble",
+      "durationSeconds": 0.8000000317891439,
+      "looping": true,
+      "events": [],
+      "verification": {
+        "freshImport": true,
+        "timelineSamples": true,
+        "productionPlayback": true
+      },
+      "supportedStates": [
+        "CinderAirborneState"
+      ],
+      "inspectionOnly": false
+    },
+    {
+      "name": "land",
+      "durationSeconds": 0.20000000794728598,
+      "looping": false,
+      "events": [
+        {
+          "name": "ground_contact",
+          "timeSeconds": 0
+        }
+      ],
+      "verification": {
+        "freshImport": true,
+        "timelineSamples": true,
+        "productionPlayback": true
+      },
+      "supportedStates": [
+        "CinderLandState"
+      ],
+      "inspectionOnly": false
+    },
+    {
+      "name": "land_recover",
+      "durationSeconds": 0.3333333333333333,
+      "looping": false,
+      "events": [],
+      "verification": {
+        "freshImport": true,
+        "timelineSamples": true,
+        "productionPlayback": true
+      },
+      "supportedStates": [
+        "CinderLandState"
+      ],
+      "inspectionOnly": false
+    },
+    {
+      "name": "death",
+      "durationSeconds": 1.2000000476837158,
+      "looping": false,
+      "events": [
+        {
+          "name": "settled",
+          "timeSeconds": 0.96
+        }
+      ],
+      "verification": {
+        "freshImport": true,
+        "timelineSamples": true,
+        "productionPlayback": true
+      },
+      "supportedStates": [
+        "CinderDeathState"
+      ],
+      "inspectionOnly": false
+    }
+  ],
+  "behaviorTimingSeconds": {
+    "fire_windup": 0.4,
+    "fire_loop": 0.65,
+    "fire_recover": 0.35,
+    "stun_recover": 0.35,
+    "hit": 0.3,
+    "angry_warn": 0.45,
+    "land": 0.2,
+    "land_recover": 0.35,
+    "death": 1.2
+  },
+  "note": "Durations measured from exported glTF seconds and checked against the fresh import at its native 24 FPS frame conversion. Body state phases may scale playback to their documented gameplay durations.",
+  "productionEvidence": "evidence/production-playback.json"
+}

@@ -9,6 +9,24 @@ const root = new URL("../../../../", import.meta.url);
 const hooks = registerHooks({
   load: (url, context, nextLoad) => {
     const loaded = nextLoad(url, context);
+    if (url.endsWith("/MapObjectFactory.js")) {
+      const directory = new URL("./enemies/", url);
+      const entries = readdirSync(directory, { withFileTypes: true })
+        .filter(entry => entry.isDirectory())
+        .filter(entry => readdirSync(new URL(`${entry.name}/`, directory)).includes("index.js"))
+        .map(entry => {
+          const specifier = `./enemies/${entry.name}/index.js`;
+
+          return `${JSON.stringify(specifier)}: await import(${JSON.stringify(specifier)})`;
+        });
+
+      return {
+        ...loaded,
+        source: loaded.source.toString()
+          .replace('import.meta.glob("./enemies/*/index.js", { eager: true })', `{${entries.join(",")}}`)
+          .replace('import.meta.globEager("./enemies/*/index.js")', `{${entries.join(",")}}`),
+      };
+    }
     if (url.endsWith("/RugModels.js")) {
       const directory = new URL("../../../models/rug/", url);
       const modules = readdirSync(directory).filter(name => name.endsWith(".js"));

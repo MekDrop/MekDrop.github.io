@@ -91,6 +91,7 @@ import { Overpass } from "./path/Overpass.js";
 import { SpawnPoint } from "./shared/SpawnPoint.js";
 import { IslandConnector } from "./scenery/IslandConnector.js";
 import { MapObjectDefinitions } from "./MapObjectDefinitions.js";
+import { Enemy } from "./enemies/shared/Enemy.js";
 
 const OBJECT_CLASSES = new Map([
   [Table.name, Table],
@@ -184,6 +185,17 @@ const OBJECT_CLASSES = new Map([
   [Shelf.name, Shelf],
   [Book.name, Book],
 ]);
+
+// Registration only: assets are discovered from the prepared map's objects.
+const enemyModules = import.meta.globEager("./enemies/*/index.js");
+for (const [path, module] of Object.entries(enemyModules)) {
+  const ObjectClass = module.EnemyObjectClass;
+  if (typeof ObjectClass !== "function" || !(ObjectClass.prototype instanceof Enemy) ||
+    OBJECT_CLASSES.has(ObjectClass.name)) {
+    throw new MapObjectClassNotFoundError({ object: path });
+  }
+  OBJECT_CLASSES.set(ObjectClass.name, ObjectClass);
+}
 
 /**
  * @typedef {{new (options: {pc: typeof import("playcanvas"), app: import("playcanvas").Application, modelLibrary: import("src/game/models/GameModelLibrary.js").GameModelLibrary, definition: import("./ObjectTypes.js").MapObjectDefinition, runtime: import("./ObjectTypes.js").MapObjectRuntime}): import("./ObjectTypes.js").MapObjectLike, modelUrls?: Array<string>, modelUrl?: string, audioUrls?: string[]}} MapObjectConstructor
