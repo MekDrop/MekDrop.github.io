@@ -18,6 +18,34 @@ function Door(options) {
   return new SharedDoor(Placement.create(options));
 }
 
+it("separates both arched entrance threshold risers from the facade without lifting the floor", () => {
+  for (const style of [undefined, "pointed"]) {
+    const entity = new pc.Entity();
+    const threshold = new pc.Entity("Entrance masonry threshold.001");
+    const oak = new pc.Entity("Entrance oak threshold");
+    entity.addChild(threshold);
+    entity.addChild(oak);
+    entity.findComponents = () => [{ entity: threshold }, { entity: oak }];
+    Placement.create({
+      pc,
+      castlePosition: {
+        x: 0,
+        z: 0,
+        elevation: 2,
+      },
+      door: {
+        side: "SOUTH",
+        width: 2,
+        style,
+      },
+      bundledEntrance: true,
+      modelLibrary: { instantiate: () => entity },
+    });
+    assert.deepEqual(threshold.getLocalPosition(), new pc.Vec3(0, 0, -0.004));
+    assert.deepEqual(oak.getLocalPosition(), new pc.Vec3());
+  }
+});
+
 it("selects pointed working entrances while preserving the rounded default", () => {
   for (const [style, expected] of [["pointed", "pointed.glb"], [undefined, "rounded.glb"]]) {
     const result = Placement.create({

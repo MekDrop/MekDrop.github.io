@@ -84,6 +84,17 @@ export class DoorPlacement {
     const entranceUrl = door.style === "pointed" ? pointedEntranceUrl : roundedEntranceUrl;
     const modelUrl = bundledEntrance ? entranceUrl : placement && !placement.arched ? interiorDoorUrl : castleDoorsModelUrl;
     const entity = modelLibrary.instantiate(modelUrl);
+    if (bundledEntrance) {
+      // The threshold risers otherwise share the facade slab's front plane.
+      // Give the stone trim clearance without raising the walking surface.
+      for (const render of entity.findComponents("render")) {
+        if (render.entity.name.startsWith("Entrance masonry threshold")) {
+          const position = render.entity.getLocalPosition().clone();
+          position.z -= 0.004;
+          render.entity.setLocalPosition(position);
+        }
+      }
+    }
     if (bundledEntrance && masonryMaterials) {
       const stone = masonryMaterials.get("castleStoneMid");
       // Radial stone joints are authored in the arch mesh, rather than wall courses.
