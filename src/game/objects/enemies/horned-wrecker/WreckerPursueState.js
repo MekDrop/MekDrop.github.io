@@ -26,6 +26,11 @@ export class WreckerPursueState extends State {
 
       return;
     }
+    if (owner.combat.canReach(royal) && !owner.combat.reachedRoyals.has(royal)) {
+      owner.behavior.changeTo("WreckerFistWindupState");
+
+      return;
+    }
     owner.moveToward(route.waypoint ?? royal, 0.9);
     if (owner.contactActors.size > 0) {
       owner.provoke();

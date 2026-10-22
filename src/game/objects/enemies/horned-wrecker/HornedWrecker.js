@@ -15,6 +15,7 @@ import { WreckerFistWindupState } from "./WreckerFistWindupState.js";
 import { WreckerFistSwingState } from "./WreckerFistSwingState.js";
 import { WreckerFistRecoverState } from "./WreckerFistRecoverState.js";
 import { WreckerStunRecoverState } from "./WreckerStunRecoverState.js";
+import { WreckerCombat } from "./WreckerCombat.js";
 
 /**
  * Huge royal hunter with contact-driven rage and embedded Tripo animation.
@@ -36,7 +37,7 @@ export class HornedWrecker extends Enemy {
     this.statusImmunities = new Set(["confused", "confusion"]);
     this.contactActors = new Set();
     this.contactHandles = [];
-    this.doorStrikes = new Map();
+    this.combat = new WreckerCombat(this);
     this.radius = 0.7;
     this.height = 2.2;
     if (this.modelLibrary) {
@@ -56,7 +57,7 @@ export class HornedWrecker extends Enemy {
       WreckerFistWindupState, WreckerFistSwingState, WreckerFistRecoverState, WreckerStunRecoverState]) {
       this.behavior.add(Type.name, new Type());
     }
-    this.behavior.changeTo(WreckerPursueState.name);
+    this.behavior.changeTo(this.definition.verificationIdle ? WreckerPlaybackState.name : WreckerPursueState.name);
   }
 
   onSceneReady() {
@@ -70,6 +71,14 @@ export class HornedWrecker extends Enemy {
      * @param {import("playcanvas").ContactResult} result
      */
       (result) => {
+        const lateral = result.contacts?.some(/**
+         *
+         * @param {import("playcanvas").ContactPoint} contact
+         */
+          (contact) => Math.abs(contact.normal.y) < 0.6);
+        if (result.contacts?.length && !lateral) {
+          return;
+        }
         const actor = this.contactActor(result.other);
         if (actor) {
           this.contactActors.add(actor);
@@ -95,7 +104,7 @@ export class HornedWrecker extends Enemy {
      *
      * @param {import("../shared/Enemy.js").EnemyActor} actor
      */
-      (actor) => actor !== this && actor.entity &&
+      (actor) => actor !== this && (typeof actor.receiveDamage === "function" || actor.isRoyal) && actor.entity &&
       (actor.entity === entity || entity?.isDescendantOf(actor.entity))) ?? null;
   }
 
@@ -128,7 +137,7 @@ export class HornedWrecker extends Enemy {
    * @returns {string}
    */
   get testStatus() {
-    return `${super.testStatus}\nClip: ${this.requestedClip}`;
+    return `${super.testStatus}\nClip: ${this.requestedClip} ${this.checks?.progress ?? ""}`;
   }
 
   provoke() {
@@ -252,31 +261,12 @@ export class HornedWrecker extends Enemy {
   }
 
   /**
-   * Contact-only damage includes allies; no radial damage through walls.
+   * Physical contacts include allies; reaching a royal also requires Ammo visibility.
    * @param {Set<import("../shared/Enemy.js").EnemyActor>} struck
    * @param {number} amount
    */
   strikeContacts(struck = new Set(), amount = 25) {
-    const door = this.batterDoor;
-    if (this.behavior.currentState instanceof WreckerBatterState && door && this.distanceTo(door) < 1.6) {
-      const hits = (this.doorStrikes.get(door) ?? 0) + 1;
-      this.doorStrikes.set(door, hits);
-      if (hits >= 3) {
-        // Use the production collision-aware hinge opening; never teleport through a leaf.
-        door.clearGlue?.();
-        door.openTemporarily(20);
-      }
-    }
-    for (const actor of this.contactActors) {
-      if (actor.alive === false || struck.has(actor)) {
-        continue;
-      }
-      struck.add(actor);
-      actor.receiveDamage?.(amount, this, "physical");
-      if (actor === this.resolveRoyalTarget()) {
-        actor.beginGameOver?.(() => this.position.clone());
-      }
-    }
+    this.combat.strike(struck, amount);
   }
 
   /**
@@ -298,6 +288,7 @@ export class HornedWrecker extends Enemy {
   }
 
   destroy() {
+    this.checks?.destroy();
     for (const handle of this.contactHandles) {
       handle.off();
     }

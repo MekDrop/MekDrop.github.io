@@ -74,7 +74,7 @@
     "normalMapsModified": false
   },
   "verified": {
-    "unitTests": 9,
+    "unitTests": 10,
     "unitCommand": "node --test test/unit/game/objects/enemies/horned-wrecker/horned-wrecker.test.js",
     "focusedEslint": true,
     "authoredClips": [
@@ -128,7 +128,20 @@
   },
   "testMapUrl": "http://localhost:9000/map/test_enemy-horned-wrecker",
   "runtimeBlockers": [
-    "Shared dev server repeatedly showed lint overlays in other enemy files (MaskShamanChecks, HookClimbBehavior, CinderAnimationPlayback); these files were preserved",
-    "After overlays cleared, game tab remained black/unresponsive to DOM inspection; no production pixel or playback claim"
-  ]
+    "Shared MapTestControlsHud.js input handler uses unsupported enabledInHierarchy at lines 255, 259 and 269. All button hit-tests are false. Proposed scoped prerequisite: replace those three reads with supported enabled getter; shared HUD lies outside assigned Horned Wrecker file scope."
+  ],
+  "retryEvidence": {
+    "date": "2026-10-22",
+    "resumeCommit": "73a1a157",
+    "changes": [
+      "Real door health damage replaces simulated opening",
+      "Ammo-occluded actual royal reach invokes beginGameOver and production performance once",
+      "Explicit King and Servant test fixtures",
+      "Ignore floor support contacts when provoking rage",
+      "Test-only idle, keyboard shortcuts and dual time-scale playback capture"
+    ],
+    "checks": "10 focused unit tests passed; focused enemy ESLint passed",
+    "runtimeAcceptanceComplete": false,
+    "sharedHudFixRequested": true
+  }
 }

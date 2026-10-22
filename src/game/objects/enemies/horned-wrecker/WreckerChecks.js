@@ -7,6 +7,31 @@ export class WreckerChecks {
    */
   constructor(owner) {
     this.owner = owner;
+    if (owner.definition.verificationControls) {
+      window.addEventListener("keydown", this.#key, true);
+    }
+  }
+
+  /**
+   * @type {(event:KeyboardEvent) => void}
+   */
+  #key = (event) => {
+    if (!event.shiftKey || !["KeyV", "KeyP", "ArrowLeft", "ArrowRight"].includes(event.code)) {
+      return;
+    }
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    if (event.code === "KeyV") {
+      this.verifyClips();
+    } else if (event.code === "KeyP") {
+      this.preview();
+    } else {
+      this.owner.inspectClip(event.code === "ArrowRight" ? 1 : -1);
+    }
+  };
+
+  destroy() {
+    window.removeEventListener("keydown", this.#key, true);
   }
 
   /**
@@ -24,44 +49,58 @@ export class WreckerChecks {
 
   async verifyClips() {
     const owner = this.owner;
-    if (!owner.alive) {
+    if (!owner.alive || this.verifying) {
       return;
     }
+    this.verifying = true;
     owner.inspectClip(1);
     const results = [];
-    for (const [name, track] of owner.playback.tracks) {
-      owner.playClip(name);
-      const samples = [];
-      let elapsed = 0;
-      while (elapsed < track.duration + 0.25) {
-        const dt = await new Promise(/**
+    const previousScale = owner.app.timeScale;
+    try {
+      for (const scale of [1, 0.5]) {
+        owner.app.timeScale = scale;
+        for (const [name, track] of owner.playback.tracks) {
+          this.progress = `${name} at ${scale}x`;
+          owner.playClip(name);
+          const samples = [];
+          let elapsed = 0;
+          while (elapsed < track.duration + 0.25) {
+            const dt = await new Promise(/**
          *
          * @param {(dt:number) => void} resolve
          */
-          (resolve) => owner.app.once("update", resolve));
-        elapsed += dt;
-        const joints = ["Head", "Spine2", "LeftUpLeg", "RightArm"].map(/**
+              (resolve) => owner.app.once("update", resolve));
+            elapsed += dt;
+            const joints = ["Head", "Spine2", "LeftUpLeg", "RightArm"].map(/**
          *
          * @param {string} joint
          */
-          (joint) => {
-            const bone = owner.modelRoot.findByName(`mixamorig:${joint}`);
-            const rotation = bone.getLocalRotation();
+              (joint) => {
+                const bone = owner.modelRoot.findByName(`mixamorig:${joint}`);
+                const rotation = bone.getLocalRotation();
 
-            return [rotation.x, rotation.y, rotation.z, rotation.w];
+                return [rotation.x, rotation.y, rotation.z, rotation.w];
+              });
+            samples.push({
+              elapsed,
+              joints,
+              time: owner.playback.animation.baseLayer.activeStateCurrentTime,
+              speed: owner.playback.animation.speed,
+            });
+          }
+          results.push({
+            name,
+            scale,
+            duration: track.duration,
+            samples,
           });
-        samples.push({
-          elapsed,
-          joints,
-          time: owner.playback.animation.baseLayer.activeStateCurrentTime,
-        });
+        }
       }
-      results.push({
-        name,
-        duration: track.duration,
-        samples,
-      });
+    } finally {
+      owner.app.timeScale = previousScale;
+      this.verifying = false;
     }
+    this.progress = "Playback capture complete";
     owner.playClip("idle_snort");
     this.download("horned-wrecker-playback.json", new Blob([JSON.stringify(results)], { type: "application/json" }));
   }

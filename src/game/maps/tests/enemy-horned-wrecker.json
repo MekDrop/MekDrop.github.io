@@ -3737,8 +3737,22 @@
       }
     },
     {
+      "object": "King",
+      "id": "wrecker-royal",
+      "castleIndex": 0,
+      "seed": 1
+    },
+    {
+      "object": "Servant",
+      "id": "wrecker-servant",
+      "castleIndex": 0,
+      "seed": 1
+    },
+    {
       "object": "HornedWrecker",
       "id": "horned-wrecker",
+      "verificationIdle": true,
+      "verificationControls": true,
       "position": {
         "x": -1,
         "y": 2.014,
@@ -3762,27 +3776,27 @@
         "buttons": [
           {
             "label": "Bell noise",
-            "script": "const w=[...objects].find(o=>o.definition.id==='horned-wrecker'); w?.onBellRung({eventId:Date.now()});"
+            "script": "const w=[...objects].find(o=>o.definition?.id==='horned-wrecker'); w?.onBellRung({eventId:Date.now()});"
           },
           {
             "label": "Crowding / bump",
-            "script": "const w=[...objects].find(o=>o.definition.id==='horned-wrecker'); w?.onBumped();"
+            "script": "const w=[...objects].find(o=>o.definition?.id==='horned-wrecker'); w?.onBumped();"
           },
           {
             "label": "Unwanted swap",
-            "script": "const w=[...objects].find(o=>o.definition.id==='horned-wrecker'); w?.onUnwantedSwap();"
+            "script": "const w=[...objects].find(o=>o.definition?.id==='horned-wrecker'); w?.onUnwantedSwap();"
           },
           {
             "label": "Attempt pickup",
-            "script": "const w=[...objects].find(o=>o.definition.id==='horned-wrecker'); w?.beginCarry(objects.getOne('hero'));"
+            "script": "const w=[...objects].find(o=>o.definition?.id==='horned-wrecker'); w?.beginCarry(objects.getOne('hero'));"
           },
           {
             "label": "External stun",
-            "script": "const w=[...objects].find(o=>o.definition.id==='horned-wrecker'); w?.applyStatus('stun',{duration:2,kind:'physical'});"
+            "script": "const w=[...objects].find(o=>o.definition?.id==='horned-wrecker'); w?.applyStatus('stun',{duration:2,kind:'physical'});"
           },
           {
             "label": "Resume behavior",
-            "script": "const w=[...objects].find(o=>o.definition.id==='horned-wrecker'); w?.behavior.changeTo('WreckerPursueState');"
+            "script": "const w=[...objects].find(o=>o.definition?.id==='horned-wrecker'); w?.behavior.changeTo('WreckerPursueState');"
           }
         ]
       },
@@ -3793,36 +3807,36 @@
         "statusTargetId": "horned-wrecker",
         "buttons": [
           {
-            "label": "Next clip",
-            "script": "const w=[...objects].find(o=>o.definition.id==='horned-wrecker'); w?.inspectClip(1);"
+            "label": "Next clip (Shift+Right)",
+            "script": "const w=[...objects].find(o=>o.definition?.id==='horned-wrecker'); w?.inspectClip(1);"
           },
           {
-            "label": "Previous clip",
-            "script": "const w=[...objects].find(o=>o.definition.id==='horned-wrecker'); w?.inspectClip(-1);"
+            "label": "Previous clip (Shift+Left)",
+            "script": "const w=[...objects].find(o=>o.definition?.id==='horned-wrecker'); w?.inspectClip(-1);"
           },
           {
-            "label": "Verify all clips",
-            "script": "const w=[...objects].find(o=>o.definition.id==='horned-wrecker'); w?.checks.verifyClips();"
+            "label": "Verify all clips (Shift+V)",
+            "script": "const w=[...objects].find(o=>o.definition?.id==='horned-wrecker'); w?.checks.verifyClips();"
           },
           {
-            "label": "Capture preview",
-            "script": "const w=[...objects].find(o=>o.definition.id==='horned-wrecker'); w?.checks.preview();"
+            "label": "Capture preview (Shift+P)",
+            "script": "const w=[...objects].find(o=>o.definition?.id==='horned-wrecker'); w?.checks.preview();"
           },
           {
             "label": "Half speed",
-            "script": "const w=[...objects].find(o=>o.definition.id==='horned-wrecker'); if(w)w.app.timeScale=0.5;"
+            "script": "const w=[...objects].find(o=>o.definition?.id==='horned-wrecker'); if(w)w.app.timeScale=0.5;"
           },
           {
             "label": "Normal speed",
-            "script": "const w=[...objects].find(o=>o.definition.id==='horned-wrecker'); if(w)w.app.timeScale=1;"
+            "script": "const w=[...objects].find(o=>o.definition?.id==='horned-wrecker'); if(w)w.app.timeScale=1;"
           },
           {
             "label": "Damage 25",
-            "script": "const w=[...objects].find(o=>o.definition.id==='horned-wrecker'); w?.receiveDamage(25);"
+            "script": "const w=[...objects].find(o=>o.definition?.id==='horned-wrecker'); w?.receiveDamage(25);"
           },
           {
             "label": "Death",
-            "script": "const w=[...objects].find(o=>o.definition.id==='horned-wrecker'); w?.receiveDamage(10000);"
+            "script": "const w=[...objects].find(o=>o.definition?.id==='horned-wrecker'); w?.receiveDamage(10000);"
           }
         ]
       }

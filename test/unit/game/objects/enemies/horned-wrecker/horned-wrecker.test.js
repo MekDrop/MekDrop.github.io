@@ -124,18 +124,15 @@ test("royal actor is the ultimate target rather than castle or tower", () => {
   assert.equal(actor.resolveRoyalTarget(), royal);
 });
 
-test("three door contacts release glue and request real hinge opening", () => {
+test("three door contacts damage the production leaf-health capability", () => {
   const actor = create();
-  let glueReleased = 0;
-  let openDuration = 0;
+  actor.app.systems = { rigidbody: { raycastAll: () => [] } };
+  let health = 48;
   const door = {
     entity: new pc.Entity("door"),
     openAmount: 0,
-    clearGlue: () => {
-      glueReleased++;
-    },
-    openTemporarily: (duration) => {
-      openDuration = duration;
+    receiveDamage: (amount) => {
+      health -= amount;
     },
   };
   door.entity.setPosition(0, 0, 1);
@@ -151,10 +148,37 @@ test("three door contacts release glue and request real hinge opening", () => {
     actor.beginBattering();
     actor.update(1.2);
   }
-  assert.equal(glueReleased, 1);
-  assert.equal(openDuration, 20);
+  assert.equal(health, 0);
   actor.entity.setPosition(0, 0, 3);
   assert.deepEqual(actor.entranceRoute(royal), {});
+});
+
+test("royal reach uses Ammo occlusion and starts the production performance once", () => {
+  const actor = create();
+  let started = 0;
+  let accepted = 0;
+  const royal = {
+    entity: new pc.Entity("real royal"),
+    beginGameOver: () => {
+      accepted++;
+
+      return {};
+    },
+    startGameOverPerformance: () => {
+      started++;
+    },
+  };
+  royal.entity.setPosition(0, 0, 1);
+  actor.runtime.objects.push(royal);
+  const wall = new pc.Entity("closed wall");
+  actor.app.systems = { rigidbody: { raycastAll: () => [{ entity: wall }] } };
+  actor.strikeContacts();
+  assert.equal(accepted, 0);
+  actor.app.systems.rigidbody.raycastAll = () => [];
+  actor.strikeContacts();
+  actor.strikeContacts();
+  assert.equal(accepted, 1);
+  assert.equal(started, 1);
 });
 
 test("fist damage waits for windup and contact then recovers", () => {
