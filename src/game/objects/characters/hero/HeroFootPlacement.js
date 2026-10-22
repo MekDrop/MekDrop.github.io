@@ -1,4 +1,5 @@
 import { everyFiniteNumber } from "../../../helpers/collections.js";
+import { HeroStairGait } from "./HeroStairGait.js";
 const CONTACT_EPSILON = 0.006;
 const CONTACT_REACH = 0.14;
 const MAXIMUM_FOOT_LIFT = 0.32;
@@ -40,14 +41,38 @@ export class HeroFootPlacement {
    * @type {number}
    */
   #visualOffset = 0;
+  /**
+   * @type {HeroStairGait}
+   */
+  #stairGait = new HeroStairGait();
+  /**
+   * @type {number|null}
+   */
+  #stairBodyHeight = null;
+  /**
+   * @type {import("playcanvas").Entity|null}
+   */
+  #modelRoot;
+  /**
+   * @type {number}
+   */
+  #stairExitRemaining = 0;
+
+  /**
+   * @returns {{swing: number|null, support: number, progress: number}}
+   */
+  get stairState() {
+    return this.#stairGait.state;
+  }
 
   /**
    *
-   * @param {{pc: typeof import("playcanvas"), surfaceAt: (...args: number[]) => Array<number>, getHeroPosition: () => {x: number, y: number, z: number}, visualOffsetAt?: (x: number, z: number) => number, left: boolean, right: number}} options
+   * @param {{pc: typeof import("playcanvas"), surfaceAt: (...args: number[]) => import("src/game/objects/ObjectTypes.js").SurfaceSample|null, getHeroPosition: () => {x: number, y: number, z: number}, visualOffsetAt?: (x: number, z: number) => number, modelRoot?: import("playcanvas").Entity|null, left: import("src/game/objects/ObjectTypes.js").HeroFootRig, right: import("src/game/objects/ObjectTypes.js").HeroFootRig}} options
    * @param {typeof import("playcanvas")} options.pc
    * @param {(...args: number[]) => Array<number>} options.surfaceAt
    * @param {() => {x: number, y: number, z: number}} options.getHeroPosition
    * @param {(x: number, z: number) => number} [options.visualOffsetAt]
+   * @param {import("playcanvas").Entity|null} [options.modelRoot]
    * @param {boolean} options.left
    * @param {number} options.right
    */
@@ -56,6 +81,7 @@ export class HeroFootPlacement {
     surfaceAt,
     getHeroPosition,
     visualOffsetAt = () => 0,
+    modelRoot = null,
     left,
     right,
   }) {
@@ -63,6 +89,7 @@ export class HeroFootPlacement {
     this.#surfaceAt = surfaceAt;
     this.#getHeroPosition = getHeroPosition;
     this.#visualOffsetAt = visualOffsetAt;
+    this.#modelRoot = modelRoot;
     this.#feet = [
       this.#createFoot("Left leg surface adjustment", left),
       this.#createFoot("Right leg surface adjustment", right),
@@ -93,14 +120,46 @@ export class HeroFootPlacement {
    * @param {number} deltaTime
    * @param {boolean} enabled
    * @param {number} [visualOffset] Island displacement already inherited by the whole model.
+   * @param {{onStairs: boolean, velocity: import("playcanvas").Vec3, forward: import("playcanvas").Vec3}|null} [stairs]
    */
-  update(deltaTime, enabled, visualOffset = 0) {
+  update(deltaTime, enabled, visualOffset = 0, stairs = null) {
     this.#enabled = enabled;
     this.#visualOffset = visualOffset;
     const maximumSurfaceHeight =
       this.#getHeroPosition().y + MAXIMUM_FOOT_LIFT;
     for (const foot of this.#feet) {
       this.#resetWrapper(foot);
+    }
+    const soles = this.#feet.map(this.#solePosition.bind(this));
+    this.#stairExitRemaining = stairs?.onStairs ? 0.35 : Math.max(0, this.#stairExitRemaining - deltaTime);
+    const targets = this.#stairGait.update(
+      deltaTime,
+      enabled && this.#stairExitRemaining > 0 && this.#feet.every(HeroFootPlacement.#hasKnee),
+      new this.#pc.Vec3().copy(this.#getHeroPosition()),
+      stairs?.velocity ?? new this.#pc.Vec3(),
+      soles,
+      this.#surfaceAt,
+    );
+    if (targets) {
+      if (this.#modelRoot) {
+        // Carry weight over the planted boot before lifting the trailing one.
+        // The capsule can clear a riser earlier than this visible transfer.
+        const root = this.#modelRoot.getPosition().clone();
+        const support = targets[this.#stairGait.state.support].y - CONTACT_EPSILON;
+        this.#stairBodyHeight ??= root.y;
+        this.#stairBodyHeight += (support - this.#stairBodyHeight) * (1 - Math.exp(-14 * deltaTime));
+        this.#modelRoot.setPosition(root.x, this.#stairBodyHeight, root.z);
+      }
+      for (const [index, foot] of this.#feet.entries()) {
+        const bootRotation = foot.tilt.getRotation().clone();
+        HeroStairGait.pose(foot.leg, foot.knee, foot.ankle, foot.wrapper,
+          foot.kneeCorrection, this.#solePosition(foot), targets[index], stairs.forward);
+        foot.tilt.setRotation(bootRotation.x, bootRotation.y, bootRotation.z, bootRotation.w);
+      }
+    } else {
+      this.#stairBodyHeight = null;
+    }
+    for (const foot of this.#feet) {
       if (!enabled) {
         foot.appliedLift = 0;
         foot.minimumClearance = null;
@@ -175,6 +234,17 @@ export class HeroFootPlacement {
     for (const child of visualChildren) {
       wrapper.addChild(child);
     }
+    const knee = leg.findByName(side === "left" ? "Left knee" : "Right knee");
+    const ankle = leg.findByName(side === "left" ? "Left ankle" : "Right ankle");
+    let kneeCorrection = null;
+    if (knee && ankle) {
+      const children = [...knee.children];
+      kneeCorrection = new this.#pc.Entity(`${side} knee stair correction`);
+      knee.addChild(kneeCorrection);
+      for (const child of children) {
+        kneeCorrection.addChild(child);
+      }
+    }
     // Keep authored ankle positions and rotations in the animation hierarchy.
     // Surface alignment may rotate the boot meshes, never the joint's lever arm.
     const bootParent = sole.parent;
@@ -187,6 +257,10 @@ export class HeroFootPlacement {
 
     return {
       side,
+      leg,
+      knee,
+      ankle,
+      kneeCorrection,
       sole,
       wrapper,
       tilt,
@@ -204,7 +278,30 @@ export class HeroFootPlacement {
    */
   #resetWrapper(foot) {
     foot.wrapper.setLocalPosition(0, 0, 0);
+    foot.wrapper.setLocalRotation(0, 0, 0, 1);
+    foot.kneeCorrection?.setLocalRotation(0, 0, 0, 1);
     foot.tilt.setLocalRotation(0, 0, 0, 1);
+  }
+
+  /**
+   * @param {import("src/game/objects/ObjectTypes.js").HeroFootRig} foot
+   */
+  static #hasKnee(foot) {
+    return Boolean(foot.knee && foot.ankle);
+  }
+
+  /**
+   * @param {import("src/game/objects/ObjectTypes.js").HeroFootRig} foot
+   * @returns {import("playcanvas").Vec3}
+   */
+  #solePosition(foot) {
+    const bounds = foot.sole.render?.meshInstances?.[0]?.mesh?.aabb;
+    const point = bounds ? new this.#pc.Vec3(bounds.center.x,
+      bounds.center.y - bounds.halfExtents.y, bounds.center.z) : new this.#pc.Vec3();
+    const world = foot.sole.getWorldTransform().transformPoint(point);
+    world.y -= this.#visualOffset;
+
+    return world;
   }
 
   /**

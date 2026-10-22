@@ -106,14 +106,12 @@ export class HeroMovementAction {
         return;
       }
       this.#dodgeFacingAtFirstTap.set(direction, hero?.facingDirection ?? null);
-      if (direction === "down" && hero) {
-        const input = MOVEMENT_VECTORS[direction];
-        hero.facingHoldDuration = doubleTapWindow;
-        hero.movementAnimationHoldDuration = doubleTapWindow;
-        hero.queueFacingInput?.(input.x, input.y);
-      } else if (hero) {
+      if (hero) {
+        // The first tap is ordinary walking. Its saved facing is sufficient to
+        // preserve a later backward dodge without freezing the walking pose.
         hero.facingHoldDuration = 0;
         hero.movementAnimationHoldDuration = 0;
+        hero.clearQueuedFacingInput?.();
       }
     }
 

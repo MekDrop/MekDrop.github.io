@@ -23,7 +23,7 @@ describe("Tree collision", () => {
     cy.wait(200);
     cy.window().then((window) => {
       startPosition = window.gameMovementTest.state().position;
-      window.gameMovementTest.move(-1, -1);
+      window.gameMovementTest.move(-1, 0);
     });
     cy.wait(1500);
     cy.window().then((window) => {
@@ -40,7 +40,7 @@ describe("Tree collision", () => {
     });
     cy.window().then((window) => {
       window.gameCameraTest.setRotation(0);
-      window.gameMovementTest.move(-1, -1);
+      window.gameMovementTest.move(-1, 0);
     });
     cy.wait(1200);
     cy.window().then((window) => {
@@ -61,7 +61,7 @@ describe("Tree collision", () => {
     });
     cy.window().then((window) => {
       window.gameCameraTest.setRotation(0);
-      window.gameMovementTest.move(-1, -1);
+      window.gameMovementTest.move(-1, 0);
     });
     cy.wait(1200);
     cy.window().then((window) => {
@@ -86,7 +86,7 @@ describe("Tree collision", () => {
     });
     cy.window().then((window) => {
       window.gameCameraTest.setRotation(0);
-      window.gameMovementTest.move(-1, -1);
+      window.gameMovementTest.move(-1, 0);
     });
     cy.wait(1200);
     cy.window().then((window) => {
@@ -100,7 +100,7 @@ describe("Tree collision", () => {
     cy.window().then((window) => {
       const state = window.gameMovementTest.state();
       expect(state.position.y).to.be.closeTo(3.5, 0.03);
-      window.gameMovementTest.move(1, 1);
+      window.gameMovementTest.move(1, 0);
       window.gameMovementTest.jump();
     });
     cy.wait(350);

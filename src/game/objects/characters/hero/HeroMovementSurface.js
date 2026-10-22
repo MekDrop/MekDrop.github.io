@@ -7,6 +7,7 @@ import {
   TERRAIN_BODY_COLLISION_RADIUS,
   TERRAIN_FORWARD_COLLISION_OFFSET,
   TERRAIN_FORWARD_COLLISION_RADIUS,
+  HERO_RADIUS,
 } from "./HeroSurfaceRules.js";
 
 export class HeroMovementSurface {
@@ -50,13 +51,14 @@ export class HeroMovementSurface {
       return OCCUPANCY.blocked;
     }
     const facing = state.direction;
+    const capsuleSupport = this.requiresCapsuleSupport(state.position);
     const terrainOccupancy = this.#terrain.occupancyAt(
       state.position.x,
       state.position.z,
       x,
       z,
       state.grounded,
-      TERRAIN_BODY_COLLISION_RADIUS,
+      capsuleSupport ? MOVEMENT_COLLISION_RADIUS : TERRAIN_BODY_COLLISION_RADIUS,
       state,
     );
     if (terrainOccupancy !== OCCUPANCY.open) {
@@ -70,7 +72,9 @@ export class HeroMovementSurface {
       x + facing.x * TERRAIN_FORWARD_COLLISION_OFFSET;
     const terrainForwardToZ =
       z + facing.z * TERRAIN_FORWARD_COLLISION_OFFSET;
-    const forwardTerrainOccupancy = this.#terrain.occupancyAt(
+    // Stair traversal suspends the animated limb colliders. Reserving the
+    // flat-ground push pose ahead would still stop sideways steps on a clear tread.
+    const forwardTerrainOccupancy = capsuleSupport ? OCCUPANCY.open : this.#terrain.occupancyAt(
       terrainForwardFromX,
       terrainForwardFromZ,
       terrainForwardToX,
@@ -145,6 +149,9 @@ export class HeroMovementSurface {
    * @returns {boolean}
    */
   #isStandingOnPhysicsManagedSurface(position) {
+    if (this.requiresCapsuleSupport(position)) {
+      return true;
+    }
     const surfaceHeight = this.#collisionWorld?.surfaceHeightAt(
       position.x,
       position.z,
@@ -188,6 +195,27 @@ export class HeroMovementSurface {
       Number.isFinite(ceiling) &&
       elevation + HERO_COLLISION_HEIGHT > ceiling
     );
+  }
+
+  /**
+   * Include the approach so swinging limbs cannot snag the first riser.
+   * @param {import("../../ObjectTypes.js").Point3} position
+   * @returns {boolean}
+   */
+  requiresCapsuleSupport(position) {
+    for (const [dx, dz] of [[0, 0], [HERO_RADIUS, 0], [-HERO_RADIUS, 0], [0, HERO_RADIUS], [0, -HERO_RADIUS]]) {
+      const height = this.#collisionWorld?.capsuleSupportHeightAt?.(
+        position.x + dx,
+        position.z + dz,
+        position.y + STEP_CLEARANCE,
+      );
+      if (Number.isFinite(height) && height <= position.y + STEP_CLEARANCE &&
+        height >= position.y - STEP_CLEARANCE - 0.15) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   /**

@@ -62,12 +62,12 @@ function controls(context, dodgeAccepted = true) {
   };
 }
 
-it("holds backward facing through the dodge window and preserves dodge facing", (context) => {
+it("starts a backward tap as walking while retaining the original facing for a double-tap dodge", (context) => {
   const input = controls(context);
   input.press(0);
-  assert.equal(input.renderer.hero.facingHoldDuration, 0.28);
-  assert.equal(input.renderer.hero.movementAnimationHoldDuration, 0.28);
-  assert.deepEqual(input.queuedFacingInputs, [[0, -1]]);
+  assert.equal(input.renderer.hero.facingHoldDuration, 0);
+  assert.equal(input.renderer.hero.movementAnimationHoldDuration, 0);
+  assert.deepEqual(input.queuedFacingInputs, []);
   assert.deepEqual(input.movements.at(-1), [0, -1, false]);
   input.action.releaseDirection("down");
   input.setFacing({

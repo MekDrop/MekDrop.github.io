@@ -135,6 +135,7 @@ describe("Hero movement on a predefined terrain map", { testIsolation: false }, 
 
   afterEach(() => {
     setMovementKey("ArrowDown", false);
+    setMovementKey("ArrowUp", false);
     stopMoving();
   });
 
@@ -145,6 +146,35 @@ describe("Hero movement on a predefined terrain map", { testIsolation: false }, 
       expect(state.animation).to.equal(HERO_ANIMATION.WALK);
       expect(state.position.x).to.be.greaterThan(-0.75);
       expect(state.position.y).to.be.closeTo(2 + GRASS_SURFACE_LIFT, 0.03);
+    });
+  });
+
+  it("animates a short backward tap immediately and accepts the opposite turn", () => {
+    loadScenario("flat");
+    setMovementKey("ArrowDown", true);
+    expectState((state) => {
+      expect(state.movement.speed).to.be.greaterThan(0.08);
+      expect(state.animation).to.equal(HERO_ANIMATION.WALK);
+    }, 150);
+    setMovementKey("ArrowDown", false);
+    setMovementKey("ArrowUp", true);
+    expectState((state) => {
+      expect(state.movement.direction.x).to.be.lessThan(-0.9);
+      expect(state.facing.x).to.be.lessThan(-0.9);
+      expect(state.animation).to.equal(HERO_ANIMATION.WALK);
+    });
+    setMovementKey("ArrowUp", false);
+  });
+
+  it("walks diagonally without snapping to a cardinal heading or gaining speed", () => {
+    loadScenario("flat");
+    move(1, -1);
+    expectState((state) => {
+      expect(state.animation).to.equal(HERO_ANIMATION.WALK);
+      expect(state.facing.x).to.be.closeTo(Math.SQRT1_2, 0.03);
+      expect(state.facing.z).to.be.closeTo(-Math.SQRT1_2, 0.03);
+      expect(state.movement.speed).to.be.closeTo(state.stats.walkSpeed, 0.03);
+      expect(state.grounded).to.equal(true);
     });
   });
 
@@ -224,7 +254,7 @@ describe("Hero movement on a predefined terrain map", { testIsolation: false }, 
       // Royal activity rotates the camera on the approach. Keep walking north
       // in world space so this regression checks the doorway, not that turn.
       const rotation = target.gameCameraTest.state().viewport.rotation;
-      const yaw = Math.PI / 4 + rotation * Math.PI / 2;
+      const yaw = Math.PI / 2 + rotation * Math.PI / 2;
       target.gameMovementTest.move(Math.sin(yaw), Math.cos(yaw));
       usedJumpAnimation ||= state.animation === HERO_ANIMATION.JUMP;
       usedWalkAnimation ||= state.animation === HERO_ANIMATION.WALK;
@@ -572,7 +602,7 @@ describe("Hero movement on a predefined terrain map", { testIsolation: false }, 
     loadScenario("lava-river");
     cy.window().then((window) => {
       window.gameMovementTest.jump();
-      window.gameMovementTest.move(1, -1);
+      window.gameMovementTest.move(0, -1);
     });
     expectState((state) => {
       expect(state.burning).to.equal(true);
@@ -595,7 +625,7 @@ describe("Hero movement on a predefined terrain map", { testIsolation: false }, 
     cy.window().then((window) => {
       window.gameCameraTest.setZoom(6);
       window.gameMovementTest.jump();
-      window.gameMovementTest.move(1, -1);
+      window.gameMovementTest.move(0, -1);
     });
     expectState((state) => {
       expect(state.ashes).to.equal(true);

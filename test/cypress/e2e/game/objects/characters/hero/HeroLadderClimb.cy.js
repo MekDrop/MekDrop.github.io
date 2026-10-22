@@ -9,7 +9,7 @@ describe("Movement-driven ladder climbing", () => {
     cy.window().then(window => {
       const ladder = window.gameMovementTest.mapObjects().find(object => object.object === "Ladder");
       window.gameMovementTest.teleport(ladder.bottom);
-      const yaw = Math.PI / 4 + window.gameCameraTest.state().viewport.rotation * Math.PI / 2;
+      const yaw = Math.PI / 2 + window.gameCameraTest.state().viewport.rotation * Math.PI / 2;
       movement = [-Math.sin(yaw), -Math.cos(yaw)];
     });
     cy.wait(1800);
@@ -90,7 +90,7 @@ describe("Movement-driven ladder climbing", () => {
     });
     cy.wait(1800);
     cy.window().then((window) => {
-      const yaw = Math.PI / 4 + window.gameCameraTest.state().viewport.rotation * Math.PI / 2;
+      const yaw = Math.PI / 2 + window.gameCameraTest.state().viewport.rotation * Math.PI / 2;
       const dx = ladder.position.x - ladder.bottom.x, dz = ladder.position.z - ladder.bottom.z;
       const length = Math.hypot(dx, dz);
       window.gameMovementTest.move((Math.cos(yaw) * dx - Math.sin(yaw) * dz) / length, (-Math.sin(yaw) * dx - Math.cos(yaw) * dz) / length);

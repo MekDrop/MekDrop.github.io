@@ -477,6 +477,16 @@ export class CastleEntityBuilder {
   }
 
   /**
+   * Exterior treads share terrain physics but need the same limb clearance as indoor stairs.
+   * @param {number} x
+   * @param {number} z
+   * @returns {number|null}
+   */
+  capsuleSupportHeightAt(x, z) {
+    return this.#stairs?.surfaceHeightAt(x, z) ?? this.#serviceStairs?.surfaceHeightAt(x, z) ?? null;
+  }
+
+  /**
    * @param {number} x
    * @param {number} z
    */

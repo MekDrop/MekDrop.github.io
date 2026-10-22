@@ -35,7 +35,7 @@ describe("Recorded ladder exit contact review", () => {
         const canvas = window.document.querySelector('.background-canvas__surface');
         const head = window.gameMovementTest.state().patScreenPosition;
         window.gameCameraTest.panBy(canvas.clientWidth / 2 - head.x, canvas.clientHeight * 0.45 - head.y);
-        const yaw = Math.PI / 4 + window.gameCameraTest.state().viewport.rotation * Math.PI / 2;
+        const yaw = Math.PI / 2 + window.gameCameraTest.state().viewport.rotation * Math.PI / 2;
         window.gameMovementTest.move(side * (Math.cos(yaw) * right.x - Math.sin(yaw) * right.z), side * (-Math.sin(yaw) * right.x - Math.cos(yaw) * right.z));
       });
       cy.wait(150);
@@ -109,7 +109,7 @@ describe("Recorded ladder exit contact review", () => {
         const position = window.gameMovementTest.state().position;
         const dx = access.position.x - position.x, dz = access.position.z - position.z;
         const length = Math.hypot(dx, dz);
-        const yaw = Math.PI / 4 + window.gameCameraTest.state().viewport.rotation * Math.PI / 2;
+        const yaw = Math.PI / 2 + window.gameCameraTest.state().viewport.rotation * Math.PI / 2;
         window.gameMovementTest.move((Math.cos(yaw) * dx - Math.sin(yaw) * dz) / length, (-Math.sin(yaw) * dx - Math.cos(yaw) * dz) / length);
       });
       cy.window({ timeout: 15000 }).should(window => {

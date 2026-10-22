@@ -2,6 +2,19 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { GroundCollisionWorld } from "../../../../src/game/collision/GroundCollisionWorld.js";
 
+it("queries capsule supports separately from ordinary floors and respects the height limit", () => {
+  const world = new GroundCollisionWorld();
+  world.add({ surfaceHeightAt: () => 5 });
+  world.add({ capsuleSupportHeightAt: () => 2.25 });
+  world.add({ capsuleSupportHeightAt: () => 3 });
+  world.add({ capsuleSupportHeightAt: () => null });
+  assert.equal(world.capsuleSupportHeightAt(0, 0, 2.5), 2.25);
+  assert.equal(world.capsuleSupportHeightAt(0, 0), 3);
+  assert.equal(world.capsuleSupportHeightAt(0, 0, 2), null);
+  world.clear();
+  assert.equal(world.capsuleSupportHeightAt(0, 0), null);
+});
+
 describe("ground collision world physics surfaces", () => {
   it("keeps dynamic blockers out of the static physics surface", () => {
     const world = new GroundCollisionWorld();

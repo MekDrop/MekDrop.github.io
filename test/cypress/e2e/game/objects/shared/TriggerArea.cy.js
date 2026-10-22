@@ -32,7 +32,7 @@ describe("TriggerArea", () => {
         .to.have.length(3)
         .and.satisfy((castles) => castles.every(({ present }) => !present));
       window.gameCameraTest.setRotation(0);
-      window.gameMovementTest.move(1, 1);
+      window.gameMovementTest.move(1, 0);
     });
     expectGame((driver) => {
       if (driver.state().position.z < 4.95) {
@@ -44,7 +44,7 @@ describe("TriggerArea", () => {
       );
     });
     cy.window().then((window) => {
-      window.gameMovementTest.move(-1, -1);
+      window.gameMovementTest.move(-1, 0);
     });
     expectGame((driver) => {
       if (driver.state().position.z > 5.1) {

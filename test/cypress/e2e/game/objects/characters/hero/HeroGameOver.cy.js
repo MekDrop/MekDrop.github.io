@@ -9,7 +9,7 @@ describe("Hero game over restart", () => {
     for (let life = 3; life > 0; life -= 1) {
       cy.window().then((window) => {
         window.gameMovementTest.jump();
-        window.gameMovementTest.move(1, -1);
+        window.gameMovementTest.move(0, -1);
       });
       cy.window({ timeout: 10000 }).should((window) => {
         expect(window.gameMovementTest.state().burning).to.equal(true);

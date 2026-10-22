@@ -9,7 +9,7 @@ describe("Bush collision", () => {
     });
     cy.window().then((window) => {
       window.gameCameraTest.setRotation(0);
-      window.gameMovementTest.move(-1, -1);
+      window.gameMovementTest.move(-1, 0);
     });
   });
 

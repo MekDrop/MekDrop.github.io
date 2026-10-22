@@ -105,6 +105,56 @@ it("leaves ledge contact to physics-managed supports without exempting authored 
   assert.equal(movement.occupancyAt(0.3, 0, state), "edge");
 });
 
+it("uses capsule support on exterior treads and their approach without exempting tall side walls", () => {
+  const { movement, state, collision } = scenario();
+  collision.capsuleSupportHeightAt = (x) => x >= 0.4 ? 2.25 : null;
+  assert.equal(movement.requiresCapsuleSupport(state.position), true);
+  collision.capsuleSupportHeightAt = () => 3;
+  assert.equal(movement.requiresCapsuleSupport(state.position), false);
+  collision.capsuleSupportHeightAt = () => 1;
+  assert.equal(movement.requiresCapsuleSupport(state.position), false);
+});
+
+it("uses the capsule footprint on stairs instead of reserving a push pose beyond the tread", () => {
+  const probes = [];
+  const terrain = {
+    occupancyAt: (...args) => {
+      probes.push(args);
+
+      return args[4] ? "open" : "blocked";
+    },
+  };
+  const { collision } = scenario({ capsuleSupportHeightAt: () => 2.5 });
+  const movement = new HeroMovementSurface(terrain, {}, collision);
+  const state = {
+    position: {
+      x: 1.5,
+      y: 2.5,
+      z: 5,
+    },
+    direction: {
+      x: 0,
+      z: 1,
+    },
+    grounded: true,
+  };
+  assert.equal(movement.occupancyAt(1.5, 5.1, state), "open");
+  assert.equal(probes.length, 1);
+  assert.equal(probes[0][5], 0.18);
+});
+
+it("allows a boot to cross successive authored treads instead of treating each riser as a ledge", () => {
+  const { map, movement, state, collision } = scenario();
+  for (const row of map.heightmap) {
+    row[4] = 0;
+  }
+  collision.surfaceHeightAt = (x) => x <= 0 ? state.position.y : null;
+  collision.physicsSurfaceHeightAt = () => state.position.y;
+  assert.equal(movement.occupancyAt(0.3, 0, state), "edge");
+  collision.capsuleSupportHeightAt = () => state.position.y;
+  assert.equal(movement.occupancyAt(0.3, 0, state), "open");
+});
+
 it("checks the ceiling and scenery at the hero's elevation and forward footprint", () => {
   const { movement, state, collision } = scenario();
   collision.ceilingHeightAt = () => 3;

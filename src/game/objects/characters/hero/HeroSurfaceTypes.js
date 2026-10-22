@@ -14,7 +14,7 @@
  * @property {number} flowX
  * @property {number} flowZ
  * @property {number} height
- * @typedef {Pick<import("../../../collision/GroundCollisionWorld.js").GroundCollisionWorld, "surfaceHeightAt"|"physicsSurfaceHeightAt"|"ceilingHeightAt"|"isMovementBlocked"|"movementRefusalAt">} SurfaceCollisionWorld
+ * @typedef {Pick<import("../../../collision/GroundCollisionWorld.js").GroundCollisionWorld, "surfaceHeightAt"|"physicsSurfaceHeightAt"|"capsuleSupportHeightAt"|"ceilingHeightAt"|"isMovementBlocked"|"movementRefusalAt">} SurfaceCollisionWorld
  */
 
 export {};

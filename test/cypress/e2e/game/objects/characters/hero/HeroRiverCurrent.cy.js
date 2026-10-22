@@ -17,7 +17,7 @@ describe("Hero carried by river currents", () => {
     cy.window().then((window) => {
       window.gameCameraTest.setRotation(0);
       window.gameMovementTest.jump();
-      window.gameMovementTest.move(1, -1);
+      window.gameMovementTest.move(0, -1);
     });
     cy.window().should((window) => {
       const state = window.gameMovementTest.state();

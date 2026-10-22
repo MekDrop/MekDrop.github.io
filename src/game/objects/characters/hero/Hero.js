@@ -1,5 +1,7 @@
 import { HeroStairCameraHeight } from "./HeroStairCameraHeight.js";
 import { HeroLocomotion } from "./HeroLocomotion.js";
+import { HeroTurning } from "./HeroTurning.js";
+import { HeroStepPresentation } from "./HeroStepPresentation.js";
 import { RUN_STOP_DURATION } from "./states/locomotion/HeroStoppingLocomotionState.js";
 import { HeroSpawn } from "./HeroSpawn.js";
 import {
@@ -47,6 +49,7 @@ import { HERO_STAT } from "../../../enum/HeroStat.js";
 import { BuffSystem } from "../../../buffs/BuffSystem.js";
 import { AxeTool, KnifeTool, ShovelTool } from "./tools/index.js";
 import { projectFirstPersonMovement } from "./projectFirstPersonMovement.js";
+import { projectIsometricMovement } from "./projectIsometricMovement.js";
 import { HeroLadderClimb } from "./HeroLadderClimb.js";
 
 /**
@@ -110,7 +113,6 @@ const MIN_AUTOMATIC_STEP_HEIGHT = 0.04;
 const MAX_AUTOMATIC_STEP_HEIGHT = 0.32;
 const AUTOMATIC_STEP_SURFACE_CLEARANCE = 0.015;
 const AUTOMATIC_STEP_GROUNDING_GRACE = 0.2;
-const AUTOMATIC_STEP_VISUAL_RESPONSE = 14;
 const BLOCKED_PUSH_DURATION = 1;
 const HEAD_LOOK_MAX_YAW = 55;
 const HEAD_LOOK_RESPONSE = 7;
@@ -513,6 +515,10 @@ export class Hero {
    */
   #automaticStepVisualOffset = 0;
   /**
+   * @type {number|null}
+   */
+  #automaticStepVisualSupportHeight = null;
+  /**
    * @type {HeroStairCameraHeight}
    */
   #stairCameraHeight = new HeroStairCameraHeight();
@@ -610,6 +616,11 @@ export class Hero {
    * @type {number}
    */
   #jumpsUsed = 0;
+  /**
+   * Faster air travel belongs to an intentional jump, not a missed stair contact.
+   * @type {boolean}
+   */
+  #jumpMovement = false;
   /**
    *
    * @type {number}
@@ -1146,7 +1157,9 @@ export class Hero {
     this.#grounded = false;
     this.#coyoteRemaining = 0;
     this.#jumpsUsed = 0;
+    this.#jumpMovement = false;
     this.#automaticStepVisualOffset = 0;
+    this.#automaticStepVisualSupportHeight = null;
     this.#stairCameraHeight.reset();
     this.#stairCameraOffset = 0;
     this.#stairCameraEyeHeight = null;
@@ -2455,6 +2468,7 @@ export class Hero {
     );
     if (this.#grounded) {
       this.#jumpsUsed = 0;
+      this.#jumpMovement = false;
     }
     this.#jumpBufferRemaining = Math.max(
       0,
@@ -2475,6 +2489,15 @@ export class Hero {
       this.#desiredVelocity(),
       this.#velocity,
     );
+    if (this.#grounded && !this.#firstPersonCameraEnabled &&
+      this.actionState.action === HERO_ACTION.EXPLORING &&
+      this.#facingHoldRemaining === 0 && this.#hasMovementInput &&
+      Math.hypot(desired.x, desired.z) > 0.001) {
+      const targetYaw = Math.atan2(desired.x, desired.z) * 180 / Math.PI;
+      const turnScale = HeroTurning.speedScale(this.#facingYaw, targetYaw);
+      desired.x *= turnScale;
+      desired.z *= turnScale;
+    }
     const moving = Math.hypot(desired.x, desired.z) > 0.001;
     const speed = Math.hypot(this.#velocity.x, this.#velocity.z);
     const easingRun = this.#grounded && !this.#actionBehavior.dodgeAction &&
@@ -2520,6 +2543,7 @@ export class Hero {
       this.#coyoteRemaining = 0;
       this.#jumpBufferRemaining = 0;
       this.#jumpsUsed += 1;
+      this.#jumpMovement = true;
       this.#restartAnimation = true;
     }
 
@@ -2549,7 +2573,7 @@ export class Hero {
         z: 0,
       };
     }
-    const jumping = !this.#grounded || this.#jumpBufferRemaining > 0;
+    const jumping = this.#jumpMovement || this.#jumpBufferRemaining > 0;
     const walkSpeed = jumping ? JUMP_MOVE_SPEED : MOVE_SPEED;
     const runSpeed = jumping ? JUMP_RUN_SPEED : RUN_SPEED;
     const speed = this.#buffs.modifyStat(
@@ -2585,21 +2609,11 @@ export class Hero {
     if (firstPersonMovement) {
       return firstPersonMovement;
     }
-    const yaw = Math.PI / 4 + (this.#getViewRotation?.() ?? 0) * (Math.PI / 2);
-    const projectedX =
-      Math.cos(yaw) * normalizedX - Math.sin(yaw) * normalizedY;
-    const projectedZ =
-      -Math.sin(yaw) * normalizedX - Math.cos(yaw) * normalizedY;
-    const axisDifference = Math.abs(projectedX) - Math.abs(projectedZ);
-    const preferXOnTie = Math.abs(normalizedY) >= Math.abs(normalizedX);
-    const useXAxis =
-      Math.abs(axisDifference) < 0.000001
-        ? preferXOnTie
-        : axisDifference > 0;
+    const projected = projectIsometricMovement(inputX, inputY, this.#getViewRotation?.() ?? 0);
 
     return {
-      x: useXAxis ? Math.sign(projectedX) : 0,
-      z: useXAxis ? 0 : Math.sign(projectedZ),
+      x: projected.x,
+      z: projected.y,
     };
   }
 
@@ -2744,7 +2758,25 @@ export class Hero {
       return false;
     }
 
+    // A reachable height alone is insufficient beside a stair or wall. Commit
+    // the lift only when the capsule can also advance at the raised elevation.
+    const liftedState = {
+      ...this.#surfaceState,
+      position: {
+        ...this.#position,
+        y: targetHeight,
+      },
+    };
+    if (this.#movementSurface.occupancyAt(nextX, nextZ, liftedState) !== OCCUPANCY.open) {
+      return false;
+    }
     const stepRise = targetHeight - this.#position.y;
+    this.#automaticStepVisualSupportHeight = this.#physics.surfaceAt(
+      this.#position.x,
+      this.#position.z,
+      this.#position.y + 0.08,
+      this.#position.y - STEP_CLEARANCE - 0.08,
+    )?.height ?? this.#position.y;
     this.#position.y = targetHeight;
     this.#automaticStepTargetHeight = targetHeight;
     this.#automaticStepVisualOffset = Math.max(
@@ -3120,7 +3152,8 @@ export class Hero {
       }
       supportOwner = supportOwner.parent;
     }
-    let stairSupport = support?.entity?.tags?.has("capsule-support");
+    let stairSupport = this.#movementSurface.requiresCapsuleSupport(this.#position) ||
+      support?.entity?.tags?.has("capsule-support");
     if (!stairSupport && supportZone) {
       for (const [dx, dz] of [[HERO_RADIUS, 0], [-HERO_RADIUS, 0], [0, HERO_RADIUS], [0, -HERO_RADIUS]]) {
         const adjacent = this.#physics.surfaceAt(this.#position.x + dx, this.#position.z + dz,
@@ -3396,12 +3429,23 @@ export class Hero {
       this.#stairCameraEyeHeight = null;
       this.#stairCameraSampleFrame = -1;
     }
-    const stepVisualBlend =
-      1 - Math.exp(-AUTOMATIC_STEP_VISUAL_RESPONSE * deltaTime);
-    this.#automaticStepVisualOffset +=
-      (0 - this.#automaticStepVisualOffset) * stepVisualBlend;
+    const stepSupport = this.#automaticStepVisualSupportHeight === null ? null : this.#physics.surfaceAt(
+      this.#position.x,
+      this.#position.z,
+      this.#position.y + 0.08,
+      this.#position.y - STEP_CLEARANCE - 0.08,
+    );
+    this.#automaticStepVisualOffset = HeroStepPresentation.update(
+      this.#automaticStepVisualOffset,
+      this.#position.y,
+      stepSupport?.height ?? null,
+      this.#automaticStepVisualSupportHeight,
+      deltaTime,
+      MAX_AUTOMATIC_STEP_HEIGHT,
+    );
     if (Math.abs(this.#automaticStepVisualOffset) < 0.0001) {
       this.#automaticStepVisualOffset = 0;
+      this.#automaticStepVisualSupportHeight = null;
     }
     // Warp the authored transfer root by the small physics correction, keeping
     // planted contacts fixed while the capsule resolves the hatch edge.
@@ -3418,6 +3462,15 @@ export class Hero {
       0,
       this.#movementAnimationHoldRemaining - deltaTime,
     );
+    // A short tap may end before the turn finishes. Finish that turn after
+    // release, while every new movement input replaces the previous target.
+    if (this.#hasMovementInput && !this.#actionBehavior.locksFacing &&
+      !this.#firstPersonCameraEnabled) {
+      this.#queuedFacingDirection = this.#grounded ? this.#desiredVelocity() : {
+        x: this.#velocity.x,
+        z: this.#velocity.z,
+      };
+    }
     const queuedFacingDirection =
       this.#facingHoldRemaining === 0 ? this.#queuedFacingDirection : null;
     const horizontalSpeed = Math.hypot(this.#velocity.x, this.#velocity.z);
@@ -3456,10 +3509,10 @@ export class Hero {
         (Math.atan2(facingVelocity.x, facingVelocity.z) * 180) / Math.PI;
       this.#facingYaw = this.#actionBehavior.snapsFacing
         ? targetYaw
-        : this.#lerpAngle(
+        : HeroTurning.advance(
           this.#facingYaw,
           targetYaw,
-          Math.min(1, deltaTime * 14),
+          deltaTime,
         );
       if (queuedFacingDirection) {
         const yawDelta = Math.abs(
@@ -3557,9 +3610,14 @@ export class Hero {
     this.#actionBehavior.present(deltaTime);
     this.#footPlacement?.update(
       deltaTime,
-      this.#grounded &&
+      (this.#grounded || (this.#capsuleSupportOnly && !this.#jumpMovement)) &&
         this.#actionBehavior.allowsFootPlacement,
       this.#islandVisualRoot?.getLocalPosition().y ?? 0,
+      {
+        onStairs: this.#capsuleSupportOnly || this.#automaticStepGroundingRemaining > 0,
+        velocity: this.#velocity,
+        forward: new this.#pc.Vec3(defaultFacing.x, 0, defaultFacing.z),
+      },
     );
   }
 
@@ -3784,6 +3842,7 @@ export class Hero {
          */
         surfaceAt: this.#surfaceAt.bind(this),
         getHeroPosition: this.#getHeroPosition.bind(this),
+        modelRoot: this.#modelRoot,
         /**
          * @param {number} x
          * @param {number} z

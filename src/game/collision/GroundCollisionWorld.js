@@ -9,6 +9,10 @@ export class GroundCollisionWorld {
    * @type {Set}
    */
   #physicsSurfaceColliders = new Set();
+  /**
+   * @type {Set<import("../objects/ObjectTypes.js").MapObjectLike>}
+   */
+  #capsuleSupportColliders = new Set();
 
   /**
    *
@@ -24,6 +28,11 @@ export class GroundCollisionWorld {
       } else {
         this.#physicsSurfaceColliders.delete(collider);
       }
+      if (typeof collider.capsuleSupportHeightAt === "function") {
+        this.#capsuleSupportColliders.add(collider);
+      } else {
+        this.#capsuleSupportColliders.delete(collider);
+      }
     }
     return collider;
   }
@@ -31,6 +40,7 @@ export class GroundCollisionWorld {
   clear() {
     this.#colliders.clear();
     this.#physicsSurfaceColliders.clear();
+    this.#capsuleSupportColliders.clear();
   }
 
   /**
@@ -315,6 +325,26 @@ export class GroundCollisionWorld {
       Infinity,
       true,
     );
+  }
+
+  /**
+   * Query authored supports that must use the walking capsule rather than limbs.
+   * @param {number} x
+   * @param {number} z
+   * @param {number} maximumHeight
+   * @returns {number|null}
+   */
+  capsuleSupportHeightAt(x, z, maximumHeight = Infinity) {
+    let highest = null;
+    for (const collider of this.#capsuleSupportColliders) {
+      const height = collider.capsuleSupportHeightAt?.(x, z);
+      if (Number.isFinite(height) && height <= maximumHeight &&
+        (highest === null || height > highest)) {
+        highest = height;
+      }
+    }
+
+    return highest;
   }
 
   /**

@@ -27,7 +27,7 @@ async function walkTo(window, x, z, floorY = 2, perspective = false) {
       driver.move((camera.right.x * dx + camera.right.z * dz) / distance * .45,
         (camera.direction.x * dx + camera.direction.z * dz) / length / distance * .45);
     } else {
-      const yaw = Math.PI / 4 + window.gameCameraTest.state().viewport.rotation * Math.PI / 2;
+      const yaw = Math.PI / 2 + window.gameCameraTest.state().viewport.rotation * Math.PI / 2;
       const worldX = Math.max(-1, Math.min(1, dx * 3));
       const worldZ = Math.max(-1, Math.min(1, dz * 3));
       driver.move(Math.cos(yaw) * worldX - Math.sin(yaw) * worldZ,
