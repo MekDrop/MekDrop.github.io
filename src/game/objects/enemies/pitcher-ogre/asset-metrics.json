@@ -1,0 +1,368 @@
+{
+  "actions": [
+    {
+      "frame_end": 14.4,
+      "frame_start": 0.0,
+      "name": "aim",
+      "users": 1
+    },
+    {
+      "frame_end": 21.6,
+      "frame_start": 0.0,
+      "name": "angry_warn",
+      "users": 1
+    },
+    {
+      "frame_end": 21.6,
+      "frame_start": 0.0,
+      "name": "beckon_volunteer",
+      "users": 1
+    },
+    {
+      "frame_end": 26.4,
+      "frame_start": 0.0,
+      "name": "confused_drop",
+      "users": 1
+    },
+    {
+      "frame_end": 60.0,
+      "frame_start": 0.0,
+      "name": "death",
+      "users": 1
+    },
+    {
+      "frame_end": 26.4,
+      "frame_start": 0.0,
+      "name": "ground_punch",
+      "users": 1
+    },
+    {
+      "frame_end": 9.6,
+      "frame_start": 0.0,
+      "name": "hit",
+      "users": 1
+    },
+    {
+      "frame_end": 38.4,
+      "frame_start": 0.0,
+      "name": "hold_idle",
+      "users": 1
+    },
+    {
+      "frame_end": 28.8,
+      "frame_start": 0.0,
+      "name": "hold_walk",
+      "users": 1
+    },
+    {
+      "frame_end": 48.0,
+      "frame_start": 0.0,
+      "name": "idle",
+      "users": 2
+    },
+    {
+      "frame_end": 12.0,
+      "frame_start": 0.0,
+      "name": "knockback",
+      "users": 1
+    },
+    {
+      "frame_end": 24.0,
+      "frame_start": 0.0,
+      "name": "pickup_unwilling",
+      "users": 1
+    },
+    {
+      "frame_end": 19.2,
+      "frame_start": 0.0,
+      "name": "pickup_willing",
+      "users": 1
+    },
+    {
+      "frame_end": 14.4,
+      "frame_start": 0.0,
+      "name": "recover",
+      "users": 1
+    },
+    {
+      "frame_end": 21.6,
+      "frame_start": 0.0,
+      "name": "reject_heavy",
+      "users": 1
+    },
+    {
+      "frame_end": 19.2,
+      "frame_start": 0.0,
+      "name": "run",
+      "users": 1
+    },
+    {
+      "frame_end": 28.8,
+      "frame_start": 0.0,
+      "name": "stun",
+      "users": 1
+    },
+    {
+      "frame_end": 16.8,
+      "frame_start": 0.0,
+      "name": "throw_recover",
+      "users": 1
+    },
+    {
+      "frame_end": 4.8,
+      "frame_start": 0.0,
+      "name": "throw_release",
+      "users": 1
+    },
+    {
+      "frame_end": 16.8,
+      "frame_start": 0.0,
+      "name": "throw_windup",
+      "users": 1
+    },
+    {
+      "frame_end": 16.8,
+      "frame_start": 0.0,
+      "name": "turn",
+      "users": 1
+    },
+    {
+      "frame_end": 28.8,
+      "frame_start": 0.0,
+      "name": "walk",
+      "users": 1
+    }
+  ],
+  "blender": {
+    "background": true,
+    "build_hash": "9e2066aef7ef",
+    "version": "5.2.1 LTS",
+    "version_tuple": [
+      5,
+      2,
+      1
+    ]
+  },
+  "hard_gate_pass": true,
+  "input": "C:\\Users\\mekdr\\Documents\\Projects\\MekDrop.github.io\\src\\game\\models\\enemies\\pitcher-ogre\\pitcher-ogre.glb",
+  "issues": [],
+  "material_details": [
+    {
+      "image_texture_nodes": 2,
+      "images": [
+        "pitcher-ogre-tripo-original_basecolor",
+        "pitcher-ogre-tripo-original_normal"
+      ],
+      "name": "tripo_material_e6b6a682-7e75-4f75-841b-f34d3ddbd98b",
+      "node_count": 5,
+      "use_nodes": true
+    }
+  ],
+  "materials": [
+    "tripo_material_e6b6a682-7e75-4f75-841b-f34d3ddbd98b"
+  ],
+  "meshes": [
+    {
+      "boundary_edges": 1816,
+      "connected_components": 95,
+      "data_name": "meshes[0]",
+      "degenerate_faces": 0,
+      "edges": 8009,
+      "flat_polygons": 0,
+      "invalid_vertices": 0,
+      "isolated_vertices": 0,
+      "material_slots": [
+        "tripo_material_e6b6a682-7e75-4f75-841b-f34d3ddbd98b"
+      ],
+      "missing_material_faces": 0,
+      "modifiers": [
+        {
+          "name": "Armature",
+          "type": "ARMATURE"
+        }
+      ],
+      "name": "PitcherOgre_TripoMesh",
+      "non_manifold_edges": 1816,
+      "polygons": 4734,
+      "refinement_modifiers": [],
+      "shape_keys": 0,
+      "smooth_polygon_ratio": 1.0,
+      "smooth_polygons": 4734,
+      "source_polygons": 4734,
+      "source_vertices": 3370,
+      "triangles": 4734,
+      "uv_layers": 1,
+      "vertex_groups": 16,
+      "vertices": 3370,
+      "weighted_vertices": 3370,
+      "wire_edges": 0,
+      "world_bounds": [
+        [
+          -0.500684,
+          -0.346471,
+          0.0
+        ],
+        [
+          0.499816,
+          0.347554,
+          0.711206
+        ]
+      ],
+      "zero_length_edges": 0
+    }
+  ],
+  "objects": [
+    {
+      "action": null,
+      "collections": [
+        "Scene Collection"
+      ],
+      "dimensions": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hidden_render": false,
+      "location": [
+        0.130131,
+        -0.238179,
+        0.034868
+      ],
+      "name": "CarrySocket",
+      "parent": "PitcherOgreRig",
+      "rotation_euler": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "transform_is_finite": true,
+      "type": "EMPTY"
+    },
+    {
+      "action": "idle",
+      "collections": [
+        "Scene Collection"
+      ],
+      "dimensions": [
+        0.799123,
+        0.299051,
+        0.591571
+      ],
+      "hidden_render": false,
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "name": "PitcherOgreRig",
+      "parent": null,
+      "rotation_euler": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "transform_is_finite": true,
+      "type": "ARMATURE"
+    },
+    {
+      "action": null,
+      "collections": [
+        "Scene Collection"
+      ],
+      "dimensions": [
+        1.0005,
+        0.694025,
+        0.711206
+      ],
+      "hidden_render": false,
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "name": "PitcherOgre_TripoMesh",
+      "parent": "PitcherOgreRig",
+      "rotation_euler": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "transform_is_finite": true,
+      "type": "MESH"
+    }
+  ],
+  "scene": {
+    "bounds": {
+      "dimensions": [
+        1.0005,
+        0.694025,
+        0.711206
+      ],
+      "max": [
+        0.499816,
+        0.347554,
+        0.711206
+      ],
+      "min": [
+        -0.500684,
+        -0.346471,
+        0.0
+      ]
+    },
+    "fps": 24.0,
+    "frame_end": 250,
+    "frame_start": 1,
+    "name": "Scene"
+  },
+  "schema_version": 3,
+  "totals": {
+    "actions": 22,
+    "armatures": 1,
+    "bones": 16,
+    "boundary_edges": 1816,
+    "cameras": 0,
+    "constraints": 0,
+    "degenerate_faces": 0,
+    "edges": 8009,
+    "flat_polygons": 0,
+    "geometry_nodes_modifiers": 0,
+    "images": 2,
+    "invalid_vertices": 0,
+    "isolated_vertices": 0,
+    "lights": 0,
+    "materials": 1,
+    "mesh_objects": 1,
+    "missing_material_faces": 0,
+    "node_materials": 1,
+    "non_manifold_edges": 1816,
+    "objects": 3,
+    "polygons": 4734,
+    "refinement_modifiers": 0,
+    "rigid_body_objects": 0,
+    "shape_keys": 0,
+    "simulation_modifiers": 0,
+    "smooth_polygons": 4734,
+    "textured_materials": 1,
+    "triangles": 4734,
+    "uv_mapped_meshes": 1,
+    "vertices": 3370,
+    "weighted_meshes": 1,
+    "wire_edges": 0,
+    "zero_length_edges": 0
+  }
+}

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<testsuites>
+	<testcase name="uses real Yuka states and resolves the actual royal before scenery" time="0.001811" classname="test" file="C:\Users\mekdr\Documents\Projects\MekDrop.github.io\test\unit\game\objects\enemies\pitcher-ogre\pitcher-ogre.test.js"/>
+	<testcase name="prefers willing Divecaps and Doorcrackers; never calls a Crown Crab willing" time="0.000754" classname="test" file="C:\Users\mekdr\Documents\Projects\MekDrop.github.io\test\unit\game\objects\enemies\pitcher-ogre\pitcher-ogre.test.js"/>
+	<testcase name="honors a volunteer refusal and too-heavy capability" time="0.000514" classname="test" file="C:\Users\mekdr\Documents\Projects\MekDrop.github.io\test\unit\game\objects\enemies\pitcher-ogre\pitcher-ogre.test.js"/>
+	<testcase name="pickup owns physical carry, socket and unwilling reaction" time="0.000706" classname="test" file="C:\Users\mekdr\Documents\Projects\MekDrop.github.io\test\unit\game\objects\enemies\pitcher-ogre\pitcher-ogre.test.js"/>
+	<testcase name="bell confusion physically releases a held passenger and deduplicates rings" time="0.000718" classname="test" file="C:\Users\mekdr\Documents\Projects\MekDrop.github.io\test\unit\game\objects\enemies\pitcher-ogre\pitcher-ogre.test.js"/>
+	<testcase name="a stun during pickup aborts contact and resumes after recovery" time="0.000595" classname="test" file="C:\Users\mekdr\Documents\Projects\MekDrop.github.io\test\unit\game\objects\enemies\pitcher-ogre\pitcher-ogre.test.js"/>
+	<testcase name="Gobbler eating a queued ally provokes a bounded warning and ground punch" time="0.000369" classname="test" file="C:\Users\mekdr\Documents\Projects\MekDrop.github.io\test\unit\game\objects\enemies\pitcher-ogre\pitcher-ogre.test.js"/>
+	<testcase name="death releases passengers and prevents later reaction resurrection" time="0.000271" classname="test" file="C:\Users\mekdr\Documents\Projects\MekDrop.github.io\test\unit\game\objects\enemies\pitcher-ogre\pitcher-ogre.test.js"/>
+	<testcase name="plans a supported parabola whose analytic endpoint reaches the landing" time="0.000735" classname="test" file="C:\Users\mekdr\Documents\Projects\MekDrop.github.io\test\unit\game\objects\enemies\pitcher-ogre\pitcher-ogre.test.js"/>
+	<testcase name="rejects missing support, blocked landings and blocked flight envelopes" time="0.000396" classname="test" file="C:\Users\mekdr\Documents\Projects\MekDrop.github.io\test\unit\game\objects\enemies\pitcher-ogre\pitcher-ogre.test.js"/>
+	<testcase name="windup revalidates a moving obstruction before release" time="0.000305" classname="test" file="C:\Users\mekdr\Documents\Projects\MekDrop.github.io\test\unit\game\objects\enemies\pitcher-ogre\pitcher-ogre.test.js"/>
+	<testcase name="successful throw restores physics, retains landing hooks and prevents immediate regrab" time="0.000415" classname="test" file="C:\Users\mekdr\Documents\Projects\MekDrop.github.io\test\unit\game\objects\enemies\pitcher-ogre\pitcher-ogre.test.js"/>
+	<testcase name="real Crown Crab reacts unwillingly, remembers its thrower and enters its landing state" time="0.000550" classname="test" file="C:\Users\mekdr\Documents\Projects\MekDrop.github.io\test\unit\game\objects\enemies\pitcher-ogre\pitcher-ogre.test.js"/>
+	<testcase name="Ammo carries the launched capsule over a wall and settles it at the planned landing" time="0.134688" classname="test" file="C:\Users\mekdr\Documents\Projects\MekDrop.github.io\test\unit\game\objects\enemies\pitcher-ogre\pitcher-ogre.test.js"/>
+	<testcase name="every declared clip binds exported skeleton nodes with its measured duration" time="0.006837" classname="test" file="C:\Users\mekdr\Documents\Projects\MekDrop.github.io\test\unit\game\objects\enemies\pitcher-ogre\pitcher-ogre.test.js"/>
+	<testcase name="exported weights are finite, normalized and limited to two anatomical bones" time="0.009794" classname="test" file="C:\Users\mekdr\Documents\Projects\MekDrop.github.io\test\unit\game\objects\enemies\pitcher-ogre\pitcher-ogre.test.js"/>
+	<testcase name="every cyclic exported transform returns to its first pose" time="0.004662" classname="test" file="C:\Users\mekdr\Documents\Projects\MekDrop.github.io\test\unit\game\objects\enemies\pitcher-ogre\pitcher-ogre.test.js"/>
+	<testcase name="reaching an actual royal starts one encounter and resumes if the royal moves away" time="0.000721" classname="test" file="C:\Users\mekdr\Documents\Projects\MekDrop.github.io\test\unit\game\objects\enemies\pitcher-ogre\pitcher-ogre.test.js"/>
+	<testcase name="the animated carry socket cannot tilt the passenger's physical root sideways" time="0.000424" classname="test" file="C:\Users\mekdr\Documents\Projects\MekDrop.github.io\test\unit\game\objects\enemies\pitcher-ogre\pitcher-ogre.test.js"/>
+	<!-- tests 19 -->
+	<!-- suites 0 -->
+	<!-- pass 19 -->
+	<!-- fail 0 -->
+	<!-- cancelled 0 -->
+	<!-- skipped 0 -->
+	<!-- todo 0 -->
+	<!-- duration_ms 2628.1494 -->
+</testsuites>

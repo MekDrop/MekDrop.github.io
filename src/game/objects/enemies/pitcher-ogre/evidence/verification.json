@@ -1,0 +1,35 @@
+{
+  "date": "2026-10-22",
+  "unitTests": {
+    "passed": 19,
+    "failed": 0,
+    "command": "node --test test/unit/game/objects/enemies/pitcher-ogre/pitcher-ogre.test.js",
+    "report": "unit-results.xml"
+  },
+  "lint": {
+    "scope": "Pitcher Ogre source, unit and Cypress files",
+    "passed": true
+  },
+  "freshGlbImportedClips": 22,
+  "sampledTimelineEvidence": "../animation-import-evidence.json",
+  "productionRuntimePlayback": false,
+  "productionTransparentPreview": false,
+  "liveBlocker": "Latest production route attempt blocked by 7 ESLint errors in src/game/objects/characters/hero/Hero.js (outside this task). Earlier CinderNavigation lint interruption was repaired by its owner. Actual production playback/preview remain unverified.",
+  "cypress": {
+    "executed": false,
+    "electron": "Browser closed before spec execution",
+    "edge": "Runner did not connect/progress; cancelled"
+  },
+  "offlineImage": "offline-idle.png (not a production preview)",
+  "carrySocket": {
+    "calibratedInBlender": true,
+    "restPosition": [
+      0.36,
+      -0.08,
+      0.465
+    ],
+    "coordinates": "Blender XYZ / Z up",
+    "passengerRootRemainsUpright": true,
+    "actualGameContactAlignment": false
+  }
+}

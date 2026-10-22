@@ -1,0 +1,47 @@
+{
+  "provider": "Tripo3D Studio",
+  "interface": "browser",
+  "url": "https://studio.tripo3d.ai/workspace/generate/46ba08b1-6eaf-40c6-aecf-7c3d7d51db24",
+  "model": "H3.1 – Best Quality",
+  "input": "tripo-reference.png",
+  "inputDerivation": "ImageGen extraction of the main upper-left Pitcher Ogre portrait in info.png; blue ogre only, infographic text and secondary characters removed.",
+  "generationMode": "Geometry & Texture",
+  "generateInParts": false,
+  "texture8K": false,
+  "quotedCredits": 30,
+  "observedBalanceBefore": 23250,
+  "observedBalanceAfterSubmission": 23220,
+  "observedCreditDebit": 30,
+  "status": "downloaded-and-locally-refined",
+  "replacementAttempts": 0,
+  "note": "CLI profile balance was 0; user explicitly requested browser instead. Browser balance and successful generation submission verified in the visible Studio UI.",
+  "original": "../../../models/enemies/pitcher-ogre/source/tripo-original.glb",
+  "originalSha256": "209c5c91d313bc3fd5a8547eb11193d7e49b5a1ab5f53a7e90b1984d206847a5",
+  "rigging": {
+    "assetId": "46ba08b1-6eaf-40c6-aecf-7c3d7d51db24",
+    "interface": "browser",
+    "type": "Humanoid",
+    "preset": "Mixamo",
+    "quotedCredits": 20,
+    "actualCharge": null,
+    "reasonActualChargeUnavailable": "Concurrent sibling jobs also spent credits between Studio balance observations; no itemized charge shown.",
+    "output": "../../../models/enemies/pitcher-ogre/source/tripo-rigged.glb",
+    "result": "Imported and rejected: almost all weights bound to hips. No paid retry; custom local rig replaces weights."
+  },
+  "localRefinement": {
+    "editable": "../../../models/enemies/pitcher-ogre/pitcher-ogre.blend",
+    "exported": "../../../models/enemies/pitcher-ogre/pitcher-ogre.glb",
+    "triangles": 4734,
+    "vertices": 3370,
+    "clips": 22,
+    "replacementGenerations": 0,
+    "carrySocketRestPositionBlender": [
+      0.36,
+      -0.08,
+      0.465
+    ]
+  },
+  "studioAssetId": "46ba08b1-6eaf-40c6-aecf-7c3d7d51db24",
+  "providerTaskId": null,
+  "providerTaskIdNote": "Studio UI exposes this asset ID; no separate wire task ID was available."
+}

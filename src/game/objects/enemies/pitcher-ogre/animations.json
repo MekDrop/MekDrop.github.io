@@ -1,0 +1,396 @@
+{
+  "model": "../../../models/enemies/pitcher-ogre/pitcher-ogre.glb",
+  "source": "Tripo mesh; custom local anatomical rig and authored clips",
+  "runtimeScale": 3.4,
+  "fps": 30,
+  "clips": [
+    {
+      "name": "idle",
+      "duration": 2,
+      "loop": true,
+      "events": {},
+      "supportedStates": [
+        "PitcherPursueState",
+        "PitcherInspectState",
+        "PitcherRoyalReachedState"
+      ],
+      "sampledFractions": [
+        0,
+        0.25,
+        0.5,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "walk",
+      "duration": 1.2,
+      "loop": true,
+      "events": {},
+      "supportedStates": [
+        "PitcherPursueState",
+        "PitcherRecruitState"
+      ],
+      "sampledFractions": [
+        0,
+        0.25,
+        0.5,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "run",
+      "duration": 0.8,
+      "loop": true,
+      "events": {},
+      "supportedStates": [
+        "PitcherInspectState"
+      ],
+      "sampledFractions": [
+        0,
+        0.25,
+        0.5,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "turn",
+      "duration": 0.7,
+      "loop": false,
+      "events": {},
+      "supportedStates": [
+        "PitcherInspectState"
+      ],
+      "sampledFractions": [
+        0,
+        0.25,
+        0.5,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "beckon_volunteer",
+      "duration": 0.9,
+      "loop": false,
+      "events": {},
+      "supportedStates": [
+        "PitcherRecruitState"
+      ],
+      "sampledFractions": [
+        0,
+        0.25,
+        0.5,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "pickup_willing",
+      "duration": 0.8,
+      "loop": false,
+      "events": {
+        "pickup": 0.55
+      },
+      "supportedStates": [
+        "PitcherPickupState"
+      ],
+      "sampledFractions": [
+        0,
+        0.25,
+        0.5,
+        0.6875,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "pickup_unwilling",
+      "duration": 1,
+      "loop": false,
+      "events": {
+        "pickup": 0.55
+      },
+      "supportedStates": [
+        "PitcherPickupState"
+      ],
+      "sampledFractions": [
+        0,
+        0.25,
+        0.5,
+        0.55,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "hold_idle",
+      "duration": 1.6,
+      "loop": true,
+      "events": {},
+      "supportedStates": [
+        "PitcherInspectState"
+      ],
+      "sampledFractions": [
+        0,
+        0.25,
+        0.5,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "hold_walk",
+      "duration": 1.2,
+      "loop": true,
+      "events": {},
+      "supportedStates": [
+        "PitcherAimState"
+      ],
+      "sampledFractions": [
+        0,
+        0.25,
+        0.5,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "aim",
+      "duration": 0.6,
+      "loop": false,
+      "events": {},
+      "supportedStates": [
+        "PitcherAimState"
+      ],
+      "sampledFractions": [
+        0,
+        0.25,
+        0.5,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "throw_windup",
+      "duration": 0.7,
+      "loop": false,
+      "events": {},
+      "supportedStates": [
+        "PitcherThrowState"
+      ],
+      "sampledFractions": [
+        0,
+        0.25,
+        0.5,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "throw_release",
+      "duration": 0.2,
+      "loop": false,
+      "events": {
+        "release": 0.1
+      },
+      "supportedStates": [
+        "PitcherReleaseState",
+        "PitcherRecoverState"
+      ],
+      "sampledFractions": [
+        0,
+        0.25,
+        0.5,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "throw_recover",
+      "duration": 0.7,
+      "loop": false,
+      "events": {},
+      "supportedStates": [
+        "PitcherRecoverState"
+      ],
+      "sampledFractions": [
+        0,
+        0.25,
+        0.5,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "confused_drop",
+      "duration": 1.1,
+      "loop": false,
+      "events": {
+        "drop": 0
+      },
+      "supportedStates": [
+        "PitcherConfusedState"
+      ],
+      "sampledFractions": [
+        0,
+        0.25,
+        0.5,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "reject_heavy",
+      "duration": 0.9,
+      "loop": false,
+      "events": {},
+      "supportedStates": [
+        "PitcherRejectState"
+      ],
+      "sampledFractions": [
+        0,
+        0.25,
+        0.5,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "angry_warn",
+      "duration": 0.9,
+      "loop": false,
+      "events": {},
+      "supportedStates": [
+        "PitcherAngryState"
+      ],
+      "sampledFractions": [
+        0,
+        0.25,
+        0.5,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "ground_punch",
+      "duration": 1.1,
+      "loop": false,
+      "events": {
+        "contact": 0.66
+      },
+      "supportedStates": [
+        "PitcherAngryState"
+      ],
+      "sampledFractions": [
+        0,
+        0.25,
+        0.5,
+        0.6,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "hit",
+      "duration": 0.4,
+      "loop": false,
+      "events": {},
+      "supportedStates": [
+        "PitcherHitState"
+      ],
+      "sampledFractions": [
+        0,
+        0.25,
+        0.5,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "stun",
+      "duration": 1.2,
+      "loop": true,
+      "events": {},
+      "supportedStates": [
+        "PitcherStunnedState"
+      ],
+      "sampledFractions": [
+        0,
+        0.25,
+        0.5,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "recover",
+      "duration": 0.6,
+      "loop": false,
+      "events": {},
+      "supportedStates": [
+        "PitcherStunnedState"
+      ],
+      "sampledFractions": [
+        0,
+        0.25,
+        0.5,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "knockback",
+      "duration": 0.5,
+      "loop": false,
+      "events": {},
+      "supportedStates": [
+        "PitcherInspectState"
+      ],
+      "sampledFractions": [
+        0,
+        0.25,
+        0.5,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "death",
+      "duration": 2.5,
+      "loop": false,
+      "events": {},
+      "supportedStates": [
+        "PitcherDeathState"
+      ],
+      "sampledFractions": [
+        0,
+        0.25,
+        0.5,
+        0.75,
+        1
+      ]
+    }
+  ],
+  "verification": {
+    "freshImport": true,
+    "timelineSamples": true,
+    "actualGamePlayback": false,
+    "preview": false,
+    "evidence": "animation-import-evidence.json",
+    "runtimeBlocker": "Latest production route attempt blocked by 7 ESLint errors in src/game/objects/characters/hero/Hero.js (outside this task). Earlier CinderNavigation lint interruption was repaired by its owner. Actual production playback/preview remain unverified.",
+    "unitChecksPassed": 19,
+    "mapHudDispatcherChecksPassed": 3
+  },
+  "rig": {
+    "bones": 16,
+    "maximumInfluences": 2,
+    "rigidStoneFists": true,
+    "socket": "CarrySocket",
+    "sourceMesh": "Tripo3D",
+    "providerRigRejected": "3359 / 3370 vertices assigned wholly to hips; replaced locally",
+    "carryAirborneLandingClips": "Not applicable: this enemy cannot be carried or thrown"
+  }
+}
