@@ -1,0 +1,549 @@
+{
+  "schemaVersion": 1,
+  "fps": 30,
+  "rig": "Doorcracker_Rig",
+  "sourceJobId": "93327fd7-86c0-4511-9956-d95402e21875",
+  "clips": [
+    {
+      "name": "idle_loaded",
+      "duration": 1.6,
+      "loop": true,
+      "events": [],
+      "supportedStates": [
+        "DoorcrackerPursueState",
+        "DoorcrackerClipState"
+      ],
+      "verification": {
+        "name": "idle_loaded",
+        "frames": [
+          0.0,
+          38.400001525878906
+        ],
+        "sampleFrames": {
+          "start": 0.0,
+          "quarter": 9.600000381469727,
+          "middle": 19.200000762939453,
+          "threequarter": 28.80000114440918,
+          "end": 38.400001525878906
+        },
+        "maxMidpointVertexChange": 0.019309218702581406,
+        "loopSeamDistance": 0.0,
+        "finite": true
+      }
+    },
+    {
+      "name": "walk_loaded",
+      "duration": 0.8,
+      "loop": true,
+      "events": [],
+      "supportedStates": [
+        "DoorcrackerPursueState"
+      ],
+      "verification": {
+        "name": "walk_loaded",
+        "frames": [
+          0.0,
+          19.200000762939453
+        ],
+        "sampleFrames": {
+          "start": 0.0,
+          "quarter": 4.800000190734863,
+          "middle": 9.600000381469727,
+          "threequarter": 14.40000057220459,
+          "end": 19.200000762939453
+        },
+        "maxMidpointVertexChange": 0.09116224236318225,
+        "loopSeamDistance": 0.0,
+        "finite": true
+      }
+    },
+    {
+      "name": "run_loaded",
+      "duration": 0.6,
+      "loop": true,
+      "events": [],
+      "supportedStates": [
+        "DoorcrackerPursueState"
+      ],
+      "verification": {
+        "name": "run_loaded",
+        "frames": [
+          0.0,
+          14.40000057220459
+        ],
+        "sampleFrames": {
+          "start": 0.0,
+          "quarter": 3.6000001430511475,
+          "middle": 7.200000286102295,
+          "threequarter": 10.800000429153442,
+          "end": 14.40000057220459
+        },
+        "maxMidpointVertexChange": 0.13939973302609462,
+        "loopSeamDistance": 0.0,
+        "finite": true
+      }
+    },
+    {
+      "name": "turn",
+      "duration": 0.5,
+      "loop": false,
+      "events": [],
+      "supportedStates": [
+        "DoorcrackerClipState"
+      ],
+      "verification": {
+        "name": "turn",
+        "frames": [
+          0.0,
+          12.0
+        ],
+        "sampleFrames": {
+          "start": 0.0,
+          "quarter": 3.0,
+          "middle": 6.0,
+          "threequarter": 9.0,
+          "end": 12.0
+        },
+        "maxMidpointVertexChange": 0.3441422941171336,
+        "loopSeamDistance": 0.0,
+        "finite": true
+      }
+    },
+    {
+      "name": "volunteer_hop",
+      "duration": 0.7,
+      "loop": false,
+      "events": [],
+      "supportedStates": [
+        "DoorcrackerReactionState"
+      ],
+      "verification": {
+        "name": "volunteer_hop",
+        "frames": [
+          0.0,
+          16.799999237060547
+        ],
+        "sampleFrames": {
+          "start": 0.0,
+          "quarter": 4.199999809265137,
+          "middle": 8.399999618530273,
+          "threequarter": 12.59999942779541,
+          "end": 16.799999237060547
+        },
+        "maxMidpointVertexChange": 0.3180190710984182,
+        "loopSeamDistance": 0.0,
+        "finite": true
+      }
+    },
+    {
+      "name": "carried_ready",
+      "duration": 1.2,
+      "loop": true,
+      "events": [],
+      "supportedStates": [
+        "DoorcrackerCarriedState"
+      ],
+      "verification": {
+        "name": "carried_ready",
+        "frames": [
+          0.0,
+          28.80000114440918
+        ],
+        "sampleFrames": {
+          "start": 0.0,
+          "quarter": 7.200000286102295,
+          "middle": 14.40000057220459,
+          "threequarter": 21.600000858306885,
+          "end": 28.80000114440918
+        },
+        "maxMidpointVertexChange": 0.02028429571787235,
+        "loopSeamDistance": 0.0,
+        "finite": true
+      }
+    },
+    {
+      "name": "airborne",
+      "duration": 0.8,
+      "loop": true,
+      "events": [],
+      "supportedStates": [
+        "DoorcrackerAirborneState"
+      ],
+      "verification": {
+        "name": "airborne",
+        "frames": [
+          0.0,
+          19.200000762939453
+        ],
+        "sampleFrames": {
+          "start": 0.0,
+          "quarter": 4.800000190734863,
+          "middle": 9.600000381469727,
+          "threequarter": 14.40000057220459,
+          "end": 19.200000762939453
+        },
+        "maxMidpointVertexChange": 0.028463049641925794,
+        "loopSeamDistance": 0.0,
+        "finite": true
+      }
+    },
+    {
+      "name": "land",
+      "duration": 0.4,
+      "loop": false,
+      "events": [],
+      "supportedStates": [
+        "DoorcrackerReactionState"
+      ],
+      "verification": {
+        "name": "land",
+        "frames": [
+          0.0,
+          9.600000381469727
+        ],
+        "sampleFrames": {
+          "start": 0.0,
+          "quarter": 2.4000000953674316,
+          "middle": 4.800000190734863,
+          "threequarter": 7.200000286102295,
+          "end": 9.600000381469727
+        },
+        "maxMidpointVertexChange": 0.20817615073065704,
+        "loopSeamDistance": 0.0,
+        "finite": true
+      }
+    },
+    {
+      "name": "recover",
+      "duration": 0.5,
+      "loop": false,
+      "events": [],
+      "supportedStates": [
+        "DoorcrackerClipState"
+      ],
+      "verification": {
+        "name": "recover",
+        "frames": [
+          0.0,
+          12.0
+        ],
+        "sampleFrames": {
+          "start": 0.0,
+          "quarter": 3.0,
+          "middle": 6.0,
+          "threequarter": 9.0,
+          "end": 12.0
+        },
+        "maxMidpointVertexChange": 0.1208843133206769,
+        "loopSeamDistance": 0.1608183240999222,
+        "finite": true
+      }
+    },
+    {
+      "name": "brace_door",
+      "duration": 0.6,
+      "loop": false,
+      "events": [],
+      "supportedStates": [
+        "DoorcrackerBraceState"
+      ],
+      "verification": {
+        "name": "brace_door",
+        "frames": [
+          0.0,
+          14.40000057220459
+        ],
+        "sampleFrames": {
+          "start": 0.0,
+          "quarter": 3.6000001430511475,
+          "middle": 7.200000286102295,
+          "threequarter": 10.800000429153442,
+          "end": 14.40000057220459
+        },
+        "maxMidpointVertexChange": 0.2248171322325188,
+        "loopSeamDistance": 0.29051803926586905,
+        "finite": true
+      }
+    },
+    {
+      "name": "fuse_start",
+      "duration": 0.5,
+      "loop": false,
+      "events": [],
+      "supportedStates": [
+        "DoorcrackerFuseState"
+      ],
+      "verification": {
+        "name": "fuse_start",
+        "frames": [
+          0.0,
+          12.0
+        ],
+        "sampleFrames": {
+          "start": 0.0,
+          "quarter": 3.0,
+          "middle": 6.0,
+          "threequarter": 9.0,
+          "end": 12.0
+        },
+        "maxMidpointVertexChange": 0.13411252593405848,
+        "loopSeamDistance": 0.0,
+        "finite": true
+      }
+    },
+    {
+      "name": "fuse_loop",
+      "duration": 0.8,
+      "loop": true,
+      "events": [],
+      "supportedStates": [
+        "DoorcrackerFuseState"
+      ],
+      "verification": {
+        "name": "fuse_loop",
+        "frames": [
+          0.0,
+          19.200000762939453
+        ],
+        "sampleFrames": {
+          "start": 0.0,
+          "quarter": 4.800000190734863,
+          "middle": 9.600000381469727,
+          "threequarter": 14.40000057220459,
+          "end": 19.200000762939453
+        },
+        "maxMidpointVertexChange": 0.019739284343530377,
+        "loopSeamDistance": 0.0,
+        "finite": true
+      }
+    },
+    {
+      "name": "fuse_interrupt",
+      "duration": 0.5,
+      "loop": false,
+      "events": [],
+      "supportedStates": [
+        "DoorcrackerReactionState"
+      ],
+      "verification": {
+        "name": "fuse_interrupt",
+        "frames": [
+          0.0,
+          12.0
+        ],
+        "sampleFrames": {
+          "start": 0.0,
+          "quarter": 3.0,
+          "middle": 6.0,
+          "threequarter": 9.0,
+          "end": 12.0
+        },
+        "maxMidpointVertexChange": 0.2922697454481734,
+        "loopSeamDistance": 0.29048111491692324,
+        "finite": true
+      }
+    },
+    {
+      "name": "detonate",
+      "duration": 0.6,
+      "loop": false,
+      "events": [
+        {
+          "name": "blast",
+          "time": 0.2
+        }
+      ],
+      "supportedStates": [
+        "DoorcrackerDetonateState"
+      ],
+      "verification": {
+        "name": "detonate",
+        "frames": [
+          0.0,
+          14.40000057220459
+        ],
+        "sampleFrames": {
+          "start": 0.0,
+          "quarter": 3.6000001430511475,
+          "middle": 7.200000286102295,
+          "threequarter": 10.800000429153442,
+          "contact": 4.800000000000001,
+          "end": 14.40000057220459
+        },
+        "maxMidpointVertexChange": 0.2890969268814789,
+        "loopSeamDistance": 0.0,
+        "finite": true
+      }
+    },
+    {
+      "name": "hit",
+      "duration": 0.4,
+      "loop": false,
+      "events": [],
+      "supportedStates": [
+        "DoorcrackerReactionState"
+      ],
+      "verification": {
+        "name": "hit",
+        "frames": [
+          0.0,
+          9.600000381469727
+        ],
+        "sampleFrames": {
+          "start": 0.0,
+          "quarter": 2.4000000953674316,
+          "middle": 4.800000190734863,
+          "threequarter": 7.200000286102295,
+          "end": 9.600000381469727
+        },
+        "maxMidpointVertexChange": 0.31387217228921477,
+        "loopSeamDistance": 0.0,
+        "finite": true
+      }
+    },
+    {
+      "name": "knockback",
+      "duration": 0.5333333333333333,
+      "loop": false,
+      "events": [],
+      "supportedStates": [
+        "DoorcrackerClipState"
+      ],
+      "verification": {
+        "name": "knockback",
+        "frames": [
+          0.0,
+          12.80000114440918
+        ],
+        "sampleFrames": {
+          "start": 0.0,
+          "quarter": 3.200000286102295,
+          "middle": 6.40000057220459,
+          "threequarter": 9.600000858306885,
+          "end": 12.80000114440918
+        },
+        "maxMidpointVertexChange": 0.3961504248602845,
+        "loopSeamDistance": 0.0,
+        "finite": true
+      }
+    },
+    {
+      "name": "stun",
+      "duration": 1.0,
+      "loop": true,
+      "events": [],
+      "supportedStates": [
+        "DoorcrackerReactionState"
+      ],
+      "verification": {
+        "name": "stun",
+        "frames": [
+          0.0,
+          24.0
+        ],
+        "sampleFrames": {
+          "start": 0.0,
+          "quarter": 6.0,
+          "middle": 12.0,
+          "threequarter": 18.0,
+          "end": 24.0
+        },
+        "maxMidpointVertexChange": 0.08864625606331823,
+        "loopSeamDistance": 0.0,
+        "finite": true
+      }
+    },
+    {
+      "name": "stun_recover",
+      "duration": 0.6,
+      "loop": false,
+      "events": [],
+      "supportedStates": [
+        "DoorcrackerReactionState"
+      ],
+      "verification": {
+        "name": "stun_recover",
+        "frames": [
+          0.0,
+          14.40000057220459
+        ],
+        "sampleFrames": {
+          "start": 0.0,
+          "quarter": 3.6000001430511475,
+          "middle": 7.200000286102295,
+          "threequarter": 10.800000429153442,
+          "end": 14.40000057220459
+        },
+        "maxMidpointVertexChange": 0.09247209836850251,
+        "loopSeamDistance": 0.12325821241850887,
+        "finite": true
+      }
+    },
+    {
+      "name": "panic_fire",
+      "duration": 0.4666666666666667,
+      "loop": false,
+      "events": [],
+      "supportedStates": [
+        "DoorcrackerFireState"
+      ],
+      "verification": {
+        "name": "panic_fire",
+        "frames": [
+          0.0,
+          11.199999809265137
+        ],
+        "sampleFrames": {
+          "start": 0.0,
+          "quarter": 2.799999952316284,
+          "middle": 5.599999904632568,
+          "threequarter": 8.399999856948853,
+          "end": 11.199999809265137
+        },
+        "maxMidpointVertexChange": 0.15096064239350315,
+        "loopSeamDistance": 0.0,
+        "finite": true
+      }
+    },
+    {
+      "name": "death",
+      "duration": 0.9,
+      "loop": false,
+      "events": [],
+      "supportedStates": [
+        "DoorcrackerDeathState"
+      ],
+      "verification": {
+        "name": "death",
+        "frames": [
+          0.0,
+          21.599998474121094
+        ],
+        "sampleFrames": {
+          "start": 0.0,
+          "quarter": 5.399999618530273,
+          "middle": 10.799999237060547,
+          "threequarter": 16.19999885559082,
+          "end": 21.599998474121094
+        },
+        "maxMidpointVertexChange": 0.9208636312693029,
+        "loopSeamDistance": 1.212819316936267,
+        "finite": true
+      }
+    }
+  ],
+  "verification": {
+    "freshImport": true,
+    "finiteVertexSamples": true,
+    "allClipsDeformMesh": true,
+    "samples": [
+      "start",
+      "quarter",
+      "middle",
+      "threequarter",
+      "end"
+    ],
+    "actualGamePlayback": false,
+    "visualReview": "All twenty five-sample contact sheets inspected; final rear and original front/side/game views inspected. Runtime blend, foot contact, physics, facing and rendering remain unverified."
+  }
+}

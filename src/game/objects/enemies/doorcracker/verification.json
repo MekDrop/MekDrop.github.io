@@ -1,0 +1,49 @@
+{
+  "complete": false,
+  "code": "Implemented against shared Enemy contract; no normal map spawning",
+  "referenceMatch": {
+    "preserved": [
+      "oversized red pack",
+      "brown pack straps",
+      "gold square goggles",
+      "metal helmet",
+      "red face and grin",
+      "cream jaw and asymmetric fists",
+      "stocky proportions"
+    ],
+    "limitations": [
+      "Provider surface is rounder than the design sheet; flat shading restores some plane definition.",
+      "Source running stance retained to avoid deformation artifacts; grounded gait and sliding require game verification."
+    ]
+  },
+  "providerReceipt": "src/game/models/enemies/doorcracker/provider-receipt.json",
+  "assets": [
+    "src/game/models/enemies/doorcracker/doorcracker.blend",
+    "src/game/models/enemies/doorcracker/doorcracker.glb",
+    "src/game/models/enemies/doorcracker/provider-original.zip"
+  ],
+  "checks": {
+    "focusedUnitTests": {
+      "passed": 15,
+      "command": "node --test test/unit/game/objects/enemies/doorcracker/doorcracker.test.js"
+    },
+    "focusedLint": "passed",
+    "freshGlbImport": {
+      "clips": 20,
+      "frames": "start/quarter/middle/threequarter/end, plus detonate contact at 0.2s",
+      "finiteDeformation": true,
+      "loopSeams": "measured in fresh-import-validation.json"
+    },
+    "actualGamePlayback": false,
+    "actualGamePhysics": false,
+    "transparentProductionPreview": false,
+    "productionSceneConstruction": "Started in the app browser; interrupted by HMR module failures"
+  },
+  "testMap": "http://localhost:9000/map/test_enemy-doorcracker",
+  "blockers": [
+    "The production route reached asset loading and scene construction, then concurrent Vite HMR/module-transform failures interrupted it. Earlier eager-glob compatibility was corrected by the shared task.",
+    "No preview.png fabricated: actual production capture has not completed.",
+    "Runtime clip binding/blends, foot contact and facing, Ammo collision/flight/landing, fuse readability, death/effect disposal, and time-scale changes still require actual-game checks."
+  ],
+  "ownership": "Only doorcracker object/model/test directories edited; MapObjectFactory reread but not edited because shared task had already applied the approved compatibility fix."
+}

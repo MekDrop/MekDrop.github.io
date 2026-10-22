@@ -1,0 +1,21 @@
+{
+  "provider": "Tripo Studio",
+  "operation": "image-to-3d",
+  "jobId": "93327fd7-86c0-4511-9956-d95402e21875",
+  "jobUrl": "https://studio.tripo3d.ai/workspace/generate/93327fd7-86c0-4511-9956-d95402e21875",
+  "model": "H3.1 Best Quality",
+  "mode": "HD Model / Geometry & Texture",
+  "texture": "2K",
+  "generateInParts": false,
+  "privacy": "Sharing Only",
+  "reference": "src/game/objects/enemies/doorcracker/model-reference.png",
+  "referenceSha256": "3898bf0361556818cd6d95efb9c4a67be0b7c03e07e70d911561d06a4e01deca",
+  "originalSha256": "7f0348ab03ac71847cff8bb8f6150bc16f4402a33defe1cd09b84e76879bdc3d",
+  "quotedCostCredits": 30,
+  "actualChargeCredits": null,
+  "chargeNote": "Studio displayed a 30 credit quote; concurrent sibling jobs changed the shared balance, so balance delta cannot establish an individual actual charge. No account purchase. One generation submitted, no replacement, no paid rigging/animation.",
+  "prompt": null,
+  "negativePrompt": null,
+  "refinement": "Local Blender: flat shading, matte material, eight-bone rig, five-pass normalized four-influence weight smoothing, twenty bespoke clips. Original stance, mesh topology, UVs and texture retained after discarding a lower-body adjustment that distorted the belt.",
+  "status": "downloaded; local GLB fresh import sampled; actual-game checks pending"
+}
