@@ -403,10 +403,11 @@ export class RiverBuilder {
           (item) => {
             const terminal = item.cells.at(-1);
             const previous = item.cells.at(-2);
-            const col = terminal.col + terminal.col - previous.col;
-            const row = terminal.row + terminal.row - previous.row;
 
-            return MapGrid.inBounds(col, row) && trialMask[row][col];
+            return !RiverPlacementRules.hasClearRiverExit(
+              trialMask, terminal.col, terminal.row,
+              terminal.col - previous.col, terminal.row - previous.row,
+            );
           });
         if (blockedOutlet) {
           continue;

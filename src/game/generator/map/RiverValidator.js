@@ -364,8 +364,9 @@ export class RiverValidator {
         waterfall.col !== terminal.col ||
         waterfall.row !== terminal.row ||
         waterfall.bottomElevation >= waterfall.topElevation ||
-        (MapGrid.inBounds(outsideCol, outsideRow) &&
-          islandMask[outsideRow][outsideCol]) ||
+        !RiverPlacementRules.hasClearRiverExit(
+          islandMask, terminal.col, terminal.row, deltaCol, deltaRow,
+        ) ||
         RiverPlacementRules.isNearGate(layout, terminal.col, terminal.row) ||
         RiverPlacementRules.isNearCastleForRiver(layout, terminal.col, terminal.row)
       ) {

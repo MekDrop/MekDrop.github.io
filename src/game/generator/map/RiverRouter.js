@@ -134,8 +134,9 @@ export class RiverRouter {
     const outsideCol = terminal.col + deltaCol;
     const outsideRow = terminal.row + deltaRow;
     if (
-      MapGrid.inBounds(outsideCol, outsideRow) &&
-      islandMask[outsideRow][outsideCol]
+      !RiverPlacementRules.hasClearRiverExit(
+        islandMask, terminal.col, terminal.row, deltaCol, deltaRow,
+      )
     ) {
       return null;
     }

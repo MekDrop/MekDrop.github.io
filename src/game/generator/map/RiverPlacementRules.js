@@ -17,6 +17,30 @@ import { MapGrid } from "./MapGrid.js";
  */
 export class RiverPlacementRules {
   /**
+   * A terminal fall must face open space all the way to the map boundary.
+   * @param {boolean[][]} islandMask
+   * @param {number} col
+   * @param {number} row
+   * @param {number} deltaCol
+   * @param {number} deltaRow
+   * @returns {boolean}
+   */
+  static hasClearRiverExit(islandMask, col, row, deltaCol, deltaRow) {
+    if (Math.abs(deltaCol) + Math.abs(deltaRow) !== 1) {
+      return false;
+    }
+    for (let nextCol = col + deltaCol, nextRow = row + deltaRow;
+      MapGrid.inBounds(nextCol, nextRow);
+      nextCol += deltaCol, nextRow += deltaRow) {
+      if (islandMask[nextRow][nextCol]) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /**
    * @param {boolean[][]} islandMask
    * @param {number} col
    * @param {number} row
