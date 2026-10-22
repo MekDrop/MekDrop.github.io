@@ -1,0 +1,243 @@
+[
+  {
+    "clip": "airborne",
+    "samples": 59,
+    "moving": [
+      "mask_fan",
+      "leg_L",
+      "leg_R"
+    ],
+    "finite": true,
+    "timeProgress": 1.1746000000000056,
+    "pass": true
+  },
+  {
+    "clip": "angry",
+    "samples": 35,
+    "moving": [
+      "mask_fan",
+      "arm_L",
+      "staff_hand"
+    ],
+    "finite": true,
+    "timeProgress": 0.7734000119209231,
+    "pass": true
+  },
+  {
+    "clip": "aura_end",
+    "samples": 22,
+    "moving": [
+      "mask_fan",
+      "arm_R"
+    ],
+    "finite": true,
+    "timeProgress": 0.44006666865349686,
+    "pass": true
+  },
+  {
+    "clip": "aura_sustain",
+    "samples": 71,
+    "moving": [
+      "chest",
+      "mask_fan",
+      "arm_R",
+      "staff_hand"
+    ],
+    "finite": true,
+    "timeProgress": 2.1885999999999908,
+    "pass": true
+  },
+  {
+    "clip": "carried_struggle",
+    "samples": 38,
+    "moving": [
+      "mask_fan",
+      "arm_L",
+      "leg_L",
+      "leg_R"
+    ],
+    "finite": true,
+    "timeProgress": 0.9877000000000116,
+    "pass": true
+  },
+  {
+    "clip": "cast_interrupt",
+    "samples": 20,
+    "moving": [
+      "chest",
+      "mask_fan",
+      "arm_R"
+    ],
+    "finite": true,
+    "timeProgress": 0.30673334326743495,
+    "pass": true
+  },
+  {
+    "clip": "confused_loop",
+    "samples": 58,
+    "moving": [
+      "chest",
+      "mask_fan",
+      "arm_R"
+    ],
+    "finite": true,
+    "timeProgress": 1.574899999999995,
+    "pass": true
+  },
+  {
+    "clip": "death",
+    "samples": 51,
+    "moving": [
+      "arm_R",
+      "leg_L"
+    ],
+    "finite": true,
+    "timeProgress": 1.173300047683704,
+    "pass": true
+  },
+  {
+    "clip": "discipline_cast",
+    "samples": 23,
+    "moving": [
+      "chest",
+      "arm_L",
+      "arm_R"
+    ],
+    "finite": true,
+    "timeProgress": 0.47329999999998834,
+    "pass": true
+  },
+  {
+    "clip": "hit",
+    "samples": 23,
+    "moving": [
+      "chest",
+      "mask_fan",
+      "arm_L"
+    ],
+    "finite": true,
+    "timeProgress": 0.3733000059604528,
+    "pass": true
+  },
+  {
+    "clip": "idle",
+    "samples": 74,
+    "moving": [
+      "chest",
+      "mask_fan"
+    ],
+    "finite": true,
+    "timeProgress": 2.1955000000000005,
+    "pass": true
+  },
+  {
+    "clip": "knockback",
+    "samples": 27,
+    "moving": [
+      "chest",
+      "mask_fan",
+      "arm_R"
+    ],
+    "finite": true,
+    "timeProgress": 0.47329999999998834,
+    "pass": true
+  },
+  {
+    "clip": "land",
+    "samples": 30,
+    "moving": [
+      "mask_fan",
+      "leg_L",
+      "leg_R"
+    ],
+    "finite": true,
+    "timeProgress": 0.5733000238418754,
+    "pass": true
+  },
+  {
+    "clip": "recover",
+    "samples": 29,
+    "moving": [
+      "chest",
+      "mask_fan",
+      "arm_R"
+    ],
+    "finite": true,
+    "timeProgress": 0.5732000238418695,
+    "pass": true
+  },
+  {
+    "clip": "run",
+    "samples": 27,
+    "moving": [
+      "chest",
+      "arm_L",
+      "staff_hand",
+      "leg_L",
+      "leg_R"
+    ],
+    "finite": true,
+    "timeProgress": 0.7074999999999998,
+    "pass": true
+  },
+  {
+    "clip": "staff_attack",
+    "samples": 49,
+    "moving": [
+      "chest",
+      "arm_R",
+      "staff_hand"
+    ],
+    "finite": true,
+    "timeProgress": 1.0734000238418522,
+    "pass": true
+  },
+  {
+    "clip": "staff_raise",
+    "samples": 20,
+    "moving": [
+      "mask_fan",
+      "arm_R",
+      "staff_hand"
+    ],
+    "finite": true,
+    "timeProgress": 0.2932333432674641,
+    "pass": true
+  },
+  {
+    "clip": "stun_loop",
+    "samples": 49,
+    "moving": [
+      "mask_fan",
+      "arm_R"
+    ],
+    "finite": true,
+    "timeProgress": 1.374699999999983,
+    "pass": true
+  },
+  {
+    "clip": "turn",
+    "samples": 30,
+    "moving": [
+      "mask_fan",
+      "leg_R"
+    ],
+    "finite": true,
+    "timeProgress": 0.5732000238418404,
+    "pass": true
+  },
+  {
+    "clip": "walk",
+    "samples": 38,
+    "moving": [
+      "chest",
+      "arm_L",
+      "staff_hand",
+      "leg_L",
+      "leg_R"
+    ],
+    "finite": true,
+    "timeProgress": 0.987799999999988,
+    "pass": true
+  }
+]

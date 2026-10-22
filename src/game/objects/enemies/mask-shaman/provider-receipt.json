@@ -1,0 +1,66 @@
+{
+  "provider": "Tripo3D",
+  "checkedDate": "2026-10-22",
+  "installedCli": "tripo-cli",
+  "gameDevCliAvailable": false,
+  "doctor": {
+    "configuredCredential": true,
+    "credentialSource": "profile:default",
+    "apiReachable": true,
+    "availableCredits": 0,
+    "frozenCredits": 0
+  },
+  "confirmation": {
+    "command": "tripo balance --json",
+    "result": {
+      "balance": 0,
+      "frozen": 0
+    }
+  },
+  "jobsSubmitted": [
+    "da316294-10db-442b-9180-55ff6ab71231"
+  ],
+  "chargedCredits": 30,
+  "uploadPerformed": true,
+  "blocker": null,
+  "requestSpecification": {
+    "input": "portrait.png",
+    "model": "H3.1 – Best Quality",
+    "prompt": null,
+    "negativePrompt": null,
+    "note": "Browser image-to-model controls; no hidden API parameters used. Earlier API request spec was not submitted."
+  },
+  "acceptance": "First generation retained after front/side/rear/game-camera review. Local Blender armature, skin weights, grounded pivot, preserved Tripo UV/material mesh and 20 authored clips. Original provider output remains separately preserved.",
+  "previousApiAccount": {
+    "configuredCredential": true,
+    "credentialSource": "profile:default",
+    "apiReachable": true,
+    "availableCredits": 0,
+    "frozenCredits": 0
+  },
+  "workflow": "Tripo Studio via signed-in Opera browser",
+  "browserJob": {
+    "id": "da316294-10db-442b-9180-55ff6ab71231",
+    "url": "https://studio.tripo3d.ai/workspace/generate/da316294-10db-442b-9180-55ff6ab71231",
+    "model": "H3.1 – Best Quality",
+    "privacy": "Private",
+    "geometryAndTexture": true,
+    "generateInParts": false,
+    "texture8K": false,
+    "exportFormat": "GLB",
+    "exportTextureResolution": "2k",
+    "status": "succeeded"
+  },
+  "browserBalanceBefore": 23110,
+  "browserBalanceAfter": 23080,
+  "originalProviderOutput": "tmp/mask-shaman/tripo-original.glb",
+  "originalSha256": "a8f7319846a3c27bafe3019a1ee38303db2c1d23cdd7c8d5dc90c1f822e835b0",
+  "portrait": {
+    "path": "src/game/objects/enemies/mask-shaman/portrait.png",
+    "source": "info.png main portrait",
+    "tool": "built-in image_gen",
+    "output": "exec-99f8f320-7d52-41db-b068-8becabf7eea5.png",
+    "sha256": "5d3bf8ce8e2ae3df6c4d60ecccc2228f4713efbf7ba10aa198d2bdf2b5915d3a",
+    "prompt": "Extract ONLY the large main Mask Shaman character in the upper-left of this design infographic into a clean single-character image for image-to-3D. Preserve the exact existing design, silhouette, proportions, angular cubist geometry and colors. Full body including boots and entire skull-topped wooden staff visible with generous transparent margins. Ivory skull mask with long rectangular red-black eye openings, red forehead triangle; radial fan of red and dark indigo-purple feathers; gold collar; squat brown boots. Do not include any text, graphic panels, gray floor, rocks, shadows, cameo figures, crowns or aura rings. Do not redesign or add elements. Make the background genuinely transparent."
+  }
+}

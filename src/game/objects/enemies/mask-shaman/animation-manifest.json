@@ -1,0 +1,390 @@
+{
+  "schemaVersion": 1,
+  "status": "runtime_playback_verified_gameplay_acceptance_partial",
+  "model": "mask-shaman.glb",
+  "clips": [
+    {
+      "name": "idle",
+      "duration": 2,
+      "looping": true,
+      "eventTimes": [],
+      "verified": true,
+      "freshImportVerified": true,
+      "movingNonRootJoints": [
+        "chest",
+        "arm_L",
+        "arm_R",
+        "staff_hand",
+        "mask_fan"
+      ],
+      "loopSeamMatches": true,
+      "runtimePlaybackVerified": true
+    },
+    {
+      "name": "walk",
+      "duration": 0.8,
+      "looping": true,
+      "eventTimes": [],
+      "verified": true,
+      "freshImportVerified": true,
+      "movingNonRootJoints": [
+        "chest",
+        "arm_L",
+        "arm_R",
+        "staff_hand",
+        "mask_fan"
+      ],
+      "loopSeamMatches": true,
+      "runtimePlaybackVerified": true
+    },
+    {
+      "name": "run",
+      "duration": 0.5333333333333333,
+      "looping": true,
+      "eventTimes": [],
+      "verified": true,
+      "freshImportVerified": true,
+      "movingNonRootJoints": [
+        "chest",
+        "arm_L",
+        "arm_R",
+        "staff_hand",
+        "mask_fan"
+      ],
+      "loopSeamMatches": true,
+      "runtimePlaybackVerified": true
+    },
+    {
+      "name": "turn",
+      "duration": 0.6,
+      "looping": false,
+      "eventTimes": [],
+      "verified": true,
+      "freshImportVerified": true,
+      "movingNonRootJoints": [
+        "pelvis",
+        "chest",
+        "arm_L",
+        "arm_R",
+        "staff_hand",
+        "mask_fan",
+        "leg_L",
+        "foot_L",
+        "leg_R",
+        "foot_R"
+      ],
+      "loopSeamMatches": null,
+      "runtimePlaybackVerified": true
+    },
+    {
+      "name": "staff_raise",
+      "duration": 0.3333333333333333,
+      "looping": false,
+      "eventTimes": [],
+      "verified": true,
+      "freshImportVerified": true,
+      "movingNonRootJoints": [
+        "arm_R",
+        "staff_hand",
+        "mask_fan"
+      ],
+      "loopSeamMatches": null,
+      "runtimePlaybackVerified": true
+    },
+    {
+      "name": "discipline_cast",
+      "duration": 0.5,
+      "looping": false,
+      "eventTimes": [],
+      "verified": true,
+      "freshImportVerified": true,
+      "movingNonRootJoints": [
+        "chest",
+        "arm_L",
+        "arm_R",
+        "staff_hand",
+        "mask_fan"
+      ],
+      "loopSeamMatches": null,
+      "runtimePlaybackVerified": true
+    },
+    {
+      "name": "aura_sustain",
+      "duration": 2,
+      "looping": true,
+      "eventTimes": [],
+      "verified": true,
+      "freshImportVerified": true,
+      "movingNonRootJoints": [
+        "chest",
+        "arm_L",
+        "arm_R",
+        "staff_hand",
+        "mask_fan"
+      ],
+      "loopSeamMatches": true,
+      "runtimePlaybackVerified": true
+    },
+    {
+      "name": "aura_end",
+      "duration": 0.4666666666666667,
+      "looping": false,
+      "eventTimes": [],
+      "verified": true,
+      "freshImportVerified": true,
+      "movingNonRootJoints": [
+        "arm_R",
+        "staff_hand",
+        "mask_fan"
+      ],
+      "loopSeamMatches": null,
+      "runtimePlaybackVerified": true
+    },
+    {
+      "name": "cast_interrupt",
+      "duration": 0.3333333333333333,
+      "looping": false,
+      "eventTimes": [],
+      "verified": true,
+      "freshImportVerified": true,
+      "movingNonRootJoints": [
+        "chest",
+        "arm_L",
+        "arm_R",
+        "staff_hand",
+        "mask_fan"
+      ],
+      "loopSeamMatches": null,
+      "runtimePlaybackVerified": true
+    },
+    {
+      "name": "confused_loop",
+      "duration": 1.4,
+      "looping": true,
+      "eventTimes": [],
+      "verified": true,
+      "freshImportVerified": true,
+      "movingNonRootJoints": [
+        "chest",
+        "arm_L",
+        "arm_R",
+        "staff_hand",
+        "mask_fan"
+      ],
+      "loopSeamMatches": true,
+      "runtimePlaybackVerified": true
+    },
+    {
+      "name": "recover",
+      "duration": 0.6,
+      "looping": false,
+      "eventTimes": [],
+      "verified": true,
+      "freshImportVerified": true,
+      "movingNonRootJoints": [
+        "chest",
+        "arm_L",
+        "arm_R",
+        "staff_hand",
+        "mask_fan"
+      ],
+      "loopSeamMatches": null,
+      "runtimePlaybackVerified": true
+    },
+    {
+      "name": "hit",
+      "duration": 0.4,
+      "looping": false,
+      "eventTimes": [],
+      "verified": true,
+      "freshImportVerified": true,
+      "movingNonRootJoints": [
+        "chest",
+        "arm_L",
+        "arm_R",
+        "staff_hand",
+        "mask_fan"
+      ],
+      "loopSeamMatches": null,
+      "runtimePlaybackVerified": true
+    },
+    {
+      "name": "angry",
+      "duration": 0.8,
+      "looping": false,
+      "eventTimes": [],
+      "verified": true,
+      "freshImportVerified": true,
+      "movingNonRootJoints": [
+        "arm_L",
+        "staff_hand",
+        "mask_fan"
+      ],
+      "loopSeamMatches": null,
+      "runtimePlaybackVerified": true
+    },
+    {
+      "name": "carried_struggle",
+      "duration": 0.8,
+      "looping": true,
+      "eventTimes": [],
+      "verified": true,
+      "freshImportVerified": true,
+      "movingNonRootJoints": [
+        "arm_L",
+        "mask_fan",
+        "leg_L",
+        "foot_L",
+        "leg_R",
+        "foot_R"
+      ],
+      "loopSeamMatches": true,
+      "runtimePlaybackVerified": true
+    },
+    {
+      "name": "airborne",
+      "duration": 1,
+      "looping": true,
+      "eventTimes": [],
+      "verified": true,
+      "freshImportVerified": true,
+      "movingNonRootJoints": [
+        "mask_fan",
+        "leg_L",
+        "foot_L",
+        "leg_R",
+        "foot_R"
+      ],
+      "loopSeamMatches": true,
+      "runtimePlaybackVerified": true
+    },
+    {
+      "name": "land",
+      "duration": 0.6,
+      "looping": false,
+      "eventTimes": [],
+      "verified": true,
+      "freshImportVerified": true,
+      "movingNonRootJoints": [
+        "mask_fan",
+        "leg_L",
+        "foot_L",
+        "leg_R",
+        "foot_R"
+      ],
+      "loopSeamMatches": null,
+      "runtimePlaybackVerified": true
+    },
+    {
+      "name": "staff_attack",
+      "duration": 1.1,
+      "looping": false,
+      "eventTimes": [
+        {
+          "name": "contact",
+          "time": 0.4
+        }
+      ],
+      "verified": true,
+      "freshImportVerified": true,
+      "movingNonRootJoints": [
+        "chest",
+        "arm_L",
+        "arm_R",
+        "staff_hand",
+        "mask_fan"
+      ],
+      "loopSeamMatches": null,
+      "runtimePlaybackVerified": true
+    },
+    {
+      "name": "stun_loop",
+      "duration": 1.2,
+      "looping": true,
+      "eventTimes": [],
+      "verified": true,
+      "freshImportVerified": true,
+      "movingNonRootJoints": [
+        "arm_R",
+        "staff_hand",
+        "mask_fan"
+      ],
+      "loopSeamMatches": true,
+      "runtimePlaybackVerified": true
+    },
+    {
+      "name": "death",
+      "duration": 1.2,
+      "looping": false,
+      "eventTimes": [],
+      "verified": true,
+      "freshImportVerified": true,
+      "movingNonRootJoints": [
+        "pelvis",
+        "chest",
+        "arm_L",
+        "arm_R",
+        "staff_hand",
+        "mask_fan",
+        "leg_L",
+        "foot_L",
+        "leg_R",
+        "foot_R"
+      ],
+      "loopSeamMatches": null,
+      "runtimePlaybackVerified": true
+    },
+    {
+      "name": "knockback",
+      "duration": 0.5,
+      "looping": false,
+      "eventTimes": [],
+      "verified": true,
+      "freshImportVerified": true,
+      "movingNonRootJoints": [
+        "chest",
+        "arm_L",
+        "arm_R",
+        "staff_hand",
+        "mask_fan"
+      ],
+      "loopSeamMatches": null,
+      "runtimePlaybackVerified": true
+    }
+  ],
+  "clipsVerified": [
+    "airborne",
+    "angry",
+    "aura_end",
+    "aura_sustain",
+    "carried_struggle",
+    "cast_interrupt",
+    "confused_loop",
+    "death",
+    "discipline_cast",
+    "hit",
+    "idle",
+    "knockback",
+    "land",
+    "recover",
+    "run",
+    "staff_attack",
+    "staff_raise",
+    "stun_loop",
+    "turn",
+    "walk"
+  ],
+  "supportedStates": [
+    "ShamanCastState",
+    "ShamanMarchState",
+    "ShamanInterruptedState",
+    "ShamanRecoverState",
+    "ShamanStaffAttackState",
+    "ShamanDeadState"
+  ],
+  "runtimeEvidence": [
+    "evidence/runtime-playback.json",
+    "evidence/runtime-playback-summary.json",
+    "evidence/runtime-behavior.json"
+  ]
+}

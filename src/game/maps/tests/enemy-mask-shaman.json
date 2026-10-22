@@ -1,0 +1,989 @@
+{
+  "grid": [
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  ],
+  "heightmap": [
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  ],
+  "tileMeta": [
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ]
+  ],
+  "cols": 11,
+  "rows": 11,
+  "numPaths": 0,
+  "pipeData": [],
+  "mergeZones": [],
+  "trunkStart": null,
+  "mapName": "test_enemy-mask-shaman",
+  "layoutSignature": "test_enemy-mask-shaman",
+  "animationViewport": {
+    "zoom": 3.5,
+    "rotation": 0,
+    "panX": 0,
+    "panZ": 0
+  },
+  "objects": [
+    {
+      "id": "mask-shaman-main",
+      "object": "MaskShaman",
+      "position": {
+        "x": 0,
+        "y": 2.08,
+        "z": 0
+      },
+      "testClip": "idle",
+      "testStageRoyal": true
+    },
+    {
+      "id": "mask-shaman-ally",
+      "object": "MaskShaman",
+      "position": {
+        "x": 2,
+        "y": 2.08,
+        "z": 1
+      },
+      "testClip": "idle"
+    },
+    {
+      "id": "shaman-royal",
+      "object": "King",
+      "position": {
+        "x": 4,
+        "y": 2.08,
+        "z": -2
+      }
+    },
+    {
+      "id": "hero-spawn",
+      "object": "SpawnPoint",
+      "position": {
+        "x": -3,
+        "y": 2.1,
+        "z": 3
+      }
+    }
+  ],
+  "heroSpawn": {
+    "x": -3,
+    "y": 2.1,
+    "z": 3
+  },
+  "testControls": {
+    "panels": [
+      {
+        "title": "Mask Shaman",
+        "x": 16,
+        "y": 140,
+        "statusTargetId": "mask-shaman-main",
+        "buttons": [
+          {
+            "label": "Resume discipline",
+            "script": "for (const actor of objects) { if (actor.definition?.id === 'mask-shaman-main') { actor.testClip=null; } }"
+          },
+          {
+            "label": "Bell (2s)",
+            "script": "for (const actor of objects) { if (actor.definition?.id === 'mask-shaman-main') { actor.onBellRung({eventId: Symbol(),duration:2}); } }"
+          },
+          {
+            "label": "Hit / interrupt",
+            "script": "for (const actor of objects) { if (actor.definition?.id === 'mask-shaman-main') { actor.receiveDamage(1); } }"
+          },
+          {
+            "label": "Stun (2s)",
+            "script": "for (const actor of objects) { if (actor.definition?.id === 'mask-shaman-main') { actor.applyStatus('stun',{duration:2}); } }"
+          },
+          {
+            "label": "Carry by ally",
+            "script": "for (const actor of objects) { if (actor.definition?.id === 'mask-shaman-main') { const ally=[...objects].find(o=>o.definition?.id==='mask-shaman-ally');actor.beginCarry(ally); } }"
+          },
+          {
+            "label": "Throw (Ammo)",
+            "script": "for (const actor of objects) { if (actor.definition?.id === 'mask-shaman-main') { actor.launch({velocity:{x:-1,y:5,z:1}}); } }"
+          },
+          {
+            "label": "Defeat",
+            "script": "for (const actor of objects) { if (actor.definition?.id === 'mask-shaman-main') { actor.receiveDamage(actor.health); } }"
+          },
+          {
+            "label": "Verify all clips",
+            "script": "for (const actor of objects) { if (actor.definition?.id === 'mask-shaman-main') { void actor.checks.verifyClips(); } }"
+          },
+          {
+            "label": "Save transparent preview",
+            "script": "for (const actor of objects) { if (actor.definition?.id === 'mask-shaman-main') { void actor.checks.preview(); } }"
+          },
+          {
+            "label": "Half time",
+            "script": "for (const actor of objects) { if (actor.definition?.id === 'mask-shaman-main') { actor.app.timeScale=.5; } }"
+          },
+          {
+            "label": "Normal time",
+            "script": "for (const actor of objects) { if (actor.definition?.id === 'mask-shaman-main') { actor.app.timeScale=1; } }"
+          },
+          {
+            "label": "Verify behavior",
+            "script": "for(const a of objects){if(a.definition?.id==='mask-shaman-main')void a.checks.verifyBehavior();}"
+          }
+        ]
+      },
+      {
+        "title": "Embedded clips 1",
+        "x": 272,
+        "y": 450,
+        "buttons": [
+          {
+            "label": "idle",
+            "script": "for (const actor of objects) { if (actor.definition?.id === 'mask-shaman-main') { actor.testClip=\"idle\"; } }"
+          },
+          {
+            "label": "walk",
+            "script": "for (const actor of objects) { if (actor.definition?.id === 'mask-shaman-main') { actor.testClip=\"walk\"; } }"
+          },
+          {
+            "label": "run",
+            "script": "for (const actor of objects) { if (actor.definition?.id === 'mask-shaman-main') { actor.testClip=\"run\"; } }"
+          },
+          {
+            "label": "turn",
+            "script": "for (const actor of objects) { if (actor.definition?.id === 'mask-shaman-main') { actor.testClip=\"turn\"; } }"
+          },
+          {
+            "label": "staff_raise",
+            "script": "for (const actor of objects) { if (actor.definition?.id === 'mask-shaman-main') { actor.testClip=\"staff_raise\"; } }"
+          }
+        ]
+      },
+      {
+        "title": "Embedded clips 2",
+        "x": 520,
+        "y": 450,
+        "buttons": [
+          {
+            "label": "discipline_cast",
+            "script": "for (const actor of objects) { if (actor.definition?.id === 'mask-shaman-main') { actor.testClip=\"discipline_cast\"; } }"
+          },
+          {
+            "label": "aura_sustain",
+            "script": "for (const actor of objects) { if (actor.definition?.id === 'mask-shaman-main') { actor.testClip=\"aura_sustain\"; } }"
+          },
+          {
+            "label": "aura_end",
+            "script": "for (const actor of objects) { if (actor.definition?.id === 'mask-shaman-main') { actor.testClip=\"aura_end\"; } }"
+          },
+          {
+            "label": "cast_interrupt",
+            "script": "for (const actor of objects) { if (actor.definition?.id === 'mask-shaman-main') { actor.testClip=\"cast_interrupt\"; } }"
+          },
+          {
+            "label": "confused_loop",
+            "script": "for (const actor of objects) { if (actor.definition?.id === 'mask-shaman-main') { actor.testClip=\"confused_loop\"; } }"
+          }
+        ]
+      },
+      {
+        "title": "Embedded clips 3",
+        "x": 768,
+        "y": 450,
+        "buttons": [
+          {
+            "label": "recover",
+            "script": "for (const actor of objects) { if (actor.definition?.id === 'mask-shaman-main') { actor.testClip=\"recover\"; } }"
+          },
+          {
+            "label": "hit",
+            "script": "for (const actor of objects) { if (actor.definition?.id === 'mask-shaman-main') { actor.testClip=\"hit\"; } }"
+          },
+          {
+            "label": "angry",
+            "script": "for (const actor of objects) { if (actor.definition?.id === 'mask-shaman-main') { actor.testClip=\"angry\"; } }"
+          },
+          {
+            "label": "carried_struggle",
+            "script": "for (const actor of objects) { if (actor.definition?.id === 'mask-shaman-main') { actor.testClip=\"carried_struggle\"; } }"
+          },
+          {
+            "label": "airborne",
+            "script": "for (const actor of objects) { if (actor.definition?.id === 'mask-shaman-main') { actor.testClip=\"airborne\"; } }"
+          }
+        ]
+      },
+      {
+        "title": "Embedded clips 4",
+        "x": 1016,
+        "y": 450,
+        "buttons": [
+          {
+            "label": "land",
+            "script": "for (const actor of objects) { if (actor.definition?.id === 'mask-shaman-main') { actor.testClip=\"land\"; } }"
+          },
+          {
+            "label": "staff_attack",
+            "script": "for (const actor of objects) { if (actor.definition?.id === 'mask-shaman-main') { actor.testClip=\"staff_attack\"; } }"
+          },
+          {
+            "label": "stun_loop",
+            "script": "for (const actor of objects) { if (actor.definition?.id === 'mask-shaman-main') { actor.testClip=\"stun_loop\"; } }"
+          },
+          {
+            "label": "death",
+            "script": "for (const actor of objects) { if (actor.definition?.id === 'mask-shaman-main') { actor.testClip=\"death\"; } }"
+          },
+          {
+            "label": "knockback",
+            "script": "for (const actor of objects) { if (actor.definition?.id === 'mask-shaman-main') { actor.testClip=\"knockback\"; } }"
+          }
+        ]
+      }
+    ]
+  }
+}
