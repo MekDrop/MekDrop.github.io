@@ -1,5 +1,5 @@
 /**
- * @typedef {{center:number[],radius:number,wallThickness:number,height:number,belfryHeight:number,roofHeight:number,doorWidth:number,doorHeight:number,terraceElevation:number}} RoundTowerDefinition
+ * @typedef {{center:number[],radius:number,wallThickness:number,height:number,belfryHeight:number,roofHeight:number,doorWidth:number,doorHeight:number,terraceElevation:number,terraceDoorSide?:"NORTH"|"SOUTH",groundDoorOwnedByEntrance?:boolean}} RoundTowerDefinition
  */
 
 /**
@@ -53,44 +53,43 @@ export class CastleRoundTower {
         if (nearestRadius >= tower.radius - tower.wallThickness) {
           const left = cx - (tower.doorWidth + 0.15) / 2;
           const right = cx + (tower.doorWidth + 0.15) / 2;
-          const doorway = bounds.minX < right && bounds.maxX > left && dz > 0;
-          if (doorway) {
-            for (const side of [{
-              ...bounds,
-              maxX: Math.min(left, bounds.maxX),
-            },
-            {
-              ...bounds,
-              minX: Math.max(right, bounds.minX),
-            }]) {
-              if (side.maxX > side.minX) {
+          for (const elevation of [0, tower.terraceElevation]) {
+            const side = elevation === 0 ? "SOUTH" : (tower.terraceDoorSide ?? "SOUTH");
+            const doorway = bounds.minX < right && bounds.maxX > left && (side === "NORTH" ? dz < 0 : dz > 0);
+            const bottom = baseY + elevation;
+            const top = baseY + (elevation === 0 ? tower.terraceElevation : tower.height);
+            if (!doorway) {
+              emit({
+                ...bounds,
+                minY: bottom,
+                maxY: top,
+              });
+              continue;
+            }
+            for (const piece of [
+              {
+                ...bounds,
+                maxX: Math.min(left, bounds.maxX),
+              },
+              {
+                ...bounds,
+                minX: Math.max(right, bounds.minX),
+              },
+            ]) {
+              if (piece.maxX > piece.minX) {
                 emit({
-                  ...side,
-                  minY: baseY,
-                  maxY: baseY + tower.height,
+                  ...piece,
+                  minY: bottom,
+                  maxY: top,
                 });
               }
             }
-            const aperture = {
+            emit({
               ...bounds,
               minX: Math.max(left, bounds.minX),
               maxX: Math.min(right, bounds.maxX),
-            };
-            emit({
-              ...aperture,
-              minY: baseY + tower.doorHeight - 0.05,
-              maxY: baseY + tower.terraceElevation,
-            });
-            emit({
-              ...aperture,
-              minY: baseY + tower.terraceElevation + tower.doorHeight - 0.05,
-              maxY: baseY + tower.height,
-            });
-          } else {
-            emit({
-              ...bounds,
-              minY: baseY,
-              maxY: baseY + tower.height,
+              minY: bottom + tower.doorHeight - 0.05,
+              maxY: top,
             });
           }
           // Belfry openings start above a continuous protective stone sill.

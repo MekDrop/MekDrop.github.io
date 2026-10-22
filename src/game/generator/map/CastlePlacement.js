@@ -29,6 +29,9 @@ export class CastlePlacement {
   placeCastle(grid, tileMeta, layout) {
     for (let row = layout.castleTop; row <= layout.castleBottom; row++) {
       for (let col = layout.castleLeft; col <= layout.castleRight; col++) {
+        if (layout.castleApproachCells?.has(MapGrid.tileKey(col, row))) {
+          continue;
+        }
         const isCorner =
           (row === layout.castleTop || row === layout.castleBottom) &&
           (col === layout.castleLeft || col === layout.castleRight);

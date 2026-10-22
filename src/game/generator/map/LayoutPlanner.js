@@ -54,7 +54,7 @@ export class LayoutPlanner {
 
   /**
    * @param {number} numPaths
-   * @param {{basePlanId:string,entranceInset:number,width:number,depth:number}} [authoredPlan]
+   * @param {{basePlanId:string,entranceInset:number,width:number,depth:number,approach?:number[][],approachRamp?:boolean,mirrored?:boolean}} [authoredPlan]
    */
   createLayoutConfig(numPaths, authoredPlan) {
     const anchorRows = ENTRY_TEMPLATES.map(LayoutPlanner.#mapTemplate);
@@ -85,6 +85,17 @@ export class LayoutPlanner {
     const castleCenterRow = castleTop + Math.floor(castleFootprint.depth / 2);
     const castleBottom = castleTop + castleFootprint.depth - 1;
     const castleEntranceRows = [...pathRows];
+    const castleApproach = authoredPlan?.approach?.map(/**
+     *
+     * @param {number[]} point
+     */
+      point => ({
+        col2: castleLeft * 2 + point[0] * 2,
+        row2: castleEntranceRows[0] + castleEntranceRows[1] + point[1] * 2 * (authoredPlan.mirrored ? -1 : 1),
+      }));
+    if (castleApproach) {
+      pathRows = [Math.floor(castleApproach[0].row2 / 2), Math.ceil(castleApproach[0].row2 / 2)];
+    }
     const entries = this.#selectEntries(
       numPaths,
       castleLeft,
@@ -92,6 +103,12 @@ export class LayoutPlanner {
       castleBottom,
       pathRows,
     );
+    if (castleApproach) {
+      for (const entry of entries) {
+        entry.mergeCol = Math.min(entry.mergeCol, castleLeft - 6);
+        entry.curvePlan = null;
+      }
+    }
     const islandEllipses = [
       {
         centerCol: this.#random.rng(20, 24),
@@ -143,6 +160,8 @@ export class LayoutPlanner {
     ];
 
     return {
+      castleApproach,
+      castleApproachRamp: authoredPlan?.approachRamp === true,
       castleLeft,
       castleRight,
       castleTop,
@@ -374,7 +393,7 @@ export class LayoutPlanner {
            * @param {number} col
            */
             (tile, col) => tile === TileType.PATH && col >= layout.castleLeft &&
-            col <= layout.castleRight && !(col === layout.castleEntranceCol &&
+            col <= layout.castleRight && !layout.castleApproachCells?.has(MapGrid.tileKey(col, row)) && !(col === layout.castleEntranceCol &&
               layout.castleEntranceRows.includes(row)));
       if (
         previewGrid.some(containsInteriorCastlePath) ||

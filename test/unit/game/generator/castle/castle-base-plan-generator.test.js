@@ -62,7 +62,7 @@ it("mirrors odd seeds around the unchanged entrance, including every structural 
     planId: "castle-demo-compact",
     seed: 43,
   });
-  assert.deepEqual(CastleBasePlanGenerator.layoutPlanIds, ["castle-demo-compact", "castle-compact-service-wing", "castle-rear-bell-tower"]);
+  assert.deepEqual(CastleBasePlanGenerator.layoutPlanIds, ["castle-demo-compact", "castle-compact-service-wing", "castle-rear-bell-tower", "castle-tower-bridge"]);
   assert.equal(original.basePlanId, mirrored.basePlanId);
   assert.equal(original.mirrored, false);
   assert.equal(mirrored.mirrored, true);
@@ -103,13 +103,15 @@ it("excludes the retired tower from numeric and named seed selection", () => {
   for (const seed of [...Array(120).keys(), "reference", "tower", "castle"]) {
     assert.notEqual(CastleBasePlanGenerator.selectPlanId(seed), "castle-compact-tower");
   }
-  for (const seed of [0, 6, 12]) {
+  for (const seed of [0, 8, 16]) {
     assert.equal(CastleBasePlanGenerator.selectPlanId(seed), "castle-demo-compact");
     assert.equal(CastleBasePlanGenerator.selectPlanId(seed + 1), "castle-demo-compact");
     assert.equal(CastleBasePlanGenerator.selectPlanId(seed + 2), "castle-compact-service-wing");
     assert.equal(CastleBasePlanGenerator.selectPlanId(seed + 3), "castle-compact-service-wing");
     assert.equal(CastleBasePlanGenerator.selectPlanId(seed + 4), "castle-rear-bell-tower");
     assert.equal(CastleBasePlanGenerator.selectPlanId(seed + 5), "castle-rear-bell-tower");
+    assert.equal(CastleBasePlanGenerator.selectPlanId(seed + 6), "castle-tower-bridge");
+    assert.equal(CastleBasePlanGenerator.selectPlanId(seed + 7), "castle-tower-bridge");
   }
 });
 

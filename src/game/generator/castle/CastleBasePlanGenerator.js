@@ -37,7 +37,7 @@ export class CastleBasePlanGenerator {
    * @returns {string[]}
    */
   static get layoutPlanIds() {
-    return ["castle-demo-compact", "castle-compact-service-wing", "castle-rear-bell-tower"];
+    return ["castle-demo-compact", "castle-compact-service-wing", "castle-rear-bell-tower", "castle-tower-bridge"];
   }
 
   /**
@@ -92,6 +92,9 @@ export class CastleBasePlanGenerator {
       ? await import("./plans/castle-rear-bell-tower.json")
       : await this.#loadNodePlan("castle-rear-bell-tower");
     modules.push(rearTower);
+    modules.push(import.meta.env
+      ? await import("./plans/castle-tower-bridge.json")
+      : await this.#loadNodePlan("castle-tower-bridge"));
 
     return structuredClone(modules.map(/**
      * @param {{default:CastleBasePlan}} module

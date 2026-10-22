@@ -162,10 +162,27 @@ export class PathCarver {
       grid,
       tileMeta,
       trunkStart,
-      layout.castleEntranceCol,
+      layout.castleApproach ? Math.ceil(layout.castleApproach[0].col2 / 2) : layout.castleEntranceCol,
       layout.pathRows,
       DIRECTIONS.EAST,
     );
+
+    // Shared final approach follows the authored castle route after all entry merges.
+    const approachCells = new Set();
+    for (let index = 1; index < (layout.castleApproach?.length ?? 0); index++) {
+      const from = layout.castleApproach[index - 1];
+      const to = layout.castleApproach[index];
+      if (from.row2 === to.row2) {
+        this.#addHorizontalRoute(grid, tileMeta, approachCells,
+          Math.floor(Math.min(from.col2, to.col2) / 2), Math.ceil(Math.max(from.col2, to.col2) / 2),
+          [Math.floor(to.row2 / 2), Math.ceil(to.row2 / 2)]);
+      } else {
+        this.#addVerticalRoute(grid, tileMeta, approachCells,
+          Math.floor(to.col2 / 2), Math.floor(Math.min(from.row2, to.row2) / 2),
+          Math.ceil(Math.max(from.row2, to.row2) / 2));
+      }
+    }
+    layout.castleApproachCells = approachCells;
 
     for (let pathIdx = 0; pathIdx < layout.entries.length; pathIdx++) {
       const entry = layout.entries[pathIdx];

@@ -1,7 +1,7 @@
 # Authored castle base plans
 
-Only the three active layouts are retained: `castle-demo-compact`,
-`castle-compact-service-wing` and `castle-rear-bell-tower`.
+The four active layouts are: `castle-demo-compact`,
+`castle-compact-service-wing`, `castle-rear-bell-tower` and `castle-tower-bridge`.
 The compact reference sheets are retained in `sources/`.
 
 ## Data contract
@@ -172,3 +172,25 @@ are static vertex bounds, with no runtime scaling correction required.
 
 The service-wing ground-floor cross hall and entrance circulation now form one rectangular vestibule. Its original main entrance and west window remain at the same coordinates; a single room generator and timber finish cover the full arrival area.
 The crown ladder ends below the roof surface. Its map-owned ladder object also owns a framed timber hatch with handles on both faces. Climbing opens the hatch temporarily; the closed lid restores physical support across the aperture.
+
+## Tower bridge entrance
+
+`castle-tower-bridge` (seeds 6/7 in the first selection cycle) moves the round
+spiral tower to the approach side. Its ground door is the castle entrance and
+path endpoint; its opposite upper door leads across a raised bridge to the roof
+terrace. The far stair tower provides the only descent into the hall. The ground
+corridor and the hall's former exterior entrance are absent.
+
+`roundTower.terraceDoorSide` selects NORTH or SOUTH independently of the south
+ground entrance. `entrance.doorOwnedByRoom` keeps the path endpoint while suppressing the
+castle main-gate assembly: the round tower supplies its normal 1.2-metre door.
+Both options preserve existing tower defaults. The entrance aperture is authored as a small courtyard threshold; the
+circular tower owns its surrounding shell and floor.
+
+Open `/map/test_castle-tower-bridge` for the two-tile monster route beneath the
+bridge, ending at the tower door. HUD buttons expose the entrance, bridge,
+terrace, descent tower and hall, plus the mirrored variation.
+
+The optional entrance `approach` lists orthogonal `[inward, lateral]` offsets in metres from the door center. The map generator reflects lateral offsets with the castle and reserves two-tile paving along this shared final route. Tower-bridge approaches pass beneath the bridge before circling back to the ordinary tower door.
+
+`entrance.approachRamp` raises the last two approach stations to the castle floor, followed by a flat 2x2 exterior landing at the door bottom. It uses ordinary terrain slope tiles and removes the need for a separate exterior stair flight.

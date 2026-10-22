@@ -65,6 +65,7 @@ export class CastleDataBuilder {
           ? grid[outsideRow][outsideCol]
           : TileType.WATER;
         if (
+          (!layout.castleApproach || cell.col === layout.castleEntranceCol && layout.castleEntranceRows.includes(cell.row)) &&
           grid[cell.row][cell.col] === TileType.PATH &&
           (outsideTile === TileType.PATH || outsideTile === TileType.ENTRY)
         ) {

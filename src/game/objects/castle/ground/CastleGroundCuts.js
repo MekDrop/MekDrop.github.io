@@ -235,7 +235,9 @@ export function clipCastleTerrainRecord(definition, cuts) {
    * @param {number} index
    */
     (piece, index) => {
-      const top = definition.object === "Grass" && Math.abs(piece.maxY - originalTop) < 0.000001;
+      const retainsTop = Math.abs(piece.maxY - originalTop) < 0.000001;
+      const top = definition.object === "Grass" && retainsTop;
+      const pathTop = retainsTop && args?.[0]?.startsWith("surface:");
       const height = piece.maxY - piece.minY;
       // Box surfaces receive a bias scaled by their height. Preserve the full
       // grass cube's rendered top, even when excavation leaves a shallow piece.
@@ -255,7 +257,7 @@ export function clipCastleTerrainRecord(definition, cuts) {
         position,
         geometry: {
           method: "addBoxMatrix",
-          args: [top ? args?.[0] ?? "grass" : "earth", args?.[1] ?? "earth", position.x, position.y, position.z,
+          args: [pathTop ? args[0] : top ? args?.[0] ?? "grass" : "earth", args?.[1] ?? "earth", position.x, position.y, position.z,
             0, piece.maxX - piece.minX, height + lift, piece.maxZ - piece.minZ, "full", "earth"],
         },
       };

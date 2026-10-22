@@ -2,14 +2,14 @@ import assert from 'node:assert/strict';
 import {it} from 'node:test';
 import {MapGenerator} from '../../../../../src/game/generator/map/MapGenerator.js';
 import {PathTopology} from '../../../../../src/game/generator/map/PathTopology.js';
-it('loads muk76amh_1dmmup1 with separated two-lane merges and the compact castle',async()=>{
+it('loads muk76amh_1dmmup1 with separated two-lane merges and the selected castle',async()=>{
   const options={mapName:'muk76amh_1dmmup1'};
   const first=await MapGenerator.generate(options), second=await MapGenerator.generate(options);
   assert.equal(first.mapName,options.mapName);
   assert.equal(PathTopology.findUnexpectedFlatPathCrossing(first.grid,null),null);
   assert.deepEqual(first.grid,second.grid);
   const castle=first.objects.find(object=>object.object==='Castle');
-  assert.equal(castle.buildPlan.metadata.runtime.residential.basePlanId,'castle-demo-compact');
+  assert.equal(castle.buildPlan.metadata.runtime.residential.basePlanId,'castle-tower-bridge');
   assert.ok(first.paths.every(path=>path.route.length>0));
 });
 
@@ -28,9 +28,9 @@ it('places the castle doorway on the final two-lane route endpoint',async()=>{
 });
 
 it('reserves terrain in proportion to the compact castle footprint',async()=>{
-  const map=await MapGenerator.generate({mapName:'muk76amh_1dmmup1'});
+  const map=await MapGenerator.generate({mapName:'0'});
   const position=map.objects.find(object=>object.object==='Castle').buildPlan.input.position;
   assert.equal(position.width,10,'eight-metre castle depth plus one tile on each side');
-  assert.equal(position.depth,9,'seven-metre castle width plus one tile on each side');
+  assert.equal(position.depth,10,'eight-metre castle width plus one tile on each side');
   assert.ok(position.width*position.depth<16*28/3,'avoid the legacy oversized plateau reservation');
 });

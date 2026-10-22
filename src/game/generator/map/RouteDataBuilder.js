@@ -81,11 +81,13 @@ export class RouteDataBuilder {
       waypoints[waypoints.length - 1].row2,
     );
     this.#appendRouteWaypoint(waypoints, mergeCenterCol2, trunkCenterRow2);
-    this.#appendRouteWaypoint(
-      waypoints,
-      layout.castleEntranceCol * 2,
-      trunkCenterRow2,
-    );
+    if (layout.castleApproach) {
+      for (const point of layout.castleApproach) {
+        this.#appendRouteWaypoint(waypoints, point.col2, point.row2);
+      }
+    } else {
+      this.#appendRouteWaypoint(waypoints, layout.castleEntranceCol * 2, trunkCenterRow2);
+    }
 
     return waypoints;
   }
@@ -355,7 +357,7 @@ export class RouteDataBuilder {
       });
     const targetKey = this.#routeNodeKey(
       layout.castleEntranceCol * 2,
-      layout.pathRows[0] + layout.pathRows[1],
+      (layout.castleEntranceRows ?? layout.pathRows)[0] + (layout.castleEntranceRows ?? layout.pathRows)[1],
       PATH_HEIGHT,
     );
     const distances = this.#buildRouteDistances(graph, targetKey);

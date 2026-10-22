@@ -1,3 +1,4 @@
+import { CastleApproachRamp } from "./CastleApproachRamp.js";
 import {
   BridgeGroundHeightMismatchError,
   BridgeTurnError,
@@ -40,8 +41,12 @@ export class PathSurfaceValidator {
    * @param {number[][]} grid
    * @param {number[][]} heightmap
    * @param {TileMetadata[][]} tileMeta
+   * @param {import("./MapGenerationTypes.js").MapLayout|null} layout
    */
-  validateHeightDiscipline(grid, heightmap, tileMeta) {
+  validateHeightDiscipline(grid, heightmap, tileMeta, layout = null) {
+    const entranceCells = new Map(CastleApproachRamp.cells(layout).map(/**
+     * @param {{col:number,row:number}} cell
+     */ cell => [MapGrid.tileKey(cell.col, cell.row), cell]));
     for (let row = 0; row < MAP_ROWS; row++) {
       for (let col = 0; col < MAP_COLS; col++) {
         const tile = grid[row][col];
@@ -69,8 +74,15 @@ export class PathSurfaceValidator {
                 (metadata.slope.lowHeight + metadata.slope.highHeight) / 2
             : metadata.shape === TILE_SHAPE.FLAT &&
               heightmap[row][col] === TERRAIN_BRIDGE_DIP_ELEVATION);
+        const entranceCell = entranceCells.get(MapGrid.tileKey(col, row));
+        const validEntranceHeight = entranceCell && heightmap[row][col] === entranceCell.height &&
+          metadata.shape === entranceCell.shape &&
+          metadata.slope?.lowHeight === entranceCell.slope?.lowHeight &&
+          metadata.slope?.highHeight === entranceCell.slope?.highHeight &&
+          metadata.slope?.riseDirection === entranceCell.slope?.riseDirection;
         if (
           heightmap[row][col] !== PATH_HEIGHT &&
+          !validEntranceHeight &&
           !validOverpassHeight &&
           !validPathDipHeight
         ) {

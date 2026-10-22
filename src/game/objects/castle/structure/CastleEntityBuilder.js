@@ -1085,6 +1085,9 @@ export class CastleEntityBuilder {
 
   #createAnimatedDoors() {
     for (const doorData of this.#doors) {
+      if (this.#buildPlan.metadata.runtime.entranceDoorOwnedByRoom) {
+        continue;
+      }
       if (this.#buildPlan.layout.basePlanId) {
         const residential = this.#buildPlan.metadata.runtime.residential;
         const opening = residential.openings.find(

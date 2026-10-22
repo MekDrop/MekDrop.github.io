@@ -336,13 +336,16 @@ export class CastleAuthoredBuildPlan {
       if (opening.kind !== "door") {
         continue;
       }
+      // A normal exterior door meets the terrain at its sill. Extending its
+      // floor apron outside excavates the last half metre of the path.
+      const outsideReach = opening.exteriorEntrance && envelope.entrance.doorOwnedByRoom ? 0 : 0.5;
       walkableAreas.push({
         id: `doorThreshold:${opening.roomId}:${opening.side}`,
         floorY: opening.floorY,
-        minX: opening.axis === "x" ? opening.coordinate - 0.5 : opening.center - opening.width / 2,
-        maxX: opening.axis === "x" ? opening.coordinate + 0.5 : opening.center + opening.width / 2,
-        minZ: opening.axis === "z" ? opening.coordinate - 0.5 : opening.center - opening.width / 2,
-        maxZ: opening.axis === "z" ? opening.coordinate + 0.5 : opening.center + opening.width / 2,
+        minX: opening.axis === "x" ? opening.coordinate - (opening.side === "WEST" ? outsideReach : 0.5) : opening.center - opening.width / 2,
+        maxX: opening.axis === "x" ? opening.coordinate + (opening.side === "EAST" ? outsideReach : 0.5) : opening.center + opening.width / 2,
+        minZ: opening.axis === "z" ? opening.coordinate - (opening.side === "NORTH" ? outsideReach : 0.5) : opening.center - opening.width / 2,
+        maxZ: opening.axis === "z" ? opening.coordinate + (opening.side === "SOUTH" ? outsideReach : 0.5) : opening.center + opening.width / 2,
       });
     }
     const outerBounds = {
@@ -1266,12 +1269,17 @@ export class CastleAuthoredBuildPlan {
         towerCenter[index] = 2 * gate.center - towerCenter[index];
       }
       for (const elevation of [0, tower.terraceElevation]) {
+        if (elevation === 0 && tower.groundDoorOwnedByEntrance) {
+          continue;
+        }
+        const northDoor = elevation > 0 && tower.terraceDoorSide === "NORTH";
         roomDoors.push({
-          ...world(gate.center - towerCenter[0], gate.coordinate - towerCenter[1] - tower.radius + 0.125, baseY + elevation),
+          ...world(gate.center - towerCenter[0], gate.coordinate - towerCenter[1] + (northDoor ? 1 : -1) * (tower.radius - 0.125), baseY + elevation),
           roomId: elevation === 0 ? "tower-ground" : "tower-terrace",
+          exteriorEntrance: elevation === 0 && envelope.entrance.doorOwnedByRoom === true,
           width: tower.doorWidth,
           height: tower.doorHeight - 0.05,
-          yaw: yaw + 180,
+          yaw: yaw + (northDoor ? 0 : 180),
           mirrored: authored.mirrored,
           openWide: false,
           frameOffset: 0,
@@ -1382,6 +1390,7 @@ export class CastleAuthoredBuildPlan {
       geometry,
       metadata: {
         runtime: {
+          entranceDoorOwnedByRoom: envelope.entrance.doorOwnedByRoom === true,
           authoredObjects: [...(envelope.objects ?? []), ...SpiralStairStorage.furnish(envelope.roundTower,
             authored.mirrored ? (gate.axis === "z" ? "x" : "z") : null)].map(/**
            *

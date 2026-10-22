@@ -1,3 +1,4 @@
+import { CastleApproachRamp } from "../CastleApproachRamp.js";
 import { AbstractMapGenerationStage } from "../AbstractMapGenerationStage.js";
 
 /**
@@ -99,6 +100,7 @@ export class TerrainStage extends AbstractMapGenerationStage {
         this.#random,
         riverData,
       );
+    CastleApproachRamp.apply(heightmap, tileMeta, layout, grid);
     this.#terrain.applyHeightsToMetadata(
       grid,
       tileMeta,

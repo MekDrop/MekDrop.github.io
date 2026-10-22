@@ -33,13 +33,13 @@ export class DoorPlacement {
    * @param {{x: number, z: number, width: number, depth: number, elevation: number}} options.castlePosition
    * @param {import("src/game/objects/ObjectTypes.js").CastleDoorDefinition} options.door
    * @param {import("../../../models/GameModelLibrary.js").GameModelLibrary} options.modelLibrary
-   * @param {{x: number, y: number, z: number, yaw: number, height: number, arched?: boolean, mirrored?: boolean, frameOffset?:number,openWide?:boolean,frameClearance?:number}|null} options.placement
+   * @param {{x: number, y: number, z: number, yaw: number, height: number, arched?: boolean, exteriorEntrance?:boolean, mirrored?: boolean, frameOffset?:number,openWide?:boolean,frameClearance?:number}|null} options.placement
    * @param {boolean} options.bundledEntrance Use the complete stone-and-timber entrance.
    * @param {Map<string, import("playcanvas").Material>|null} options.masonryMaterials
    * @returns {import("./DoorTypes.js").DoorOptions}
    */
   static create({ pc, castlePosition, door, modelLibrary, placement = null, bundledEntrance = false, masonryMaterials = null }) {
-    const exteriorEntrance = bundledEntrance || !placement;
+    const exteriorEntrance = bundledEntrance || !placement || placement.exteriorEntrance === true;
 
     const width = door.width;
     const framedInterior = Boolean(placement && !placement.arched);

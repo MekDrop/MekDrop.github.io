@@ -24,6 +24,9 @@
  * @property {number} [castleTop]
  * @property {number} [castleBottom]
  * @property {number} [castleEntranceCol]
+ * @property {boolean} [castleApproachRamp] Raise the final approach to a flat doorway landing.
+ * @property {RouteWaypoint[]} [castleApproach] Authored final route, in doubled grid coordinates.
+ * @property {Set<string>} [castleApproachCells] Reserved paving under and around castle structures.
  * @property {number[]} [castleEntranceRows]
  * @property {number[]} [pathRows]
  * @property {LayoutEntry[]} [entries]

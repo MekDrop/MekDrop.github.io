@@ -48,3 +48,30 @@ it("keeps trimmed lawn coplanar with intact grass, including shallow remnants", 
     }
   }
 });
+it("preserves paving on the surviving part of a path tile beside a castle sill", () => {
+  const terrain = {
+    id: "path",
+    object: "Earth",
+    position: {
+      x: 0.5,
+      y: 1.5,
+      z: 5.5,
+    },
+    geometry: {
+      method: "addCubeMatrix",
+      args: ["surface:22:27:1", "earthSide:22:27:1", 0.5, 1.5, 5.5, "full", "none", 0],
+    },
+  };
+  const pieces = clipCastleTerrainRecord(terrain, [{
+    minX: -1,
+    maxX: 1,
+    minZ: 4.875,
+    maxZ: 5.125,
+    minY: 1.75,
+    maxY: 100,
+  }]);
+  const path = pieces.find(piece => piece.position.z > 5.125 && piece.position.y + piece.geometry.args[7] / 2 === 2);
+  assert.ok(path);
+  assert.equal(path.geometry.args[0], "surface:22:27:1");
+  assert.ok(pieces.some(piece => piece.geometry.args[0] === "earth"));
+});

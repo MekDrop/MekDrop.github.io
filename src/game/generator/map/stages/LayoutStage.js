@@ -42,9 +42,15 @@ export class LayoutStage extends AbstractMapGenerationStage {
       seed: castleSeed,
       unitMetres: 1,
     });
+    const entrance = (await CastleBasePlanGenerator.plans).find(/**
+     * @param {import("../../castle/CastleBasePlanGenerator.js").CastleBasePlan} plan
+     */ plan => plan.id === basePlan.basePlanId).entrance;
     // West-facing plans swap their north-up axes; leave one tile around the walls.
     const layout = this.#layout.createLayoutConfig(numPaths, {
       basePlanId: basePlan.basePlanId,
+      approach: entrance.approach,
+      approachRamp: entrance.approachRamp === true,
+      mirrored: basePlan.mirrored,
       width: Math.ceil(basePlan.depth) + 2,
       depth: Math.ceil(basePlan.width) + 2,
       entranceInset: (basePlan.entrance.center - basePlan.width / 2) * (basePlan.mirrored ? -1 : 1),

@@ -67,7 +67,7 @@ export class ValidationStage extends AbstractMapGenerationStage {
     this.#routes.validateCastleEntrance(grid, layout);
     this.#routes.validateCastleGroundClearance(grid, layout);
     await context.scheduler.yieldIfNeeded(context.yieldState);
-    this.#surfaces.validateHeightDiscipline(grid, heightmap, tileMeta);
+    this.#surfaces.validateHeightDiscipline(grid, heightmap, tileMeta, layout);
     this.#surfaces.validateOverpass(
       grid,
       heightmap,
