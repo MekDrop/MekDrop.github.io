@@ -1,0 +1,395 @@
+[
+  {
+    "clip": "idle",
+    "finite": true,
+    "samples": 3,
+    "sampledNonRootJoints": 7,
+    "advancing": true,
+    "speeds": [
+      0.5
+    ],
+    "movingJoints": [
+      "body",
+      "jaw"
+    ],
+    "passed": true
+  },
+  {
+    "clip": "waddle_walk",
+    "finite": true,
+    "samples": 3,
+    "sampledNonRootJoints": 7,
+    "advancing": true,
+    "speeds": [
+      0.5
+    ],
+    "movingJoints": [
+      "body",
+      "tongue_tip",
+      "arm_L",
+      "foot_L"
+    ],
+    "passed": true
+  },
+  {
+    "clip": "run",
+    "finite": true,
+    "samples": 3,
+    "sampledNonRootJoints": 7,
+    "advancing": true,
+    "speeds": [
+      0.5
+    ],
+    "movingJoints": [
+      "body",
+      "tongue_tip",
+      "arm_L",
+      "foot_L"
+    ],
+    "passed": true
+  },
+  {
+    "clip": "turn",
+    "finite": true,
+    "samples": 3,
+    "sampledNonRootJoints": 7,
+    "advancing": true,
+    "speeds": [
+      0.5
+    ],
+    "movingJoints": [
+      "body",
+      "foot_L"
+    ],
+    "passed": true
+  },
+  {
+    "clip": "bite_windup",
+    "finite": true,
+    "samples": 3,
+    "sampledNonRootJoints": 7,
+    "advancing": true,
+    "speeds": [
+      0.5
+    ],
+    "movingJoints": [
+      "body",
+      "jaw",
+      "tongue"
+    ],
+    "passed": true
+  },
+  {
+    "clip": "bite_strike",
+    "finite": true,
+    "samples": 3,
+    "sampledNonRootJoints": 7,
+    "advancing": true,
+    "speeds": [
+      0.5
+    ],
+    "movingJoints": [
+      "body",
+      "jaw",
+      "tongue"
+    ],
+    "passed": true
+  },
+  {
+    "clip": "bite_recover",
+    "finite": true,
+    "samples": 3,
+    "sampledNonRootJoints": 7,
+    "advancing": true,
+    "speeds": [
+      0.5
+    ],
+    "movingJoints": [
+      "body",
+      "jaw",
+      "tongue"
+    ],
+    "passed": true
+  },
+  {
+    "clip": "grab_food",
+    "finite": true,
+    "samples": 3,
+    "sampledNonRootJoints": 7,
+    "advancing": true,
+    "speeds": [
+      0.5
+    ],
+    "movingJoints": [
+      "tongue",
+      "arm_L"
+    ],
+    "passed": true
+  },
+  {
+    "clip": "swallow",
+    "finite": true,
+    "samples": 3,
+    "sampledNonRootJoints": 7,
+    "advancing": true,
+    "speeds": [
+      0.5
+    ],
+    "movingJoints": [
+      "body",
+      "jaw",
+      "tongue",
+      "tongue_tip"
+    ],
+    "passed": true
+  },
+  {
+    "clip": "chew",
+    "finite": true,
+    "samples": 3,
+    "sampledNonRootJoints": 7,
+    "advancing": true,
+    "speeds": [
+      0.5
+    ],
+    "movingJoints": [
+      "jaw",
+      "tongue",
+      "tongue_tip"
+    ],
+    "passed": true
+  },
+  {
+    "clip": "gulp",
+    "finite": true,
+    "samples": 3,
+    "sampledNonRootJoints": 7,
+    "advancing": true,
+    "speeds": [
+      0.5
+    ],
+    "movingJoints": [
+      "body",
+      "jaw",
+      "tongue",
+      "tongue_tip",
+      "eye_L"
+    ],
+    "passed": true
+  },
+  {
+    "clip": "sleepy_walk",
+    "finite": true,
+    "samples": 3,
+    "sampledNonRootJoints": 7,
+    "advancing": true,
+    "speeds": [
+      0.5
+    ],
+    "movingJoints": [
+      "body",
+      "tongue_tip",
+      "arm_L",
+      "foot_L"
+    ],
+    "passed": true
+  },
+  {
+    "clip": "doze_loop",
+    "finite": true,
+    "samples": 3,
+    "sampledNonRootJoints": 7,
+    "advancing": true,
+    "speeds": [
+      0.5
+    ],
+    "movingJoints": [
+      "body",
+      "tongue_tip"
+    ],
+    "passed": true
+  },
+  {
+    "clip": "wake",
+    "finite": true,
+    "samples": 3,
+    "sampledNonRootJoints": 7,
+    "advancing": true,
+    "speeds": [
+      0.5
+    ],
+    "movingJoints": [
+      "body",
+      "jaw"
+    ],
+    "passed": true
+  },
+  {
+    "clip": "angry",
+    "finite": true,
+    "samples": 3,
+    "sampledNonRootJoints": 7,
+    "advancing": true,
+    "speeds": [
+      0.5
+    ],
+    "movingJoints": [
+      "body",
+      "jaw",
+      "eye_L"
+    ],
+    "passed": true
+  },
+  {
+    "clip": "hit",
+    "finite": true,
+    "samples": 3,
+    "sampledNonRootJoints": 7,
+    "advancing": true,
+    "speeds": [
+      0.5
+    ],
+    "movingJoints": [
+      "body"
+    ],
+    "passed": true
+  },
+  {
+    "clip": "stun",
+    "finite": true,
+    "samples": 3,
+    "sampledNonRootJoints": 7,
+    "advancing": true,
+    "speeds": [
+      0.5
+    ],
+    "movingJoints": [
+      "body",
+      "jaw",
+      "eye_L"
+    ],
+    "passed": true
+  },
+  {
+    "clip": "stun_recover",
+    "finite": true,
+    "samples": 3,
+    "sampledNonRootJoints": 7,
+    "advancing": true,
+    "speeds": [
+      0.5
+    ],
+    "movingJoints": [
+      "body",
+      "jaw"
+    ],
+    "passed": true
+  },
+  {
+    "clip": "knockback",
+    "finite": true,
+    "samples": 3,
+    "sampledNonRootJoints": 7,
+    "advancing": true,
+    "speeds": [
+      0.5
+    ],
+    "movingJoints": [
+      "body"
+    ],
+    "passed": true
+  },
+  {
+    "clip": "carried_bite",
+    "finite": true,
+    "samples": 3,
+    "sampledNonRootJoints": 7,
+    "advancing": true,
+    "speeds": [
+      0.5
+    ],
+    "movingJoints": [
+      "body",
+      "jaw",
+      "tongue"
+    ],
+    "passed": true
+  },
+  {
+    "clip": "carried_struggle",
+    "finite": true,
+    "samples": 3,
+    "sampledNonRootJoints": 7,
+    "advancing": true,
+    "speeds": [
+      0.5
+    ],
+    "movingJoints": [
+      "body",
+      "arm_L",
+      "foot_L"
+    ],
+    "passed": true
+  },
+  {
+    "clip": "airborne",
+    "finite": true,
+    "samples": 3,
+    "sampledNonRootJoints": 7,
+    "advancing": true,
+    "speeds": [
+      0.5
+    ],
+    "movingJoints": [
+      "body",
+      "tongue_tip"
+    ],
+    "passed": true
+  },
+  {
+    "clip": "land",
+    "finite": true,
+    "samples": 3,
+    "sampledNonRootJoints": 7,
+    "advancing": true,
+    "speeds": [
+      0.5
+    ],
+    "movingJoints": [
+      "body",
+      "tongue_tip"
+    ],
+    "passed": true
+  },
+  {
+    "clip": "land_recover",
+    "finite": true,
+    "samples": 3,
+    "sampledNonRootJoints": 7,
+    "advancing": true,
+    "speeds": [
+      0.5
+    ],
+    "movingJoints": [
+      "body",
+      "tongue_tip"
+    ],
+    "passed": true
+  },
+  {
+    "clip": "death",
+    "finite": true,
+    "samples": 3,
+    "sampledNonRootJoints": 7,
+    "advancing": true,
+    "speeds": [
+      0.5
+    ],
+    "movingJoints": [
+      "body",
+      "jaw",
+      "tongue_tip"
+    ],
+    "passed": true
+  }
+]

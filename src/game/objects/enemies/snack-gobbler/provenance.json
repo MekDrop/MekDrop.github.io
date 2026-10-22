@@ -1,0 +1,26 @@
+{
+  "provider": "Tripo Studio",
+  "operation": "text-to-3d",
+  "jobId": "177d8e80-95ee-4dde-9734-89106ffc3c1c",
+  "sourcePage": "https://studio.tripo3d.ai/workspace/generate/177d8e80-95ee-4dde-9734-89106ffc3c1c",
+  "model": "H3.1 - Best Quality",
+  "quotedCredits": 30,
+  "actualChargedCredits": null,
+  "chargeEvidence": "Generation button quoted 30 credits; no separate actual-charge receipt available",
+  "parameters": {
+    "geometryAndTexture": true,
+    "tPose": false,
+    "generateInParts": false,
+    "texture8K": false,
+    "privacy": "Private"
+  },
+  "prompt": "One standalone stylized low-poly voxel monster: Snack Gobbler. Squat very wide purple rock-block creature with an enormous open rectangular mouth occupying almost its entire body. Mouth dark burgundy hollow interior, chunky ivory square teeth along upper and lower rim, gigantic broad pink tongue hanging forward to ground. Two short purple eye stalks above mouth, ivory polygon eye rings and black pupils. Body assembled from angular violet and magenta beveled stone-like blocks, short stubby block feet and tiny side arms. Body wider than tall, like a living cave mouth. No humanoid torso, no clothes, no props, no food, no other creatures, no pedestal, no text. Purple body, pink tongue, ivory teeth. Full complete creature alone, game-ready isometric fantasy style, neutral symmetric stance.",
+  "negativePrompt": null,
+  "reference": "info.png",
+  "referenceUse": "Main portrait visually inspected and described in text; design sheet not uploaded for this job",
+  "status": "generated_downloaded_refined",
+  "originalDownload": "C:/Users/mekdr/Downloads/snack-gobbler-tripo-original.glb",
+  "preservedOriginal": "tmp/snack-gobbler/tripo-original.glb",
+  "originalSha256": "69f2849451cae7df770027228ca6326305355e4b3a7f0d1ff28532feff039071",
+  "refinedGlbSha256": "9bb36caf812771ea7c432e90fb5d75574d4628e0cdcbd3462f8fb0205a40ea06"
+}

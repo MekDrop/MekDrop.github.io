@@ -1,0 +1,17 @@
+{
+  "mode": "RGBA",
+  "size": [
+    512,
+    512
+  ],
+  "visiblePixels": 48388,
+  "transparentPixels": 213756,
+  "bounds": [
+    123,
+    119,
+    364,
+    410
+  ],
+  "margin": 102,
+  "source": "actual PlayCanvas production renderer GobblerPreview"
+}

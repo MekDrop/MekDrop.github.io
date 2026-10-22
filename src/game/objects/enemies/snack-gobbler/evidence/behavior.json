@@ -1,0 +1,50 @@
+[
+  {
+    "check": "actual royal actor resolves",
+    "passed": true
+  },
+  {
+    "check": "direct bell is ignored",
+    "passed": true
+  },
+  {
+    "check": "meal kills food and heals",
+    "passed": true
+  },
+  {
+    "check": "meal removes corpse rendering and collision",
+    "passed": true
+  },
+  {
+    "check": "meal causes sleepy slowdown",
+    "passed": true
+  },
+  {
+    "check": "carrier receives bite damage",
+    "passed": true
+  },
+  {
+    "check": "launch enables Ammo flight",
+    "passed": true
+  },
+  {
+    "check": "real ground contact angers Gobbler",
+    "passed": true
+  },
+  {
+    "check": "external stun interrupts",
+    "passed": true
+  },
+  {
+    "check": "external stun recovers",
+    "passed": true
+  },
+  {
+    "check": "death enters Yuka death state",
+    "passed": true
+  },
+  {
+    "check": "death removes entity",
+    "passed": true
+  }
+]

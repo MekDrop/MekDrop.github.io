@@ -1,0 +1,405 @@
+{
+  "model": "C:\\Users\\mekdr\\Documents\\Projects\\MekDrop.github.io\\src\\game\\models\\enemies\\snack-gobbler\\snack-gobbler.glb",
+  "clipChecks": [
+    {
+      "clip": "idle",
+      "frames": [
+        1.0,
+        73.0
+      ],
+      "samplePoseHashes": [
+        "b40322ae26532d7c40223c00c09f9056a675ef890ba152ae180900b754357121",
+        "f6178839ce63bb3fefdaff2879afb7ca5840f23e11cf7c5ea911818e52ae8e3b",
+        "b40322ae26532d7c40223c00c09f9056a675ef890ba152ae180900b754357121",
+        "6ec74b19dfc1cc886e3963954df022f39e8b31fe2747c13a48524ec569404f55",
+        "b40322ae26532d7c40223c00c09f9056a675ef890ba152ae180900b754357121"
+      ],
+      "finite": true,
+      "motion": true
+    },
+    {
+      "clip": "waddle_walk",
+      "frames": [
+        1.0,
+        37.0
+      ],
+      "samplePoseHashes": [
+        "4bd403db9b173c066582bca33f4650fdda28ae059a047bbe9206381b2a0a59f6",
+        "6b13a3750a6b4d3dd3df8e5a97ccf940902269fb95f131f420ad8131dbf2c8e2",
+        "d25c98c3346173f6abe9f41b5ede337461fb35db6a41b3eb8d8981c0882a8be5",
+        "ba4d0ae744d4a2b0a989a59aa4f15d03d3b500886bafa9f570e57574d4b5b9f4",
+        "64229d4e972b1dec1c68d21246d98d6965fa06e15c14d04724355538865239a8"
+      ],
+      "finite": true,
+      "motion": true
+    },
+    {
+      "clip": "run",
+      "frames": [
+        1.0,
+        23.0
+      ],
+      "samplePoseHashes": [
+        "20b72eda1785e9f4372f5e36a9c06a691ed41aab6e5d657005457cf0c6932629",
+        "97c3557b2687226115fa3dacccdd938e275acbec82f19e6145614a8d9678a91d",
+        "20a5c65068addc3305b04ced8b18640fc088a688ca7ba6ad4dd38b8cd869ef8c",
+        "7cff44ab0a395164a341299f4d1e2261d6068ebfc0db60413e84a070946a6f29",
+        "03ba21e32a6f6c4fc6d600ef29637690929f9375246dd7399ed76e9026f0245f"
+      ],
+      "finite": true,
+      "motion": true
+    },
+    {
+      "clip": "turn",
+      "frames": [
+        1.0,
+        19.0
+      ],
+      "samplePoseHashes": [
+        "b40322ae26532d7c40223c00c09f9056a675ef890ba152ae180900b754357121",
+        "51ff5c08d139302cbb85a2585de4e01e66041a92ddb1c2493097b0dc10ff49fc",
+        "f23695d481aef9a6edae312679ed5aa20431734c17f733526fcc355ec61ed4fd",
+        "51ff5c08d139302cbb85a2585de4e01e66041a92ddb1c2493097b0dc10ff49fc",
+        "b40322ae26532d7c40223c00c09f9056a675ef890ba152ae180900b754357121"
+      ],
+      "finite": true,
+      "motion": true
+    },
+    {
+      "clip": "bite_windup",
+      "frames": [
+        1.0,
+        11.0
+      ],
+      "samplePoseHashes": [
+        "b40322ae26532d7c40223c00c09f9056a675ef890ba152ae180900b754357121",
+        "e38eab1a07c56543ab784cde302915451898018ca792af667394f80f1102c02d",
+        "3b513982aeef07620eda515133fb225004a98d191ed1d8565eb74b5294895225",
+        "7dfde749112ed5b4c8b633adedeac73b80e1501916d601cfe98b3e84c9e44ae5",
+        "72fde6161387e152271273f1fa7b592e4678138efdd5856632bf3a3228d379c9"
+      ],
+      "finite": true,
+      "motion": true
+    },
+    {
+      "clip": "bite_strike",
+      "frames": [
+        1.0,
+        5.0
+      ],
+      "samplePoseHashes": [
+        "72fde6161387e152271273f1fa7b592e4678138efdd5856632bf3a3228d379c9",
+        "2d0cddc7de31db1f267bd694075d35041b76ea68b2677ee740d6c1184af11cf3",
+        "3b513982aeef07620eda515133fb225004a98d191ed1d8565eb74b5294895225",
+        "29486cf02333e1f30369ef96599c0ad88ff8b41303c933c6286bcbd3866d1b91",
+        "b40322ae26532d7c40223c00c09f9056a675ef890ba152ae180900b754357121"
+      ],
+      "finite": true,
+      "motion": true
+    },
+    {
+      "clip": "bite_recover",
+      "frames": [
+        1.0,
+        15.0
+      ],
+      "samplePoseHashes": [
+        "dafb52a2b376c27bf72342a8f6cdd7ef5f1470d87b49fd03d7e92e007940caf6",
+        "9a45ce188366ba2cb5f90cd747f3c16ec766a1a2b15193dd5712efcff2c0e996",
+        "75bb7801701ef69419b07312db7d72993b3231dc76ccaaca899809c284f14599",
+        "83e5b58c0f7a8f9181bc0a54139df97db76c5b5bae0595cde7e9b787aae3d18e",
+        "b40322ae26532d7c40223c00c09f9056a675ef890ba152ae180900b754357121"
+      ],
+      "finite": true,
+      "motion": true
+    },
+    {
+      "clip": "grab_food",
+      "frames": [
+        1.0,
+        17.0
+      ],
+      "samplePoseHashes": [
+        "b40322ae26532d7c40223c00c09f9056a675ef890ba152ae180900b754357121",
+        "eb0050e9ef8f9315c848fc7b8ea74ad9bf237fb207afa4d50a42a20c63702bb0",
+        "48b17daf18066ae78cffa814f1cff9edc22aa68484182a80669af50713343578",
+        "eb0050e9ef8f9315c848fc7b8ea74ad9bf237fb207afa4d50a42a20c63702bb0",
+        "b40322ae26532d7c40223c00c09f9056a675ef890ba152ae180900b754357121"
+      ],
+      "finite": true,
+      "motion": true
+    },
+    {
+      "clip": "swallow",
+      "frames": [
+        1.0,
+        19.0
+      ],
+      "samplePoseHashes": [
+        "b40322ae26532d7c40223c00c09f9056a675ef890ba152ae180900b754357121",
+        "c523260ce02f8884d4df7bf0397d5aafc54e066ee9e2c595e8d46614c5ab52ff",
+        "4eed3f7bbd7a915dbba6056f69d13f62ba47ebce61cac96dda43a776c607cf9c",
+        "c523260ce02f8884d4df7bf0397d5aafc54e066ee9e2c595e8d46614c5ab52ff",
+        "b40322ae26532d7c40223c00c09f9056a675ef890ba152ae180900b754357121"
+      ],
+      "finite": true,
+      "motion": true
+    },
+    {
+      "clip": "chew",
+      "frames": [
+        1.0,
+        19.0
+      ],
+      "samplePoseHashes": [
+        "b40322ae26532d7c40223c00c09f9056a675ef890ba152ae180900b754357121",
+        "2f69794236726d72a6d1910063bfdf821baa118965ab2a9574c1960db60c2dac",
+        "b40322ae26532d7c40223c00c09f9056a675ef890ba152ae180900b754357121",
+        "29b5c6aae12526b8edfa5084857639c3eec260a7db0d9333619fcb45daff8225",
+        "b40322ae26532d7c40223c00c09f9056a675ef890ba152ae180900b754357121"
+      ],
+      "finite": true,
+      "motion": true
+    },
+    {
+      "clip": "gulp",
+      "frames": [
+        1.0,
+        16.0
+      ],
+      "samplePoseHashes": [
+        "b40322ae26532d7c40223c00c09f9056a675ef890ba152ae180900b754357121",
+        "4529c3c58d59cd953569cc72fb2f028459b34638ad8a10a45e96b31b31703cb6",
+        "e3d35d5ceebe7d387dba87fb55b3ed3805b5fb116d7e0fc3996c5fdef0c1dba6",
+        "4529c3c58d59cd953569cc72fb2f028459b34638ad8a10a45e96b31b31703cb6",
+        "b40322ae26532d7c40223c00c09f9056a675ef890ba152ae180900b754357121"
+      ],
+      "finite": true,
+      "motion": true
+    },
+    {
+      "clip": "sleepy_walk",
+      "frames": [
+        1.0,
+        55.0
+      ],
+      "samplePoseHashes": [
+        "ea796567bdab077f952804b75c80ea71e0bc168009d2134872a3441e3eea37d8",
+        "5214eaf1413d52f5c621a404666860b6005cb7cd6ee5852f465c3e1055af791f",
+        "d3ea4651de86683ba8f3c9b53196c4d090b04672e15647698842e6d5eb1a44bd",
+        "9ef3fe8482b51b2a4e25b34ec81fc6d9350b487c9c217a79006557f9526cea28",
+        "ea796567bdab077f952804b75c80ea71e0bc168009d2134872a3441e3eea37d8"
+      ],
+      "finite": true,
+      "motion": true
+    },
+    {
+      "clip": "doze_loop",
+      "frames": [
+        1.0,
+        79.0
+      ],
+      "samplePoseHashes": [
+        "1840be71df3fe144d5444661d289e80fc51e6b4a8894762fd709a65ec085df02",
+        "1a187ba61646237e7e01be5dfdc175357f2d1236061c0afb165a5ca215f966ce",
+        "1840be71df3fe144d5444661d289e80fc51e6b4a8894762fd709a65ec085df02",
+        "5399b3d6ca8e12238a7ab228f79ad143d6b23d7caacf06bb1816ede87fe87268",
+        "1840be71df3fe144d5444661d289e80fc51e6b4a8894762fd709a65ec085df02"
+      ],
+      "finite": true,
+      "motion": true
+    },
+    {
+      "clip": "wake",
+      "frames": [
+        1.0,
+        19.0
+      ],
+      "samplePoseHashes": [
+        "934aec075364667c8cf6794272fa778dd7b64a80ec6368ef27a1194955451d7c",
+        "579ad0a48484dec9de9d4a615ab2fcabb99f7883c7d8dde25fc39134a164aa3d",
+        "0ad231b55c6f3a46acae5aaad2d5e841ee17d9e76d2864dd0e78d9b0953f6941",
+        "cac7d0f2a08da806718732b4c9bb15c3184363bdb444a541f6301e527f5c6339",
+        "b40322ae26532d7c40223c00c09f9056a675ef890ba152ae180900b754357121"
+      ],
+      "finite": true,
+      "motion": true
+    },
+    {
+      "clip": "angry",
+      "frames": [
+        1.0,
+        22.0
+      ],
+      "samplePoseHashes": [
+        "b40322ae26532d7c40223c00c09f9056a675ef890ba152ae180900b754357121",
+        "6c516c995978c858d49296cb80d6d52c874fbef369d3985d45746d3235896dfa",
+        "5842e622e061d4c32aac1a1c5a3a6794d12448bd5d121125b188e9290dc46291",
+        "5a798eef22c2282265a692d2f8a2dc8506d4ac84dde68b07031c9d66c84dc003",
+        "ef60604df66e56334c0cd4b1749eed1d1120647b7284dae2d96c4c3984a9518f"
+      ],
+      "finite": true,
+      "motion": true
+    },
+    {
+      "clip": "hit",
+      "frames": [
+        1.0,
+        11.0
+      ],
+      "samplePoseHashes": [
+        "b40322ae26532d7c40223c00c09f9056a675ef890ba152ae180900b754357121",
+        "9c1054dfeecc8cc1d94e92363655f82f541482264b4dc398077441197076ba5f",
+        "5ebc5d7e97359828344d50ef0f8970786185b11732ec8af06cdc4232b0e0b9a2",
+        "9c1054dfeecc8cc1d94e92363655f82f541482264b4dc398077441197076ba5f",
+        "b40322ae26532d7c40223c00c09f9056a675ef890ba152ae180900b754357121"
+      ],
+      "finite": true,
+      "motion": true
+    },
+    {
+      "clip": "stun",
+      "frames": [
+        1.0,
+        37.0
+      ],
+      "samplePoseHashes": [
+        "b40322ae26532d7c40223c00c09f9056a675ef890ba152ae180900b754357121",
+        "8feb3ba7d577c0bd21144db917104b83774d0ad5137e9579b8e6d8ca6036b11e",
+        "b40322ae26532d7c40223c00c09f9056a675ef890ba152ae180900b754357121",
+        "fd2950a953d057f58dd09ede549f11a1bdeabb5e7e2f9a6bcbb70f5ad7b2a682",
+        "ef60604df66e56334c0cd4b1749eed1d1120647b7284dae2d96c4c3984a9518f"
+      ],
+      "finite": true,
+      "motion": true
+    },
+    {
+      "clip": "stun_recover",
+      "frames": [
+        1.0,
+        16.0
+      ],
+      "samplePoseHashes": [
+        "5a78f0ef085487ed33be21b424ed12246e174e5629f94cbd2ac9c4c74a8b78f9",
+        "78d7cfbde5d19aad20c9f85bdb427a7af54efe3ab4330498d3d21bf0666329da",
+        "fe0d8f9e894e2dd44a2d9788bc1c0f69c216ceb578f7fb8dc24dabfe547e68ae",
+        "22a749e867a117e5e780b8f470b30440694f87244ccff01cef827c69f5dd2ae6",
+        "b40322ae26532d7c40223c00c09f9056a675ef890ba152ae180900b754357121"
+      ],
+      "finite": true,
+      "motion": true
+    },
+    {
+      "clip": "knockback",
+      "frames": [
+        1.0,
+        16.0
+      ],
+      "samplePoseHashes": [
+        "b40322ae26532d7c40223c00c09f9056a675ef890ba152ae180900b754357121",
+        "25f595ec21b5f0bc66866e2d59c86550af3d3ba4d5f816dcaa11ecc6fb2b4bf0",
+        "306de281673ec45279fa311098f881c2bbd1cf91b6cc6340fa8089b0938e731e",
+        "25f595ec21b5f0bc66866e2d59c86550af3d3ba4d5f816dcaa11ecc6fb2b4bf0",
+        "b40322ae26532d7c40223c00c09f9056a675ef890ba152ae180900b754357121"
+      ],
+      "finite": true,
+      "motion": true
+    },
+    {
+      "clip": "carried_bite",
+      "frames": [
+        1.0,
+        19.0
+      ],
+      "samplePoseHashes": [
+        "b40322ae26532d7c40223c00c09f9056a675ef890ba152ae180900b754357121",
+        "1fb097576d35dfb2fd486f15930ea941d9e4d7cf7ad5487d7d2cb0530476733a",
+        "b40322ae26532d7c40223c00c09f9056a675ef890ba152ae180900b754357121",
+        "2ecc03fd0e82438a1ccbd7ada3107ac35f43e91e770585c5a0f62e8683308244",
+        "b40322ae26532d7c40223c00c09f9056a675ef890ba152ae180900b754357121"
+      ],
+      "finite": true,
+      "motion": true
+    },
+    {
+      "clip": "carried_struggle",
+      "frames": [
+        1.0,
+        34.0
+      ],
+      "samplePoseHashes": [
+        "b40322ae26532d7c40223c00c09f9056a675ef890ba152ae180900b754357121",
+        "30c09b8e93cdbef0d00b61098f60f45eeb606cacba93e548c6c7baaed209aa8f",
+        "9f2ca57575b4c46849e9d302225d1764adfab6822cdc9041436fde32ff98ce28",
+        "5fe2ffc1e4d7edd11ece50f79af235472254e3ac1963500256311e0b02d60e0f",
+        "b40322ae26532d7c40223c00c09f9056a675ef890ba152ae180900b754357121"
+      ],
+      "finite": true,
+      "motion": true
+    },
+    {
+      "clip": "airborne",
+      "frames": [
+        1.0,
+        31.0
+      ],
+      "samplePoseHashes": [
+        "9448f9e53200f6a190aa256ec77165a09faf22a1dbfd9ccb85d5b0f4ca3276b0",
+        "544c105cc4d7c069eef6f228309e6aad0cddbcd77fad5232eee95a40006a2828",
+        "254334f8820cbac7061421eed894f33b9734d88a525bca603e81d310b09be183",
+        "be7db57f3081bf7a809ebed1c85b9b030502083596025622cb8598841cbdf031",
+        "9448f9e53200f6a190aa256ec77165a09faf22a1dbfd9ccb85d5b0f4ca3276b0"
+      ],
+      "finite": true,
+      "motion": true
+    },
+    {
+      "clip": "land",
+      "frames": [
+        1.0,
+        13.0
+      ],
+      "samplePoseHashes": [
+        "b40322ae26532d7c40223c00c09f9056a675ef890ba152ae180900b754357121",
+        "2315faae61fcfd547b12afe89207be16a0152aca556ed00d653b26d5148a3c71",
+        "ef08714e5a2684c95b6d98772a479effc4206661bd0c32fe9058ddebc41fc14e",
+        "c2df505a071a9935ccddbffcd2d8ad024151ddd083993077481563cc99a31443",
+        "24c750a1dffda737bb668d4a3924b377aba38391bbb2fd47e12e5d66565b20d6"
+      ],
+      "finite": true,
+      "motion": true
+    },
+    {
+      "clip": "land_recover",
+      "frames": [
+        1.0,
+        13.0
+      ],
+      "samplePoseHashes": [
+        "24c750a1dffda737bb668d4a3924b377aba38391bbb2fd47e12e5d66565b20d6",
+        "c2df505a071a9935ccddbffcd2d8ad024151ddd083993077481563cc99a31443",
+        "ef08714e5a2684c95b6d98772a479effc4206661bd0c32fe9058ddebc41fc14e",
+        "2315faae61fcfd547b12afe89207be16a0152aca556ed00d653b26d5148a3c71",
+        "b40322ae26532d7c40223c00c09f9056a675ef890ba152ae180900b754357121"
+      ],
+      "finite": true,
+      "motion": true
+    },
+    {
+      "clip": "death",
+      "frames": [
+        1.0,
+        46.0
+      ],
+      "samplePoseHashes": [
+        "b40322ae26532d7c40223c00c09f9056a675ef890ba152ae180900b754357121",
+        "c1f4c3fae351d77915a72e6b2e6419e774acdbb9f851c5b51b0d973b891f33b8",
+        "a4644c7d3fcaf03778d3c8a5882346891e7dd294ee625f4680278eb00926990c",
+        "b0d85f7193254e0f0d87f4e5b5181363e259b61a8ff6fef12c02aeb36b050863",
+        "ed8a5143aa64054d21f632c536b00b356889e654e8da1ba603541fae4c83195a"
+      ],
+      "finite": true,
+      "motion": true
+    }
+  ]
+}

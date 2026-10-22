@@ -1,0 +1,112 @@
+{
+  "enemy": "SnackGobbler",
+  "completion": "implemented_and_verified",
+  "testMap": "/map/test_enemy-snack-gobbler",
+  "assets": {
+    "source": "src/game/models/enemies/snack-gobbler/snack-gobbler.blend",
+    "export": "src/game/models/enemies/snack-gobbler/snack-gobbler.glb",
+    "reference": "info.png",
+    "productionRendererPreview": "preview.png",
+    "originalProviderOutput": "tmp/snack-gobbler/tripo-original.glb",
+    "creatureRigBones": 11,
+    "embeddedClips": 25
+  },
+  "referenceReview": {
+    "viewed": [
+      "main_reference_portrait",
+      "original_front",
+      "original_side",
+      "refined_front",
+      "refined_side",
+      "refined_rear",
+      "refined_left",
+      "refined_top",
+      "refined_isometric",
+      "all_25_mid_action_renders"
+    ],
+    "refinements": [
+      "shortened and widened provider shell",
+      "moved and enlarged eyes onto block stalks",
+      "replaced narrow tongue with broad faceted skinned tongue",
+      "saturated violet stone materials",
+      "authored block mouth rim and ivory teeth"
+    ],
+    "remainingDifferences": [
+      "provider back remains smoother than the reference stacked blocks",
+      "mouth and teeth arrangement is simplified"
+    ]
+  },
+  "states": [
+    "GobblerPursueState",
+    "GobblerBiteState",
+    "GobblerDigestState",
+    "GobblerCarriedState",
+    "GobblerAirborneState",
+    "GobblerAngryState",
+    "GobblerStunnedState",
+    "GobblerHitState",
+    "GobblerDeadState",
+    "GobblerInspectState"
+  ],
+  "checks": {
+    "focusedUnitTests": {
+      "passed": 10,
+      "failed": 0,
+      "command": "node --test test/unit/game/objects/enemies/snack-gobbler/snack-gobbler.test.js"
+    },
+    "scopedLint": "passed",
+    "freshGlbImport": "passed_all_25_clips_five_finite_changing_pose_samples_each",
+    "freshImportEvidence": "evidence/fresh-import.json",
+    "artEvidence": [
+      "evidence/multiview.jpg",
+      "evidence/clips-0.jpg",
+      "evidence/clips-1.jpg",
+      "evidence/clips-2.jpg"
+    ],
+    "productionGamePlayback": {
+      "passed": 25,
+      "rates": [
+        1,
+        0.5
+      ],
+      "samplesPerClip": 3,
+      "nonRootJointsSampled": 7,
+      "evidence": [
+        "evidence/playback.json",
+        "evidence/playback-summary.json",
+        "evidence/playback-half-speed.json",
+        "evidence/playback-half-speed-summary.json"
+      ],
+      "note": "Hit and knockback intentionally animate the body joint; other clips also articulate limbs, mouth or eyes."
+    },
+    "loopSeamsAndBlendsInGame": "All clips exercised through Engine 0.08 second transitions at both rates; looping endpoint equality separately verified numerically in fresh GLB import. No frame-by-frame in-game seam metric was collected.",
+    "livePhysicsPickupThrowLanding": "passed_actual_Ammo_flight_ground_contact_and_anger",
+    "transparentProductionPreview": {
+      "passed": true,
+      "evidence": "evidence/preview.json"
+    },
+    "liveBehavior": {
+      "passed": 12,
+      "failed": 0,
+      "evidence": "evidence/behavior.json"
+    },
+    "productionScreenshot": "evidence/game.jpg",
+    "mapTestControls": {
+      "passed": 4,
+      "failed": 0
+    }
+  },
+  "blockers": [],
+  "spawning": "own_saved_test_map_only_no_normal_spawn_tables_modified",
+  "sharedIntegrations": "uses_existing_Enemy_and_generic_factory_discovery_without_modifying_them",
+  "verificationEnvironment": {
+    "url": "http://127.0.0.1:9014/en-US/map/test_enemy-snack-gobbler",
+    "runtime": "Actual Quasar/PlayCanvas game in ignored tmp/snack-gobbler-app source snapshot",
+    "isolation": [
+      "Factory discovery limited in the temporary app to SnackGobbler, Divecap and PitcherOgre to avoid unrelated work in progress",
+      "Optional baked object cache disabled in temporary app; production fallback generators used",
+      "Production source shared Enemy, renderer and factory were not changed"
+    ],
+    "rootDevServer": "localhost:9000 remains subject to unrelated work in progress"
+  }
+}
