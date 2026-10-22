@@ -229,6 +229,12 @@ lava farewell uses a raised-thumb fist. Every clip owns all finger channels so
 transitions back to Idle release the previous grip. The old separate farewell
 thumb is replaced by the articulated right thumb.
 
+`LavaFarewell` lasts 4.2 seconds. The torso leans below the extended right arm,
+then the closed fist opens its thumb after the head passes below the lava.
+Runtime sinking pauses with only the fist above the surface before lowering it.
+Keep all farewell NLA channels extended through frame 100.8 at 24 FPS so the
+body does not return to its rest transform during the hand-only hold.
+
 ## Climbing
 
 `hero.blend` contains the looping `Climb` action as named NLA tracks on the

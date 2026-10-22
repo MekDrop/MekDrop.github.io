@@ -50,15 +50,27 @@ for (const lives of [1, 2, 3]) {
     assert.equal(height, 2.02);
     assert.equal(state.animationFor(owner), lives > 1
       ? HERO_ANIMATION.LAVA_FAREWELL : HERO_ANIMATION.FALL_DEATH);
-    owner.deltaTime = 0.85;
+    const duration = lives > 1 ? 4.2 : 1.35;
+    owner.deltaTime = 0.15;
     state.execute(owner);
     if (lives > 1) {
-      assert.ok(height < 1.1);
+      assert.equal(height, 2.02, "hold above lava while raising the thumb");
       assert.deepEqual(scale, [0.65, 0.65, 0.65]);
+    }
+    owner.deltaTime = duration * 0.7 - 0.15;
+    state.execute(owner);
+    if (lives > 1) {
+      assert.ok(height < 1.3);
+      assert.deepEqual(scale, [0.65, 0.65, 0.65]);
+      const handOnlyHeight = height;
+      owner.deltaTime = 0.2;
+      state.execute(owner);
+      assert.equal(height, handOnlyHeight, "pause with only the hand above lava");
     } else {
       assert.ok(scale[0] < 0.65);
     }
-    owner.deltaTime = 0.5;
+    assert.equal(deaths, 0);
+    owner.deltaTime = duration;
     state.execute(owner);
     assert.equal(deaths, 1);
     assert.deepEqual(scale, [0, 0, 0]);

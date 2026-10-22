@@ -4,9 +4,11 @@ import { HeroRuntimeActionState } from "./HeroRuntimeActionState.js";
 import { HeroLavaDeathEffect } from "../../HeroLavaDeathEffect.js";
 
 const DURATION = 1.35;
+const FAREWELL_DURATION = 4.2;
 const ASH_START = 0.68;
 const SUBMERGE_DEPTH = 0.82;
-const FAREWELL_SUBMERGE_DEPTH = 1.6;
+const FAREWELL_SUBMERGE_DEPTH = 1.9;
+const FAREWELL_HAND_HOLD_DEPTH = 0.8;
 
 export class HeroBurningActionState extends HeroRuntimeActionState {
   /**
@@ -34,15 +36,17 @@ export class HeroBurningActionState extends HeroRuntimeActionState {
   enter(owner) {
     super.enter(owner);
     const feedback = owner.feedback.burning;
+    const farewell = feedback.lives() > 1;
     this.payload = {
       elapsed: 0,
+      duration: farewell ? FAREWELL_DURATION : DURATION,
       surfaceY: this.payload.cell.elevation + 0.02,
-      farewell: feedback.lives() > 1,
+      farewell,
       ashes: false,
     };
     feedback.freezeAtHeight(this.payload.surfaceY);
     const presentation = feedback.presentation?.();
-    if (presentation) {
+    if (presentation && !farewell) {
       this.#effect = new HeroLavaDeathEffect(presentation);
       presentation.parent.addChild(this.#effect.entity);
       this.#effect.begin();
@@ -57,16 +61,20 @@ export class HeroBurningActionState extends HeroRuntimeActionState {
     const feedback = owner.feedback.burning;
     const action = this.payload;
     action.elapsed = Math.min(
-      DURATION,
+      action.duration,
       action.elapsed + owner.deltaTime,
     );
-    const progress = action.elapsed / DURATION;
-    const sinkStart = action.farewell ? 0.2 : 0.08;
+    const progress = action.elapsed / action.duration;
+    const sinkStart = 0.08;
     const sinkProgress = Math.max(0, Math.min(1, (progress - sinkStart) / 0.72));
     const easedSink = sinkProgress * sinkProgress * (3 - 2 * sinkProgress);
-    feedback.setHeight(
-      action.surfaceY - (action.farewell ? FAREWELL_SUBMERGE_DEPTH : SUBMERGE_DEPTH) * easedSink,
-    );
+    // Submerge the head first, hold only the fist above the surface, then lower it.
+    const bodySink = Math.max(0, Math.min(1, (action.elapsed - 0.2) / 1.6));
+    const handSink = Math.max(0, Math.min(1, (action.elapsed - 3.2) / 0.85));
+    const farewellDepth = FAREWELL_HAND_HOLD_DEPTH * bodySink
+      + (FAREWELL_SUBMERGE_DEPTH - FAREWELL_HAND_HOLD_DEPTH) * handSink;
+    feedback.setHeight(action.surfaceY - (action.farewell
+      ? farewellDepth : SUBMERGE_DEPTH * easedSink));
     this.#effect?.update(progress);
     const collapseProgress = Math.max(
       0,
@@ -82,7 +90,7 @@ export class HeroBurningActionState extends HeroRuntimeActionState {
       action.ashes = true;
       feedback.syncState();
     }
-    if (action.elapsed >= DURATION) {
+    if (action.elapsed >= action.duration) {
       feedback.setModelScale(0, 0, 0);
       const nextAction = owner.feedback.death.resolve();
       owner.transition(nextAction, {
@@ -98,7 +106,7 @@ export class HeroBurningActionState extends HeroRuntimeActionState {
   exit(owner) {
     this.#effect?.destroy();
     this.#effect = null;
-    const scale = this.payload.elapsed >= DURATION
+    const scale = this.payload.elapsed >= this.payload.duration
       ? 0
       : owner.feedback.burning.modelScale;
     owner.feedback.burning.setModelScale(scale, scale, scale);
