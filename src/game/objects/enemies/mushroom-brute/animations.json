@@ -1,0 +1,317 @@
+{
+  "schemaVersion": 1,
+  "status": "fresh-import-and-controlled-engine-playback-verified",
+  "model": "../../../models/enemies/mushroom-brute/mushroom-brute.glb",
+  "source": "../../../models/enemies/mushroom-brute/mushroom-brute.blend",
+  "assetPresent": true,
+  "freshImportVerified": true,
+  "actualGamePlaybackVerified": true,
+  "note": "Fresh Blender import, reviewed rendered poses, and real PlayCanvas skeleton samples. Runtime verification uses controlled 1/60-second engine updates and renders sampled poses; foreground RAF pacing is not measured.",
+  "clips": [
+    {
+      "name": "idle",
+      "durationSeconds": 2,
+      "looping": true,
+      "supportedStates": [
+        "BrutePursueState"
+      ],
+      "verified": true,
+      "verification": {
+        "freshImport": true,
+        "timelineSamples": true,
+        "actualGamePlayback": true,
+        "visualPoses": true
+      },
+      "contactEvents": []
+    },
+    {
+      "name": "heavy_walk",
+      "durationSeconds": 1,
+      "looping": true,
+      "supportedStates": [
+        "BrutePursueState"
+      ],
+      "verified": true,
+      "verification": {
+        "freshImport": true,
+        "timelineSamples": true,
+        "actualGamePlayback": true,
+        "visualPoses": true
+      },
+      "contactEvents": []
+    },
+    {
+      "name": "run",
+      "durationSeconds": 0.65,
+      "looping": true,
+      "supportedStates": [
+        "BrutePursueState"
+      ],
+      "verified": true,
+      "verification": {
+        "freshImport": true,
+        "timelineSamples": true,
+        "actualGamePlayback": true,
+        "visualPoses": true
+      },
+      "contactEvents": []
+    },
+    {
+      "name": "turn",
+      "durationSeconds": 0.6,
+      "looping": false,
+      "supportedStates": [
+        "BruteClipTestState"
+      ],
+      "verified": true,
+      "verification": {
+        "freshImport": true,
+        "timelineSamples": true,
+        "actualGamePlayback": true,
+        "visualPoses": true
+      },
+      "contactEvents": []
+    },
+    {
+      "name": "club_windup",
+      "durationSeconds": 0.65,
+      "looping": false,
+      "supportedStates": [
+        "BruteWindupState"
+      ],
+      "verified": true,
+      "verification": {
+        "freshImport": true,
+        "timelineSamples": true,
+        "actualGamePlayback": true,
+        "visualPoses": true
+      },
+      "contactEvents": []
+    },
+    {
+      "name": "club_swing",
+      "durationSeconds": 0.48,
+      "looping": false,
+      "supportedStates": [
+        "BruteSwingState"
+      ],
+      "verified": true,
+      "verification": {
+        "freshImport": true,
+        "timelineSamples": true,
+        "actualGamePlayback": true,
+        "visualPoses": true
+      },
+      "contactEvents": [
+        {
+          "name": "contact_start",
+          "time": 0.12
+        },
+        {
+          "name": "contact_end",
+          "time": 0.36
+        }
+      ]
+    },
+    {
+      "name": "club_recover",
+      "durationSeconds": 0.7,
+      "looping": false,
+      "supportedStates": [
+        "BruteRecoverState"
+      ],
+      "verified": true,
+      "verification": {
+        "freshImport": true,
+        "timelineSamples": true,
+        "actualGamePlayback": true,
+        "visualPoses": true
+      },
+      "contactEvents": []
+    },
+    {
+      "name": "door_bash",
+      "durationSeconds": 1.1,
+      "looping": false,
+      "supportedStates": [
+        "BruteDoorBashState"
+      ],
+      "verified": true,
+      "verification": {
+        "freshImport": true,
+        "timelineSamples": true,
+        "actualGamePlayback": true,
+        "visualPoses": true
+      },
+      "contactEvents": [
+        {
+          "name": "impact",
+          "time": 0.6
+        }
+      ]
+    },
+    {
+      "name": "hit",
+      "durationSeconds": 0.35,
+      "looping": false,
+      "supportedStates": [
+        "BruteHitState"
+      ],
+      "verified": true,
+      "verification": {
+        "freshImport": true,
+        "timelineSamples": true,
+        "actualGamePlayback": true,
+        "visualPoses": true
+      },
+      "contactEvents": []
+    },
+    {
+      "name": "stun",
+      "durationSeconds": 1.2,
+      "looping": true,
+      "supportedStates": [
+        "BruteStunState"
+      ],
+      "verified": true,
+      "verification": {
+        "freshImport": true,
+        "timelineSamples": true,
+        "actualGamePlayback": true,
+        "visualPoses": true
+      },
+      "contactEvents": []
+    },
+    {
+      "name": "recover",
+      "durationSeconds": 0.65,
+      "looping": false,
+      "supportedStates": [
+        "BruteStunRecoverState"
+      ],
+      "verified": true,
+      "verification": {
+        "freshImport": true,
+        "timelineSamples": true,
+        "actualGamePlayback": true,
+        "visualPoses": true
+      },
+      "contactEvents": []
+    },
+    {
+      "name": "snort",
+      "durationSeconds": 0.8,
+      "looping": false,
+      "supportedStates": [
+        "BruteClipTestState"
+      ],
+      "verified": true,
+      "verification": {
+        "freshImport": true,
+        "timelineSamples": true,
+        "actualGamePlayback": true,
+        "visualPoses": true
+      },
+      "contactEvents": []
+    },
+    {
+      "name": "stomp",
+      "durationSeconds": 0.8,
+      "looping": false,
+      "supportedStates": [
+        "BruteAngerState"
+      ],
+      "verified": true,
+      "verification": {
+        "freshImport": true,
+        "timelineSamples": true,
+        "actualGamePlayback": true,
+        "visualPoses": true
+      },
+      "contactEvents": []
+    },
+    {
+      "name": "enraged_swing",
+      "durationSeconds": 0.48,
+      "looping": false,
+      "supportedStates": [
+        "BruteSwingState"
+      ],
+      "verified": true,
+      "verification": {
+        "freshImport": true,
+        "timelineSamples": true,
+        "actualGamePlayback": true,
+        "visualPoses": true
+      },
+      "contactEvents": [
+        {
+          "name": "contact_start",
+          "time": 0.12
+        },
+        {
+          "name": "contact_end",
+          "time": 0.36
+        }
+      ]
+    },
+    {
+      "name": "reject_pickup",
+      "durationSeconds": 0.8,
+      "looping": false,
+      "supportedStates": [
+        "BruteAngerState"
+      ],
+      "verified": true,
+      "verification": {
+        "freshImport": true,
+        "timelineSamples": true,
+        "actualGamePlayback": true,
+        "visualPoses": true
+      },
+      "contactEvents": []
+    },
+    {
+      "name": "death",
+      "durationSeconds": 1.6,
+      "looping": false,
+      "supportedStates": [
+        "BruteDeathState"
+      ],
+      "verified": true,
+      "verification": {
+        "freshImport": true,
+        "timelineSamples": true,
+        "actualGamePlayback": true,
+        "visualPoses": true
+      },
+      "contactEvents": []
+    },
+    {
+      "name": "knockback",
+      "looping": false,
+      "supportedStates": [
+        "BruteKnockbackState",
+        "BruteClipTestState"
+      ],
+      "verified": true,
+      "durationSeconds": 0.5,
+      "verification": {
+        "freshImport": true,
+        "timelineSamples": true,
+        "actualGamePlayback": true,
+        "visualPoses": true
+      }
+    }
+  ],
+  "notApplicable": {
+    "carried": "Too heavy; beginCarry rejects.",
+    "airborne_throw": "Too heavy; launch rejects.",
+    "landing_from_throw": "Throwing is unsupported."
+  },
+  "additionalPendingClips": [],
+  "rig": "MushroomBruteRig",
+  "authoringFps": 100,
+  "modelSha256": "da942c155a6fdf5ed9e0244081c5dae0c3c7032d582dd1cd915f9cb81d822cd7",
+  "runtimeEvidence": "runtime-playback-evidence.json"
+}

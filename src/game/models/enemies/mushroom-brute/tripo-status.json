@@ -1,0 +1,62 @@
+{
+  "checkedOn": "2026-10-22",
+  "provider": "Tripo3D",
+  "tool": "Tripo Studio browser",
+  "gameDevCliAvailableOnPath": false,
+  "authentication": "configured profile:default; secret not read or printed",
+  "submitted": true,
+  "jobId": "3afe4823-f4e0-4779-80ab-b3b7051e387e",
+  "parameters": {
+    "model": "H3.1 Best Quality",
+    "input": "tripo-reference.png",
+    "privacy": "Private",
+    "generateInParts": false,
+    "texture8k": false,
+    "geometryAndTexture": true
+  },
+  "creditsConsumed": null,
+  "chargesCents": null,
+  "reason": null,
+  "reference": "src/game/objects/enemies/mushroom-brute/info.png",
+  "referenceSha256": "f5648caced02f802a3d55937c36e6b4d7b727559e347eb826fecf8df1513a983",
+  "uploadAuthorized": true,
+  "paidAttemptLimit": {
+    "initial": 1,
+    "replacementOnlyForMaterialMismatch": 1
+  },
+  "negativePrompt": null,
+  "previousApiCheck": {
+    "ok": true,
+    "apiReachable": true,
+    "balance": 0,
+    "frozen": 0
+  },
+  "providerInterface": "Tripo Studio browser",
+  "sourcePage": "https://studio.tripo3d.ai/workspace/generate/3afe4823-f4e0-4779-80ab-b3b7051e387e",
+  "status": "generated-downloaded-and-locally-refined",
+  "quotedCredits": 30,
+  "studioBalanceBefore": 22760,
+  "studioBalanceAfterObserved": 22700,
+  "balanceDeltaNotAttributed": "Other enemy generation jobs share this account; balance delta cannot establish this job charge.",
+  "submittedPrompt": null,
+  "referenceDerivativeSha256": "f5519417a1e377dc84e8e616f07b54216c62b319b4f8bca16a774da201727bd1",
+  "providerOriginalArchive": "tripo-original.zip",
+  "providerOriginalSha256": "1bf9de49db6c22e2833a297681f5a3ea40f91ee61e875b02db74ef146bfbb01f",
+  "refinedSource": "mushroom-brute.blend",
+  "runtimeModel": "mushroom-brute.glb",
+  "replacementSubmissions": 0,
+  "license": "Existing Tripo Studio account terms; no SPDX license inferred",
+  "modelSha256": "da942c155a6fdf5ed9e0244081c5dae0c3c7032d582dd1cd915f9cb81d822cd7",
+  "sourceSha256": "323edd4685840448f6fb3c23d4d76fefe4c2dacdcaa7dce9c485a7e4e1555608",
+  "actualChargeEvidence": "Generation UI quoted 30 credits. No per-job billing receipt was exposed; shared account balance delta is not attributed to this job.",
+  "apiDiscoveryTool": {
+    "name": "tripo-cli",
+    "version": "0.5.2",
+    "doctor": {
+      "ok": true,
+      "apiReachable": true,
+      "balance": 0,
+      "frozen": 0
+    }
+  }
+}

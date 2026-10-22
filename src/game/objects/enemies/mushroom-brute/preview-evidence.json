@@ -1,0 +1,17 @@
+{
+  "width": 512,
+  "height": 512,
+  "colorType": "RGBA",
+  "transparentPixels": 220860,
+  "nonzeroAlphaPixels": 41284,
+  "visibleBounds": [
+    110,
+    141,
+    395,
+    377
+  ],
+  "passed": true,
+  "source": "Production PlayCanvas transparent render target, captured through saved map HUD",
+  "sha256": "a856064c6fe83539d728587e9b1be43c2a3afc6466be99cddc36c2abf50bce45",
+  "modelSha256": "da942c155a6fdf5ed9e0244081c5dae0c3c7032d582dd1cd915f9cb81d822cd7"
+}

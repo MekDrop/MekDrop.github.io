@@ -1,0 +1,137 @@
+{
+  "clock": "controlled_engine_fixed_step",
+  "stepSeconds": 0.016666666666666666,
+  "passed": true,
+  "staging": {
+    "center": [
+      0,
+      2,
+      -6.150000095367432
+    ],
+    "royal": [
+      3.625,
+      2.1670000553131104,
+      -2.9345099925994873
+    ],
+    "brute": [
+      -0.7661591172218323,
+      2.0039875507354736,
+      -7.046422481536865
+    ],
+    "initialDoorDistance": 0.11707990775695004
+  },
+  "doors": {
+    "before": [
+      {
+        "name": "Castle north doors",
+        "health": 48,
+        "broken": false,
+        "openAmount": 0,
+        "frameAttached": true,
+        "bodies": 86,
+        "activeBodies": 86
+      }
+    ],
+    "after": [
+      {
+        "name": "Castle north doors",
+        "health": 0,
+        "broken": true,
+        "openAmount": 1,
+        "frameAttached": true,
+        "bodies": 86,
+        "activeBodies": 78
+      }
+    ],
+    "impacts": [
+      {
+        "seconds": 0.6166666666666667,
+        "door": 0,
+        "before": 48,
+        "after": 32,
+        "state": "BruteDoorBashState"
+      },
+      {
+        "seconds": 2.433333333333333,
+        "door": 0,
+        "before": 32,
+        "after": 16,
+        "state": "BruteDoorBashState"
+      },
+      {
+        "seconds": 4.25,
+        "door": 0,
+        "before": 16,
+        "after": 0,
+        "state": "BruteDoorBashState"
+      }
+    ],
+    "framePreserved": true,
+    "passageObstruction": null,
+    "passed": true
+  },
+  "royal": {
+    "constructor": "King",
+    "contactAccepted": true,
+    "contactState": "BruteSwingState",
+    "clearContact": true,
+    "start": [
+      3.625,
+      2.1670000553131104,
+      -2.9345099925994873
+    ],
+    "poses": [
+      [
+        3.625,
+        2.1670000553131104,
+        -2.9345099925994873
+      ],
+      [
+        3.661959409713745,
+        2.0978121757507324,
+        -4.540314674377441
+      ],
+      [
+        3.6866230964660645,
+        2.0516414642333984,
+        -5.776994228363037
+      ],
+      [
+        3.6866230964660645,
+        2.0516414642333984,
+        -5.776994228363037
+      ],
+      [
+        3.6866230964660645,
+        2.0516414642333984,
+        -5.776994228363037
+      ],
+      [
+        3.6866230964660645,
+        2.0516414642333984,
+        -5.776994228363037
+      ],
+      [
+        3.6866230964660645,
+        2.0516414642333984,
+        -5.776994228363037
+      ],
+      [
+        3.6866230964660645,
+        2.0516414642333984,
+        -5.776994228363037
+      ]
+    ],
+    "moved": true,
+    "passed": true
+  },
+  "checkedOn": "2026-10-22",
+  "modelSha256": "da942c155a6fdf5ed9e0244081c5dae0c3c7032d582dd1cd915f9cb81d822cd7",
+  "testMapSha256": "eb7ecfc91a26bbc00fee33984b2e0816f22e8bc54abb862566caf74e116566d9",
+  "note": "Staged production door and royal contact in the saved map, real PlayCanvas/Ammo fixed steps. This verifies contact and performance, not navigation from arbitrary spawn positions or foreground RAF pacing.",
+  "sourceSha256": {
+    "MushroomBrute.js": "fdcbd641e17d1502c12c376b5463e2211e4e9d60be10e97c6a888c28d72c6bb7",
+    "MushroomBruteCastleCheck.js": "b65a63554d174271b79650ee99f75a1f07d2f4232c373de9b27f7ee3f87d7362",
+    "states/BruteDoorBashState.js": "a3406a35013d180395293f9f9e8c8986194b737d6a22caa8b4f154469d39378d"
+  }
+}
