@@ -143,6 +143,28 @@ const TWGSL_URL = getShaderTranspilerScriptUrl(twgslScriptUrl, twgslWasmUrl);
 
 export class PlayCanvasRenderer {
   /**
+   * @type {boolean}
+   */
+  #replacingScene = false;
+
+  /**
+   * Allow the browser to paint before continuing construction.
+   * @param {() => void} resolve
+   */
+  static #yieldReplacementFrame(resolve) {
+    let pending = true;
+    const finish = () => {
+      if (pending) {
+        pending = false;
+        clearTimeout(fallback);
+        resolve();
+      }
+    };
+    const fallback = globalThis.setTimeout(finish, 100);
+    requestAnimationFrame(() => globalThis.setTimeout(finish, 0));
+  }
+
+  /**
    * @type {SceneDecorationQueue}
    */
   #decorations;
@@ -730,6 +752,16 @@ export class PlayCanvasRenderer {
    * @param {import("./GameContracts.js").GameMapData} mapData
    */
   render(mapData) {
+    this.#replacingScene = false;
+    for (const step of this.#renderSteps(mapData)) {
+      void step;
+    }
+  }
+
+  /**
+   * @param {import("./GameContracts.js").GameMapData} mapData
+   */
+  *#renderSteps(mapData) {
     this.#islandOffsetsApplied = false;
     let initialViewport = null;
     if (!this.#mapData) {
@@ -747,7 +779,7 @@ export class PlayCanvasRenderer {
     this.#updateFitCenter();
     this.#camera.panX = this.#camera.fitCenterX;
     this.#camera.panZ = this.#camera.fitCenterZ;
-    this.#rebuildScene();
+    yield* this.#rebuildScene();
     this.#huds.remove(MapTestControlsHud);
     if (mapData.testControls?.panels?.length) {
       this.#huds.add(MapTestControlsHud, {
@@ -1691,49 +1723,89 @@ export class PlayCanvasRenderer {
     return texture;
   }
 
-  #rebuildScene() {
-    this.#clearScene();
-    this.#mapRoot = new this.#pc.Entity("Voxel map");
-    this.#app.root.addChild(this.#mapRoot);
-    this.#islandOffsetsApplied = false;
-    this.#islandConnectorMotion = new IslandConnectorMotion(this.#mapData);
-
-    this.#bridgeRailingKit = new BridgeRailingKit({
-      pc: this.#pc,
-      modelLibrary: this.#modelLibrary,
-      materials: this.#materials,
+  *#rebuildScene() {
+    // Keep the old terrain visible until the replacement is fully constructed.
+    const retired = this.#replacingScene ? {
+      terrain: this.#terrainRenderer,
       root: this.#mapRoot,
-      mapData: this.#mapData,
-    });
-    this.#terrainRenderer = new TerrainRenderer({
-      pc: this.#pc,
-      app: this.#app,
-      mapData: this.#mapData,
-      root: this.#mapRoot,
-      materials: this.#materials,
-      bridgeRailingKit: this.#bridgeRailingKit,
-      modelLibrary: this.#modelLibrary,
-    });
-    this.#buildMapObjects();
-    this.#terrainRenderer.build();
-    this.#vertexBuffers.push(...this.#bridgeRailingKit.build());
-    this.#decorations.add(this.#buildClouds.bind(this));
-    this.getHud(HeroLifeHud)?.setCastleLives(
-      this.#sceneObjects.getFirst(SCENE_OBJECT_TYPE.CASTLE)
-        ? MAX_CASTLE_LIVES
-        : 0,
-      MAX_CASTLE_LIVES,
-    );
-    this.#buildBuriedTreasure();
-    this.#terrainRenderer.buildPhysicsSurface(this.#collisionWorld);
-    this.#buildHero();
-    this.#connectHeroTools();
-    for (const object of this.#sceneObjects) {
-      object.onSceneReady?.();
+      buffers: this.#vertexBuffers,
+      objects: this.#sceneObjects.detach(),
+    } : null;
+    if (retired) {
+      this.#terrainRenderer = null;
+      this.#mapRoot = null;
+      this.#vertexBuffers = [];
     }
-    this.#updateInteractionTarget();
+    try {
+      this.#clearScene();
+      this.#mapRoot = new this.#pc.Entity("Voxel map");
+      this.#app.root.addChild(this.#mapRoot);
+      this.#mapRoot.enabled = !this.#replacingScene;
+      this.#islandOffsetsApplied = false;
+      this.#islandConnectorMotion = new IslandConnectorMotion(this.#mapData);
 
-    this.#captureCameraVisualBounds();
+      this.#bridgeRailingKit = new BridgeRailingKit({
+        pc: this.#pc,
+        modelLibrary: this.#modelLibrary,
+        materials: this.#materials,
+        root: this.#mapRoot,
+        mapData: this.#mapData,
+      });
+      this.#terrainRenderer = new TerrainRenderer({
+        pc: this.#pc,
+        app: this.#app,
+        mapData: this.#mapData,
+        root: this.#mapRoot,
+        materials: this.#materials,
+        bridgeRailingKit: this.#bridgeRailingKit,
+        modelLibrary: this.#modelLibrary,
+      });
+      yield* this.#buildMapObjects();
+      yield;
+      this.#terrainRenderer.build();
+      yield;
+      this.#vertexBuffers.push(...this.#bridgeRailingKit.build());
+      this.#decorations.add(this.#buildClouds.bind(this));
+      this.getHud(HeroLifeHud)?.setCastleLives(
+        this.#sceneObjects.getFirst(SCENE_OBJECT_TYPE.CASTLE)
+          ? MAX_CASTLE_LIVES
+          : 0,
+        MAX_CASTLE_LIVES,
+      );
+      yield;
+      this.#buildBuriedTreasure();
+      yield;
+      this.#terrainRenderer.buildPhysicsSurface(this.#collisionWorld);
+      yield;
+      this.#buildHero();
+      yield;
+      this.#connectHeroTools();
+      for (const object of this.#sceneObjects) {
+        if (this.#replacingScene && object.onSceneReadyAsync) {
+          yield object.onSceneReadyAsync();
+        } else {
+          object.onSceneReady?.();
+          yield;
+        }
+      }
+      this.#updateInteractionTarget();
+
+      if (this.#replacingScene && this.#decorationsEnabled) {
+        yield this.#decorations.start();
+      }
+      this.#mapRoot.enabled = true;
+      this.#captureCameraVisualBounds();
+    } finally {
+      for (const object of retired?.objects ?? []) {
+        object.destroy?.();
+      }
+      retired?.objects.clear();
+      retired?.terrain?.destroy();
+      retired?.root?.destroy();
+      for (const buffer of retired?.buffers ?? []) {
+        buffer.destroy();
+      }
+    }
   }
 
   /**
@@ -1742,7 +1814,7 @@ export class PlayCanvasRenderer {
    * @returns {Promise<boolean>}
    */
   async #replaceObjectDefinition(definition, replacement) {
-    if (this.#destroyed || replacement !== this.#mapObjectReplacement) {
+    if (this.#destroyed || this.#replacingScene || replacement !== this.#mapObjectReplacement) {
       return false;
     }
     const map = replacement.replace(definition, this.#mapData.objects, this.hero.position);
@@ -1755,7 +1827,33 @@ export class PlayCanvasRenderer {
     if (this.#destroyed || replacement !== this.#mapObjectReplacement) {
       return false;
     }
-    this.render(map);
+    this.#replacingScene = true;
+    try {
+      let lastYield = performance.now();
+      for (const step of this.#renderSteps(map)) {
+        await step;
+        if (this.#destroyed || this.#mapData !== map) {
+          return false;
+        }
+        if (performance.now() - lastYield >= 6) {
+          await new Promise(PlayCanvasRenderer.#yieldReplacementFrame);
+          if (this.#destroyed || this.#mapData !== map) {
+            return false;
+          }
+          lastYield = performance.now();
+        }
+      }
+      if (this.#decorationsEnabled) {
+        await this.#decorations.start();
+      }
+      if (this.#destroyed || this.#mapData !== map) {
+        return false;
+      }
+    } finally {
+      if (this.#mapData === map) {
+        this.#replacingScene = false;
+      }
+    }
     this.setViewport(viewport);
     if (camera) {
       const current = this.firstPersonCameraState;
@@ -1813,9 +1911,9 @@ export class PlayCanvasRenderer {
     this.#updateCamera();
   }
 
-  #buildMapObjects() {
+  *#buildMapObjects() {
     const replacement = this.#mapObjectReplacement;
-    for (const object of MapObjectFactory.createAll({
+    for (const object of MapObjectFactory.createEach({
       pc: this.#pc,
       app: this.#app,
       modelLibrary: this.#modelLibrary,
@@ -1864,6 +1962,7 @@ export class PlayCanvasRenderer {
           physicsSurface: object.physicsSurface !== false,
         });
       }
+      yield;
     }
   }
 
@@ -2093,7 +2192,7 @@ export class PlayCanvasRenderer {
    */
   #updateFrame = (deltaTime) => {
     this.#shadowBudget?.update(deltaTime);
-    if (this.#frameUpdateFailed) {
+    if (this.#frameUpdateFailed || this.#replacingScene) {
       return;
     }
     try {

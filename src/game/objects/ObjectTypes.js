@@ -140,6 +140,7 @@
  * @property {MapObjectDefinition} [definition]
  * @property {() => void} destroy
  * @property {() => void} [onSceneReady]
+ * @property {() => Promise<void>} [onSceneReadyAsync] Optional staged replacement setup while loading effects animate.
  * @property {(x: number, z: number, radius?: number) => number|null} [surfaceHeightAt]
  * @property {(x: number, z: number, radius?: number) => number|null} [physicsSurfaceHeightAt]
  * @property {(x: number, z: number) => number|null} [capsuleSupportHeightAt]

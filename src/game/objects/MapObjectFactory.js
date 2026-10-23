@@ -358,7 +358,15 @@ export class MapObjectFactory {
    * @param {import("src/game/objects/ObjectTypes.js").MapObjectRuntime} options.runtime
    * @param {(mapObject: import("src/game/objects/ObjectTypes.js").MapObjectLike) => void} options.onCreate
    */
-  static createAll({
+  static createAll(options) {
+    return [...this.createEach(options)];
+  }
+
+  /**
+   * Lazily construct objects so replacement scenes can yield between objects.
+   * @param {Parameters<typeof MapObjectFactory.createAll>[0]} options
+   */
+  static *createEach({
     pc,
     app,
     modelLibrary,
@@ -392,6 +400,7 @@ export class MapObjectFactory {
       });
       objects.push(object);
       onCreate(object);
+      yield object;
     }
     if (vegetationDefinitions.length) {
       const vegetation = new VoxelVegetation({
@@ -403,6 +412,7 @@ export class MapObjectFactory {
       });
       objects.push(vegetation);
       onCreate(vegetation);
+      yield vegetation;
     }
     if (pickupDefinitions.length) {
       const pickupActors = new MapPickupAnimationActors({
@@ -414,8 +424,8 @@ export class MapObjectFactory {
       });
       objects.push(pickupActors);
       onCreate(pickupActors);
+      yield pickupActors;
     }
-    return objects;
   }
 
   /**

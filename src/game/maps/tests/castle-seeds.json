@@ -10459,6 +10459,10 @@
           {
             "label": "Castle overview",
             "script": "camera.setFirstPerson(false); camera.setViewport({zoom:1.5,rotation:2,panX:0,panZ:0});"
+          },
+          {
+            "label": "Random castle",
+            "script": "objects.getAll('castle').find(castle => castle.definition.id === 'seed-castle')?.regenerateRandomSeed();"
           }
         ]
       }

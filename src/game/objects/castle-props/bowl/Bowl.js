@@ -27,6 +27,10 @@ export class Bowl extends AbstractCastleProp {
    */
   #packed = false;
   /**
+   * @type {boolean}
+   */
+  #destroyed = false;
+  /**
    * @type {Map<import("playcanvas").Mesh, import("playcanvas").Mesh>}
    */
   #meshes = new Map();
@@ -43,6 +47,28 @@ export class Bowl extends AbstractCastleProp {
     if (this.#packed) {
       return;
     }
+    const { shell, geometries, packedItems } = this.#prepareContents();
+    const poses = geometries.length ? BowlPacking.settle(shell, geometries, {
+      items: this.definition.items ?? [],
+    }) : [];
+    this.#applyPoses(poses, packedItems);
+  }
+
+  async onSceneReadyAsync() {
+    if (this.#packed) {
+      return;
+    }
+    const { shell, geometries, packedItems } = this.#prepareContents();
+    const poses = geometries.length ? await BowlPacking.settleAsync(shell, geometries, {
+      items: this.definition.items ?? [],
+    }) : [];
+    if (this.#destroyed) {
+      return;
+    }
+    this.#applyPoses(poses, packedItems);
+  }
+
+  #prepareContents() {
     const model = this.visualRoots[0].children[0];
     const shell = BowlPacking.geometry(model, model);
     const geometries = [];
@@ -103,9 +129,19 @@ export class Bowl extends AbstractCastleProp {
       geometries.push(BowlPacking.geometry(contents, model));
       packedItems.push(contents);
     }
-    const poses = geometries.length ? BowlPacking.settle(shell, geometries, {
-      items: definition.items ?? [],
-    }) : [];
+
+    return {
+      shell,
+      geometries,
+      packedItems,
+    };
+  }
+
+  /**
+   * @param {Array<{position: import("playcanvas").Vec3, rotation: import("playcanvas").Quat}>} poses
+   * @param {import("playcanvas").Entity[]} packedItems
+   */
+  #applyPoses(poses, packedItems) {
     for (const [index, pose] of poses.entries()) {
       // Numeric components also work when the solver and renderer were loaded
       // from different Engine entry points and have distinct Vec3/Quat classes.
@@ -117,6 +153,7 @@ export class Bowl extends AbstractCastleProp {
   }
 
   destroy() {
+    this.#destroyed = true;
     for (const item of this.#items) {
       item.destroy();
     }

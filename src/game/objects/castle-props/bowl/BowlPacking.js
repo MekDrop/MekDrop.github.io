@@ -125,6 +125,58 @@ export class BowlPacking {
    * @returns {Array<{position: Vec3, rotation: Quat}>}
    */
   static #settle(shell, items) {
+    const steps = this.#settleSteps(shell, items);
+    let result;
+    do {
+      result = steps.next();
+    } while (!result.done);
+
+    return result.value;
+  }
+
+  /**
+   * Keep the same fixed simulation steps while allowing loading FX to animate.
+   * @param {BowlPackingGeometry} shell
+   * @param {BowlPackingGeometry[]} items
+   * @param {import("../../../cache/ObjectDataCache.js").CacheValue} recipe
+   * @returns {Promise<Array<{position: Vec3, rotation: Quat}>>}
+   */
+  static async settleAsync(shell, items, recipe = null) {
+    const poses = await ObjectDataCache.resolveAsync("bowls", recipe ?? {
+      shell,
+      items,
+    }, async () => {
+      const steps = this.#settleSteps(shell, items);
+      let deadline = performance.now() + 6;
+      try {
+        for (;;) {
+          const result = steps.next();
+          if (result.done) {
+            return result.value;
+          }
+          if (performance.now() >= deadline) {
+            await new Promise(/**
+             *
+             * @param {() => void} resolve
+             */
+              (resolve) => globalThis.setTimeout(resolve, 0));
+            deadline = performance.now() + 6;
+          }
+        }
+      } finally {
+        steps.return();
+      }
+    });
+
+    return poses.map(BowlPacking.#restorePose);
+  }
+
+  /**
+   * @param {BowlPackingGeometry} shell
+   * @param {BowlPackingGeometry[]} items
+   * @returns {Generator<void, Array<{position: Vec3, rotation: Quat}>>}
+   */
+  static *#settleSteps(shell, items) {
     if (!items.length) {
       return [];
     }
@@ -192,6 +244,9 @@ export class BowlPacking {
         let still = 0;
         for (let frame = 0; frame < 960 && still < 60; frame++) {
           world.step(1 / 120, 1, 1 / 120);
+          if (frame % 8 === 0) {
+            yield;
+          }
           body.getLinearVelocity(linear);
           body.getAngularVelocity(angular);
           still = linear.length() < 0.002 && angular.length() < 0.02 ? still + 1 : 0;

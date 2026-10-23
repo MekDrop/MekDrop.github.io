@@ -76,7 +76,7 @@ function assetGeometry(path) {
   };
 }
 
-test("authored voxel bowls cook compact hulls and keep only the current drop dynamic", () => {
+test("authored voxel bowls cook compact hulls and keep only the current drop dynamic", async () => {
   const shell = assetGeometry("bowl/bowl.glb");
   const vegetable = assetGeometry("food/green-vegetable.glb");
   const size = vegetable.bounds.halfExtents;
@@ -108,6 +108,15 @@ test("authored voxel bowls cook compact hulls and keep only the current drop dyn
     const poses = BowlPacking.settle(shell, Array.from({ length: 9 }, () => vegetable));
     assert.equal(poses.length, 9);
     assert.equal(supports, 10);
+    assert.equal(dynamic.size, 0);
+    let painted = false;
+    const timer = setTimeout(() => {
+      painted = true;
+    }, 0);
+    const asyncPoses = await BowlPacking.settleAsync(shell, Array.from({ length: 9 }, () => vegetable));
+    clearTimeout(timer);
+    assert.equal(painted, true, "loading must get an event-loop turn while packing");
+    assert.deepEqual(asyncPoses, poses, "yielding preserves every fixed physics step");
     assert.equal(dynamic.size, 0);
     for (const pose of poses) {
       assert.ok(Number.isFinite(pose.position.y) && pose.position.y > -0.1 && pose.position.y < 0.4);

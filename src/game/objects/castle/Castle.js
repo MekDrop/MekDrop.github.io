@@ -1,3 +1,4 @@
+import { CastleSwapEffect } from "./CastleSwapEffect.js";
 import { CastleGenerator } from "../../generator/castle/CastleGenerator.js";
 import { CastleMapPreparation } from "./ground/CastleMapPreparation.js";
 import gardenTextureUrl from "src/assets/game/tiles/grass-top.png";
@@ -53,6 +54,14 @@ export class Castle extends CastleEntityBuilder {
    * @type {boolean}
    */
   #regenerating = false;
+  /**
+   * @type {typeof import("playcanvas")}
+   */
+  #pc;
+  /**
+   * @type {import("playcanvas").Application}
+   */
+  #effectApp;
 
   /**
    * @type {number}
@@ -101,6 +110,8 @@ export class Castle extends CastleEntityBuilder {
       onRuntimeError: runtime.onRuntimeError,
     });
 
+    this.#pc = pc;
+    this.#effectApp = app;
     this.#definition = definition;
     this.#runtime = runtime;
     const { mapData } = runtime;
@@ -148,7 +159,17 @@ export class Castle extends CastleEntityBuilder {
       return null;
     }
     this.#regenerating = true;
+    let effect;
     try {
+      effect = new CastleSwapEffect(this.#pc, this.#effectApp, this.#definition.buildPlan.input.position, this.entity);
+      await new Promise(/**
+       *
+       * @param {() => void} resolve
+       */
+        (resolve) => globalThis.setTimeout(resolve, 1200));
+      if (!this.entity) {
+        return null;
+      }
       const buildPlan = await CastleGenerator.generate({
         ...this.#definition,
         seed,
@@ -176,6 +197,13 @@ export class Castle extends CastleEntityBuilder {
 
       return null;
     } finally {
+      effect?.finish();
+      await new Promise(/**
+       *
+       * @param {() => void} resolve
+       */
+        (resolve) => globalThis.setTimeout(resolve, 1700));
+      effect?.destroy();
       this.#regenerating = false;
     }
   }

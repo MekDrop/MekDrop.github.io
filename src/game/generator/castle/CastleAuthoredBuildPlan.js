@@ -702,12 +702,30 @@ export class CastleAuthoredBuildPlan {
       }
     };
     const occupiedBounds = [];
+    const pendingBoxes = [];
+    const generationState = { lastYield: scheduler.now() };
+    /**
+     * Preserve masonry ownership order while emitting it in bounded batches.
+     * @param {{minX:number,maxX:number,minZ:number,maxZ:number,minY:number,maxY:number}} bounds
+     * @param {string} material
+     */
+    const addBox = (bounds, material = "castleStoneMid") => pendingBoxes.push({
+      bounds,
+      material,
+    });
+    const flushBoxes = async () => {
+      for (const { bounds, material } of pendingBoxes) {
+        emitOccupiedBox(bounds, material);
+        await scheduler.yieldIfNeeded(generationState);
+      }
+      pendingBoxes.length = 0;
+    };
     /**
      * Earlier masonry owns intersections, including room and exterior junctions.
      * @param {{minX:number,maxX:number,minZ:number,maxZ:number,minY:number,maxY:number}} bounds
      * @param {string} material
      */
-    const addBox = (bounds, material = "castleStoneMid") => {
+    const emitOccupiedBox = (bounds, material = "castleStoneMid") => {
       let pieces = [bounds];
       for (const occupied of occupiedBounds) {
         // Every remaining piece is contained by bounds. Disjoint masonry
@@ -1166,6 +1184,7 @@ export class CastleAuthoredBuildPlan {
         });
       }
     }
+    await flushBoxes();
     const roomDoors = [];
     const uniqueDoors = new Set();
     for (const door of residential.doorways) {
@@ -1346,6 +1365,7 @@ export class CastleAuthoredBuildPlan {
           }, material);
         });
     }
+    await flushBoxes();
     const angle = yaw * Math.PI / 180;
     const localWalls = cameraBlocks.map(/**
      *

@@ -164,6 +164,25 @@ export class SceneObjectRegistry {
   }
 
   /**
+   * Retain the previous scene for display while keeping live registry references valid.
+   * @returns {SceneObjectRegistry}
+   */
+  detach() {
+    const retired = new SceneObjectRegistry();
+    retired.#objects = this.#objects;
+    retired.#keysByType = this.#keysByType;
+    retired.#countsByType = this.#countsByType;
+    this.#objects = new Map();
+    this.#keysByType = new Map();
+    this.#countsByType = new Map();
+    this.#methodMembers.clear();
+    this.#firstByClass = null;
+    this.#revision++;
+
+    return retired;
+  }
+
+  /**
    *
    * @param {string} type
    */
