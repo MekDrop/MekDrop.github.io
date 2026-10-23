@@ -1,6 +1,4 @@
-import handleUrl from "../../../models/castle/doors/interior-doors.glb?url";
 import { Vec3 } from "playcanvas";
-import hatchUrl from "../../../models/castle/residential/floor-panel.glb?url";
 import modelUrl from "../../../models/castle/residential/crown-ladder.glb?url";
 import { AbstractCastleProp } from "../../shared/AbstractCastleProp.js";
 
@@ -17,23 +15,23 @@ export class Ladder extends AbstractCastleProp {
    */
   #releaseClimber;
   /**
-   * @type {import("playcanvas").Entity}
+   * @type {import("../../ObjectTypes.js").MapObjectRuntime}
    */
-  #hatch;
+  #runtime;
   /**
-   * @type {import("playcanvas").Entity}
+   * @type {import("../hatch/Hatch.js").Hatch|undefined}
    */
-  #hatchCollider;
+  #linkedHatch;
   /**
-   * @type {ReturnType<typeof setTimeout>}
+   * @type {number|undefined}
    */
-  #closeTimer;
+  #hatchRevision;
 
   /**
    * @returns {string[]}
    */
   static get modelUrls() {
-    return [modelUrl, hatchUrl, handleUrl];
+    return [modelUrl];
   }
 
   /**
@@ -68,91 +66,12 @@ export class Ladder extends AbstractCastleProp {
     };
     super(options);
 
-    const { pc, modelLibrary, definition } = options;
     this.#climbUpdate = options.app.on("update", () => {
       if (!this.#releaseClimber) {
         this.#releaseClimber = options.runtime?.getHero?.()?.registerLadder?.(this);
       }
     });
-    const hatch = definition.hatch;
-    if (!hatch) {
-      return;
-    }
-    const angle = (definition.rotation ?? 0) * Math.PI / 180;
-    const dx = hatch.position.x - definition.position.x;
-    const dz = hatch.position.z - definition.position.z;
-    const x = dx * Math.cos(angle) - dz * Math.sin(angle);
-    const z = dx * Math.sin(angle) + dz * Math.cos(angle);
-    this.#hatch = new pc.Entity("Tower roof hatch hinge");
-    this.visualRoots[0].addChild(this.#hatch);
-    this.#hatch.setLocalPosition(x, hatch.position.y - definition.position.y, z - hatch.depth / 2);
-    // Four reused timber modules form a fixed frame outside the clear opening.
-    this.#addHatchFrame(
-      modelLibrary,
-      x,
-      hatch,
-      definition,
-      z,
-      -hatch.width / 2 - 0.04,
-      0,
-      0.08,
-      hatch.depth + 0.16,
-    );
-    this.#addHatchFrame(
-      modelLibrary,
-      x,
-      hatch,
-      definition,
-      z,
-      hatch.width / 2 + 0.04,
-      0,
-      0.08,
-      hatch.depth + 0.16,
-    );
-    this.#addHatchFrame(
-      modelLibrary,
-      x,
-      hatch,
-      definition,
-      z,
-      0,
-      -hatch.depth / 2 - 0.04,
-      hatch.width,
-      0.08,
-    );
-    this.#addHatchFrame(
-      modelLibrary,
-      x,
-      hatch,
-      definition,
-      z,
-      0,
-      hatch.depth / 2 + 0.04,
-      hatch.width,
-      0.08,
-    );
-    const panel = modelLibrary.instantiate(hatchUrl);
-    panel.setLocalScale(hatch.width - 0.01, 1, hatch.depth - 0.01);
-    panel.setLocalPosition(0, -0.05, hatch.depth / 2);
-    this.#hatch.addChild(panel);
-    const handleSource = modelLibrary.instantiate(handleUrl);
-    const ring = handleSource.findByName("Right castle door ring handle");
-    if (ring) {
-      this.#addHatchHandle(ring, hatch, 1);
-      this.#addHatchHandle(ring, hatch, -1);
-    }
-    handleSource.destroy();
-    this.#hatchCollider = new pc.Entity("Closed tower hatch support");
-    this.#hatch.addChild(this.#hatchCollider);
-    this.#hatchCollider.setLocalPosition(0, -0.03, hatch.depth / 2);
-    this.#hatchCollider.addComponent("collision", {
-      type: "box",
-      halfExtents: new pc.Vec3(hatch.width / 2, 0.03, hatch.depth / 2),
-    });
-    this.#hatchCollider.addComponent("rigidbody", {
-      type: "static",
-      friction: 0.6,
-    });
+    this.#runtime = options.runtime;
   }
 
   /**
@@ -160,7 +79,7 @@ export class Ladder extends AbstractCastleProp {
    * @param {import("playcanvas").Entity} model
    */
   prepareModel(model) {
-    const { hatch, position, rotation = 0, top } = this.definition;
+    const { opening: hatch, position, rotation = 0, top } = this.definition;
     const height = Math.max(0.1, top.y - position.y - (hatch ? 0.07 : 0.12));
     let offset = 0;
     if (hatch) {
@@ -179,20 +98,44 @@ export class Ladder extends AbstractCastleProp {
    * Open for the climb, then leave the rooftop sealed again.
    */
   openHatch() {
-    if (!this.#hatch) {
-      return;
-    }
-    clearTimeout(this.#closeTimer);
-    this.#hatchCollider.enabled = false;
-    this.#hatch.setLocalEulerAngles(-100, 0, 0);
-    this.#closeTimer = setTimeout(this.#setTimeout.bind(this), 2000);
+    const hatch = this.connectedHatch;
+
+    return this.definition.hatchId ? (hatch?.open() ?? false) : true;
   }
 
-  // The movable lid must retain its own transform rather than enter a static batch.
+  /**
+   * @returns {import("../hatch/Hatch.js").Hatch|undefined}
+   */
+  get connectedHatch() {
+    if (!this.definition.hatchId) {
+      return undefined;
+    }
+    const objects = this.#runtime?.objects;
+    if (this.#linkedHatch && this.#hatchRevision === objects?.revision) {
+      return this.#linkedHatch;
+    }
+    this.#hatchRevision = objects?.revision;
+    this.#linkedHatch = [...(objects ?? [])].find(/**
+     *
+     * @param {import("../hatch/Hatch.js").Hatch} item
+     */
+      item => item.definition?.id === this.definition.hatchId);
+
+    return this.#linkedHatch;
+  }
+
+  /**
+   * @returns {boolean}
+   */
+  get passageBlocked() {
+    return Boolean(this.definition.hatchId && (!this.connectedHatch || this.connectedHatch.locked));
+  }
+
+  // Keep the authored rail transform available to the climbing guide.
   onSceneReady() {}
 
   destroy() {
-    this.#climbUpdate?.off(); this.#releaseClimber?.(); clearTimeout(this.#closeTimer); super.destroy();
+    this.#climbUpdate?.off(); this.#releaseClimber?.(); super.destroy();
   }
 
   /**
@@ -215,12 +158,12 @@ export class Ladder extends AbstractCastleProp {
    */
   get topLandings() {
     const top = this.landing("top");
-    if (!this.definition.hatch) {
+    if (!this.definition.opening) {
       return [top];
     }
     const guide = this.climbGuide(top.y);
     const angle = (this.definition.rotation ?? 0) * Math.PI / 180;
-    const offset = this.definition.hatch.width / 2 + 0.2;
+    const offset = this.definition.opening.width / 2 + 0.2;
     const facing = this.climbFacing;
 
     return [-1, 1].map(/**
@@ -245,13 +188,35 @@ export class Ladder extends AbstractCastleProp {
     const amount = Math.max(0, Math.min(1, (height - bottom.y) / (top.y - bottom.y)));
     const rail = this.visualRoots[0].children[0].getWorldTransform().transformPoint(new Vec3(0, 3.7 * amount, 0));
     const distance = Math.hypot(bottom.x - root.x, bottom.z - root.z) || 1;
-    const clearance = Math.min(1, 0.25 / distance);
+    const clearance = Math.min(1, 0.33 / distance);
 
     return {
       x: rail.x + (bottom.x - root.x) * clearance,
       y: height,
       z: rail.z + (bottom.z - root.z) * clearance,
     };
+  }
+
+  /**
+   * Palm anchors above the authored planks, following their height and lean.
+   * @param {number} index
+   * @param {number} side
+   * @returns {import("playcanvas").Vec3}
+   */
+  handhold(index, side) {
+    return this.visualRoots[0].children[0].getWorldTransform().transformPoint(
+      new Vec3(side * 0.2, 0.2 + Math.max(0, Math.min(12, index)) * 0.27 + 0.055, -0.015));
+  }
+
+  /**
+   * Forefoot contact on the plank's upper face, or on the floor below it.
+   * @param {number} index
+   * @param {number} side
+   * @returns {import("playcanvas").Vec3}
+   */
+  foothold(index, side) {
+    return this.visualRoots[0].children[0].getWorldTransform().transformPoint(
+      new Vec3(side * 0.2, index < 0 ? 0 : 0.2385 + Math.min(12, index) * 0.27, -0.01));
   }
 
   /**
@@ -292,51 +257,4 @@ export class Ladder extends AbstractCastleProp {
     return null;
   }
 
-  #setTimeout() {
-    this.#hatch.setLocalEulerAngles(0, 0, 0);
-    this.#hatchCollider.enabled = true;
-  }
-
-  /**
-   * @param {import("../../../models/GameModelLibrary.js").GameModelLibrary} modelLibrary
-   * @param {number} x
-   * @param {import("../../ObjectTypes.js").MapObjectDefinition["hatch"]} hatch
-   * @param {import("../../ObjectTypes.js").MapObjectDefinition} definition
-   * @param {number} z
-   * @param {number} offsetX
-   * @param {number} offsetZ
-   * @param {number} width
-   * @param {number} depth
-   */
-  #addHatchFrame(
-    modelLibrary,
-    x,
-    hatch,
-    definition,
-    z,
-    offsetX,
-    offsetZ,
-    width,
-    depth,
-  ) {
-    const frame = modelLibrary.instantiate(hatchUrl);
-    frame.name = "Tower hatch fixed oak frame";
-    frame.setLocalScale(width, 1, depth);
-    frame.setLocalPosition(x + offsetX, hatch.position.y - definition.position.y - 0.04, z + offsetZ);
-    this.visualRoots[0].addChild(frame);
-  }
-
-  /**
-   * @param {import("playcanvas").Entity} ring
-   * @param {import("../../ObjectTypes.js").MapObjectDefinition["hatch"]} hatch
-   * @param {number} side
-   */
-  #addHatchHandle(ring, hatch, side) {
-    const handle = ring.clone();
-    handle.name = side > 0 ? "Roof hatch outside handle" : "Roof hatch inside handle";
-    handle.setLocalPosition(0, side > 0 ? 0.025 : -0.085, hatch.depth * 0.78);
-    handle.setLocalEulerAngles(side > 0 ? -90 : 90, 0, 0);
-    handle.setLocalScale(0.75, 0.75, 0.75);
-    this.#hatch.addChild(handle);
-  }
 }

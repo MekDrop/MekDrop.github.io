@@ -98,6 +98,8 @@ game:
     dig: Kasti lobį
     stop_digging: Baigti kasti
     open_treasure: Atidaryti lobių skrynią
+    open_hatch: Atidaryti liuką
+    locked_hatch: Liukas užrakintas
     climb_ladder: Lipti kopėčiomis
     descend_ladder: Leistis kopėčiomis
     fill_hole: Užpilti duobę

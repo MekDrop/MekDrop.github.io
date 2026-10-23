@@ -7,6 +7,7 @@ import { Fire } from "./fire/Fire.js";
 import { WarMapDrawing } from "./castle-props/war-map-drawing/WarMapDrawing.js";
 import { Table } from "./castle-props/table/Table.js";
 import { StraightStaircase } from "./architecture/straight-staircase/StraightStaircase.js";
+import { Hatch } from "./architecture/hatch/Hatch.js";
 import { Ladder } from "./architecture/ladder/Ladder.js";
 import { SignalBell } from "./signal-bell/SignalBell.js";
 import { BedsideDrawers } from "./castle-props/bedside-drawers/BedsideDrawers.js";
@@ -156,6 +157,7 @@ const OBJECT_CLASSES = new Map([
   [Castle.name, Castle],
   [Banner.name, Banner],
   [Ladder.name, Ladder],
+  [Hatch.name, Hatch],
   [SignalBell.name, SignalBell],
   [GroundCoverItem.name, MapVirtualItem],
   [Hero.name, MapAnimationActor],

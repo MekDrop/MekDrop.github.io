@@ -1,6 +1,58 @@
 import { HERO_ANIMATION } from "../../../../../../../src/game/enum/HeroAnimation.js";
 
 describe("Movement-driven ladder climbing", () => {
+  it("keeps the complete body visible and climbs while looking around", () => {
+    cy.visit("/map/test_locked-ladder?camera-test");
+    cy.get('.background-canvas[data-game-ready="true"]', { timeout: 60000 }).should("be.visible");
+    let ladder, initialHeight;
+    cy.window().then(window => {
+      ladder = window.gameMovementTest.mapObjects().find(object => object.object === "Ladder");
+      window.gameMovementTest.teleport(ladder.bottom);
+      const camera = window.gameCameraTest.firstPerson(true).firstPersonCamera;
+      window.gameCameraTest.lookFirstPersonBy(-Math.atan2(camera.direction.x, camera.direction.z) * 180 / Math.PI, -30);
+    });
+    cy.wait(1800);
+    cy.window().then(window => window.gameMovementTest.move(0, 1));
+    cy.window().should(window => expect(window.gameMovementTest.state().animation).to.equal(HERO_ANIMATION.CLIMB));
+    cy.window().then(window => {
+      initialHeight = window.gameMovementTest.state().position.y;
+      window.gameCameraTest.lookFirstPersonBy(90, 0);
+    });
+    cy.window().should(window => {
+      const state = window.gameMovementTest.state();
+      const eye = window.gameCameraTest.state().firstPersonCamera.position;
+      expect(state.animation).to.equal(HERO_ANIMATION.CLIMB);
+      expect(state.position.y).to.be.greaterThan(initialHeight + 0.1);
+      expect(state.facing.z).to.be.greaterThan(0.99);
+      expect(eye.z - state.position.z).to.be.closeTo(0.18, 0.01);
+    });
+    let heroModel;
+    cy.window().then(async window => {
+      const source = await (await window.fetch("/src/game/PlayCanvasRenderer.js")).text();
+      const url = source.match(/from ["']([^"']*playcanvas[^"']*)["']/)[1];
+      const pc = await window.eval(`import(${JSON.stringify(url)})`);
+      const app = Object.values(pc.AppBase._applications).find(Boolean);
+      heroModel = app.root.findByName("Hero model instance");
+      expect(heroModel.findByName("Rounded chest armor").render.enabled, "body stays visible in first person").to.equal(true);
+      for (const name of ["Left white glove", "Right white glove", "Left index 1", "Right index 1"]) {
+        expect(heroModel.findByName(name).render.enabled, `${name} remains visible`).to.equal(true);
+      }
+      window.gameCameraTest.firstPerson(false);
+      expect(heroModel.findByName("Rounded chest armor").render.enabled, "body restores in third person").to.equal(true);
+      window.gameCameraTest.firstPerson(true);
+    });
+    cy.window().then(window => {
+      window.gameCameraTest.lookFirstPersonBy(90, 0);
+      window.gameMovementTest.move(0, -1);
+    });
+    cy.window({ timeout: 15000 }).should(window => {
+      const state = window.gameMovementTest.state();
+      expect(state.position.y).to.be.lessThan(ladder.bottom.y + 0.1);
+      expect(state.animation).not.to.equal(HERO_ANIMATION.CLIMB);
+    });
+    cy.window().then(window => window.gameMovementTest.move(0, 0));
+    cy.window().should(() => expect(heroModel.findByName("Rounded chest armor").render.enabled, "body restores after descent").to.equal(true));
+  });
   it("restores both shoulders after backing away from the ladder", () => {
     cy.visit("/map/test_ladder-climb?camera-test");
     cy.get('.background-canvas[data-game-ready="true"]', { timeout: 60000 }).should("be.visible");
@@ -75,7 +127,7 @@ describe("Movement-driven ladder climbing", () => {
     cy.wait(1800);
     cy.window().then(window => window.gameMovementTest.move(0, 1));
     cy.window().should(window => expect(window.gameMovementTest.state().animation).to.equal(HERO_ANIMATION.CLIMB_TOP));
-    cy.window().should(window => expect(window.gameMovementTest.state().animation).to.equal(HERO_ANIMATION.CLIMB));
+    cy.window({ timeout: 8000 }).should(window => expect(window.gameMovementTest.state().animation).to.equal(HERO_ANIMATION.CLIMB));
     cy.window({ timeout: 15000 }).should(window => expect(window.gameMovementTest.state().position.y).to.be.lessThan(ladder.bottom.y + 0.2));
     cy.window().then(window => window.gameMovementTest.move(0, 0));
   });

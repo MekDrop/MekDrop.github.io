@@ -16,7 +16,9 @@
  * @property {number} [phase] Stable fire flicker phase.
  * @property {boolean} [flame] Override a lantern or brazier flame. Tower braziers are unlit by default.
  * @property {{halfExtents: Point3, offset: Point3}} [collisionBox] Model-space lantern contact box.
- * @property {{position: Point3, width: number, depth: number}} [hatch] Framed ladder roof hatch.
+ * @property {{position: Point3, width: number, depth: number}} [opening] Ladder clearance geometry, independent of a hatch.
+ * @property {string} [hatchId] Optional independent Hatch controlling passage.
+ * @property {boolean} [locked] Hatch refuses opening while locked.
  * @property {Point3} [bottom] Ladder lower landing in world coordinates.
  * @property {Point3} [top] Ladder upper landing in world coordinates; together with bottom defines placement and heading when position/rotation are omitted.
  * @property {MapObjectDefinition[]} [items] Contained game objects; an explicit position preserves a local authored pose, otherwise the container packs them (Shelf spaces them along its bottom board).

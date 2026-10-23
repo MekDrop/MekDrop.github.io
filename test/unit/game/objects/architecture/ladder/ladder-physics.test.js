@@ -106,7 +106,7 @@ it("rests either side of the rail tips against the hatch opening without enterin
         },
         top: { y: 9 },
         rotation,
-        hatch: {
+        opening: {
           position: {
             x: 5 + direction * 0.25 * Math.sin(radians),
             y: 9,

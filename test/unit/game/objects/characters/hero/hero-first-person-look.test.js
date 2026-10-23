@@ -10,6 +10,8 @@ const extract = (name) => {
 };
 const HeroDriver = new Function(`return class Hero {
   #firstPersonCameraEnabled = true;
+  #climbMotion = null;
+  set climbing(value) { this.#climbMotion = value ? {} : null; }
   #facingYaw = 45;
   #headLookYaw = 80;
   #respawnEffect = null;
@@ -44,4 +46,19 @@ it("turns the body across reversals and yaw seams without sideways neck rotation
     assert.deepEqual(hero.body, [0, yaw, 0]);
     assert.deepEqual(hero.head, [40, 0, 0]);
   }
+});
+
+it("keeps the body facing the ladder during first-person mouse look", () => {
+  const hero = new HeroDriver();
+  hero.body = [0, 45, 0];
+  hero.climbing = true;
+  hero.firstPersonLook = {
+    yaw: 135,
+    pitch: 30,
+  };
+  assert.deepEqual(hero.body, [0, 45, 0]);
+  assert.equal(hero.synced, true);
+  hero.climbing = false;
+  hero.firstPersonFacingYaw = 135;
+  assert.deepEqual(hero.body, [0, 135, 0]);
 });

@@ -38,7 +38,10 @@ export class CastleGenerator {
       return CastleTerraceAppearance.apply(plan);
     };
     const plan = this.cacheEnabled
-      ? await ObjectDataCache.resolveAsync("castle-plans", input, generate)
+      ? await ObjectDataCache.resolveAsync("castle-plans", {
+        ...input,
+        atticAccessVersion: 4,
+      }, generate)
       : await generate();
     scheduler.throwIfAborted();
 

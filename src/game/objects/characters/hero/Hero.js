@@ -1,3 +1,4 @@
+import { HeroLadderGrip } from "./HeroLadderGrip.js";
 import { ActorStatusEffects } from "../../shared/ActorStatusEffects.js";
 import { HeroStairCameraHeight } from "./HeroStairCameraHeight.js";
 import { HeroLocomotion } from "./HeroLocomotion.js";
@@ -51,7 +52,7 @@ import { BuffSystem } from "../../../buffs/BuffSystem.js";
 import { AxeTool, KnifeTool, ShovelTool } from "./tools/index.js";
 import { projectFirstPersonMovement } from "./projectFirstPersonMovement.js";
 import { projectIsometricMovement } from "./projectIsometricMovement.js";
-import { HeroLadderClimb } from "./HeroLadderClimb.js";
+import { HeroLadderClimb, LADDER_CLIMB_SPEED } from "./HeroLadderClimb.js";
 
 /**
  * @typedef {{capacity: number, items: Array<{id: string, variant: string, quantity?: number}>}} HeroInventory
@@ -872,6 +873,14 @@ export class Hero {
    * @type {number}
    */
   #firstPersonEyeDistance = 0;
+  /**
+   * @type {number}
+   */
+  #firstPersonClimbCameraBlend = 0;
+  /**
+   * @type {HeroLadderGrip|null}
+   */
+  #ladderGrip = null;
 
   /**
    *
@@ -1632,12 +1641,16 @@ export class Hero {
     const direction = this.facingDirection;
     const body = this.#modelRoot?.getPosition() ?? this.#entity.getPosition();
     const yaw = this.#facingYaw * Math.PI / 180;
+    // The climbing eye stays above the shoulder armor, on the room side of
+    // the rungs. The complete body remains visible when looking down.
+    const eyeDistance = this.#firstPersonEyeDistance +
+      (0.18 - this.#firstPersonEyeDistance) * this.#firstPersonClimbCameraBlend;
     // The eye anchor stays ahead of the chest, with the body aligned to view
     // yaw. Neck pitch and authored animation sway cannot rotate it sideways.
     const anchor = {
-      x: body.x + Math.sin(yaw) * this.#firstPersonEyeDistance,
-      y: body.y + this.#firstPersonEyeHeight,
-      z: body.z + Math.cos(yaw) * this.#firstPersonEyeDistance,
+      x: body.x + Math.sin(yaw) * eyeDistance,
+      y: body.y + this.#firstPersonEyeHeight + 0.16 * this.#firstPersonClimbCameraBlend,
+      z: body.z + Math.cos(yaw) * eyeDistance,
     };
 
     return {
@@ -1655,7 +1668,7 @@ export class Hero {
    * @param {number} yaw
    */
   set firstPersonFacingYaw(yaw) {
-    if (!this.#firstPersonCameraEnabled || !Number.isFinite(yaw)) {
+    if (!this.#firstPersonCameraEnabled || !Number.isFinite(yaw) || this.#climbMotion) {
       return;
     }
     const previousYaw = this.#facingYaw;
@@ -2468,10 +2481,18 @@ export class Hero {
     if (deltaTime === 0) {
       return;
     }
+    this.#ladderGrip?.restore();
     this.#step(Math.min(deltaTime, MAX_FRAME_TIME));
+    const cameraTarget = this.#climbMotion?.gripBlend ?? (this.#climbMotion ? 1 : 0);
+    const cameraDelta = cameraTarget - this.#firstPersonClimbCameraBlend;
+    this.#firstPersonClimbCameraBlend += Math.sign(cameraDelta) * Math.min(Math.abs(cameraDelta), deltaTime / 0.15);
     this.#syncIslandVisualPosition();
     if (this.statusRate > 0) {
       this.#animate(deltaTime * this.statusRate);
+    }
+    if (this.#climbMotion || this.#ladderGrip?.active) {
+      this.#modelRoot.anim.update(0);
+      this.#ladderGrip?.update(this.#climbMotion, this.#position, deltaTime);
     }
     this.#hairPhysics?.update();
     this.#clothPhysics?.update(deltaTime * this.statusRate);
@@ -2582,6 +2603,7 @@ export class Hero {
       position: this.#position,
       input: this.#input,
       movement: this.#projectInput(this.#input.x, this.#input.y),
+      firstPerson: this.#firstPersonCameraEnabled,
       jump: this.#jumpBufferRemaining > 0,
       grounded: this.#grounded,
       allowed: !this.isIncapacitated && !this.isUsingTool && !this.#actionsLocked && !this.#actionBehavior.bellAction,
@@ -3624,7 +3646,7 @@ export class Hero {
       horizontalSpeed <= 0.08;
     const showingBlockedPush = blocked && !this.#blockedPushFinished;
     const actionAnimation = this.#climbMotion
-      ? this.#climbMotion.topProgress > 0
+      ? this.#climbMotion.approaching && this.#climbMotion.gripBlend === 0 ? HERO_ANIMATION.WALK : this.#climbMotion.topProgress > 0
         ? this.#climbMotion.topSide > 0 ? HERO_ANIMATION.CLIMB_TOP_RIGHT : HERO_ANIMATION.CLIMB_TOP
         : HERO_ANIMATION.CLIMB
       : this.#actionBehavior.animation;
@@ -3687,7 +3709,7 @@ export class Hero {
     });
     if (actionAnimation) {
       animation = actionAnimation;
-      animationSpeed = LADDER_TOP_ANIMATIONS.has(animation) ? 0 : this.#climbMotion ? this.#climbMotion.speed * 2.8 : this.#actionBehavior.animationSpeed;
+      animationSpeed = LADDER_TOP_ANIMATIONS.has(animation) ? 0 : this.#climbMotion?.approaching && this.#climbMotion.gripBlend === 0 ? horizontalSpeed / WALK_CLIP_SPEED : this.#climbMotion ? this.#climbMotion.speed * 2.8 * LADDER_CLIMB_SPEED / 1.5 : this.#actionBehavior.animationSpeed;
       this.#resetBoredom();
     } else if (!this.#grounded && this.#coyoteRemaining === 0) {
       animation = HERO_ANIMATION.JUMP;
@@ -3957,6 +3979,7 @@ export class Hero {
       .flatMap(Hero.#getRenderMeshInstances)
       .map(Hero.#getMeshMorphInstance)
       .filter(Hero.#hasHappyPatMorph);
+    this.#ladderGrip = new HeroLadderGrip(this.#pc, this.#modelRoot);
     this.#leftArmEntity = this.#findModelEntity("Left arm");
     this.#rightArmEntity = this.#findModelEntity("Right arm");
     this.#toolAttachmentEntity = this.#findModelEntity("Right arm");

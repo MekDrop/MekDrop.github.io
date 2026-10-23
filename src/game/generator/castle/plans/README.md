@@ -171,7 +171,7 @@ pivot, and includes 0.7-metre handholds above the climb. Its decoded GLB bounds
 are static vertex bounds, with no runtime scaling correction required.
 
 The service-wing ground-floor cross hall and entrance circulation now form one rectangular vestibule. Its original main entrance and west window remain at the same coordinates; a single room generator and timber finish cover the full arrival area.
-The crown ladder ends below the roof surface. Its map-owned ladder object also owns a framed timber hatch with handles on both faces. Climbing opens the hatch temporarily; the closed lid restores physical support across the aperture.
+The crown ladder ends below the roof surface. A separate `Hatch` map object owns the framed lid, handles, collision and lock. `Ladder.hatchId` optionally connects the two objects; `opening` describes rail clearance without owning the hatch. Unlocked crown access opens temporarily during climbing. Pitched blue roofs receive a wall ladder on the occupied floor below and a locked attic hatch with an iron rim lock and a separate fixed keeper. Placement preserves furniture, apertures and stair clearance; the ceiling has a real opening sealed by the independent lid. Both objects can also be authored alone.
 
 ## Tower bridge entrance
 

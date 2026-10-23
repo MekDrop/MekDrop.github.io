@@ -1,3 +1,4 @@
+import { CastleAtticAccess } from "./CastleAtticAccess.js";
 import { RoomPlacementRules } from "./rooms/RoomPlacementRules.js";
 import { CastleGenerationScheduler } from "./CastleGenerationScheduler.js";
 import { CastleBasePlanGenerator } from "./CastleBasePlanGenerator.js";
@@ -494,6 +495,16 @@ export class CastleAuthoredBuildPlan {
         });
       }
     }
+    CastleAtticAccess.prepare(residential, authored.roofs.map(/**
+     *
+     * @param {{id:string,y:number,shape:string,minX:number,maxX:number,minZ:number,maxZ:number}} roof
+     */
+      roof => ({
+        ...transform(roof),
+        y: roof.y,
+        shape: roof.shape,
+        id: roof.id,
+      })), world, yaw);
     // Keep both straight flights open; only the top approach owns a slab.
     for (const stair of stairs) {
       const shaft = stair.shaft;
@@ -1347,7 +1358,11 @@ export class CastleAuthoredBuildPlan {
         halfX: Math.abs(Math.sin(angle)) > 0.5 ? block.halfZ : block.halfX,
         halfZ: Math.abs(Math.sin(angle)) > 0.5 ? block.halfX : block.halfZ,
       }));
-    residential.furniture = RoomPlacementRules.repair(residential.furniture, localWalls, spaces, openings, new Set(), residential.walkableAreas);
+    residential.furniture = RoomPlacementRules.repair(residential.furniture, localWalls, spaces, openings, new Set(), residential.walkableAreas, residential.atticAccesses.map(/**
+     *
+     * @param {{clearance:{minX:number,maxX:number,minZ:number,maxZ:number,bottom:number,top:number,masonry:boolean,chimney:boolean}}} access
+     */
+      access => access.clearance));
 
     return {
       input: {

@@ -98,6 +98,8 @@ game:
     dig: Dig for treasure
     stop_digging: Stop digging
     open_treasure: Open treasure chest
+    open_hatch: Open hatch
+    locked_hatch: Hatch is locked
     climb_ladder: Climb ladder
     descend_ladder: Descend ladder
     fill_hole: Fill hole

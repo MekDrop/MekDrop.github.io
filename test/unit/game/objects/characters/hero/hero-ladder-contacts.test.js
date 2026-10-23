@@ -10,6 +10,42 @@ const jsonLength = bytes.readUInt32LE(12);
 const gltf = JSON.parse(bytes.toString("utf8", 20, 20 + jsonLength));
 const binaryStart = 28 + jsonLength;
 
+it("keeps both climbing hips at their pelvis attachments", () => {
+  const clip = gltf.animations.find(animation => animation.name === "Climb");
+  for (const [name, side] of [["Left leg", -1], ["Right leg", 1]]) {
+    const channel = clip.channels.find(item => item.target.path === "translation" && gltf.nodes[item.target.node].name === name);
+    assert.ok(channel, `${name} must explicitly retain its attachment`);
+    for (const point of accessor(clip.samplers[channel.sampler].output)) {
+      assert.ok(Math.abs(point[0] - side * 0.2) < 0.00001);
+      assert.ok(Math.abs(point[1] - 0.71) < 0.00001);
+      assert.ok(Math.abs(point[2]) < 0.00001);
+    }
+  }
+});
+
+it("exports solid outward-facing palms and finger segments", () => {
+  const hands = gltf.nodes.filter(node => node.mesh !== undefined &&
+    /^(Left|Right) (white glove|(index|middle|ring|little|thumb) [123])$/.test(node.name));
+  assert.equal(hands.length, 30);
+  for (const node of hands) {
+    let volume = 0;
+    for (const primitive of gltf.meshes[node.mesh].primitives) {
+      const vertices = accessor(primitive.attributes.POSITION);
+      const indices = gltf.accessors[primitive.indices], view = gltf.bufferViews[indices.bufferView];
+      const offset = binaryStart + (view.byteOffset ?? 0) + (indices.byteOffset ?? 0);
+      const stride = indices.componentType === 5125 ? 4 : 2;
+      const read = stride === 4 ? bytes.readUInt32LE.bind(bytes) : bytes.readUInt16LE.bind(bytes);
+      for (let index = 0; index < indices.count; index += 3) {
+        const a = new Vec3(...vertices[read(offset + index * stride)]);
+        const b = new Vec3(...vertices[read(offset + (index + 1) * stride)]);
+        const c = new Vec3(...vertices[read(offset + (index + 2) * stride)]);
+        volume += a.dot(new Vec3().cross(b, c)) / 6;
+      }
+    }
+    assert.ok(volume > 0, `${node.name} must face outward rather than show its hollow interior`);
+  }
+});
+
 function accessor(index) {
   const item = gltf.accessors[index], view = gltf.bufferViews[item.bufferView];
   const size = {
@@ -35,8 +71,9 @@ function footPosition(clip, side, phase, foot) {
     while (index < times.length - 2 && times[index + 1][0] < time) {
       index++;
     }
-    const blend = Math.max(0, Math.min(1, (time - times[index][0]) / (times[index + 1][0] - times[index][0] || 1)));
-    const target = pose[channel.target.node], a = values[index], b = values[index + 1];
+    const next = Math.min(index + 1, times.length - 1);
+    const blend = Math.max(0, Math.min(1, (time - times[index][0]) / (times[next][0] - times[index][0] || 1)));
+    const target = pose[channel.target.node], a = values[index], b = values[next];
     if (channel.target.path === "rotation") {
       target.rotation.slerp(new Quat(...a), new Quat(...b), blend);
     } else if (channel.target.path === "translation") {

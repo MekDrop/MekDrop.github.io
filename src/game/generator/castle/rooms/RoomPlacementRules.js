@@ -79,9 +79,10 @@ export class RoomPlacementRules {
    * @param {Array} openings
    * @param {Set<string>} [rotatedShelves]
    * @param {Array<{minX:number,maxX:number,minZ:number,maxZ:number,floorY:number}>} [floors]
+   * @param {Array<{minX:number,maxX:number,minZ:number,maxZ:number,bottom:number,top:number,masonry:boolean,chimney:boolean}>} [reservations]
    * @returns {import("./AbstractCastleRoomGenerator.js").RoomItem[]}
    */
-  static repair(items, walls, rooms, openings = [], rotatedShelves = new Set(), floors) {
+  static repair(items, walls, rooms, openings = [], rotatedShelves = new Set(), floors, reservations = []) {
     const result = items.map(RoomPlacementRules.#mapItem);
     /**
      * @param {import("./AbstractCastleRoomGenerator.js").RoomItem} item
@@ -193,6 +194,7 @@ export class RoomPlacementRules {
           masonry: true,
           mountingWall: wall === mountWall,
         }));
+      obstacles.push(...reservations);
       obstacles.push(...placed.map(/**
        *
        * @param {import("./AbstractCastleRoomGenerator.js").RoomItem} item
@@ -467,7 +469,7 @@ export class RoomPlacementRules {
             item.rotation = ((item.rotation ?? 0) + 90) % 360;
           }
 
-          return RoomPlacementRules.repair(result, walls, rooms, openings, rotatedShelves, floors);
+          return RoomPlacementRules.repair(result, walls, rooms, openings, rotatedShelves, floors, reservations);
         }
         // Never silently erase a furnishing that cannot fit: retain it for diagnostics.
         root.placementIssue = "No clear position in authored room";

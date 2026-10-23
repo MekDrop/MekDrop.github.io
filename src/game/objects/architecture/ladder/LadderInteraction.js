@@ -36,7 +36,7 @@ export class LadderInteraction {
     const position = this.#hero.position;
     const landing = this.#ladder.landing(this.#end);
 
-    return !this.#hero.isIncapacitated && !this.#hero.isUsingTool && Math.abs(position.y - landing.y) < 0.65 &&
+    return !this.#ladder.passageBlocked && !this.#hero.isIncapacitated && !this.#hero.isUsingTool && Math.abs(position.y - landing.y) < 0.65 &&
       Math.hypot(position.x - landing.x, position.z - landing.z) < 0.85;
   }
 

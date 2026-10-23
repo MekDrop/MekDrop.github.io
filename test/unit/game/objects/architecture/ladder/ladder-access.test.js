@@ -60,6 +60,7 @@ it('connects stairs to the ladder and retains supported landings around an open 
         width:2,
       }],
       seed,
+      basePlanId: "castle-compact-service-wing",
     });
     const layout=new CastleResidentialLayout(build);
     const plan=build.metadata.runtime.residential;
@@ -68,6 +69,7 @@ it('connects stairs to the ladder and retains supported landings around an open 
     const authored=await castlePlan.CastleBasePlanGenerator.generate({
       seed,
       baseY:3,
+      planId: "castle-compact-service-wing",
     });
     const side=authored.buildings.find(building=>building.id==='base').maxX;
     const tower=authored.buildings.find(building=>building.id==='watchtower');
@@ -163,10 +165,10 @@ it('connects stairs to the ladder and retains supported landings around an open 
       }],
     };
     CastleLadderMapObjects.prepareMap(map);CastleLadderMapObjects.prepareMap(map);
-    assert.equal(map.objects.filter(item=>item.object==='Ladder').length,1,'preparation is repeatable');
-    const ladder=map.objects.find(item=>item.object==='Ladder');
-    assert.equal(ladder.hatch.position.y,access.top.y);
-    assert.ok(ladder.hatch.width>0&&ladder.hatch.depth>0,'hatch has the roof aperture dimensions');
+    assert.equal(map.objects.filter(item=>item.object==='Ladder').length,1 + (plan.atticAccesses?.length ?? 0),'preparation is repeatable');
+    const ladder=map.objects.find(item=>item.id==='castle-crown-ladder');
+    assert.equal(ladder.opening.position.y,access.top.y);
+    assert.ok(ladder.opening.width>0&&ladder.opening.depth>0,'hatch has the roof aperture dimensions');
   }
 });
 

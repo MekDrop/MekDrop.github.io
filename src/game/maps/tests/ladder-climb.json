@@ -357,7 +357,7 @@
         "z": 0.8
       },
       "rotation": 0,
-      "hatch": {
+      "opening": {
         "position": {
           "x": 0,
           "y": 5.14,
@@ -365,7 +365,8 @@
         },
         "width": 1.1,
         "depth": 1
-      }
+      },
+      "hatchId": "test-ladder-hatch"
     },
     {
       "id": "ladder-upper-landing",
@@ -408,6 +409,31 @@
         "y": 5.22,
         "z": 1.8
       }
+    },
+    {
+      "id": "test-ladder-hatch",
+      "object": "Hatch",
+      "position": {
+        "x": 0,
+        "y": 5.14,
+        "z": -0.25
+      },
+      "width": 1.1,
+      "depth": 1,
+      "rotation": 0,
+      "locked": false
+    },
+    {
+      "id": "standalone-locked-hatch",
+      "object": "Hatch",
+      "position": {
+        "x": 3,
+        "y": 3.14,
+        "z": 0
+      },
+      "width": 1.1,
+      "depth": 1,
+      "locked": true
     }
   ],
   "testControls": {
@@ -424,6 +450,14 @@
           {
             "label": "Ladder roof",
             "script": "const ladder=objects.getAll('mapObject').find(o=>o.definition.id==='test-ladder'); objects.getOne('hero').teleport(ladder.topLandings[0]); camera.setFirstPerson(false); camera.setViewport({zoom:2,rotation:0,panX:0,panZ:0});"
+          },
+          {
+            "label": "Lock hatch",
+            "script": "objects.getAll('mapObject').find(o=>o.definition.id==='test-ladder-hatch').locked=true;"
+          },
+          {
+            "label": "Unlock hatch",
+            "script": "objects.getAll('mapObject').find(o=>o.definition.id==='test-ladder-hatch').locked=false;"
           }
         ]
       }

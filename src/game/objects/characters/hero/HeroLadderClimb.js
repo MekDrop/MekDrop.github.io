@@ -1,3 +1,6 @@
+// A hand needs time to release and reach; the old 1.5 m/s allowed ~50 ms.
+export const LADDER_CLIMB_SPEED = 0.6;
+
 /**
  * Body travel shared with the authored planted-foot transfer clips.
  * @param {number} phase
@@ -72,6 +75,14 @@ export class HeroLadderClimb {
    */
   #mounting = false;
   /**
+   * @type {boolean}
+   */
+  #approaching = false;
+  /**
+   * @type {number}
+   */
+  #lowerMountTime = 0;
+  /**
    * @type {number}
    */
   #transferPhase = 0;
@@ -111,17 +122,27 @@ export class HeroLadderClimb {
   }
 
   reset() {
+    this.#approaching = false; this.#lowerMountTime = 0;
     this.#active = null; this.#exitLanding = null; this.#exiting = false; this.#mounting = false; this.#transferPhase = 0; this.#cooldown = 0.4; this.#needsRelease = true;
   }
 
   /**
    * @param {number} deltaTime
-   * @param {{position: {x:number,y:number,z:number}, input: {x:number,y:number}, movement: {x:number,z:number}|null, jump:boolean, allowed:boolean, grounded?:boolean}} options
+   * @param {{position: {x:number,y:number,z:number}, input: {x:number,y:number}, movement: {x:number,z:number}|null, jump:boolean, allowed:boolean, grounded?:boolean, firstPerson?:boolean}} options
    */
-  update(deltaTime, { position, input, movement, jump, allowed, grounded = false }) {
+  update(deltaTime, { position, input, movement, jump, allowed, grounded = false, firstPerson = false }) {
     this.#cooldown = Math.max(0, this.#cooldown - deltaTime);
     if (Math.hypot(input.x, input.y) < 0.1) {
       this.#needsRelease = false;
+    }
+    // Once attached, W/S follows the ladder rather than mouse-look yaw.
+    // Sideways input still permits stepping off or choosing a roof landing.
+    if (firstPerson && this.#active) {
+      const facing = this.#controlFacing;
+      movement = Math.hypot(input.x, input.y) < 0.001 ? null : {
+        x: facing.x * input.y - facing.z * input.x,
+        z: facing.z * input.y + facing.x * input.x,
+      };
     }
     const lateral = this.#active && movement && Math.abs(movement.x * this.#controlFacing.x + movement.z * this.#controlFacing.z) < 0.25;
     const atTop = this.#active && position.y >= this.#active.landing("top").y - 0.1;
@@ -151,8 +172,9 @@ export class HeroLadderClimb {
         };
         const towardRoof = movement.x * roofFacing.x + movement.z * roofFacing.z;
         const lower = Math.abs(position.y - bottom.y) < 0.55 && Math.hypot(position.x - bottom.x, position.z - bottom.z) < 0.6 && toward > 0.25;
-        const upper = Math.abs(position.y - top.y) < 0.4 && Math.hypot(position.x - top.x, position.z - top.z) < 0.7 && towardRoof > 0.25;
+        const upper = !ladder.passageBlocked && Math.abs(position.y - top.y) < 0.4 && Math.hypot(position.x - top.x, position.z - top.z) < 0.7 && towardRoof > 0.25;
         if (lower || upper) {
+          this.#approaching = lower && Boolean(ladder.handhold); this.#lowerMountTime = 0;
           this.#active = ladder; this.#exitLanding = upper ? top : null; this.#mounting = upper; this.#transferPhase = upper ? 1 : 0; this.#travelSign = upper ? -1 : 1; this.#lastTravelDirection = this.#travelSign; this.#controlFacing = upper ? roofFacing : facing; break;
         }
       }
@@ -174,6 +196,8 @@ export class HeroLadderClimb {
         })[0];
     }
     const top = this.#exitLanding;
+    const blocked = ladder.passageBlocked;
+    const climbCeiling = blocked ? Math.max(bottom.y, top.y - 1.85) : top.y;
     const facing = this.#controlFacing;
     let speed = movement ? (movement.x * facing.x + movement.z * facing.z) * this.#travelSign : 0;
     if (lateral && atTop && this.#travelSign > 0) {
@@ -184,18 +208,33 @@ export class HeroLadderClimb {
     }
     // Finish crossing the roof slab after input release. Pausing is safe only
     // once the whole body is below the opening, or standing on the landing.
-    if (!movement && position.y > top.y - 1.6) {
+    if (!blocked && !movement && position.y > top.y - 1.6) {
       speed = this.#lastTravelDirection;
     }
-    if (position.y >= top.y - 0.08 && (speed > 0 || lateral)) {
+    if (!blocked && position.y >= top.y - 0.08 && (speed > 0 || lateral)) {
       this.#exiting = true;
     }
-    ladder.openHatch();
-    const nextHeight = Math.min(top.y, Math.max(bottom.y, position.y + speed * 1.5 * deltaTime));
+    if (!blocked) {
+      ladder.openHatch();
+    }
+    const nextHeight = Math.min(climbCeiling, Math.max(bottom.y, position.y + speed * LADDER_CLIMB_SPEED * deltaTime));
     const guide = ladder.climbGuide?.(nextHeight) ?? {
       ...bottom,
       y: nextHeight,
     };
+    let gripBlend = 1;
+    if (this.#approaching) {
+      if (!movement || speed <= 0) {
+        this.reset();
+
+        return null;
+      }
+      if (Math.hypot(position.x - guide.x, position.z - guide.z) < 0.04) {
+        this.#lowerMountTime += deltaTime;
+      }
+      gripBlend = Math.min(1, this.#lowerMountTime / 0.2);
+      this.#approaching = gripBlend < 1;
+    }
     let target = guide;
     const roofGuide = ladder.climbGuide?.(top.y) ?? {
       ...bottom,
@@ -249,14 +288,14 @@ export class HeroLadderClimb {
     // that support ends, descend immediately rather than holding it in midair.
     const verticalSpeed = this.#exiting || this.#mounting
       ? Math.max(-1.5, Math.min(1.5, (top.y - position.y) * 8))
-      : speed * 1.5;
+      : this.#approaching ? 0 : speed * LADDER_CLIMB_SPEED;
     // Clamp the velocity as well as the guide. Otherwise the Ammo body keeps
     // moving beyond the endpoint even though its horizontal guide has stopped.
     const pauseHeight = !movement && this.#lastTravelDirection < 0 && position.y > top.y - 1.6
       ? Math.max(bottom.y, top.y - 1.6) : bottom.y;
     const boundedVerticalSpeed = Math.max(
       Math.min(0, (pauseHeight - position.y) / stepTime),
-      Math.min(verticalSpeed, Math.max(0, (top.y - position.y) / stepTime)),
+      Math.min(verticalSpeed, Math.max(0, (climbCeiling - position.y) / stepTime)),
     );
     const heightProgress = Math.max(0, Math.min(1, (position.y - (top.y - 0.9)) / 0.9));
     const exitX = top.x - roofGuide.x, exitZ = top.z - roofGuide.z;
@@ -283,6 +322,10 @@ export class HeroLadderClimb {
     };
 
     return {
+      ladder,
+      transferring,
+      approaching: this.#approaching,
+      gripBlend,
       velocity: {
         x: Math.max(-horizontalLimit, Math.min(horizontalLimit, (target.x - position.x) * gain)),
         y: boundedVerticalSpeed,
@@ -292,7 +335,7 @@ export class HeroLadderClimb {
       topSide,
       rootCorrection,
       topProgress: this.#exiting || this.#mounting ? 0.4 + 0.6 * posePhase : heightProgress * 0.4,
-      speed: this.#exiting ? 1 : Math.abs(speed),
+      speed: this.#approaching ? 0 : this.#exiting ? 1 : blocked && position.y >= climbCeiling - 0.01 && speed > 0 ? 0 : Math.abs(speed),
     };
   }
 }

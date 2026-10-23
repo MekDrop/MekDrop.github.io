@@ -69,10 +69,87 @@ function advance(f, seconds, roofHeight = f.top.y) {
   return motion;
 }
 
+it("walks into hand reach and takes hold before ascending", () => {
+  const controller = new HeroLadderClimb();
+  const bottom = {
+      x: -0.3,
+      y: 0,
+      z: 0,
+    }, top = {
+      x: 0,
+      y: 3,
+      z: 0,
+    };
+  controller.register({
+    landing: end => end === "bottom" ? bottom : top,
+    climbGuide: y => ({
+      x: 0,
+      y,
+      z: 0,
+    }),
+    climbFacing: {
+      x: 1,
+      z: 0,
+    },
+    handhold: () => ({}),
+    openHatch: () => true,
+  });
+  const position = { ...bottom };
+  let tookHold = false, climbed = false;
+  for (let frame = 0; frame < 120; frame++) {
+    const motion = controller.update(1 / 120, {
+      position,
+      input: {
+        x: 0,
+        y: 1,
+      },
+      movement: {
+        x: 1,
+        z: 0,
+      },
+      jump: false,
+      allowed: true,
+    });
+    if (motion.approaching) {
+      assert.equal(motion.velocity.y, 0, "do not rise while reaching for the first grip");
+      tookHold ||= motion.gripBlend > 0;
+    } else {
+      assert.equal(motion.gripBlend, 1);
+      climbed = true;
+      break;
+    }
+    position.x += motion.velocity.x / 120;
+    position.y += motion.velocity.y / 120;
+  }
+  assert.ok(tookHold && climbed);
+});
+
+it("keeps first-person climb controls attached while looking sideways or behind", () => {
+  const f = fixture();
+  f.options.firstPerson = true;
+  f.controller.update(1 / 60, f.options);
+  f.options.position.y = 1;
+  f.options.movement = {
+    x: 0,
+    z: 1,
+  };
+  assert.equal(f.controller.update(1 / 60, f.options).velocity.y, 0.6);
+  f.options.movement = {
+    x: 1,
+    z: 0,
+  };
+  assert.equal(f.controller.update(1 / 60, f.options).velocity.y, 0.6);
+  f.options.input.y = -1;
+  assert.equal(f.controller.update(1 / 60, f.options).velocity.y, -0.6);
+  f.options.input.y = 0;
+  f.options.input.x = 1;
+  assert.equal(f.controller.update(1 / 60, f.options), null);
+});
+
 it("walks into a ladder, moves continuously, pauses, reverses, and detaches on jump", () => {
   const f = fixture();
   const up = f.controller.update(1 / 60, f.options);
-  assert.equal(up.velocity.y, 1.5);
+  assert.equal(up.velocity.y, 0.6);
   assert.equal(f.options.position.y, 0, "no instant teleport");
   f.options.position.y = 1;
   f.options.input.y = 0;
@@ -83,7 +160,7 @@ it("walks into a ladder, moves continuously, pauses, reverses, and detaches on j
     x: 1,
     z: 0,
   };
-  assert.equal(f.controller.update(1 / 60, f.options).velocity.y, -1.5);
+  assert.equal(f.controller.update(1 / 60, f.options).velocity.y, -0.6);
   f.options.jump = true;
   assert.equal(f.controller.update(1 / 60, f.options), null);
   assert.ok(f.opened() > 0);
@@ -129,7 +206,7 @@ it("finishes descending through the hatch after movement is released", () => {
   const f = fixture();f.options.position = { ...f.top };
   f.controller.update(1 / 60, f.options);
   f.options.movement = null;f.options.input.y = 0;
-  advance(f, 4);
+  advance(f, 6);
   assert.ok(f.options.position.y <= 1.41);
   assert.equal(f.controller.update(1 / 60, f.options).velocity.y, 0);
 });
@@ -210,7 +287,7 @@ it("uses the roof transition at the hatch and the rung pose below it", () => {
   assert.ok(f.controller.update(1 / 60, f.options).topProgress > 0.95);
   const lowering = advance(f, 2.5);
   assert.ok(lowering.topProgress < 0.4);
-  assert.equal(advance(f, 0.8).topProgress, 0);
+  assert.equal(advance(f, 1.5).topProgress, 0);
 });
 
 it("stays crouched over the opening and straightens only after stepping sideways", () => {
@@ -235,7 +312,7 @@ it("stops a released descent at the safe handhold without stepping past it", () 
   const f = fixture();f.options.position = { ...f.top };
   f.controller.update(1 / 60, f.options);
   f.options.movement = null;f.options.input.y = 0;
-  advance(f, 4);
+  advance(f, 6);
   assert.ok(f.options.position.y >= 1.4 - 0.000001 && f.options.position.y <= 1.41);
 });
 
