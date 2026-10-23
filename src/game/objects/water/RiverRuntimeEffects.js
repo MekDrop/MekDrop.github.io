@@ -90,9 +90,7 @@ export class RiverRuntimeEffects {
     }
     this.#mistTexture = this.#createMistTexture();
     this.#heroReflection = waterEffects ? new HeroWaterReflection(pc, app) : null;
-    this.#flowMap = waterEffects
-      ? new RiverFlowMap(pc, app.graphicsDevice, mapData)
-      : null;
+    this.#flowMap = new RiverFlowMap(pc, app.graphicsDevice, mapData, waterEffects);
   }
 
   get mistTexture() {

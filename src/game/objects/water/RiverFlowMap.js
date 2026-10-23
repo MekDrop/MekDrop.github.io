@@ -34,8 +34,9 @@ export class RiverFlowMap {
    * @param {typeof import("playcanvas")} pc
    * @param {import("playcanvas").GraphicsDevice} device
    * @param {import("src/game/objects/ObjectTypes.js").GameMapData} mapData
+   * @param {boolean} waterEffects
    */
-  constructor(pc, device, mapData) {
+  constructor(pc, device, mapData, waterEffects = true) {
     const { cols, rows, riverData = [] } = mapData;
     this.#size = [cols, rows];
     this.#texture = new pc.Texture(device, {
@@ -51,9 +52,6 @@ export class RiverFlowMap {
     });
     const data = this.#texture.lock();
     for (const river of riverData) {
-      if (river.kind === RIVER_KIND.LAVA) {
-        continue;
-      }
       for (const [index, cell] of river.cells.entries()) {
         if (index < (river.branchStart ?? 0)) {
           continue;
@@ -65,6 +63,9 @@ export class RiverFlowMap {
       }
     }
     this.#texture.unlock();
+    if (!waterEffects) {
+      return;
+    }
     this.#forkTexture = new pc.Texture(device, {
       name: 'River fork outlets',
       width: cols,
@@ -179,17 +180,20 @@ export class RiverFlowMap {
    */
   apply(material) {
     material.setParameter('uRiverFlowMap', this.#texture);
-    material.setParameter('uRiverForkMap', this.#forkTexture);
     material.setParameter('uRiverMapSize', this.#size);
+    if (!this.#forkTexture) {
+      return;
+    }
+    material.setParameter('uRiverForkMap', this.#forkTexture);
     material.setParameter('uCascadeCurrentMap', this.#impactTexture);
     material.setParameter('uRiverBankMap', this.#bankTexture);
   }
 
   destroy() {
     this.#texture.destroy();
-    this.#forkTexture.destroy();
-    this.#impactTexture.destroy();
-    this.#bankTexture.destroy();
+    this.#forkTexture?.destroy();
+    this.#impactTexture?.destroy();
+    this.#bankTexture?.destroy();
   }
 
   /**

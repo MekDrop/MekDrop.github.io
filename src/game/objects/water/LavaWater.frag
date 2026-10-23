@@ -2,6 +2,8 @@ uniform vec3 material_diffuse;
 uniform float uRiverTime;
 uniform float uRiverFlowScale;
 uniform float uRiverLava;
+uniform sampler2D uRiverFlowMap;
+uniform vec2 uRiverMapSize;
 
 float riverHash(vec2 position) {
   return fract(sin(dot(position, vec2(127.1, 311.7))) * 43758.5453);
@@ -33,64 +35,70 @@ float riverFbm(vec2 position) {
 
 void getAlbedo() {
   float metadataLength = length(vUv1);
-  vec2 flowDirection = vUv1 / max(metadataLength, 0.0001);
   float vertical = clamp(metadataLength - 1.0, 0.0, 1.0);
-  vec2 crossDirection = vec2(-flowDirection.y, flowDirection.x);
-  float alongSurfaceFlow = dot(vPositionW.xz, flowDirection);
-  float acrossSurfaceFlow = dot(vPositionW.xz, crossDirection);
-  float waterfallAcross = vVertexColor.r;
-  float fallProgress = vVertexColor.g;
+  // Resolve bends per fragment so adjacent cells share their painted edges.
+  vec2 gridPosition = vPositionW.xz + uRiverMapSize * 0.5;
+  vec2 cell = clamp(floor(gridPosition), vec2(0.0), uRiverMapSize - 1.0);
+  vec2 local = gridPosition - cell - 0.5;
+  vec4 route = texture2D(uRiverFlowMap, (cell + 0.5) / uRiverMapSize);
+  vec2 outgoing = route.yz;
+  vec2 surfaceUv = vec2(
+    0.5 + dot(local, vec2(-outgoing.y, outgoing.x)),
+    route.x + 0.5 + dot(local, outgoing)
+  );
+  if (abs(route.w) > 0.5) {
+    vec2 incoming = vec2(outgoing.y, -outgoing.x) * route.w;
+    vec2 offset = local - (outgoing - incoming) * 0.5;
+    float along = max(0.0, dot(offset, incoming));
+    float before = max(0.0, -dot(offset, outgoing));
+    float progress = atan(along, max(0.000001, before)) / 1.57079632679;
+    surfaceUv = vec2(
+      0.5 + route.w * (0.5 - length(offset)),
+      route.x + progress
+    );
+  }
+  // Continue one pattern over the lip using the sheet's authored route distance.
+  vec2 flowUv = mix(surfaceUv, vUv0, vertical);
   float waterDepth = clamp(vVertexColor.r, 0.0, 1.0);
   float waterVolumeSide = (1.0 - vertical) * smoothstep(0.02, 0.18, waterDepth);
   vec2 lavaFlowPosition = vec2(
-    acrossSurfaceFlow * 1.45,
-    alongSurfaceFlow * 0.62 - (uRiverTime * uRiverFlowScale) * 0.14
+    flowUv.x * 4.2,
+    flowUv.y * 1.8 - (uRiverTime * uRiverFlowScale) * 0.41
   );
   float lavaBroad = riverFbm(lavaFlowPosition + vec2(17.3, 4.1));
   float lavaVein = smoothstep(
     0.56,
     0.88,
     sin(
-      alongSurfaceFlow * 2.8 -
-      (uRiverTime * uRiverFlowScale) * 0.54 +
+      flowUv.y * 6.8 -
+      (uRiverTime * uRiverFlowScale) * 1.55 +
       lavaBroad * 4.2
     ) * 0.5 + 0.5
   );
   float lavaSurfaceTone = clamp(
-    0.28 + lavaBroad * 0.48 + lavaVein * 0.28,
+    0.26 + lavaBroad * 0.5 + lavaVein * 0.26,
     0.0,
     1.0
   );
-  vec2 lavaFallPosition = vec2(
-    waterfallAcross * 1.8,
-    fallProgress * 1.35 - (uRiverTime * uRiverFlowScale) * 0.12
-  );
-  float lavaFallBroad = riverFbm(lavaFallPosition + vec2(8.7, 21.4));
-  float lavaFallRibbon = smoothstep(
-    0.58,
-    0.86,
-    sin(
-      waterfallAcross * 6.0 -
-      fallProgress * 1.4 +
-      lavaFallBroad * 3.2
-    ) * 0.5 + 0.5
-  );
-  float lavaFallTone = clamp(
-    0.28 + lavaFallBroad * 0.5 + lavaFallRibbon * 0.26,
-    0.0,
-    1.0
-  );
-  float lavaFlow = mix(lavaSurfaceTone, lavaFallTone, vertical);
-  lavaFlow = floor(lavaFlow * 3.999) / 3.0;
-  vec3 lavaDark = vec3(0.48, 0.032, 0.002);
-  vec3 lavaOrange = vec3(1.16, 0.3, 0.01);
-  vec3 lavaYellow = vec3(1.35, 0.96, 0.22);
+  float lavaFlow = lavaSurfaceTone;
+  // Soft paint bands retain the chunky style without popping between colours.
+  float bands = lavaFlow * 4.0;
+  float paintedBands = (floor(bands) + smoothstep(0.38, 0.62, fract(bands))) / 4.0;
+  lavaFlow = mix(lavaFlow, paintedBands, 0.5);
+  vec3 lavaDark = vec3(0.32, 0.018, 0.002);
+  vec3 lavaOrange = vec3(1.15, 0.16, 0.006);
+  vec3 lavaYellow = vec3(1.4, 0.68, 0.055);
   vec3 lavaColor = mix(lavaDark, lavaOrange, lavaFlow);
   lavaColor = mix(
     lavaColor,
     lavaYellow,
-    smoothstep(0.58, 0.9, lavaFlow)
+    smoothstep(0.66, 0.93, lavaFlow)
   );
   lavaColor = mix(lavaColor, lavaDark, waterVolumeSide * waterDepth * 0.78);
+  // A subtle fixed cross-section shade makes the thin side read as volume.
+  vec3 faceNormal = normalize(cross(dFdx(vPositionW), dFdy(vPositionW)));
+  vec2 fallDirection = vUv1 / max(metadataLength, 0.0001);
+  float sideFace = 1.0 - abs(dot(faceNormal.xz, fallDirection));
+  lavaColor *= 1.0 - vertical * sideFace * 0.18;
   dAlbedo = lavaColor;
 }

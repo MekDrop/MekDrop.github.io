@@ -1,3 +1,4 @@
 void getOpacity() {
-  dAlpha = 1.0;
+  // Terminal geometry already carries a gradual tail fade on every face.
+  dAlpha = vVertexColor.a;
 }

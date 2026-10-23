@@ -68,6 +68,13 @@ export class RiverLava extends RiverWater {
       material.diffuse = new this.pc.Color(1, 0.2, 0.015);
       material.emissive = new this.pc.Color(0.72, 0.12, 0.006);
       material.emissiveIntensity = 0.9;
+      material.ambient = new this.pc.Color(0, 0, 0);
+      material.shaderChunks.glsl.set(
+        'emissivePS',
+        'void getEmission() { dEmission = dAlbedo * 0.85; }',
+      );
+      // Request UV0 for the authored river-to-lavafall paint coordinates.
+      material.diffuseMap = this.mistTexture;
       material.forceUv1 = true;
       material.diffuseVertexColor = true;
       material.useLighting = false;
@@ -160,15 +167,17 @@ export class RiverLava extends RiverWater {
     const centerX = col - (cols - 1) / 2;
     const centerZ = row - (rows - 1) / 2;
     const scale = terminal ? 1 : 0.82;
+    const smokeOpacity = terminal ? 0.12 : 0.52;
+    const smokeForward = terminal ? 0.96 : 0.57;
     const mistElevation = terminal
       ? waterfall.bottomElevation +
         (waterfall.topElevation - waterfall.bottomElevation) * 0.17
       : waterfall.bottomElevation + 0.12;
     const root = new this.pc.Entity('Lavafall impact smoke');
     root.setLocalPosition(
-      centerX + direction.col * 0.57,
+      centerX + direction.col * smokeForward,
       mistElevation,
-      centerZ + direction.row * 0.57,
+      centerZ + direction.row * smokeForward,
     );
     this.entity.addChild(root);
 
@@ -239,7 +248,7 @@ export class RiverLava extends RiverWater {
         [0, 0.08, 0.45, 0.055, 1, 0.045],
         [0, 0.015, 0.45, 0.02, 1, 0.025],
       ),
-      alphaGraph: this.#curve([0, 0, 0.1, 0.52, 0.5, 0.34, 1, 0]),
+      alphaGraph: this.#curve([0, 0, 0.1, smokeOpacity, 0.5, smokeOpacity * 0.65, 1, 0]),
       startAngle: -35,
       startAngle2: 35,
       rotationSpeedGraph: this.#curve([0, -12, 1, 16]),

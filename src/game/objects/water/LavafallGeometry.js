@@ -65,6 +65,7 @@ export class LavafallGeometry {
    * @param {number} colors
    * @param {boolean} weld
    * @param {Array<number>} metadata
+   * @param {Array<Array<number>>|null} uvs
    */
   #addQuad(
     group,
@@ -73,6 +74,7 @@ export class LavafallGeometry {
     colors = null,
     weld = false,
     metadata = [0, 0],
+    uvs = null,
   ) {
     const indices = [];
     for (let index = 0; index < points.length; index++) {
@@ -82,7 +84,7 @@ export class LavafallGeometry {
           points[index],
           normal,
           colors?.[index] ?? [0, 0, 0, 0],
-          [index === 1 || index === 2 ? 1 : 0, index >= 2 ? 1 : 0],
+          uvs?.[index] ?? [index === 1 || index === 2 ? 1 : 0, index >= 2 ? 1 : 0],
           weld,
           metadata,
         ),
@@ -253,13 +255,16 @@ export class LavafallGeometry {
      * @param {number} row
      * @param {number} widthIndex
      */
-    const uvAt = (row, widthIndex) => [
-      widthIndex / widthSegments,
-      routeDistance +
-        Math.min(1, row / lipSlices) * lipRadius * Math.PI * 0.5 +
+    const uvAt = (row, widthIndex) => {
+      const distance = Math.min(1, row / lipSlices) * lipRadius * Math.PI * 0.5 +
         Math.max(0, (row - lipSlices) / curtainSegments) *
-          (waterfall.topElevation - waterfall.bottomElevation - lipRadius),
-    ];
+          (waterfall.topElevation - waterfall.bottomElevation - lipRadius);
+      // A travel-time coordinate stretches the moving paint as the fall gains
+      // speed, while matching the river's speed and pattern at the shared lip.
+      const travel = 2 * distance / (1 + Math.sqrt(1 + 3 * distance));
+
+      return [widthIndex / widthSegments, routeDistance + travel];
+    };
     const waterfallMetadata = [direction.col * 2, direction.row * 2];
 
     this.#addGrid(
@@ -280,7 +285,7 @@ export class LavafallGeometry {
       uvAt,
       () => waterfallMetadata,
     );
-    const curtainThickness = 0.32;
+    const curtainThickness = 0.12;
     /**
      *
      * @param {number} row
@@ -335,21 +340,16 @@ export class LavafallGeometry {
           ],
           false,
           waterfallMetadata,
+          [
+            uvAt(row, widthIndex),
+            uvAt(row + 1, widthIndex),
+            uvAt(row + 1, widthIndex),
+            uvAt(row, widthIndex),
+          ],
         );
       }
     }
-    if (terminal) {
-      this.#addWaterfallDroplets(
-        group,
-        waterfall,
-        direction,
-        cross,
-        centerX,
-        centerZ,
-        curtainForward,
-        seed,
-      );
-    }
+
   }
 
   /**
@@ -413,115 +413,6 @@ export class LavafallGeometry {
         );
       }
     }
-  }
-
-  /**
-   *
-   * @param {import("src/game/objects/ObjectTypes.js").RiverGeometryGroup} group
-   * @param {import("src/game/objects/ObjectTypes.js").WaterfallDefinition} waterfall
-   * @param {{x: number, y: number, z: number}} direction
-   * @param {number} cross
-   * @param {number} centerX
-   * @param {number} centerZ
-   * @param {number} curtainForward
-   * @param {number} seed
-   */
-  #addWaterfallDroplets(
-    group,
-    waterfall,
-    direction,
-    cross,
-    centerX,
-    centerZ,
-    curtainForward,
-    seed,
-  ) {
-    const fadeElevation =
-      waterfall.bottomElevation +
-      (waterfall.topElevation - waterfall.bottomElevation) * 0.17;
-    for (let index = 0; index < 16; index++) {
-      const across =
-        (this.#waterfallNoise(seed + index * 37) - 0.5) * 0.72;
-      const forward =
-        curtainForward +
-        0.02 +
-        this.#waterfallNoise(seed + index * 61) * 0.13;
-      const y =
-        fadeElevation -
-        this.#waterfallNoise(seed + index * 83) * 1.1;
-      const radius =
-        0.025 + this.#waterfallNoise(seed + index * 101) * 0.035;
-      const height =
-        0.1 + this.#waterfallNoise(seed + index * 127) * 0.2;
-      this.#addDroplet(
-        group,
-        [
-          centerX + direction.col * forward + cross.col * across,
-          y,
-          centerZ + direction.row * forward + cross.row * across,
-        ],
-        radius,
-        height,
-        [direction.col * 2, direction.row * 2],
-      );
-    }
-  }
-
-  /**
-   *
-   * @param {import("src/game/objects/ObjectTypes.js").RiverGeometryGroup} group
-   * @param {number} center
-   * @param {number} radius
-   * @param {number} height
-   * @param {Array<number>} metadata
-   */
-  #addDroplet(group, center, radius, height, metadata) {
-    const top = [center[0], center[1] + height / 2, center[2]];
-    const bottom = [center[0], center[1] - height / 2, center[2]];
-    const ring = [
-      [center[0] - radius, center[1], center[2]],
-      [center[0], center[1], center[2] - radius],
-      [center[0] + radius, center[1], center[2]],
-      [center[0], center[1], center[2] + radius],
-    ];
-    for (let index = 0; index < ring.length; index++) {
-      const next = ring[(index + 1) % ring.length];
-      this.#addTriangle(
-        group,
-        [top, ring[index], next],
-        [0, 1, 0],
-        null,
-        metadata,
-      );
-      this.#addTriangle(
-        group,
-        [bottom, next, ring[index]],
-        [0, -1, 0],
-        null,
-        metadata,
-      );
-    }
-  }
-
-  /**
-   *
-   * @param {import("src/game/objects/ObjectTypes.js").RiverGeometryGroup} group
-   * @param {Array<{x: number, y: number, z: number}>} points
-   * @param {{x: number, y: number, z: number}} normal
-   * @param {number} colors
-   * @param {Array<number>} metadata
-   */
-  #addTriangle(group, points, normal, colors = null, metadata = [0, 0]) {
-    const start = group.positions.length / 3;
-    for (let index = 0; index < points.length; index++) {
-      group.positions.push(...points[index]);
-      group.normals.push(...normal);
-      group.colors.push(...(colors?.[index] ?? [0, 0, 0, 0]));
-      group.uvs.push(index === 1 ? 1 : 0, index === 2 ? 1 : 0);
-      group.uvs1.push(...metadata);
-      group.sourceUvs.push(0, 0);
-    }
-    group.indices.push(start, start + 1, start + 2);
   }
 
   /**
