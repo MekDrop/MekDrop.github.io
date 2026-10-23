@@ -16,6 +16,10 @@ Start with [docs/ai/task-map.md](docs/ai/task-map.md) for task locations and foc
 
 Follow `.editorconfig` and [docs/ai/code-style.md](docs/ai/code-style.md). ESLint and Prettier configuration define enforced style. Store temporary helper, conversion, migration, and diagnostic scripts in ignored project-root `tmp/`; never stage or commit its contents.
 
+## Tripo3D Workflow
+
+Always use the Opera web browser for working with Tripo3D tasks. After generating or downloading an asset, use Blender for local adjustments as needed to better match the game's visual style.
+
 ## Verification
 
 Maintain a `preview.png` in each main game object's owning folder under `src/game/objects/`. Capture one representative variant from the actual game rendering, frame the complete object, and preserve a transparent PNG alpha channel without scenery, HUD, or unrelated objects. Do not create separate previews for subobjects or component parts. Whenever a main object's visible appearance changes (including models, materials, textures, geometry, or visual assembly), regenerate its preview in the same change and verify that it is nonempty and retains transparency.
