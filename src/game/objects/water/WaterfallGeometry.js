@@ -100,9 +100,10 @@ export class WaterfallGeometry {
       const across = column / width - 0.5;
       const lip = Math.min(1, row / lipRows);
       const edgeSide = column === 0 ? -1 : column === width ? 1 : 0;
+      const sharedCorner = edgeSide !== 0 && this.#join?.connectedSides?.[edgeSide < 0 ? 0 : 1];
       // Row zero is the river's downstream edge, so it remains exact and can
       // reuse those vertices. The hidden bank overlap begins inside the curve.
-      const bankJoin = BANK_SEAM_OVERLAP * Math.sin(lip * Math.PI);
+      const bankJoin = sharedCorner ? 0 : BANK_SEAM_OVERLAP * Math.sin(lip * Math.PI);
       const joinedAcross = across + edgeSide * bankJoin;
       const fall = Math.max(0, (row - lipRows) / fallRows);
       const angle = lip * Math.PI / 2;
@@ -115,7 +116,7 @@ export class WaterfallGeometry {
         this.#waterfall.bottomElevation + 0.012 +
         (this.#terminal ? 0.18 + scallop * 0.22 : -0.06);
       const belly = Math.sin((across + 0.5) * Math.PI) * 0.025 * arc;
-      const drift = fall * fall * (this.#terminal ? 0.12 : 0.04);
+      const drift = sharedCorner ? 0 : fall * fall * (this.#terminal ? 0.12 : 0.04);
       // Bury only the two lip-edge columns just inside the lateral banks. The
       // overlap closes fractional-zoom raster cracks without changing draw order.
       const forward =
@@ -134,16 +135,30 @@ export class WaterfallGeometry {
       // flat side panel even though the horizontal sheet thickness is small.
       const rearHeight = Math.min(rearLip, frontHeight - 0.025);
       const thickness = 0.055 * arc * (1 - fall * 0.25);
-      const surfaceForward = forward - (rear ? thickness : 0);
+      let surfaceForward = forward - (rear ? thickness : 0);
+      let surfaceAcross = joinedAcross * taper;
+      // Round each shared corner as the lip rolls over, rather than extruding
+      // the square tile into a box. Both curtains evaluate the same diagonal
+      // boundary, including their rear faces, through the complete drop.
+      const cornerSide = across < 0 ? -1 : 1;
+      const connectedCorner = this.#join?.connectedSides?.[cornerSide < 0 ? 0 : 1];
+      const cornerRadius = 0.32 * arc;
+      if (connectedCorner && cornerRadius > 0 && Math.abs(across) > 0.5 - cornerRadius) {
+        const cornerCenter = 0.5 - cornerRadius;
+        const cornerAngle = (Math.abs(across) - cornerCenter) / cornerRadius * Math.PI / 4;
+        const offsetRadius = surfaceForward - cornerCenter;
+        surfaceForward = cornerCenter + offsetRadius * Math.cos(cornerAngle);
+        surfaceAcross = cornerSide * (cornerCenter + offsetRadius * Math.sin(cornerAngle));
+      }
 
       return [
         this.#center[0] +
           direction.col * surfaceForward +
-          cross.col * joinedAcross * taper,
+          cross.col * surfaceAcross,
         rear ? rearHeight : frontHeight,
         this.#center[1] +
           direction.row * surfaceForward +
-          cross.row * joinedAcross * taper,
+          cross.row * surfaceAcross,
       ];
     };
     /**

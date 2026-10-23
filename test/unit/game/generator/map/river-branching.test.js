@@ -136,9 +136,12 @@ for (const [seed, count] of [[0, 2], [908, 3], [1344, 1]]) {
   });
 }
 
-for (const mapName of ["water-forks-16", "water-forks-78"]) {
+for (const mapName of ["split-check-0", "split-check-908"]) {
   it(`feeds ${mapName} through one fall into a level shared basin`, async () => {
-    const map = await MapGenerator.generate({ mapName });
+    const map = await MapGenerator.generate({
+      mapName,
+      numRivers: 1,
+    });
     const branch = map.riverData.find(river => river.sourceId);
     assert.ok(branch);
     const root = map.riverData.find(river => river.id === branch.sourceId);

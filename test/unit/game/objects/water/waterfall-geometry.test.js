@@ -51,6 +51,51 @@ function patchesFor(
 }
 
 describe('waterfall geometry', () => {
+  for (const drop of [1, 4, 6]) {
+    it(`seals perpendicular curtain corners through the entire ${drop}-cube drop`, () => {
+      const directions = [{
+        col: 1,
+        row: 0,
+      }, {
+        col: 0,
+        row: 1,
+      }, {
+        col: -1,
+        row: 0,
+      }, {
+        col: 0,
+        row: -1,
+      }];
+      const joined = (direction, connectedSides) => {
+        const [front, rear] = patchesFor(direction, false, drop);
+        const columns = Array.from({ length: front.columns + 1 }, (_, column) => column);
+
+        return patchesFor(direction, false, drop, 'all', {
+          front: columns.map(column => front.pointAt(0, column)),
+          rear: columns.map(column => rear.pointAt(0, column)),
+          uvs: columns.map(column => front.uvAt(0, column)),
+          connectedSides,
+        });
+      };
+      for (let index = 0; index < directions.length; index++) {
+        const a = joined(directions[index], [false, true]);
+        const b = joined(directions[(index + 1) % directions.length], [true, false]);
+        const middle = a[0].pointAt(12, a[0].columns / 2);
+        const corner = a[0].pointAt(12, a[0].columns);
+        const direction = directions[index];
+        const faceForward = middle[0] * direction.col + middle[2] * direction.row;
+        const cornerForward = corner[0] * direction.col + corner[2] * direction.row;
+        assert.ok(cornerForward < faceForward - 0.05, 'shared lip corners are rounded rather than square');
+        for (let face = 0; face < 2; face++) {
+          for (let row = 0; row <= a[face].rows; row++) {
+            const edgeA = a[face].pointAt(row, a[face].columns);
+            const edgeB = b[face].pointAt(row, 0);
+            assert.ok(Math.hypot(...edgeA.map((value, axis) => value - edgeB[axis])) < 1e-10);
+          }
+        }
+      }
+    });
+  }
   for (const drop of [1, 2, 4, 4.5, 6, 13.5]) {
     it(`only narrows drops taller than four cubes (height ${drop})`, () => {
       const [front] = patchesFor({

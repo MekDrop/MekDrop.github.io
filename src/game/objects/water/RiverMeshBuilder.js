@@ -1,5 +1,6 @@
 import { RIVER_KIND } from '../../enum/RiverKind.js';
 import { RiverSurfaceHeights } from './RiverSurfaceHeights.js';
+import { RiverSpillways } from './RiverSpillways.js';
 import { WaterfallGeometry } from './WaterfallGeometry.js';
 
 /**
@@ -107,12 +108,22 @@ export class RiverMeshBuilder {
       const surfaceHeights = new RiverSurfaceHeights(familyCells);
       const sourceProfile = createSourceProfile(river.cells);
       const riverCellKeys = new Set(familyCells.map(RiverMeshBuilder.#mapCell));
-      const spillDirections = new Map(
-        river.cascades.map(RiverMeshBuilder.#mapCascade),
-      );
+      const cascades = RiverSpillways.cascadesFor(river, rivers.filter(
+        /**
+         * @param {import('../../generator/map/MapGenerationTypes.js').RiverData} item
+         */
+        (item) => (item.sourceId ?? item.id) === (river.sourceId ?? river.id),
+      ));
+      const spillDirections = new Map();
+      for (const cascade of cascades) {
+        const key = `${cascade.from.col},${cascade.from.row}`;
+        const directions = spillDirections.get(key) ?? [];
+        directions.push(cascade.direction);
+        spillDirections.set(key, directions);
+      }
       spillDirections.set(
         `${river.waterfall.col},${river.waterfall.row}`,
-        river.waterfall.direction,
+        [...(spillDirections.get(`${river.waterfall.col},${river.waterfall.row}`) ?? []), river.waterfall.direction],
       );
       const spillJoins = new Map();
       for (const [cellIndex, cell] of river.cells.entries()) {
@@ -120,8 +131,8 @@ export class RiverMeshBuilder {
           continue;
         }
         const cellKey = `${cell.col},${cell.row}`;
-        const spillDirection = spillDirections.get(cellKey) ?? null;
-        const cascadeLanding = river.cascades.some(
+        const spillDirection = spillDirections.get(cellKey) ?? [];
+        const cascadeLanding = cascades.some(
           /**
            *
            * @param {number} cascade
@@ -148,7 +159,7 @@ export class RiverMeshBuilder {
           spillJoins.set(cellKey, spillJoin);
         }
       }
-      for (const cascade of river.cascades) {
+      for (const cascade of cascades) {
         const cascadeIndex = river.cells.findIndex(
           /**
              *
@@ -173,7 +184,7 @@ export class RiverMeshBuilder {
              */
             (cell) => cell.col === cascade.from.col && cell.row === cascade.from.row,
           ) + 1,
-          join: spillJoins.get(`${cascade.from.col},${cascade.from.row}`),
+          join: spillJoins.get(`${cascade.from.col},${cascade.from.row}`)?.get(cascade.direction),
         });
       }
       appendTerminal({
@@ -185,7 +196,7 @@ export class RiverMeshBuilder {
         cols,
         rows,
         routeDistance: river.cells.length,
-        join: spillJoins.get(`${river.waterfall.col},${river.waterfall.row}`),
+        join: spillJoins.get(`${river.waterfall.col},${river.waterfall.row}`)?.get(river.waterfall.direction),
       });
     }
 
@@ -333,7 +344,7 @@ export class RiverMeshBuilder {
    * @param {number} cell
    * @param {number} cols
    * @param {number} rows
-   * @param {{x: number, y: number, z: number}} waterfallDirection
+   * @param {string[]} waterfallDirections
    * @param {number} riverCellKeys
    * @param {boolean} springSource
    * @param {{x: number, y: number, z: number}} incomingDirection
@@ -346,7 +357,7 @@ export class RiverMeshBuilder {
     cell,
     cols,
     rows,
-    waterfallDirection,
+    waterfallDirections,
     riverCellKeys,
     springSource,
     incomingDirection,
@@ -386,9 +397,11 @@ export class RiverMeshBuilder {
       return north * (1 - v) + south * v;
     };
     const outgoing = this.#directionVector(cell.direction);
-    const spillFlow = waterfallDirection
-      ? this.#directionVector(waterfallDirection)
-      : null;
+    const spillFlows = waterfallDirections.map(/**
+     *
+     * @param {string} direction
+     */
+      (direction) => this.#directionVector(direction));
     // Opaque surface alpha carries the paint blend before a spill. The
     // waterfall uses its alpha for tail opacity in its separate material.
     /**
@@ -396,12 +409,16 @@ export class RiverMeshBuilder {
      * @param {number} column
      */
     const spillPaintAt = (row, column) => {
-      if (!spillFlow || this.#riverKind !== RIVER_KIND.WATER) {
+      if (!spillFlows.length || this.#riverKind !== RIVER_KIND.WATER) {
         return 255;
       }
-      const progress = 0.5 +
+      const progress = Math.max(...spillFlows.map(/**
+       *
+       * @param {{col: number, row: number}} spillFlow
+       */
+        (spillFlow) => 0.5 +
         (column / surfaceSegments - 0.5) * spillFlow.col +
-        (row / surfaceSegments - 0.5) * spillFlow.row;
+        (row / surfaceSegments - 0.5) * spillFlow.row));
       const blend = Math.max(0, Math.min(1, (progress - 0.65) / 0.35));
 
       return Math.round((1 - blend * blend * (3 - 2 * blend)) * 255);
@@ -616,7 +633,7 @@ export class RiverMeshBuilder {
     ];
     const westBottom = exposedBottomAt(cell.col - 1, cell.row);
     if (
-      waterfallDirection !== 'WEST' &&
+      !waterfallDirections.includes('WEST') &&
       westBottom !== null
     ) {
       const bottomColor = bottomColorAt(westBottom);
@@ -636,7 +653,7 @@ export class RiverMeshBuilder {
     }
     const eastBottom = exposedBottomAt(cell.col + 1, cell.row);
     if (
-      waterfallDirection !== 'EAST' &&
+      !waterfallDirections.includes('EAST') &&
       eastBottom !== null
     ) {
       const bottomColor = bottomColorAt(eastBottom);
@@ -656,7 +673,7 @@ export class RiverMeshBuilder {
     }
     const northBottom = exposedBottomAt(cell.col, cell.row - 1);
     if (
-      waterfallDirection !== 'NORTH' &&
+      !waterfallDirections.includes('NORTH') &&
       northBottom !== null
     ) {
       const bottomColor = bottomColorAt(northBottom);
@@ -676,7 +693,7 @@ export class RiverMeshBuilder {
     }
     const southBottom = exposedBottomAt(cell.col, cell.row + 1);
     if (
-      waterfallDirection !== 'SOUTH' &&
+      !waterfallDirections.includes('SOUTH') &&
       southBottom !== null
     ) {
       const bottomColor = bottomColorAt(southBottom);
@@ -694,17 +711,19 @@ export class RiverMeshBuilder {
         surfaceMetadata,
       );
     }
-    if (!waterfallDirection) {
-      return null;
-    }
-    return this.#spillJoin(
-      waterfallDirection,
-      surfaceSegments,
-      surfacePointAt,
-      bottomPointAt,
-      flowUvAt,
-      sourceAt,
-    );
+    return new Map(waterfallDirections.map(/**
+     *
+     * @param {string} direction
+     */
+      (direction) => [direction, this.#spillJoin(
+        direction,
+        surfaceSegments,
+        surfacePointAt,
+        bottomPointAt,
+        flowUvAt,
+        sourceAt,
+        waterfallDirections,
+      )]));
   }
 
   /**
@@ -715,9 +734,25 @@ export class RiverMeshBuilder {
    * @param {(...coordinates: number[]) => Array<number>} bottomPointAt
    * @param {(...args: number[]) => Array<number>} uvAt
    * @param {(...args: number[]) => Array<number>} sourceAt
+   * @param {string[]} directions
    */
-  #spillJoin(directionName, segments, surfacePointAt, bottomPointAt, uvAt, sourceAt) {
+  #spillJoin(directionName, segments, surfacePointAt, bottomPointAt, uvAt, sourceAt, directions) {
     const direction = this.#directionVector(directionName);
+    const connectedSides = [-1, 1].map(
+      /**
+       * @param {number} side
+       */
+      (side) => directions.some(
+        /**
+         * @param {string} name
+         */
+        (name) => {
+          const neighbor = this.#directionVector(name);
+
+          return neighbor.col === -direction.row * side && neighbor.row === direction.col * side;
+        },
+      ),
+    );
     const front = [];
     const rear = [];
     const uvs = [];
@@ -734,7 +769,11 @@ export class RiverMeshBuilder {
       }
       front.push(surfacePointAt(row, column));
       rear.push(bottomPointAt(row, column));
-      uvs.push(uvAt(row, column));
+      // Each outlet needs its own full-width paint coordinates. Reusing the
+      // main route's UVs makes a perpendicular curtain one constant bank stripe.
+      uvs.push(directions.length > 1
+        ? [index / segments, uvAt(segments / 2, segments / 2)[1] + 0.5]
+        : uvAt(row, column));
       sources.push(sourceAt(row, column));
     }
 
@@ -743,6 +782,7 @@ export class RiverMeshBuilder {
       rear,
       uvs,
       sources,
+      connectedSides,
     };
   }
 
@@ -910,14 +950,4 @@ export class RiverMeshBuilder {
     return `${cell.col},${cell.row}`;
   }
 
-  /**
-   *
-   * @param {number} cascade
-   */
-  static #mapCascade(cascade) {
-    return [
-      `${cascade.from.col},${cascade.from.row}`,
-      cascade.direction,
-    ];
-  }
 }

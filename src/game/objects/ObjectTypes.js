@@ -209,6 +209,7 @@
  * @property {Array<Array<number>>} rear
  * @property {Array<Array<number>>} uvs
  * @property {Array<Array<number>>} sources
+ * @property {boolean[]} [connectedSides] Perpendicular spills at the negative and positive width edges.
  * @typedef {object} PathOverpass
  * @property {Array<{col: number, row: number, riseDirection: string, lowHeight: number, highHeight: number}>} slopeCells
  * @property {Array<GridPoint>} approachCells

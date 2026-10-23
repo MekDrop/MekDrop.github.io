@@ -83,8 +83,9 @@ export class RiverRouter {
   /**
    * @param {number[][]} grid
    * @param {MapCell[]} route
+   * @param {number[][]} heightmap
    */
-  riverSourceHasEarthEnclosure(grid, route) {
+  riverSourceHasEarthEnclosure(grid, route, heightmap) {
     if (route.length < 2) {
       return false;
     }
@@ -98,9 +99,14 @@ export class RiverRouter {
         const col = source.col + deltaCol;
         const row = source.row + deltaRow;
         if (routeCells.has(MapGrid.tileKey(col, row))) {
+          if (Math.abs(deltaCol) + Math.abs(deltaRow) === 1 &&
+              (col !== route[1].col || row !== route[1].row)) {
+            return false;
+          }
           continue;
         }
-        if (!MapGrid.inBounds(col, row) || grid[row][col] !== TileType.GRASS) {
+        if (!MapGrid.inBounds(col, row) || grid[row][col] !== TileType.GRASS ||
+            heightmap[row][col] < heightmap[source.row][source.col]) {
           return false;
         }
       }
@@ -260,6 +266,11 @@ export class RiverRouter {
       ]);
       for (const neighbor of neighbors) {
         const neighborKey = MapGrid.tileKey(neighbor.col, neighbor.row);
+        // A fork must never carve a second opening into its spring's enclosure.
+        if (prefix.length > 1 &&
+          Math.max(Math.abs(neighbor.col - source.col), Math.abs(neighbor.row - source.row)) <= 1) {
+          continue;
+        }
         /**
          *
          * @param {MapCell} cell

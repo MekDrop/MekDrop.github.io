@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { it } from 'node:test';
+import { readFileSync } from 'node:fs';
 import { RiverMeshBuilder } from '../../../../../src/game/objects/water/RiverMeshBuilder.js';
 
 class FakeMesh {
@@ -14,6 +15,45 @@ class FakeMesh {
 class FakeEntity {
   addComponent() {}
 }
+
+it('builds three distinct, joined curtains for the saved three-way ledge', () => {
+  const map = JSON.parse(readFileSync(new URL('../../../../../src/game/maps/tests/river-three-way-spill.json', import.meta.url)));
+  const cascades = [];
+  const builder = new RiverMeshBuilder({
+    pc: {
+      Mesh: FakeMesh,
+      MeshInstance: class {
+        setParameter() {}
+      },
+      Entity: FakeEntity,
+    },
+    device: null,
+    entity: { addChild: () => {} },
+    riverKind: 'WATER',
+    mapData: {
+      ...map,
+      riverData: map.objects[0].rivers,
+    },
+  });
+  builder.build({
+    createSourceProfile: () => null,
+    isSpringSource: () => false,
+    surfaceCorners: () => null,
+    appendCascade: options => cascades.push(options),
+    appendTerminal: () => {},
+    createMaterial: () => null,
+  });
+  assert.deepEqual(cascades.map(({ cascade }) => cascade.direction).sort(), ['EAST', 'NORTH', 'SOUTH']);
+  for (const { cascade, join } of cascades) {
+    assert.equal(cascade.bottomElevation, 0.5);
+    assert.equal(join.front.length, 13);
+    assert.deepEqual(join.uvs.map(uv => uv[0]), Array.from({ length: 13 }, (_, index) => index / 12));
+    assert.ok(join.uvs.every(uv => uv[1] === join.uvs[0][1]));
+    assert.ok(join.front.every(point => point[1] === 1.512));
+    assert.ok(join.front.every(point => cascade.direction === 'EAST' ? point[0] === 1.5 :
+      point[2] === (cascade.direction === 'NORTH' ? -0.5 : 0.5)));
+  }
+});
 
 function surfaceFor(direction, kind = 'WATER') {
   let surface;

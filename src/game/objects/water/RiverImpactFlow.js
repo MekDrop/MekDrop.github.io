@@ -138,7 +138,7 @@ export class RiverImpactFlow {
 
         return neighbor && (neighbor.river === record.river || (record.river.id &&
         (neighbor.river.sourceId ?? neighbor.river.id) === (record.river.sourceId ?? record.river.id))) &&
-        Math.abs(neighbor.cell.elevation - record.cell.elevation) <= 0.04 ? 0 : 1;
+        neighbor.cell.elevation <= record.cell.elevation + 0.04 ? 0 : 1;
       });
   }
 

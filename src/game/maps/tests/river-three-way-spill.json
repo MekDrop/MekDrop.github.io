@@ -1,0 +1,717 @@
+{
+  "grid": [
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      1,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  ],
+  "heightmap": [
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      2,
+      2,
+      2,
+      2,
+      2,
+      0.5,
+      0.5,
+      0.5,
+      0.5
+    ],
+    [
+      2,
+      2,
+      1.5,
+      1.5,
+      1.5,
+      1.5,
+      0.5,
+      0.5,
+      0.5
+    ],
+    [
+      2,
+      2,
+      2,
+      2,
+      2,
+      0.5,
+      0.5,
+      0.5,
+      0.5
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  ],
+  "tileMeta": [
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    [
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "surfaceType": "WATER",
+        "baseHeight": 0.5,
+        "direction": "EAST",
+        "riverSourceCover": false
+      },
+      {
+        "surfaceType": "WATER",
+        "baseHeight": 0.5,
+        "direction": "EAST",
+        "riverSourceCover": false
+      },
+      {
+        "surfaceType": "WATER",
+        "baseHeight": 0.5,
+        "direction": "EAST",
+        "riverSourceCover": false
+      },
+      {
+        "surfaceType": "WATER",
+        "baseHeight": 0.5,
+        "direction": "EAST",
+        "riverSourceCover": false
+      }
+    ],
+    [
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "surfaceType": "WATER",
+        "baseHeight": 1.5,
+        "direction": "EAST",
+        "riverSourceCover": true
+      },
+      {
+        "surfaceType": "WATER",
+        "baseHeight": 1.5,
+        "direction": "EAST",
+        "riverSourceCover": false
+      },
+      {
+        "surfaceType": "WATER",
+        "baseHeight": 1.5,
+        "direction": "EAST",
+        "riverSourceCover": false
+      },
+      {
+        "surfaceType": "WATER",
+        "baseHeight": 1.5,
+        "direction": "SOUTH",
+        "riverSourceCover": false
+      },
+      {
+        "surfaceType": "WATER",
+        "baseHeight": 0.5,
+        "direction": "EAST",
+        "riverSourceCover": false
+      },
+      {
+        "surfaceType": "WATER",
+        "baseHeight": 0.5,
+        "direction": "EAST",
+        "riverSourceCover": false
+      },
+      {
+        "surfaceType": "WATER",
+        "baseHeight": 0.5,
+        "direction": "EAST",
+        "riverSourceCover": false
+      }
+    ],
+    [
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "surfaceType": "WATER",
+        "baseHeight": 0.5,
+        "direction": "EAST",
+        "riverSourceCover": false
+      },
+      {
+        "surfaceType": "WATER",
+        "baseHeight": 0.5,
+        "direction": "EAST",
+        "riverSourceCover": false
+      },
+      {
+        "surfaceType": "WATER",
+        "baseHeight": 0.5,
+        "direction": "EAST",
+        "riverSourceCover": false
+      },
+      {
+        "surfaceType": "WATER",
+        "baseHeight": 0.5,
+        "direction": "EAST",
+        "riverSourceCover": false
+      }
+    ],
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ]
+  ],
+  "cols": 9,
+  "rows": 7,
+  "numPaths": 0,
+  "pipeData": [],
+  "mergeZones": [],
+  "trunkStart": null,
+  "mapName": "test_river-three-way-spill",
+  "layoutSignature": "test_river-three-way-spill",
+  "objects": [
+    {
+      "id": "rivers",
+      "object": "Rivers",
+      "rivers": [
+        {
+          "id": "three-way-river",
+          "kind": "WATER",
+          "source": {
+            "col": 2,
+            "row": 3,
+            "terrainHeight": 2
+          },
+          "cells": [
+            {
+              "col": 2,
+              "row": 3,
+              "direction": "EAST",
+              "elevation": 1.5,
+              "bedElevation": 1,
+              "terrainHeight": 2,
+              "underBridge": false
+            },
+            {
+              "col": 3,
+              "row": 3,
+              "direction": "EAST",
+              "elevation": 1.5,
+              "bedElevation": 1,
+              "terrainHeight": 2,
+              "underBridge": false
+            },
+            {
+              "col": 4,
+              "row": 3,
+              "direction": "EAST",
+              "elevation": 1.5,
+              "bedElevation": 1,
+              "terrainHeight": 2,
+              "underBridge": false
+            },
+            {
+              "col": 5,
+              "row": 3,
+              "direction": "EAST",
+              "elevation": 1.5,
+              "bedElevation": 1,
+              "terrainHeight": 2,
+              "underBridge": false
+            },
+            {
+              "col": 6,
+              "row": 3,
+              "direction": "EAST",
+              "elevation": 0.5,
+              "bedElevation": 0,
+              "terrainHeight": 1,
+              "underBridge": false
+            },
+            {
+              "col": 7,
+              "row": 3,
+              "direction": "EAST",
+              "elevation": 0.5,
+              "bedElevation": 0,
+              "terrainHeight": 1,
+              "underBridge": false
+            },
+            {
+              "col": 8,
+              "row": 3,
+              "direction": "EAST",
+              "elevation": 0.5,
+              "bedElevation": 0,
+              "terrainHeight": 1,
+              "underBridge": false
+            }
+          ],
+          "cascades": [
+            {
+              "from": {
+                "col": 5,
+                "row": 3
+              },
+              "to": {
+                "col": 6,
+                "row": 3
+              },
+              "direction": "EAST",
+              "topElevation": 1.5,
+              "bottomElevation": 0.5
+            }
+          ],
+          "upstreamLength": 5,
+          "waterfall": {
+            "col": 8,
+            "row": 3,
+            "direction": "EAST",
+            "topElevation": 0.5,
+            "bottomElevation": -10
+          }
+        },
+        {
+          "id": "three-way-branch-0",
+          "kind": "WATER",
+          "source": {
+            "col": 2,
+            "row": 3,
+            "terrainHeight": 2
+          },
+          "cells": [
+            {
+              "col": 2,
+              "row": 3,
+              "direction": "EAST",
+              "elevation": 1.5,
+              "bedElevation": 1,
+              "terrainHeight": 2,
+              "underBridge": false
+            },
+            {
+              "col": 3,
+              "row": 3,
+              "direction": "EAST",
+              "elevation": 1.5,
+              "bedElevation": 1,
+              "terrainHeight": 2,
+              "underBridge": false
+            },
+            {
+              "col": 4,
+              "row": 3,
+              "direction": "EAST",
+              "elevation": 1.5,
+              "bedElevation": 1,
+              "terrainHeight": 2,
+              "underBridge": false
+            },
+            {
+              "col": 5,
+              "row": 3,
+              "direction": "NORTH",
+              "elevation": 1.5,
+              "bedElevation": 1,
+              "terrainHeight": 2,
+              "underBridge": false
+            },
+            {
+              "col": 5,
+              "row": 2,
+              "direction": "EAST",
+              "elevation": 0.5,
+              "bedElevation": 0,
+              "terrainHeight": 1,
+              "underBridge": false
+            },
+            {
+              "col": 6,
+              "row": 2,
+              "direction": "EAST",
+              "elevation": 0.5,
+              "bedElevation": 0,
+              "terrainHeight": 1,
+              "underBridge": false
+            },
+            {
+              "col": 7,
+              "row": 2,
+              "direction": "EAST",
+              "elevation": 0.5,
+              "bedElevation": 0,
+              "terrainHeight": 1,
+              "underBridge": false
+            },
+            {
+              "col": 8,
+              "row": 2,
+              "direction": "EAST",
+              "elevation": 0.5,
+              "bedElevation": 0,
+              "terrainHeight": 1,
+              "underBridge": false
+            }
+          ],
+          "cascades": [
+            {
+              "from": {
+                "col": 5,
+                "row": 3
+              },
+              "to": {
+                "col": 5,
+                "row": 2
+              },
+              "direction": "NORTH",
+              "topElevation": 1.5,
+              "bottomElevation": 0.5
+            }
+          ],
+          "upstreamLength": 5,
+          "waterfall": {
+            "col": 8,
+            "row": 2,
+            "direction": "EAST",
+            "topElevation": 0.5,
+            "bottomElevation": -10
+          },
+          "sourceId": "three-way-river",
+          "branchStart": 4
+        },
+        {
+          "id": "three-way-branch-1",
+          "kind": "WATER",
+          "source": {
+            "col": 2,
+            "row": 3,
+            "terrainHeight": 2
+          },
+          "cells": [
+            {
+              "col": 2,
+              "row": 3,
+              "direction": "EAST",
+              "elevation": 1.5,
+              "bedElevation": 1,
+              "terrainHeight": 2,
+              "underBridge": false
+            },
+            {
+              "col": 3,
+              "row": 3,
+              "direction": "EAST",
+              "elevation": 1.5,
+              "bedElevation": 1,
+              "terrainHeight": 2,
+              "underBridge": false
+            },
+            {
+              "col": 4,
+              "row": 3,
+              "direction": "EAST",
+              "elevation": 1.5,
+              "bedElevation": 1,
+              "terrainHeight": 2,
+              "underBridge": false
+            },
+            {
+              "col": 5,
+              "row": 3,
+              "direction": "SOUTH",
+              "elevation": 1.5,
+              "bedElevation": 1,
+              "terrainHeight": 2,
+              "underBridge": false
+            },
+            {
+              "col": 5,
+              "row": 4,
+              "direction": "EAST",
+              "elevation": 0.5,
+              "bedElevation": 0,
+              "terrainHeight": 1,
+              "underBridge": false
+            },
+            {
+              "col": 6,
+              "row": 4,
+              "direction": "EAST",
+              "elevation": 0.5,
+              "bedElevation": 0,
+              "terrainHeight": 1,
+              "underBridge": false
+            },
+            {
+              "col": 7,
+              "row": 4,
+              "direction": "EAST",
+              "elevation": 0.5,
+              "bedElevation": 0,
+              "terrainHeight": 1,
+              "underBridge": false
+            },
+            {
+              "col": 8,
+              "row": 4,
+              "direction": "EAST",
+              "elevation": 0.5,
+              "bedElevation": 0,
+              "terrainHeight": 1,
+              "underBridge": false
+            }
+          ],
+          "cascades": [
+            {
+              "from": {
+                "col": 5,
+                "row": 3
+              },
+              "to": {
+                "col": 5,
+                "row": 4
+              },
+              "direction": "SOUTH",
+              "topElevation": 1.5,
+              "bottomElevation": 0.5
+            }
+          ],
+          "upstreamLength": 5,
+          "waterfall": {
+            "col": 8,
+            "row": 4,
+            "direction": "EAST",
+            "topElevation": 0.5,
+            "bottomElevation": -10
+          },
+          "sourceId": "three-way-river",
+          "branchStart": 4
+        }
+      ]
+    },
+    {
+      "id": "hero-spawn",
+      "object": "SpawnPoint",
+      "position": {
+        "x": -4,
+        "y": 2.14,
+        "z": 0
+      }
+    }
+  ],
+  "testControls": {
+    "panels": [
+      {
+        "title": "Three-way waterfall",
+        "buttons": [
+          {
+            "label": "Front view",
+            "script": "camera.setViewport({zoom: 6, rotation: 0, panX: 1, panZ: 0});"
+          },
+          {
+            "label": "Other side",
+            "script": "camera.setViewport({zoom: 6, rotation: 2, panX: 1, panZ: 0});"
+          }
+        ]
+      }
+    ]
+  }
+}

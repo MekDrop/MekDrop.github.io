@@ -1,10 +1,18 @@
 import assert from 'node:assert/strict';
 import { it } from 'node:test';
+import { readFileSync } from 'node:fs';
 import { RiverImpactFlow } from '../../../../../src/game/objects/water/RiverImpactFlow.js';
 
 const directions = [
   ['EAST', 1, 0], ['SOUTH', 0, 1], ['WEST', -1, 0], ['NORTH', 0, -1],
 ];
+
+it('keeps downhill spill edges open without painting a rectangular bank border', () => {
+  const map = JSON.parse(readFileSync(new URL('../../../../../src/game/maps/tests/river-three-way-spill.json', import.meta.url)));
+  const field = new RiverImpactFlow(map.objects[0].rivers);
+  assert.deepEqual(field.bankMask(5, 3), [0, 0, 0, 0]);
+  assert.equal(field.bankMask(6, 3)[0], 1, 'the receiving cell still sees the taller upstream cliff');
+});
 for (const [index, [name, dx, dz]] of directions.entries()) {
   for (const turn of [-1, 0, 1]) {
     const [outgoing, ex, ez] = directions[(index + turn + 4) % 4];

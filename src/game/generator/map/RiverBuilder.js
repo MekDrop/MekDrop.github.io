@@ -273,7 +273,7 @@ export class RiverBuilder {
       if (!result) {
         continue;
       }
-      if (!this.#router.riverSourceHasEarthEnclosure(grid, result.route)) {
+      if (!this.#router.riverSourceHasEarthEnclosure(grid, result.route, heightmap)) {
         continue;
       }
       const river = this.#materializeRiver(

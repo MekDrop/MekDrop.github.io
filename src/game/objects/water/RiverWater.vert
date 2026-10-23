@@ -55,10 +55,12 @@ vec3 riverWaterPosition(vec3 p) {
     // UV0 is omitted from picking variants. Waterfall metadata has magnitude
     // 2..3, preserving the normalized flow direction while carrying this value.
     float across = clamp(metadataLength - 2.0, 0.0, 1.0);
-    float acrossInterior = sin(across * 3.14159265);
+    float acrossInterior = 4.0 * across * (1.0 - across);
     // The two faces share a wave phase so the thin curtain cannot fold through itself.
     float wave = sin(-p.y * 3.2 - uRiverTime * 5.4);
-    p.xz += flow * wave * 0.018 * fall +
+    // Both directions of motion must vanish at the shared curtain edges.
+    // Forward sway otherwise pulls perpendicular sheets apart below the lip.
+    p.xz += flow * wave * 0.018 * fall * acrossInterior +
       crossFlow * sin(age * 8.0 - uRiverTime * 1.8) * 0.012 * fall * age * acrossInterior;
   #endif
   return p;

@@ -3,6 +3,72 @@ import { it } from "node:test";
 import { RiverFlowMap } from "../../../../../src/game/objects/water/RiverFlowMap.js";
 import { RiverImpactFlow } from "../../../../../src/game/objects/water/RiverImpactFlow.js";
 
+it('spreads the painted current toward every exposed lower neighbor without requiring branch records', () => {
+  const textures = [];
+  class Texture {
+    constructor(_device, options) {
+      this.name = options.name;
+      this.data = options.format === 'float'
+        ? new Float32Array(options.width * options.height * 4)
+        : new Uint8Array(options.width * options.height * 4);
+      textures.push(this);
+    }
+    lock() {
+      return this.data;
+    }
+    unlock() {}
+    destroy() {}
+  }
+  const cells = [
+    {
+      col: 2,
+      row: 1,
+      direction: 'SOUTH',
+      elevation: 2,
+    },
+    {
+      col: 2,
+      row: 2,
+      direction: 'SOUTH',
+      elevation: 2,
+    },
+    {
+      col: 2,
+      row: 3,
+      direction: 'WEST',
+      elevation: 1,
+    },
+    {
+      col: 1,
+      row: 3,
+      direction: 'NORTH',
+      elevation: 1,
+    },
+    {
+      col: 1,
+      row: 2,
+      direction: 'NORTH',
+      elevation: 1,
+    },
+  ];
+  const map = new RiverFlowMap({
+    Texture,
+    PIXELFORMAT_RGBA32F: 'float',
+  }, null, {
+    cols: 5,
+    rows: 5,
+    riverData: [{
+      id: 'ledge',
+      cells,
+      cascades: [],
+    }],
+  });
+  const forks = textures.find(texture => texture.name === 'River fork outlets');
+  const pixel = (2 * 5 + 2) * 4;
+  assert.deepEqual([...forks.data.slice(pixel, pixel + 4)], [2, 2, 8, 9]);
+  map.destroy();
+});
+
 it("marks the three open basin outlets without introducing banks between branches", () => {
   const inlet = {
     col: 2,

@@ -253,6 +253,7 @@ slope tiles = absolute elevation difference
 * Water must flow continuously from higher terrain to lower terrain.
 * Water cannot flow uphill.
 * Water cannot begin directly at a cliff edge.
+* A spring's surrounding earth must already reach its source terrain height, except along its downstream channel. Reject exposed source ledges rather than raising an isolated enclosure around them. Branches must stay outside the spring's 3×3 enclosure and must not create extra source openings.
 * Every water tile must have a defined flow direction.
 
 ## 13. Waterfall setback
@@ -278,6 +279,7 @@ slope tiles = absolute elevation difference
   * castle structures
 * Waterfalls cannot be placed directly beside gates.
 * Waterfall width must match the upstream water width.
+* An inland water tile adjoining lower water on several cardinal sides spills down every such side, including three-sided ledges. Each fall ends at that side's receiving water elevation; shared branch prefixes must not render duplicate curtains.
 
 ## 15. Water and paths
 

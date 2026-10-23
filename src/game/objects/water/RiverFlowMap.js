@@ -1,4 +1,5 @@
 import { RIVER_KIND } from '../../enum/RiverKind.js';
+import { RiverSpillways } from './RiverSpillways.js';
 import { RiverImpactFlow } from './RiverImpactFlow.js';
 
 // Route metadata is sampled by world cell, so paint never resets at mesh edges.
@@ -87,28 +88,51 @@ export class RiverFlowMap {
        * @param {import("src/game/generator/map/MapGenerationTypes.js").RiverData} branch
        */
         (branch) => branch.sourceId === river.id);
-      if (!branches.length) {
-        continue;
+      const family = [river, ...branches];
+      const junctions = new Map();
+      if (branches.length) {
+        junctions.set(branches[0].branchStart - 1, 0);
       }
-      const index = branches[0].branchStart - 1;
-      const junction = river.cells[index];
-      const incoming = this.#direction(river.cells[index - 1].direction);
-      let mask = 0;
-      for (const channel of [river, ...branches]) {
-        const direction = this.#direction(channel.cells[index].direction);
-        mask += direction[0] < 0 ? 1 : direction[0] > 0 ? 2 : direction[1] < 0 ? 4 : 8;
+      for (const cascade of RiverSpillways.cascadesFor(river, family)) {
+        const index = river.cells.findIndex(
+          /**
+           * @param {import('../../generator/map/MapGenerationTypes.js').RiverCell} cell
+           */
+          (cell) => cell.col === cascade.from.col && cell.row === cascade.from.row,
+        );
+        const direction = this.#direction(cascade.direction);
+        const bit = direction[0] < 0 ? 1 : direction[0] > 0 ? 2 : direction[1] < 0 ? 4 : 8;
+        junctions.set(index, (junctions.get(index) ?? 0) | bit);
       }
-      const incomingCode = incoming[0] < 0 ? 1 : incoming[0] > 0 ? 2 : incoming[1] < 0 ? 4 : 8;
-      // Repeat one world-space field over the complete landing and its outlets.
-      // A texture entry confined to the junction makes its square border visible.
-      for (const channel of [river, ...branches]) {
-        for (const cell of channel.cells) {
-          if (Math.abs(cell.elevation - junction.elevation) > 0.04 ||
-            Math.hypot(cell.col - junction.col, cell.row - junction.row) > 3) {
+      for (const [index, spillMask] of junctions) {
+        if (index < 1) {
+          continue;
+        }
+        const junction = river.cells[index];
+        const incoming = this.#direction(river.cells[index - 1].direction);
+        let mask = spillMask;
+        for (const channel of family) {
+          if (index !== (branches[0]?.branchStart ?? 0) - 1) {
             continue;
           }
-          forks.set([junction.col, junction.row, incomingCode, mask],
-            (cell.row * cols + cell.col) * 4);
+          const direction = this.#direction(channel.cells[index].direction);
+          mask |= direction[0] < 0 ? 1 : direction[0] > 0 ? 2 : direction[1] < 0 ? 4 : 8;
+        }
+        if ((mask & (mask - 1)) === 0) {
+          continue;
+        }
+        const incomingCode = incoming[0] < 0 ? 1 : incoming[0] > 0 ? 2 : incoming[1] < 0 ? 4 : 8;
+        // Repeat one world-space field over the complete landing and its outlets.
+        // A texture entry confined to the junction makes its square border visible.
+        for (const channel of [river, ...branches]) {
+          for (const cell of channel.cells) {
+            if (Math.abs(cell.elevation - junction.elevation) > 0.04 ||
+            Math.hypot(cell.col - junction.col, cell.row - junction.row) > 3) {
+              continue;
+            }
+            forks.set([junction.col, junction.row, incomingCode, mask],
+              (cell.row * cols + cell.col) * 4);
+          }
         }
       }
     }

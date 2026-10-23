@@ -99,7 +99,9 @@ void getAlbedo() {
   vec2 forkVelocity = vec2(weights.y - weights.x, weights.w - weights.z) + forkInlet * inlet;
   forkVelocity /= max(dot(weights, vec4(1.0)) + inlet, 0.001);
   float forkInfluence = step(0.5, fork.w) * (1.0 - smoothstep(0.65, 2.2, length(forkLocal)));
-  float forkSurface = forkInfluence * (1.0 - spillCoordinates);
+  // The split current reaches every lip instead of reverting to the original
+  // route as surface alpha transitions into waterfall paint.
+  float forkSurface = forkInfluence * (1.0 - vertical);
   float forkSpeed = 1.0 / max(dot(outlets, vec4(1.0)), 1.0);
   vec2 forkDirection = forkVelocity + forkInlet * 0.001;
   forkDirection /= max(length(forkDirection), 0.001);
@@ -156,6 +158,12 @@ void getAlbedo() {
     for (int bankCol = -1; bankCol <= 1; bankCol++) {
       vec2 neighborCell = cell + vec2(float(bankCol), float(bankRow));
       vec4 neighborBanks = texture2D(uRiverBankMap, (neighborCell + 0.5) / uRiverMapSize);
+      // A lower receiving tile sees the upstream cliff as a wall. Its bank
+      // foam must not project upward onto this tile's open spill edge.
+      if (bankCol > 0) neighborBanks.x *= 1.0 - outlets.y;
+      if (bankCol < 0) neighborBanks.y *= 1.0 - outlets.x;
+      if (bankRow > 0) neighborBanks.z *= 1.0 - outlets.w;
+      if (bankRow < 0) neighborBanks.w *= 1.0 - outlets.z;
       vec2 bankLocal = gridPosition - neighborCell - 0.5;
       vec2 beyond = max(abs(bankLocal) - 0.5, vec2(0.0));
       vec4 segmentDistances = vec4(
@@ -302,7 +310,10 @@ void getAlbedo() {
 
   // Warped, elongated paint patches split, join, and end at different heights.
   // Evaluate derivatives for every fragment; WebGPU requires uniform control flow.
-  vec2 fallPosition = vec2(across * 5.2, downstream * 0.85);
+  // One spatial paint field wraps around adjoining curtains. Restarting the
+  // same across-width stripes on every outlet makes a fork look assembled.
+  float curtainAcross = dot(vPositionW.xz, vec2(3.7, 2.9));
+  vec2 fallPosition = vec2(curtainAcross, downstream * 0.85);
   vec2 drift = vec2(
     paintedNoise(fallPosition * vec2(0.56, 0.73) + vec2(8.3, 2.7)),
     paintedNoise(fallPosition * vec2(0.81, 0.49) + vec2(3.1, 19.4))
@@ -317,10 +328,10 @@ void getAlbedo() {
   // binary noise threshold. At 1x that old mask collapsed into broad flashing
   // bands because the fall is only a few pixels wide.
   float channelBoundary = 1.0 - abs(channels - 0.5) * 2.0;
-  float boundaryFoam = paintedEdge(0.74, channelBoundary) * 0.58;
+  float boundaryFoam = paintedEdge(0.78, channelBoundary) * 0.48;
   float ribbonWarp =
     (broadPaint - 0.5) * 0.13 + sin(downstream * 1.7) * 0.025;
-  float ribbon = sin((across + ribbonWarp) * 18.0);
+  float ribbon = sin((curtainAcross / 5.2 + ribbonWarp) * 18.0);
   float ribbonBreaks = paintedEdge(0.43, tornPaint);
   float fallFoam = max(
     0.12,
@@ -330,8 +341,8 @@ void getAlbedo() {
     tornPosition * vec2(3.3, 3.8) + vec2(4.9, 11.2)
   );
   float foamChips = paintedEdge(0.77, fleckPaint) * 0.42;
-  float edgeSurge = (1.0 - paintedEdge(0.045 + tornPaint * 0.09, bank)) *
-    paintedEdge(0.53, broadPaint) * 0.86;
+  float edgeSurge = (1.0 - paintedEdge(0.035 + tornPaint * 0.06, bank)) *
+    paintedEdge(0.7, broadPaint) * 0.38;
   fallFoam = max(fallFoam, max(foamChips, edgeSurge));
   foam = mix(foam, fallFoam, lip);
   vec3 fallWater = mix(deepBlue, waterBlue,
@@ -358,7 +369,7 @@ void getAlbedo() {
       (1.0 - smoothstep(0.02, 0.28, abs(vPositionW.y - impact.y))) *
       (1.0 - smoothstep(0.4, 0.9, length(vPositionW.xz - impact.xz))));
   }
-  float sharedLanding = forkInfluence * max(1.0 - spillCoordinates, landingBlend);
+  float sharedLanding = forkInfluence * max(1.0 - vertical, landingBlend);
   vec3 forkWater = mix(waterBlue, lightCyan, paintedEdge(0.47, forkWash) * 0.18);
   forkWater = mix(forkWater, deepBlue, (1.0 - paintedEdge(0.38, forkWash)) * 0.72);
   water = mix(water, forkWater, sharedLanding);
