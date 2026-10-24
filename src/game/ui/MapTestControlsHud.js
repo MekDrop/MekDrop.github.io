@@ -77,7 +77,7 @@ export class MapTestControlsHud extends GamePanelHud {
 
     this.#controls = controls;
     this.#canvas = app.graphicsDevice.canvas;
-    const tabbed = panels.length > 1;
+    const tabbed = panels.length > 0;
     let strip = null;
     if (tabbed) {
       strip = this.createPanel({
@@ -217,9 +217,12 @@ export class MapTestControlsHud extends GamePanelHud {
     }
     for (const [index, { entity: tab, active, inactive }] of this.#tabs.entries()) {
       tab.enabled = index >= this.#firstTab && index < this.#firstTab + 2;
-      tab.setLocalPosition(18 + (index - this.#firstTab) * 102, 0, 0);
+      const left = this.#tabs.length > 1 ? 18 : 0;
+      tab.setLocalPosition(left + (index - this.#firstTab) * 102, 0, 0);
       tab.element.texture = index === this.#activeTab ? active : inactive;
     }
+    this.#previousTab.enabled = this.#tabs.length > 1;
+    this.#nextTab.enabled = this.#tabs.length > 1;
     this.#previousTab.element.opacity = this.#firstTab > 0 ? 1 : 0.35;
     this.#nextTab.element.opacity = this.#firstTab + 2 < this.#tabs.length ? 1 : 0.35;
   }
