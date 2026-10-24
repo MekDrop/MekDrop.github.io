@@ -161,6 +161,8 @@
  * @property {(interaction: InteractionLike|null) => void} [setInteraction]
  * @typedef {object} HeroActionPayload
  * @property {() => void} [onScoop]
+ * @property {(action: HeroActionPayload) => boolean} [onCycle]
+ * @property {(action: HeroActionPayload, previous: import("playcanvas").Vec3[], current: import("playcanvas").Vec3[]) => void} [onContact]
  * @property {() => void} [onSoilReleased]
  * @property {string} [phase]
  * @property {number} [cutStartTime]

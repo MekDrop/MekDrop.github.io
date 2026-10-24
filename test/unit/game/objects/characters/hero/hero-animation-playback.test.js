@@ -3,6 +3,35 @@ import { it } from "node:test";
 import { HERO_ANIMATION } from "../../../../../../src/game/enum/HeroAnimation.js";
 import { HeroAnimationPlayback } from "../../../../../../src/game/objects/characters/hero/HeroAnimationPlayback.js";
 
+it("blends cutting level and approach changes even when the next clip restarts", () => {
+  const transitions = [];
+  const animation = {
+    addAnimationState: () => {},
+    baseLayer: {
+      play: () => {},
+      transition: (...args) => transitions.push(args),
+    },
+  };
+  const playback = new HeroAnimationPlayback();
+  const tracks = new Map(Object.values(HERO_ANIMATION).map(name => [name, { duration: 1.5 }]));
+  playback.initialize({
+    anim: animation,
+    addComponent: () => {},
+  },
+  { getAnimationTracks: () => tracks }, "hero.glb");
+  for (const name of [HERO_ANIMATION.SUMMON_AXE, HERO_ANIMATION.CHOP_ROW_7,
+    HERO_ANIMATION.CHOP_HIGH, HERO_ANIMATION.WALK, HERO_ANIMATION.SUMMON_AXE,
+    HERO_ANIMATION.CHOP_ROW_5, HERO_ANIMATION.DISMISS_AXE, HERO_ANIMATION.IDLE]) {
+    playback.play(name, 1, true);
+    assert.deepEqual(transitions.at(-1), [name, 0.32]);
+  }
+  playback.play(HERO_ANIMATION.CHOP_LOW, 1, true);
+  playback.play(HERO_ANIMATION.CHOP_LOW, 1, true);
+  assert.deepEqual(transitions.at(-1), [HERO_ANIMATION.CHOP_LOW, 0]);
+  playback.play(HERO_ANIMATION.DODGE_LEFT, 1, true);
+  assert.deepEqual(transitions.at(-1), [HERO_ANIMATION.DODGE_LEFT, 0]);
+});
+
 it("fits an action clip to its physics duration and restores normal locomotion speed", () => {
   const animation = {
     speed: 1,

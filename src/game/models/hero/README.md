@@ -1,5 +1,73 @@
 # Hero animation
 
+## Vegetation cutting
+
+The trousers form one welded, skinned seat/crotch/thigh surface. Flexible sleeves
+run from inside the tunic through the shoulder and elbow to inside each glove;
+the old rigid blue sleeve meshes are replaced. Elbow covers belong to the elbow
+nodes, and the lower tunic hem belongs to `Upper body`. Keeping either on its
+former parent leaves floating pieces when cutting changes the arm spacing or
+pelvis position. Armor, gloves and complete boots remain rigid accessories.
+
+`Hero cloth rig` retains editable clothing weights and all 49 actions in Blender.
+The scene's `skinJointTargets` export metadata maps its deform bones onto the
+existing body nodes. `scripts/rebind-exported-skins.mjs` preserves the bind surface
+while applying that mapping during normal export, so runtime grip and terrain
+adjustments also move the cloth. Regression checks evaluate skinned vertices,
+closed connected surfaces, sleeve/tunic/glove overlaps and axe clearance; rigid
+joint positions alone do not establish body continuity.
+
+Each complete boot is a rigid assembly beneath a dedicated root at its knee/cuff
+joint. Cuff, shaft, straps, buckle, seam, foot, heel, sole and toe move together.
+The shaft reaches the cuff opening, which encloses the knee joint.
+The ankle remains a skeleton marker; it must not rotate the tall boot away from
+the shin. Trouser geometry ends at the thigh instead of extending through the
+boot. Cutting poses solve the leg and rigid boot together against sole contact.
+Regression checks preserve both boot shape and the shin's position inside its
+cuff through all 49 clips, and include the complete boots in axe-clearance checks.
+
+The axe mounts to `Axe grip` beneath `Right white glove`, using palm offset
+`(0, -0.08, 0.095)` and a 90-degree local Z rotation. Authored wrist and grip
+transforms keep both closed hands on the wooden handle: the right palm is 0.08
+authored units above the tool origin and the left palm is 0.06 below it. The shorter haft is 1.24 authored units. Both shoulder roots retain their neutral torso socket translations and scales in every axe clip. Reach comes from articulated arms and whole-body posture.
+
+Seven embedded 1.5-second clips cover the 0.25-metre layers: `ChopLow`,
+`ChopRow2`, `ChopMiddle`, `ChopRow4`, `ChopRow5`, `ChopHigh`, and `ChopRow7`.
+The bit leads the accelerating left-to-right stroke. The brief impact pause occurs at 0.60 seconds. Damage follows the actual sharpened edge's lateral sweep
+from 0.48 through 0.80 seconds (0.34 for the low stroke's earlier level approach); a missed swing
+does not remove anything. The axe withdraws sideways while staying
+in front of the legs, then returns to the same ready pose. The lowest cut uses a planted stance with a hip and knee bend; higher cuts rock the rigid boots around sole contacts. Pelvis height adjusts to keep the legs within reach while retaining the upper body's world pose and axe trajectory. Axe use preserves these authored foot poses while approach walking keeps normal terrain foot placement. The top cut shifts weight with the swing and looks upward rather than translating the shoulder roots.
+
+Footwork reference: John Rhyder's [Axe Safety demonstration](https://www.woodlands.co.uk/tv/2015/04/axe-safety/), particularly the planted stance and hip/knee bend around 3:20–4:20. The game uses a horizontal slice rather than the reference's downward splitting stroke.
+
+The vertical wind-up finishes at the contact point of the lateral arc, rather
+than at the end of its follow-through. The blade stays centred on the selected
+layer from 0.58 through 0.74 seconds. Verify the rendered world-space height
+against the vegetation base as well as testing the exported clip in isolation.
+
+The interaction approaches the exposed outer vegetation face, including the
+remaining canopy footprint. It selects the highest remaining level and slices
+its columns progressively as the blade crosses them, including each column's depth.
+One stroke clears one level; lower levels remain protected through follow-through.
+After recovery it recalculates that face and uses
+the normal movement planner to step closer when necessary. Only the blade may
+enter the active layer; the shaft must clear the plant and all lower rows.
+A support-arm constraint maintains the left grip during blends without moving
+the shoulder sockets or stretching either arm. During the low stance blend,
+it guides the haft beside the advancing boot. Blade contact checks and grip
+correction run at prerender, after the final animation pose is available.
+Drawing and stowing use a compact
+two-hand carry with explicit neutral Idle transforms on the remaining joints;
+unkeyed Idle channels must not inherit the last evaluated cutting stance.
+Different axe stances blend for 0.32 seconds, including transitions through
+approach walking and drawing/stowing. Restarting a different level's clip resets
+its clock without snapping its pose; a repeated stroke retains its authored seam.
+
+Use `/map/test_vegetation-cutting?camera-test` to inspect all six variants.
+The scene disables `forceAnimationSampling` to preserve the authored 240 Hz
+keys. Regression checks sample the full axe mesh at 120 Hz against body meshes,
+check actual blade contact, body clearance from the remaining vegetation, fixed shoulder sockets through draw/use/stow, planted toe contacts, layer clearance, finger contact, impact timing, withdrawal and loop seams. Axe use preserves the authored head pose instead of replacing it with idle gaze.
+
 ## Locomotion
 
 `Walk` retains the previous running cycle as the walking reference: two-thirds

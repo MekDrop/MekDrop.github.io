@@ -13,7 +13,7 @@ const exportExpression = [
   "import bpy, os",
   "source_size = int(os.environ['BLENDER_SOURCE_SIZE'])",
   `[scene.__setitem__('${sourceSizeKey}', source_size) for scene in bpy.data.scenes]`,
-  "result = bpy.ops.export_scene.gltf(filepath=os.environ['BLENDER_EXPORT_OUTPUT'], export_format='GLB', export_extras=True, export_merge_animation='NLA_TRACK', export_optimize_animation_keep_anim_object=bool(bpy.context.scene.get('keepConstantAnimationChannels', False)))",
+  "result = bpy.ops.export_scene.gltf(filepath=os.environ['BLENDER_EXPORT_OUTPUT'], export_format='GLB', export_extras=True, export_merge_animation='NLA_TRACK', export_force_sampling=bool(bpy.context.scene.get('forceAnimationSampling', True)), export_optimize_animation_keep_anim_object=bool(bpy.context.scene.get('keepConstantAnimationChannels', False)))",
   "assert 'FINISHED' in result, result",
 ].join("; ");
 
@@ -177,6 +177,8 @@ async function exportModel(model, blender, sourceSize) {
       throw new BlenderExportError("Blender did not embed the source size in the GLB");
     }
     externalizeSharedWood(temporaryOutput, path.join(projectRoot, "src/game/textures/wood/timber-grain.png"));
+    const { rebindExportedSkins } = await import("./rebind-exported-skins.mjs");
+    rebindExportedSkins(temporaryOutput);
     fs.renameSync(temporaryOutput, output);
 
     return fs.readFileSync(logPath, "utf8").trim();
@@ -245,6 +247,8 @@ async function main() {
         const output = model.slice(0, -".blend".length) + ".glb";
         if (!force && getSourceSizeFromGlb(output) === sourceSize) {
           externalizeSharedWood(output, path.join(projectRoot, "src/game/textures/wood/timber-grain.png"));
+          const { rebindExportedSkins } = await import("./rebind-exported-skins.mjs");
+          rebindExportedSkins(output);
           skipped += 1;
           if (verbose) {
             console.log(`Skipping ${modelName}: source size matches`);

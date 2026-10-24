@@ -86,11 +86,22 @@ export class VegetationInteraction {
     if (this.#hero.isUsingTool) {
       return this.#hero.stopUsingTool();
     }
+    const surface = this.#cuttingTarget();
     const target = this.#item.describe();
     const accepted = this.#hero.useTool(this.#tool, {
-      targetPosition: target,
-      context: { heightClass: target.heightClass },
+      targetPosition: surface,
+      targetDistance: this.#tool.targetDistanceFor?.(target) ?? 0.62,
+      stances: [{
+        yaw: surface.yaw,
+        context: {},
+      }],
+      context: {
+        heightClass: target.heightClass,
+        cutHeight: target.cutHeight,
+      },
       onImpact: this.#onImpact.bind(this),
+      onContact: this.#onContact.bind(this),
+      onCycle: this.#onCycle.bind(this),
       onComplete: this.#onComplete,
     });
     if (accepted) {
@@ -99,13 +110,59 @@ export class VegetationInteraction {
     return accepted;
   }
 
-  #onImpact() {
-    const result = this.#item.interact();
+  /**
+   * Step up to the new exposed face only after the previous stroke has recovered.
+   * @param {import("src/game/objects/ObjectTypes.js").HeroActionPayload} action
+   * @returns {boolean}
+   */
+  #onCycle(action) {
+    const surface = this.#cuttingTarget();
+    const target = this.#item.describe();
+    if (action) {
+      action.toolContext.heightClass = target.heightClass;
+      action.toolContext.cutHeight = target.cutHeight;
+    }
+    const distance = this.#tool.targetDistanceFor?.(target) ?? 0.62;
+
+    return this.#hero.repositionTool(surface, distance, [{
+      yaw: surface.yaw,
+      context: {},
+    }]);
+  }
+
+  /**
+   * @param {import("src/game/objects/ObjectTypes.js").HeroActionPayload} action
+   */
+  #onImpact(action) {
+    void action;
+
+    return !this.#item.canInteract;
+  }
+
+  #cuttingTarget() {
+    const surface = this.#item.cuttingTargetFrom(this.#hero.position);
+    const offset = this.#tool.contactLateralOffset ?? 0;
+    surface.x -= Math.cos(surface.yaw) * offset;
+    surface.z += Math.sin(surface.yaw) * offset;
+
+    return surface;
+  }
+
+  /**
+   * @param {import("src/game/objects/ObjectTypes.js").HeroActionPayload} action
+   * @param {import("playcanvas").Vec3[]} previous
+   * @param {import("playcanvas").Vec3[]} current
+   */
+  #onContact(action, previous, current) {
+    const result = this.#item.cutSweep(previous, current, action.toolContext.cutHeight);
+    if (!result) {
+      return;
+    }
     if (result?.destroyed) {
+      action.stopAfterCycle = true;
+      action.impactIndex = Math.max(1, action.impactIndex ?? 0);
       this.#onDestroyed?.(result);
     }
     this.#onChange?.();
-
-    return result?.destroyed ?? true;
   }
 }

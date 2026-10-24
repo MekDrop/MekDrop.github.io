@@ -46,7 +46,10 @@ it("restarts during an interrupted blend and safely transitions again", () => {
   playback.initialize({
     addComponent: () => {},
     anim: animation,
-  }, { getAnimationTracks: () => new Map() }, "hero.glb");
+  }, {
+    getAnimationTracks: () => new Map(Object.values(HERO_ANIMATION)
+      .map(name => [name, { duration: 1 }])),
+  }, "hero.glb");
   playback.play("idle", 1, true);
   playback.play("walk", 1, false);
   playback.play("jump", 1, false);
@@ -60,8 +63,13 @@ it("restarts during an interrupted blend and safely transitions again", () => {
 it("registers supported clips, preserves ladder playback, and releases references", () => {
   const calls = [];
   const tracks = new Map([
-    [HERO_ANIMATION.IDLE, {}],
-    [HERO_ANIMATION.CLIMB_TOP, {}],
+    [HERO_ANIMATION.IDLE, { duration: 1 }],
+    [HERO_ANIMATION.CLIMB_TOP, { duration: 1 }],
+    [HERO_ANIMATION.CHOP_LOW, { duration: 1 }],
+    [HERO_ANIMATION.CHOP_MIDDLE, { duration: 1 }],
+    [HERO_ANIMATION.CHOP_HIGH, { duration: 1 }],
+    [HERO_ANIMATION.DIG, { duration: 1 }],
+    [HERO_ANIMATION.FILL_HOLE, { duration: 1 }],
     ["unused", {}],
   ]);
   const animation = {
@@ -78,12 +86,11 @@ it("registers supported clips, preserves ladder playback, and releases reference
     addComponent: (type, options) => calls.push([type, options]),
     anim: animation,
   }, { getAnimationTracks: () => tracks }, "hero.glb"), tracks);
-  assert.deepEqual(calls, [
-    ["anim", { activate: true }],
-    [HERO_ANIMATION.IDLE, tracks.get(HERO_ANIMATION.IDLE), 1, true],
-    [HERO_ANIMATION.CLIMB_TOP, tracks.get(HERO_ANIMATION.CLIMB_TOP), 1, false],
-    ["play", HERO_ANIMATION.IDLE],
-  ]);
+  assert.deepEqual(calls[0], ["anim", { activate: true }]);
+  assert.deepEqual(calls[1], [HERO_ANIMATION.IDLE, tracks.get(HERO_ANIMATION.IDLE), 1, true]);
+  assert.deepEqual(calls[2], [HERO_ANIMATION.CLIMB_TOP, tracks.get(HERO_ANIMATION.CLIMB_TOP), 1, false]);
+  assert.equal(calls.some(call => call[0] === "unused"), false);
+  assert.deepEqual(calls.at(-1), ["play", HERO_ANIMATION.IDLE]);
   playback.play(HERO_ANIMATION.WALK, 1.2, false);
   assert.deepEqual(calls.at(-1), ["transition", HERO_ANIMATION.WALK, 0.14]);
   const count = calls.length;

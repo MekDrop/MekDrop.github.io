@@ -744,6 +744,10 @@ export class Hero {
    */
   #updateHandle = null;
   /**
+   * @type {import("playcanvas").EventHandle|null}
+   */
+  #toolRenderHandle = null;
+  /**
    *
    * @type {import("src/game/objects/characters/hero/tools/HeroTool.js").HeroTool|null}
    */
@@ -991,6 +995,7 @@ export class Hero {
            */
           begin: this.#beginToolAction.bind(this),
           restartAnimation: this.#restartToolAnimation.bind(this),
+          canOccupyStance: this.#canOccupyToolStance.bind(this),
           /**
            *
            * @param {string} action
@@ -1214,6 +1219,7 @@ export class Hero {
 
     this.#createModel();
     this.#updateHandle = app.on("update", this.#update);
+    this.#toolRenderHandle = app.on("prerender", this.#renderTools);
     this.#syncState();
     this.#presentation?.stateStore?.setMood(null);
   }
@@ -1953,8 +1959,10 @@ export class Hero {
    * @param {number} [options.maxFacingAdjustment]
    * @param {number} [options.minimumTargetDistance]
    * @param {number} [options.targetDistance]
+   * @param {Array<{yaw: number, context: Record<string, string|number|boolean>}>|null} [options.stances]
    * @param {Record<string, string|number|boolean>} options.context
    * @param {(impact: import("src/game/objects/ObjectTypes.js").HeroActionPayload) => void} options.onImpact
+   * @param {() => boolean} [options.onCycle]
    * @param {() => void} options.onComplete
    * @param {() => void} [options.onScoop]
    * @param {() => void} [options.onSoilReleased]
@@ -1967,8 +1975,11 @@ export class Hero {
       maxFacingAdjustment = 180,
       minimumTargetDistance = 0,
       targetDistance = 0,
+      stances = null,
       context = {},
       onImpact,
+      onContact,
+      onCycle,
       onScoop,
       onSoilReleased,
       onComplete,
@@ -1987,11 +1998,15 @@ export class Hero {
     }
 
     const positioning = minimumTargetDistance > 0 || targetDistance > 0
-      ? this.#toolPositioning(targetPosition, targetDistance || minimumTargetDistance, maxFacingAdjustment, targetDistance > 0, ["fill", "level-hole"].includes(context.action))
+      ? this.#toolPositioning(targetPosition, targetDistance || minimumTargetDistance, maxFacingAdjustment, targetDistance > 0, ["fill", "level-hole"].includes(context.action), stances)
       : null;
     if (positioning === false) {
       return false;
     }
+    context = {
+      ...context,
+      ...positioning?.context,
+    };
     const targetX = targetPosition.x - (positioning?.targetX ?? this.#position.x);
     const targetZ = targetPosition.z - (positioning?.targetZ ?? this.#position.z);
     if (faceTarget && Math.hypot(targetX, targetZ) > 0.001) {
@@ -2004,7 +2019,7 @@ export class Hero {
     }
     this.#actionBehavior.toolAction = {
       tool,
-      useAnimation,
+      useAnimation: tool.useAnimation(context),
       targetPosition: { ...targetPosition },
       toolContext: { ...context },
       useDuration: tool.useDurationFor?.(context) ?? tool.useDuration,
@@ -2015,13 +2030,41 @@ export class Hero {
       elapsed: 0,
       impacted: false,
       stopAfterCycle: false,
-      positioning,
+      positioning: positioning?.travel < 0.002 ? null : positioning,
       positioningElapsed: 0,
       onImpact,
+      onContact,
+      onCycle,
       onScoop,
       onSoilReleased,
       onComplete,
     };
+
+    return true;
+  }
+
+  /**
+   * Reuse the supported approach planner between completed tool strokes.
+   * @param {{x:number,y:number,z:number}} target
+   * @param {number} distance
+   * @param {Array<{yaw:number,context:Record<string,string|number|boolean>}>} stances
+   * @returns {boolean}
+   */
+  repositionTool(target, distance, stances) {
+    const action = this.#actionBehavior.toolAction;
+    const positioning = this.#toolPositioning(target, distance, 180, true, false, stances, 1.8);
+    if (!action || positioning === false) {
+      return false;
+    }
+    action.targetPosition = { ...target };
+    if (positioning?.travel >= 0.002) {
+      action.positioning = positioning;
+      action.positioningElapsed = 0;
+      action.phase = "summon";
+      action.tool.visible = false;
+    }
+    this.#facingYaw = (Math.atan2(target.x - (positioning?.targetX ?? this.#position.x),
+      target.z - (positioning?.targetZ ?? this.#position.z)) * 180) / Math.PI;
 
     return true;
   }
@@ -2033,25 +2076,28 @@ export class Hero {
    * @param {number} maxTurn
    * @param {boolean} [exactDistance]
    * @param {boolean} [allowOccupiedStance]
-   * @returns {{startX:number,startZ:number,targetX:number,targetZ:number}|false|null}
+   * @param {Array<{yaw: number, context: Record<string, string|number|boolean>}>|null} [stances]
+   * @param {number} [maximumTravel]
+   * @returns {{startX:number,startZ:number,targetX:number,targetZ:number,travel?:number,context?:Record<string,string|number|boolean>,waypoints?:Vec2[],lengths?:number[]}|false|null}
    */
-  #toolPositioning(target, minimumDistance, maxTurn, exactDistance = false, allowOccupiedStance = false) {
+  #toolPositioning(target, minimumDistance, maxTurn, exactDistance = false, allowOccupiedStance = false, stances = null, maximumTravel = 0.85) {
     if (exactDistance) {
       // A planted stroke needs level body support, unlike a walking step.
       const candidates = [];
       const nearestYaw = Math.atan2(target.x - this.#position.x, target.z - this.#position.z);
-      for (let index = 0; index < 360; index += 1) {
-        const yaw = nearestYaw + index * Math.PI / 180;
+      for (let index = 0; index < (stances?.length ?? 360); index += 1) {
+        const yaw = stances ? stances[index].yaw : nearestYaw + index * Math.PI / 180;
         const targetX = target.x - Math.sin(yaw) * minimumDistance;
         const targetZ = target.z - Math.cos(yaw) * minimumDistance;
         const travel = Math.hypot(targetX - this.#position.x, targetZ - this.#position.z);
-        if (travel <= 0.85) {
+        if (travel <= maximumTravel) {
           candidates.push({
             startX: this.#position.x,
             startZ: this.#position.z,
             targetX,
             targetZ,
             travel,
+            context: stances?.[index].context,
           });
         }
       }
@@ -2060,15 +2106,55 @@ export class Hero {
         // The grounded hero already occupies this stance. Sweeping a capsule
         // across the adjacent open hole can reject even a zero-length move.
         if (allowOccupiedStance && candidate.travel < 0.002) {
-          return null;
+          return stances ? candidate : null;
         }
         const destination = {
           x: candidate.targetX,
           y: this.#position.y,
           z: candidate.targetZ,
         };
-        if (this.#movementSurface.canEscapeAcross(this.#position, destination, this.#surfaceState)) {
-          return candidate.travel < 0.002 ? null : candidate;
+        if (this.#movementSurface.canEscapeAcross(this.#position, destination, this.#surfaceState,
+          stances ? MOVEMENT_COLLISION_RADIUS : 0.48)) {
+          return candidate.travel < 0.002 && !stances ? null : candidate;
+        }
+        if (stances) {
+          // Follow the rim instead of cutting across the open cavity.
+          const startYaw = Math.atan2(this.#position.x - target.x, this.#position.z - target.z);
+          const endYaw = Math.atan2(candidate.targetX - target.x, candidate.targetZ - target.z);
+          const turn = Math.atan2(Math.sin(endYaw - startYaw), Math.cos(endYaw - startYaw));
+          const count = Math.max(1, Math.ceil(Math.abs(turn) / (Math.PI / 36)));
+          const waypoints = [new Vec2(this.#position.x, this.#position.z)];
+          const lengths = [0];
+          let supported = true;
+          for (let step = 0; step <= count; step += 1) {
+            const angle = startYaw + turn * step / count;
+            const point = new Vec2(target.x + Math.sin(angle) * minimumDistance,
+              target.z + Math.cos(angle) * minimumDistance);
+            const previous = waypoints[waypoints.length - 1];
+            const from = {
+              x: previous.x,
+              y: this.#position.y,
+              z: previous.y,
+            };
+            const to = {
+              x: point.x,
+              y: this.#position.y,
+              z: point.y,
+            };
+            if (!this.#movementSurface.canEscapeAcross(from, to, this.#surfaceState, MOVEMENT_COLLISION_RADIUS)) {
+              supported = false;
+              break;
+            }
+            lengths.push(lengths[lengths.length - 1] + point.distance(previous));
+            waypoints.push(point);
+          }
+          if (supported) {
+            return {
+              ...candidate,
+              waypoints,
+              lengths,
+            };
+          }
         }
       }
 
@@ -2094,7 +2180,7 @@ export class Hero {
     if (travel < 0.002) {
       return null;
     }
-    if (travel > 0.85) {
+    if (travel > maximumTravel) {
       return false;
     }
     const steps = Math.ceil(travel / 0.05);
@@ -2452,6 +2538,8 @@ export class Hero {
     this.#presentation?.stateStore?.$reset();
     this.#updateHandle?.off();
     this.#updateHandle = null;
+    this.#toolRenderHandle?.off();
+    this.#toolRenderHandle = null;
     this.#actionBehavior.finish();
     this.#footPlacement?.destroy();
     this.#footPlacement = null;
@@ -2522,6 +2610,16 @@ export class Hero {
     this.#syncLocalAnimationRates();
     this.#syncMood();
     this.#statusEffects.advance(deltaTime);
+  };
+
+  /**
+   * Apply grip correction and blade contacts to the final rendered animation pose.
+   * @type {() => void}
+   */
+  #renderTools = () => {
+    for (const tool of this.#tools.values()) {
+      tool.renderUpdate?.(this.#actionBehavior.toolAction);
+    }
   };
 
   #syncModelSelection() {
@@ -3970,6 +4068,7 @@ export class Hero {
   }
 
   #createModel() {
+
     this.#modelRoot = this.#modelLibrary.instantiate(this.#modelUrl);
     this.#modelRoot.name = "Hero model instance";
     this.#modelRoot.setLocalEulerAngles(0, this.#facingYaw, 0);
@@ -4285,6 +4384,20 @@ export class Hero {
     return (
       this.#movementSurface.occupancyAt(x, z, this.#surfaceState) === OCCUPANCY.open
     );
+  }
+
+  /**
+   * Check the actual capsule while approaching a planted tool stance.
+   * @param {number} x
+   * @param {number} z
+   * @returns {boolean}
+   */
+  #canOccupyToolStance(x, z) {
+    return this.#movementSurface.canEscapeAcross(this.#position, {
+      x,
+      y: this.#position.y,
+      z,
+    }, this.#surfaceState, MOVEMENT_COLLISION_RADIUS);
   }
 
   /**

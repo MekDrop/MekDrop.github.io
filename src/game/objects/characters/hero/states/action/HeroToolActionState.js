@@ -3,6 +3,23 @@ import { HERO_ANIMATION } from "../../../../../enum/HeroAnimation.js";
 import { HeroRuntimeActionState } from "./HeroRuntimeActionState.js";
 
 export class HeroToolActionState extends HeroRuntimeActionState {
+  /**
+   * Axe clips author their planted feet and the top cut's toe contact.
+   * @returns {boolean}
+   */
+  get allowsFootPlacement() {
+    return this.payload?.tool?.name === "axe" && !this.payload.positioning
+      ? false : super.allowsFootPlacement;
+  }
+
+  /**
+   * Keep the authored axe clearance pose instead of replacing it with idle gaze.
+   * @returns {boolean}
+   */
+  get locksHeadForward() {
+    return this.payload?.tool?.name === "axe";
+  }
+
   constructor() {
     super(HERO_ACTION.USING_TOOL, {
       /**
@@ -34,13 +51,18 @@ export class HeroToolActionState extends HeroRuntimeActionState {
     const action = this.payload;
     const feedback = owner.feedback.tool;
     if (action.positioning) {
+      if (action.tool) {
+        action.tool.visible = false;
+      }
       this.#advancePositioning(owner);
 
       return;
     }
     action.elapsed += owner.deltaTime;
     action.tool.visible =
-      action.phase !== "summon" || action.elapsed >= (action.tool.summonVisibilityTime ?? 0);
+      action.phase === "dismiss"
+        ? action.elapsed < (action.tool.dismissVisibilityTime ?? Infinity)
+        : action.phase !== "summon" || action.elapsed >= (action.tool.summonVisibilityTime ?? 0);
     if (action.phase === "summon") {
       if (action.elapsed >= action.tool.summonDuration) {
         action.phase = "use";
@@ -70,6 +92,14 @@ export class HeroToolActionState extends HeroRuntimeActionState {
       return;
     }
     if (!action.stopAfterCycle) {
+      if (action.onCycle?.(action) === false) {
+        action.stopAfterCycle = true;
+        action.phase = "dismiss";
+        action.elapsed = 0;
+        feedback.restartAnimation();
+
+        return;
+      }
       action.elapsed = 0;
       action.impacted = false;
       action.impactIndex = 0;
@@ -104,11 +134,28 @@ export class HeroToolActionState extends HeroRuntimeActionState {
     const action = this.payload;
     const feedback = owner.feedback.collection;
     action.positioningElapsed += owner.deltaTime;
-    const progress = Math.min(1, action.positioningElapsed / feedback.positioningDuration);
+    const path = action.positioning.waypoints;
+    const lengths = action.positioning.lengths;
+    const distance = lengths?.[lengths.length - 1] ?? action.positioning.travel ?? 0;
+    const duration = Math.max(feedback.positioningDuration, distance / 2.4);
+    const progress = Math.min(1, action.positioningElapsed / duration);
     const eased = progress * progress * (3 - 2 * progress);
-    const x = action.positioning.startX + (action.positioning.targetX - action.positioning.startX) * eased;
-    const z = action.positioning.startZ + (action.positioning.targetZ - action.positioning.startZ) * eased;
-    if (!feedback.canOccupy(x, z)) {
+    let x = action.positioning.startX + (action.positioning.targetX - action.positioning.startX) * eased;
+    let z = action.positioning.startZ + (action.positioning.targetZ - action.positioning.startZ) * eased;
+    if (path) {
+      const along = eased * distance;
+      let segment = 1;
+      while (segment < path.length - 1 && lengths[segment] < along) {
+        segment += 1;
+      }
+      const span = lengths[segment] - lengths[segment - 1];
+      const amount = span > 0 ? (along - lengths[segment - 1]) / span : 1;
+      x = path[segment - 1].x + (path[segment].x - path[segment - 1].x) * amount;
+      z = path[segment - 1].y + (path[segment].y - path[segment - 1].y) * amount;
+    }
+    const canOccupy = action.positioning.context
+      ? owner.feedback.tool.canOccupyStance(x, z) : feedback.canOccupy(x, z);
+    if (!canOccupy) {
       owner.finish();
 
       return;

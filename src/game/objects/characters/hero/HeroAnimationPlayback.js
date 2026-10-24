@@ -4,6 +4,20 @@ const ANIMATION_BLEND_TIME = 0.14;
 const HERO_ANIMATION_NAMES = Object.freeze(Object.values(HERO_ANIMATION));
 const RUN_STOP_ANIMATIONS = new Set([HERO_ANIMATION.RUN_STOP_LEFT, HERO_ANIMATION.RUN_STOP_RIGHT]);
 const GAITS = new Set([HERO_ANIMATION.WALK, HERO_ANIMATION.RUN]);
+const AXE_ANIMATIONS = new Set([
+  HERO_ANIMATION.SUMMON_AXE, HERO_ANIMATION.DISMISS_AXE,
+  HERO_ANIMATION.CHOP_LOW, HERO_ANIMATION.CHOP_ROW_2, HERO_ANIMATION.CHOP_MIDDLE,
+  HERO_ANIMATION.CHOP_ROW_4, HERO_ANIMATION.CHOP_ROW_5, HERO_ANIMATION.CHOP_HIGH,
+  HERO_ANIMATION.CHOP_ROW_7,
+]);
+const AXE_STANCE_ANIMATIONS = new Set([...AXE_ANIMATIONS, HERO_ANIMATION.WALK, HERO_ANIMATION.IDLE]);
+const AXE_STANCE_BLEND_TIME = 0.32;
+const OPTIONAL_CHOP_ANIMATIONS = new Map([
+  [HERO_ANIMATION.CHOP_ROW_2, HERO_ANIMATION.CHOP_LOW],
+  [HERO_ANIMATION.CHOP_ROW_4, HERO_ANIMATION.CHOP_MIDDLE],
+  [HERO_ANIMATION.CHOP_ROW_5, HERO_ANIMATION.CHOP_HIGH],
+  [HERO_ANIMATION.CHOP_ROW_7, HERO_ANIMATION.CHOP_HIGH],
+]);
 export const LADDER_TOP_ANIMATIONS = new Set([
   HERO_ANIMATION.CLIMB_TOP,
   HERO_ANIMATION.CLIMB_TOP_RIGHT,
@@ -74,6 +88,11 @@ export class HeroAnimationPlayback {
   initialize(modelRoot, modelLibrary, modelUrl) {
     const tracks = modelLibrary.getAnimationTracks(modelUrl,
       HERO_ANIMATION_NAMES.filter(HeroAnimationPlayback.#requiredAnimation));
+    for (const [name, fallback] of OPTIONAL_CHOP_ANIMATIONS) {
+      if (!tracks.has(name)) {
+        tracks.set(name, tracks.get(fallback));
+      }
+    }
     // Uncalibrated character variants may only provide the original tool clip.
     if (!tracks.has(HERO_ANIMATION.DIG_OPPOSITE)) {
       tracks.set(HERO_ANIMATION.DIG_OPPOSITE, tracks.get(HERO_ANIMATION.DIG));
@@ -113,13 +132,18 @@ export class HeroAnimationPlayback {
     this.#speed = duration > 0 ? this.#durations.get(name) / duration : speed;
     animation.speed = this.#speed * this.#rate;
     animation.baseLayer.playing = !LADDER_TOP_ANIMATIONS.has(name);
+    const changingAxeStance = this.#state !== name &&
+      AXE_STANCE_ANIMATIONS.has(this.#state) && AXE_STANCE_ANIMATIONS.has(name) &&
+      (AXE_ANIMATIONS.has(this.#state) || AXE_ANIMATIONS.has(name));
     if (
       restart ||
       (this.#state !== name &&
         (LADDER_TOP_ANIMATIONS.has(name) || LADDER_TOP_ANIMATIONS.has(this.#state)))
     ) {
       // Keep interrupted clips alive until the controller completes the transition.
-      animation.baseLayer.transition(name, 0);
+      // A new cutting level changes the whole stance; restarting its clock must
+      // still blend from the recovered pose. Repeating the same stroke can reset.
+      animation.baseLayer.transition(name, changingAxeStance ? AXE_STANCE_BLEND_TIME : 0);
       this.#state = name;
 
       return;
@@ -129,7 +153,8 @@ export class HeroAnimationPlayback {
     }
     // Keep the same supporting leg when changing between the two cyclic gaits.
     const phase = GAITS.has(name) && GAITS.has(this.#state) ? this.phase : null;
-    const blendTime = phase !== null ? 0.22 : RUN_STOP_ANIMATIONS.has(name) ? 0.08 : ANIMATION_BLEND_TIME;
+    const blendTime = changingAxeStance ? AXE_STANCE_BLEND_TIME
+      : phase !== null ? 0.22 : RUN_STOP_ANIMATIONS.has(name) ? 0.08 : ANIMATION_BLEND_TIME;
     animation.baseLayer.transition(name, blendTime, phase);
     this.#state = name;
   }
@@ -145,7 +170,7 @@ export class HeroAnimationPlayback {
    * @returns {boolean}
    */
   static #requiredAnimation(name) {
-    return !RUN_STOP_ANIMATIONS.has(name) &&
+    return !RUN_STOP_ANIMATIONS.has(name) && !OPTIONAL_CHOP_ANIMATIONS.has(name) &&
       name !== HERO_ANIMATION.DIG_OPPOSITE;
   }
 }

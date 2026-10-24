@@ -1,7 +1,7 @@
 import { addGeneratedVoxelPhysics } from "../shared/GeneratedVoxelPhysics.js";
 import { mergeCollisionVoxels } from "../shared/MergeCollisionVoxels.js";
 
-const DAMAGE_ROW_PATTERN = /^Voxel damage row (\d+)/;
+const CELL_PATTERN = /^Voxel cell (-?\d+) (-?\d+) (-?\d+)/;
 
 export class DestructibleVegetation {
   /**
@@ -46,12 +46,23 @@ export class DestructibleVegetation {
   #destroyed = false;
   /**
    *
-   * @type {Array<{y: number, cells: Array<[number, number]>}>}
+   * @type {Map<string, import("playcanvas").Entity[]>}
    */
-  #damageRows;
+  #cellParts;
+  /**
+   * @type {Set<string>}
+   */
+  #removed = new Set();
+  /**
+   * @type {{x:number,z:number}}
+   */
+  #cutNormal = {
+    x: 0,
+    z: -1,
+  };
   /**
    *
-   * @type {{x: number, y: number, z: number}}
+   * @type {{x: number, baseHeight: number, z: number}}
    */
   #origin;
   /**
@@ -64,11 +75,6 @@ export class DestructibleVegetation {
    * @type {number}
    */
   #collisionVoxels;
-  /**
-   *
-   * @type {Map<number, number>}
-   */
-  #damageStageByRow;
   /**
    *
    * @type {number}
@@ -94,6 +100,10 @@ export class DestructibleVegetation {
    * @type {Array<{x: number, z: number, radius: number}>}
    */
   #grassFootprints = [];
+  /**
+   * @type {Array<{x: number, z: number, width: number, depth: number}>}
+   */
+  #originalGroundFootprint = [];
   /**
    *
    * @type {number}
@@ -124,7 +134,6 @@ export class DestructibleVegetation {
     id,
     variant,
     kind,
-    cutsRequired,
     collisionRows,
     voxelSize = 0.25,
     x,
@@ -140,9 +149,6 @@ export class DestructibleVegetation {
 
     this.#kind = kind;
 
-    this.#health = cutsRequired;
-
-    this.#maxHealth = cutsRequired;
     const model = modelLibrary.instantiate(modelUrl);
 
     this.#entity = pc ? new pc.Entity(`Voxel ${variant}`) : model;
@@ -153,18 +159,18 @@ export class DestructibleVegetation {
     this.#entity.setLocalPosition(x, y, z);
     this.#entity.setLocalEulerAngles(0, rotation, 0);
 
-    this.#damageRows = this.#findDamageRows();
+    this.#cellParts = this.#findCellParts();
 
     this.#collisionVoxels = collisionRows.flatMap(
       DestructibleVegetation.#flatMap,
     );
 
     this.#voxelSize = voxelSize;
+    this.#health = this.#collisionVoxels.length;
+    this.#maxHealth = this.#health;
     const rows = [
       ...new Set(collisionRows.map(DestructibleVegetation.#map)),
     ].sort(DestructibleVegetation.#sortLeft);
-
-    this.#damageStageByRow = new Map(rows.map(DestructibleVegetation.#mapRow));
 
     this.#interactionHeight = (Math.max(...rows) + 1) * voxelSize;
 
@@ -176,6 +182,7 @@ export class DestructibleVegetation {
 
     this.#rotationRadians = (rotation * Math.PI) / 180;
     this.#applyCollisionState();
+    this.#originalGroundFootprint = this.#grassFootprints.map(DestructibleVegetation.#mapFootprint);
   }
 
   get entity() {
@@ -205,6 +212,7 @@ export class DestructibleVegetation {
       y: this.#origin.baseHeight,
       z: this.#origin.z,
       heightClass: this.#heightClass(),
+      cutHeight: this.#interactionHeight - this.#voxelSize / 2,
       kind: this.#kind,
       health: this.#health,
       maxHealth: this.#maxHealth,
@@ -213,36 +221,170 @@ export class DestructibleVegetation {
     };
   }
 
-  cut() {
-    if (this.#destroyed) {
-      return null;
-    }
-
-    this.#health -= 1;
-    if (this.#health <= 0) {
-      const description = this.describe();
-      const groundFootprint = this.#grassFootprints.map(
-        DestructibleVegetation.#mapFootprint,
-      );
-      this.#destroyed = true;
-      this.#physicsCollider = null;
-      this.#entity.destroy();
-
-      return {
-        ...description,
-        destroyed: true,
-        groundFootprint,
-      };
-    }
-
-    const cutsTaken = this.#maxHealth - this.#health;
-    this.#damageStage = cutsTaken;
-    this.#applyCollisionState();
-    this.#damageRows.get(this.#damageStage)?.forEach(DestructibleVegetation.#forEachRowPart);
+  /**
+   * Aim at an exposed face of the remaining plant, rather than inside its canopy.
+   * @param {{x:number, z:number}} position
+   * @returns {{x:number,y:number,z:number,yaw:number}}
+   */
+  cuttingTargetFrom(position) {
+    const local = this.#toLocalCoordinates(position.x, position.z);
+    const dx = local.x;
+    const dz = local.z;
+    const alongX = Math.abs(dx) > Math.abs(dz);
+    const nx = alongX ? Math.sign(dx) || 1 : 0;
+    const nz = alongX ? 0 : Math.sign(dz) || 1;
+    const remaining = this.#collisionVoxels.filter(this.#filterVoxel.bind(this));
+    const row = Math.max(...remaining.map(/**
+     *
+     * @param {{x: number, y: number, z: number}} v
+     */
+      v => v.y));
+    const choices = remaining.filter(/**
+     *
+     * @param {{x:number,y:number,z:number}} v
+     */
+      v => v.y === row);
+    const front = Math.max(...remaining.map(/**
+     *
+     * @param {{x:number,y:number,z:number}} v
+     */
+      v => v.x * nx + v.z * nz));
+    this.#cutNormal = {
+      x: nx,
+      z: nz,
+    };
+    /* Keep hands and body outside lower branches while centering the slice
+       on the highest layer. Each lateral slice includes the layer's depth. */
+    this.#interactionHeight = (row + 1) * this.#voxelSize;
+    const centerX = (Math.min(...choices.map(/**
+     *
+     * @param {{x:number,y:number,z:number}} v
+     */
+      v => v.x)) + Math.max(...choices.map(/**
+     *
+     * @param {{x:number,y:number,z:number}} v
+     */
+      v => v.x))) / 2;
+    const centerZ = (Math.min(...choices.map(/**
+     *
+     * @param {{x:number,y:number,z:number}} v
+     */
+      v => v.z)) + Math.max(...choices.map(/**
+     *
+     * @param {{x:number,y:number,z:number}} v
+     */
+      v => v.z))) / 2;
+    const x = (nx ? nx * (front + .5) : centerX) * this.#voxelSize;
+    const z = (nz ? nz * (front + .5) : centerZ) * this.#voxelSize;
+    const cosine = Math.cos(this.#rotationRadians);
+    const sine = Math.sin(this.#rotationRadians);
 
     return {
+      x: this.#origin.x + cosine * x + sine * z,
+      y: this.#origin.baseHeight,
+      z: this.#origin.z - sine * x + cosine * z,
+      yaw: Math.atan2(-cosine * nx - sine * nz, sine * nx - cosine * nz),
+    };
+  }
+
+  /**
+   * Slice the active level progressively along the actual blade's lateral sweep.
+   * A column includes its depth: one pass cuts one layer, rather than nibbling
+   * through front cells and requiring another swing for their rear neighbours.
+   * This is a gameplay slice query; remaining physical cells still use the engine.
+   * @param {import("playcanvas").Vec3[]} previous
+   * @param {import("playcanvas").Vec3[]} current
+   * @param {number} cutHeight
+   * @returns {object|null}
+   */
+  cutSweep(previous, current, cutHeight) {
+    if (this.#destroyed || !this.#physicsCollider) {
+      return null;
+    }
+    const inverse = this.#entity.getWorldTransform().clone().invert();
+    const row = Math.round((cutHeight - this.#voxelSize / 2) / this.#voxelSize);
+    const points = [...previous, ...current].map(/**
+     *
+     * @param {import("playcanvas").Vec3} point
+     */
+      point => inverse.transformPoint(point));
+    const onLevel = points.filter(/**
+     *
+     * @param {import("playcanvas").Vec3} point
+     */
+      point => Math.abs(point.y - cutHeight) <= this.#voxelSize / 2);
+    if (!onLevel.length) {
+      return null;
+    }
+    const normal = this.#cutNormal;
+    /**
+     * @param {{x:number,z:number}} point
+     */
+    const lateral = point => -normal.z * point.x + normal.x * point.z;
+    const minimum = Math.min(...onLevel.map(lateral));
+    const maximum = Math.max(...onLevel.map(lateral));
+    let changed = false;
+    for (const voxel of this.#collisionVoxels) {
+      const column = lateral(voxel) * this.#voxelSize;
+      if (voxel.y === row && column + this.#voxelSize / 2 >= minimum
+        && column - this.#voxelSize / 2 <= maximum) {
+        changed = this.#removeCell(voxel.x, voxel.y, voxel.z) || changed;
+      }
+    }
+
+    return changed ? this.#finishCut() : null;
+  }
+
+  /**
+   * @param {{x: number, y: number, z: number}} point Plant-local contact point.
+   * @returns {object|null}
+   */
+  cut(point) {
+    if (!point || this.#destroyed) {
+      return null;
+    }
+    return this.#removeCell(Math.round(point.x / this.#voxelSize),
+      Math.floor(point.y / this.#voxelSize), Math.round(point.z / this.#voxelSize))
+      ? this.#finishCut() : null;
+  }
+
+  /**
+   * @param {number} x
+   * @param {number} y
+   * @param {number} z
+   * @returns {boolean}
+   */
+  #removeCell(x, y, z) {
+    const key = x + "," + y + "," + z;
+    const exists = this.#collisionVoxels.some(/**
+     *
+     * @param {{x: number, y: number, z: number}} v
+     */
+      v => v.x === x && v.y === y && v.z === z);
+    if (this.#removed.has(key) || !exists) {
+      return false;
+    }
+    this.#removed.add(key);
+    for (const part of this.#cellParts.get(key) ?? []) {
+      part.enabled = false;
+    }
+
+    return true;
+  }
+
+  #finishCut() {
+    const groundFootprint = this.#originalGroundFootprint;
+    this.#health = this.#maxHealth - this.#removed.size;
+    this.#damageStage = this.#removed.size;
+    this.#applyCollisionState();
+    if (this.#health === 0) {
+      this.#destroyed = true;
+      this.#entity.destroy();
+    }
+    return {
       ...this.describe(),
-      destroyed: false,
+      destroyed: this.#destroyed,
+      groundFootprint,
     };
   }
 
@@ -549,14 +691,14 @@ export class DestructibleVegetation {
     return Math.hypot(distanceX, distanceZ);
   }
 
-  #findDamageRows() {
+  #findCellParts() {
     const groups = new Map();
     const pending = [this.#entity];
     while (pending.length) {
       const entity = pending.pop();
-      const match = entity.name.match(DAMAGE_ROW_PATTERN);
+      const match = entity.name.match(CELL_PATTERN);
       if (match) {
-        const index = Number(match[1]);
+        const index = match.slice(1, 4).map(Number).join(",");
         const matches = groups.get(index) ?? [];
         matches.push(entity);
         groups.set(index, matches);
@@ -607,15 +749,6 @@ export class DestructibleVegetation {
 
   /**
    *
-   * @param {number} row
-   * @param {number} index
-   */
-  static #mapRow(row, index) {
-    return [row, index + 1];
-  }
-
-  /**
-   *
    * @param {import("src/game/objects/ObjectTypes.js").HeroFootRig} footprint
    */
   static #mapFootprint(footprint) {
@@ -626,18 +759,10 @@ export class DestructibleVegetation {
 
   /**
    *
-   * @param {number} rowPart
-   */
-  static #forEachRowPart(rowPart) {
-    rowPart.enabled = false;
-  }
-
-  /**
-   *
    * @param {{x: number, y: number, z: number}} voxel
    */
   #filterVoxel(voxel) {
-    return this.#damageStageByRow.get(voxel.y) > this.#damageStage;
+    return !this.#removed.has(voxel.x + "," + voxel.y + "," + voxel.z);
   }
 
   /**

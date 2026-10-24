@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { it } from "node:test";
+import { Vec2 } from "playcanvas";
 import { HERO_ACTION } from "../../../../../../src/game/enum/HeroAction.js";
 import { treasureToolBackstep } from "../../../../../../src/game/config/treasure.js";
 
@@ -9,7 +10,9 @@ const start = source.indexOf("  useTool(");
 const method = source.slice(start, source.indexOf("\n  /**", start));
 const positioningStart = source.indexOf("  #toolPositioning(");
 const positioningMethod = source.slice(positioningStart, source.indexOf("\n  /**", positioningStart));
-const HeroDriver = new Function("HERO_ACTION", "treasureToolBackstep", `return class Hero {
+const repositioningStart = source.indexOf("  repositionTool(");
+const repositioningMethod = source.slice(repositioningStart, source.indexOf("\n  /**", repositioningStart));
+const HeroDriver = new Function("HERO_ACTION", "treasureToolBackstep", "Vec2", "MOVEMENT_COLLISION_RADIUS", `return class Hero {
   static #compareToolPositions(a, b) { return a.travel - b.travel; }
   #position = { x: 0, z: 0 };
   #facingYaw = 15;
@@ -18,14 +21,16 @@ const HeroDriver = new Function("HERO_ACTION", "treasureToolBackstep", `return c
   #acceptAction() { return true; }
   blocked = false;
   safePosition = () => true;
+  safePath = () => true;
   #surfaceState = {};
-  #movementSurface = { canEscapeAcross: (from, to) => !this.blocked && this.safePosition(to) };
+  #movementSurface = { canEscapeAcross: (from, to) => !this.blocked && this.safePosition(to) && this.safePath(from, to) };
   #canOccupyCollectionPosition() { return !this.blocked; }
   get facingYaw() { return this.#facingYaw; }
   get action() { return this.#actionBehavior.toolAction; }
   ${method}
   ${positioningMethod}
-}`)(HERO_ACTION, treasureToolBackstep);
+  ${repositioningMethod}
+}`)(HERO_ACTION, treasureToolBackstep, Vec2, 0.18);
 
 it("fills from an occupied stance beside a hole without sweeping into its collision", () => {
   for (const action of ["fill", "level-hole"]) {
@@ -220,4 +225,99 @@ it("checks support even when already at digging reach", () => {
     targetDistance: 0.535,
   }), false);
   assert.equal(hero.action, undefined);
+});
+
+it("aligns filling with a calibrated pile stance for oblique approaches", () => {
+  for (let index = 0; index < 16; index += 1) {
+    const angle = index * Math.PI / 8;
+    const hero = new HeroDriver();
+    const target = {
+      x: Math.sin(angle) * 0.535,
+      z: Math.cos(angle) * 0.535,
+    };
+    assert.equal(hero.useTool({ useAnimation: (context) => context.oppositeFill ? "reverse" : "normal" }, {
+      targetPosition: target,
+      targetDistance: 0.535,
+      context: { action: "fill" },
+      stances: [
+        {
+          yaw: 0,
+          context: { oppositeFill: false },
+        },
+        {
+          yaw: Math.PI,
+          context: { oppositeFill: true },
+        },
+      ],
+    }), true);
+    const step = hero.action.positioning;
+    const x = step?.targetX ?? 0;
+    const z = step?.targetZ ?? 0;
+    assert.ok(Math.abs(x - target.x) < 1e-6);
+    assert.ok(Math.abs(Math.abs(z - target.z) - 0.535) < 1e-6);
+    assert.equal(hero.action.useAnimation, z > target.z ? "reverse" : "normal",
+      "select the clip after the stance is chosen");
+  }
+});
+
+it("walks around the hole when a direct approach crosses the cavity", () => {
+  const hero = new HeroDriver();
+  const target = {
+    x: 0.535,
+    z: 0,
+  };
+  hero.safePath = (from, to) => Math.hypot(to.x - from.x, to.z - from.z) < 0.06;
+  const options = {
+    targetPosition: target,
+    targetDistance: 0.535,
+    context: { action: "fill" },
+    stances: [{
+      yaw: 0,
+      context: { oppositeFill: false },
+    }],
+  };
+  assert.equal(hero.useTool({ useAnimation: () => "fill" }, options), true);
+  const points = hero.action.positioning.waypoints;
+  assert.ok(points.length > 10, "take short supported steps along the rim");
+  for (const point of points) {
+    assert.ok(Math.abs(Math.hypot(point.x - target.x, point.y - target.z) - 0.535) < 1e-6);
+  }
+  hero.blocked = true;
+  assert.equal(hero.useTool({ useAnimation: () => "fill" }, options), false,
+    "an obstructed approach cannot start a scoop from the wrong stance");
+});
+
+it("can walk across a wide plant between strokes while still rejecting blocked paths", () => {
+  const hero = new HeroDriver();
+  const tool = { useAnimation: () => "axe" };
+  const stances = [{
+    yaw: 0,
+    context: {},
+  }];
+  assert.equal(hero.useTool(tool, {
+    targetPosition: {
+      x: 0,
+      z: 1,
+    },
+    targetDistance: 1,
+    stances,
+  }), true);
+  assert.equal(hero.repositionTool({
+    x: 1.25,
+    y: 0,
+    z: 1,
+  }, 1, stances), true);
+  assert.equal(hero.action.positioning.travel, 1.25);
+  hero.blocked = true;
+  assert.equal(hero.repositionTool({
+    x: 1.25,
+    y: 0,
+    z: 1,
+  }, 1, stances), false);
+  hero.blocked = false;
+  assert.equal(hero.repositionTool({
+    x: 2,
+    y: 0,
+    z: 1,
+  }, 1, stances), false);
 });

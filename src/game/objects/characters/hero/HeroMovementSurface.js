@@ -223,9 +223,10 @@ export class HeroMovementSurface {
    * @param {import("src/game/objects/ObjectTypes.js").Point3} from
    * @param {import("src/game/objects/ObjectTypes.js").Point3} to
    * @param {import("./HeroSurfaceTypes.js").MovementSurfaceState} state
+   * @param {number} [radius]
    * @returns {boolean}
    */
-  canEscapeAcross(from, to, state) {
+  canEscapeAcross(from, to, state, radius = 0.48) {
     // Keep the escape on the current connected level. Check the whole body
     // footprint at short intervals, excluding water, holes and unsafe slopes.
     const distance = Math.hypot(to.x - from.x, to.z - from.z);
@@ -234,7 +235,7 @@ export class HeroMovementSurface {
       const x = from.x + (to.x - from.x) * step / steps;
       const z = from.z + (to.z - from.z) * step / steps;
       for (const [dx, dz] of [
-        [0, 0], [0.48, 0], [-0.48, 0], [0, 0.48], [0, -0.48],
+        [0, 0], [radius, 0], [-radius, 0], [0, radius], [0, -radius],
       ]) {
         const height = this.#terrain.supportHeightAtPoint(
           x + dx,
@@ -246,10 +247,10 @@ export class HeroMovementSurface {
         }
       }
       if (
-        this.#terrain.occupancyAt(from.x, from.z, x, z, true, 0.48, state) !== OCCUPANCY.open ||
+        this.#terrain.occupancyAt(from.x, from.z, x, z, true, radius, state) !== OCCUPANCY.open ||
         this.#overheadClearanceBlockedAt(x, z, state.position.y) ||
         this.#collisionWorld?.isMovementBlocked(
-          from.x, from.z, x, z, 0.48, state.position.y, STEP_CLEARANCE,
+          from.x, from.z, x, z, radius, state.position.y, STEP_CLEARANCE,
         )
       ) {
         return false;

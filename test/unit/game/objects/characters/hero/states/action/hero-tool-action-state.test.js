@@ -2,6 +2,64 @@ import assert from "node:assert/strict";
 import { it } from "node:test";
 import { HeroToolActionState } from "../../../../../../../../src/game/objects/characters/hero/states/action/HeroToolActionState.js";
 import { HERO_ANIMATION } from "../../../../../../../../src/game/enum/HeroAnimation.js";
+import { Vec2 } from "playcanvas";
+
+it("preserves authored head clearance during axe use", () => {
+  const state = new HeroToolActionState();
+  state.payload = { tool: { name: "axe" } };
+  assert.equal(state.locksHeadForward, true);
+  assert.equal(state.allowsFootPlacement, false);
+  state.payload.positioning = { travel: 0.25 };
+  assert.equal(state.allowsFootPlacement, true);
+  delete state.payload.positioning;
+  state.payload.tool.name = "shovel";
+  assert.equal(state.locksHeadForward, false);
+  assert.equal(state.allowsFootPlacement, true);
+});
+
+it("follows the supported approach path before starting a planted scoop", () => {
+  const state = new HeroToolActionState();
+  const moves = [];
+  let restarts = 0;
+  state.payload = {
+    phase: "summon",
+    positioningElapsed: 0,
+    positioning: {
+      startX: 0,
+      startZ: 0,
+      targetX: 1,
+      targetZ: 1,
+      context: { oppositeFill: true },
+      waypoints: [new Vec2(0, 0), new Vec2(0, 1), new Vec2(1, 1)],
+      lengths: [0, 1, 2],
+    },
+  };
+  const owner = {
+    deltaTime: 0.1,
+    finish: () => assert.fail("the supported path should not abort"),
+    feedback: {
+      tool: {
+        canOccupyStance: () => true,
+        restartAnimation: () => {
+          restarts += 1;
+        },
+      },
+      collection: {
+        positioningDuration: 0.3,
+        canOccupy: () => assert.fail("use capsule clearance for the tool stance"),
+        moveTo: (x, z) => moves.push([x, z]),
+      },
+    },
+  };
+  for (let frame = 0; frame < 10 && state.payload.positioning; frame += 1) {
+    state.execute(owner);
+  }
+  assert.ok(moves.length > 3);
+  assert.ok(moves.every(([x, z]) => x === 0 || z === 1), "do not cut across the corner");
+  assert.deepEqual(moves[moves.length - 1], [1, 1]);
+  assert.equal(state.payload.positioning, null);
+  assert.equal(restarts, 1);
+});
 
 it("finishes two loaded strokes before switching to the rim leveling stroke", () => {
   const state = new HeroToolActionState();
@@ -81,4 +139,38 @@ it("stops the current short scoop even when the next stroke is a longer rake", (
     feedback: { tool: { restartAnimation: () => {} } },
   });
   assert.equal(state.payload.phase, "dismiss");
+});
+
+it("repositions between vegetation strokes only after recovery completes", () => {
+  const state = new HeroToolActionState();
+  let cycles = 0;
+  state.payload = {
+    phase: "use",
+    elapsed: 0.61,
+    impactIndex: 1,
+    toolContext: {},
+    tool: {
+      visible: true,
+      useDuration: 1.5,
+      useAnimation: () => "ChopMiddle",
+    },
+    onCycle: () => {
+      cycles += 1;
+      state.payload.positioning = { travel: 0.25 };
+      state.payload.phase = "summon";
+
+      return true;
+    },
+  };
+  const owner = {
+    deltaTime: 0.8,
+    feedback: { tool: { restartAnimation: () => {} } },
+  };
+  state.execute(owner);
+  assert.equal(cycles, 0);
+  owner.deltaTime = 0.1;
+  state.execute(owner);
+  assert.equal(cycles, 1);
+  assert.equal(state.payload.positioning.travel, 0.25);
+  assert.equal(state.payload.phase, "summon");
 });
