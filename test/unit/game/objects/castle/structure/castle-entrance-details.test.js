@@ -159,7 +159,7 @@ test("entrance lanterns flank the fixed doorway on every facing and mirrored see
         const dx = position.x - origin.x;
         const dz = position.z - origin.z;
         assert.ok(Math.abs(Math.abs(dx * Math.cos(angle) - dz * Math.sin(angle)) - (entrance.width / 2 + 0.54)) < 1e-6);
-        assert.ok(Math.abs(dx * Math.sin(angle) + dz * Math.cos(angle) + 0.48) < 1e-6);
+        assert.ok(Math.abs(dx * Math.sin(angle) + dz * Math.cos(angle) + 0.25 + 0.1284 * 1.6 * 0.8633) < 1e-6);
         assert.equal(position.y, origin.y + 1.3);
       }
       parent.destroy();

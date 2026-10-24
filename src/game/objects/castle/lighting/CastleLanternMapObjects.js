@@ -1,4 +1,5 @@
 import { CastleResidentialLayout } from "../residents/CastleResidentialLayout.js";
+import { LanternWallPlacement } from "./LanternWallPlacement.js";
 
 /**
  * Publishes formerly castle-owned lanterns through normal map object lifecycles.
@@ -149,6 +150,7 @@ export class CastleLanternMapObjects {
         1,
       );
     }
+    LanternWallPlacement.prepareMap(mapData);
   }
 
   /**
@@ -189,8 +191,8 @@ export class CastleLanternMapObjects {
     add({
       object: "Lantern",
       type: "entrance",
-      // The scaled bracket reaches 0.177 m behind the model origin.
-      // Seat that bracket on the outer half-metre facade, with the cage clear.
+      // Seed the doorway flanks; the masonry pass seats each bracket on its
+      // nearest actual wall face, including recessed and asymmetric facades.
       position: layout.toWorld(flank * (entrance.width / 2 + 0.54), -0.68, 1.3),
       rotation: layout.yaw + 180,
       scale: 1.6,

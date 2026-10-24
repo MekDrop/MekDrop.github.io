@@ -56,6 +56,12 @@ The scene registry owns disposal and forwards shared island offsets.
 Keep `grid`, `heightmap`, `tileMeta`, dimensions, map identity, and test/HUD
 configuration at map level. Routes and arrows are derived runtime data.
 
+## Wall-mounted lanterns
+
+- Mount lantern brackets flush to the nearest solid masonry face and orient the lantern outward.
+- The entire backplate must have continuous wall support, with at least 5 mm of clearance from wall edges, corners, doors, and windows. A single contact point or partial overlap is insufficient.
+- Adjacent coplanar masonry blocks may jointly support the plate. Move the lantern inward along the wall when needed; omit the placement if no fully supported position exists.
+
 ## Chimney reservations
 
 - Generate fireplace rooms before other furnishings and reserve each chimney through every intersected storey. Initial candidate checks must reject chimney overlaps before accepting furniture; placement repair alone is insufficient.
