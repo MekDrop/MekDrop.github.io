@@ -1,0 +1,978 @@
+{
+  "grid": [
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  ],
+  "heightmap": [
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  ],
+  "tileMeta": [
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ]
+  ],
+  "cols": 11,
+  "rows": 11,
+  "numPaths": 0,
+  "pipeData": [],
+  "mergeZones": [],
+  "trunkStart": null,
+  "mapName": "test_servant-animations",
+  "layoutSignature": "test_servant-animations",
+  "animationViewport": {
+    "zoom": 5,
+    "rotation": 0,
+    "panX": 0,
+    "panZ": 0
+  },
+  "objects": [
+    {
+      "id": "servant-review",
+      "object": "Servant",
+      "variant": "servant",
+      "animation": "idle",
+      "position": {
+        "x": -1,
+        "y": 2.05,
+        "z": 0
+      }
+    },
+    {
+      "id": "elder-servant-review",
+      "object": "Servant",
+      "variant": "elder-servant",
+      "animation": "idle",
+      "position": {
+        "x": 1,
+        "y": 2.05,
+        "z": 0
+      }
+    },
+    {
+      "id": "review-spawn",
+      "object": "SpawnPoint",
+      "position": {
+        "x": 0,
+        "y": 2.1,
+        "z": 1.6
+      }
+    },
+    {
+      "id": "servant-stairs",
+      "object": "StraightStaircase",
+      "position": {
+        "x": -2,
+        "y": 2.05,
+        "z": -3.5
+      },
+      "radius": 1.2,
+      "rise": 1.2,
+      "rotation": 0
+    },
+    {
+      "id": "servant-landing",
+      "object": "WoodenFloor",
+      "from": {
+        "x": -1.98,
+        "y": 3.25,
+        "z": -2.3
+      },
+      "to": {
+        "x": -0.8,
+        "y": 3.25,
+        "z": -1.3
+      }
+    },
+    {
+      "id": "elder-servant-stairs",
+      "object": "StraightStaircase",
+      "position": {
+        "x": 2,
+        "y": 2.05,
+        "z": -3.5
+      },
+      "radius": 1.2,
+      "rise": 1.2,
+      "rotation": 0
+    },
+    {
+      "id": "elder-servant-landing",
+      "object": "WoodenFloor",
+      "from": {
+        "x": 2.02,
+        "y": 3.25,
+        "z": -2.3
+      },
+      "to": {
+        "x": 3.2,
+        "y": 3.25,
+        "z": -1.3
+      }
+    }
+  ],
+  "heroSpawn": {
+    "x": 0,
+    "y": 2.1,
+    "z": 1.6
+  },
+  "testControls": {
+    "panels": [
+      {
+        "title": "Actions",
+        "statusTargetId": "servant-review",
+        "buttons": [
+          {
+            "label": "Record all actions (33s)",
+            "script": "objects.getOne('hero').entity.enabled=false;for(const actor of [...objects].filter(actor=>actor.definition?.object==='Servant')) actor.testAnimation='showcase';"
+          },
+          {
+            "label": "idle",
+            "script": "objects.getOne('hero').entity.enabled=false;for (const actor of [...objects].filter(actor=>actor.definition?.object==='Servant')) actor.testAnimation = 'idle';"
+          },
+          {
+            "label": "walk",
+            "script": "objects.getOne('hero').entity.enabled=false;for (const actor of [...objects].filter(actor=>actor.definition?.object==='Servant')) actor.testAnimation = 'walk';"
+          },
+          {
+            "label": "carry",
+            "script": "objects.getOne('hero').entity.enabled=false;for (const actor of [...objects].filter(actor=>actor.definition?.object==='Servant')) actor.testAnimation = 'carry';"
+          },
+          {
+            "label": "place",
+            "script": "objects.getOne('hero').entity.enabled=false;for (const actor of [...objects].filter(actor=>actor.definition?.object==='Servant')) actor.testAnimation = 'place';"
+          },
+          {
+            "label": "pour",
+            "script": "objects.getOne('hero').entity.enabled=false;for (const actor of [...objects].filter(actor=>actor.definition?.object==='Servant')) actor.testAnimation = 'pour';"
+          },
+          {
+            "label": "closeDoor",
+            "script": "objects.getOne('hero').entity.enabled=false;for (const actor of [...objects].filter(actor=>actor.definition?.object==='Servant')) actor.testAnimation = 'closeDoor';"
+          },
+          {
+            "label": "turn",
+            "script": "objects.getOne('hero').entity.enabled=false;for (const actor of [...objects].filter(actor=>actor.definition?.object==='Servant')) actor.testAnimation = 'turn';"
+          },
+          {
+            "label": "Record four angles (140s)",
+            "script": "objects.getOne('hero').entity.enabled=false;void (async()=>{const actors=[...objects].filter(actor=>actor.definition?.object==='Servant');objects.getOne('hero').teleport({x:0,y:2.1,z:1.6});const recording=actors[0].recordReview(140);for(const rotation of [0,1,2,3]){camera.setViewport({zoom:5,rotation,panX:0,panZ:0});for(const actor of actors)actor.testAnimation='showcase';await new Promise(resolve=>window.setTimeout(resolve,35000));}await recording;})().catch(console.error);"
+          }
+        ]
+      },
+      {
+        "title": "Stairs",
+        "statusTargetId": "servant-review",
+        "buttons": [
+          {
+            "label": "stairUp",
+            "script": "objects.getOne('hero').entity.enabled=false;for (const actor of [...objects].filter(actor=>actor.definition?.object==='Servant')) actor.testAnimation = 'stairUp';"
+          },
+          {
+            "label": "stairDown",
+            "script": "objects.getOne('hero').entity.enabled=false;for (const actor of [...objects].filter(actor=>actor.definition?.object==='Servant')) actor.testAnimation = 'stairDown';"
+          },
+          {
+            "label": "carryStairUp",
+            "script": "objects.getOne('hero').entity.enabled=false;for (const actor of [...objects].filter(actor=>actor.definition?.object==='Servant')) actor.testAnimation = 'carryStairUp';"
+          },
+          {
+            "label": "carryStairDown",
+            "script": "objects.getOne('hero').entity.enabled=false;for (const actor of [...objects].filter(actor=>actor.definition?.object==='Servant')) actor.testAnimation = 'carryStairDown';"
+          },
+          {
+            "label": "Walk upstairs",
+            "script": "objects.getOne('hero').entity.enabled=false;for(const actor of [...objects].filter(actor=>actor.definition?.object==='Servant')) { const stair=[...objects].find(item=>item.definition?.id===actor.definition.variant+'-stairs'); actor.testStairs(stair.definition,false,false); } camera.setViewport({zoom:3.5,rotation:2,panX:0,panZ:-3});"
+          },
+          {
+            "label": "Walk downstairs",
+            "script": "objects.getOne('hero').entity.enabled=false;for(const actor of [...objects].filter(actor=>actor.definition?.object==='Servant')) { const stair=[...objects].find(item=>item.definition?.id===actor.definition.variant+'-stairs'); actor.testStairs(stair.definition,true,false); } camera.setViewport({zoom:3.5,rotation:2,panX:0,panZ:-3});"
+          },
+          {
+            "label": "Carry upstairs",
+            "script": "objects.getOne('hero').entity.enabled=false;for(const actor of [...objects].filter(actor=>actor.definition?.object==='Servant')) { const stair=[...objects].find(item=>item.definition?.id===actor.definition.variant+'-stairs'); actor.testStairs(stair.definition,false,true); } camera.setViewport({zoom:3.5,rotation:2,panX:0,panZ:-3});"
+          },
+          {
+            "label": "Carry downstairs",
+            "script": "objects.getOne('hero').entity.enabled=false;for(const actor of [...objects].filter(actor=>actor.definition?.object==='Servant')) { const stair=[...objects].find(item=>item.definition?.id===actor.definition.variant+'-stairs'); actor.testStairs(stair.definition,true,true); } camera.setViewport({zoom:3.5,rotation:2,panX:0,panZ:-3});"
+          },
+          {
+            "label": "Record stair travel (72s)",
+            "script": "objects.getOne('hero').entity.enabled=false;void (async()=>{const actors=[...objects].filter(actor=>actor.definition?.object==='Servant');objects.getOne('hero').teleport({x:0,y:2.1,z:-3});const recording=actors[0].recordReview(72);for(const rotation of [1,3]){camera.setViewport({zoom:3.5,rotation,panX:0,panZ:-3});for(const [returning,carrying] of [[false,false],[true,false],[false,true],[true,true]]){for(const actor of actors){const stair=[...objects].find(item=>item.definition?.id===actor.definition.variant+'-stairs');actor.testStairs(stair.definition,returning,carrying);}await new Promise(resolve=>window.setTimeout(resolve,9000));}}await recording;})().catch(console.error);"
+          }
+        ]
+      },
+      {
+        "title": "Views",
+        "buttons": [
+          {
+            "label": "View 0",
+            "script": "objects.getOne('hero').entity.enabled=false;camera.setViewport({zoom:5,rotation:0,panX:0,panZ:0});"
+          },
+          {
+            "label": "View 1",
+            "script": "objects.getOne('hero').entity.enabled=false;camera.setViewport({zoom:5,rotation:1,panX:0,panZ:0});"
+          },
+          {
+            "label": "View 2",
+            "script": "objects.getOne('hero').entity.enabled=false;camera.setViewport({zoom:5,rotation:2,panX:0,panZ:0});"
+          },
+          {
+            "label": "View 3",
+            "script": "objects.getOne('hero').entity.enabled=false;camera.setViewport({zoom:5,rotation:3,panX:0,panZ:0});"
+          },
+          {
+            "label": "Save transparent preview",
+            "script": "objects.getOne('hero').entity.enabled=false;void [...objects].filter(actor=>actor.definition?.object==='Servant')[0].capturePreview();"
+          }
+        ]
+      }
+    ]
+  }
+}

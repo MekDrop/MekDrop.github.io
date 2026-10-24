@@ -2,6 +2,7 @@ import { CASTLE_TERRACE_PHASE as PHASE } from "../../../../enum/CastleTerracePha
 import { RoyalWishFulfillment } from "../../residents/RoyalWishFulfillment.js";
 import { TerraceDoorActions } from "./TerraceDoorActions.js";
 import { TerraceServiceActions } from "./TerraceServiceActions.js";
+import { CHARACTER_HEIGHT } from "../../../../config/character-size.js";
 
 /**
  * Connects the hero trigger, royal wishes, and participant-owned actions.
@@ -134,7 +135,9 @@ export class CastleTerraceActivity {
     this.#entity.setLocalPosition(layout.x, layout.y, layout.z);
     this.#entity.setLocalEulerAngles(0, layout.yaw, 0);
     this.#stage = new pc.Entity("Terrace participants");
-    const scale = Math.min(0.45, layout.depth / 5.5, layout.width / 4.2);
+    // Props share the characters' authored human scale. Shrinking the stage to
+    // the whole walking route made furniture miniature beside resident actors.
+    const scale = CHARACTER_HEIGHT / 2;
     this.#stage.setLocalScale(scale, scale, scale);
     this.#entity.addChild(this.#stage);
     if (door) {
@@ -377,6 +380,9 @@ export class CastleTerraceActivity {
     }
     if (servantDelta > 0) {
       this.#doorActions.update(servantDelta, this.#activeBehavior.stagePhase);
+      if (!this.#doorActions.inspecting && this.#serviceActions) {
+        this.#serviceActions.syncProps(this.#servantBehavior, this.#royalBehavior);
+      }
     }
   }
 

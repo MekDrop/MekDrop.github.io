@@ -1,13 +1,30 @@
 import { ActorStatusEffects } from "../../shared/ActorStatusEffects.js";
 import servantModelUrl from "../../../models/castle/leisure/servant.glb?url";
+import elderServantModelUrl from "../../../models/castle/leisure/elder-servant.glb?url";
 import { DynamicRenderBatch } from "../../../rendering/DynamicRenderBatch.js";
 import { CHARACTER_HEIGHT } from "../../../config/character-size.js";
 import { CastleResidentMotion } from "../../castle/residents/CastleResidentMotion.js";
 import { TerraceActor } from "../../castle/rooms/terrace/TerraceActor.js";
 import { TerraceServantBehavior } from "../../castle/rooms/terrace/TerraceServantBehavior.js";
 import { TerraceServiceActions } from "../../castle/rooms/terrace/TerraceServiceActions.js";
+import { castleStraightStairHeight } from "../../castle/stairs/CastleStraightStairs.js";
+import { ServantPreview } from "./ServantPreview.js";
+
+const REVIEW_ACTIONS = [
+  ["idle", 2], ["walk", 3], ["carry", 3], ["place", 3], ["pour", 4],
+  ["closeDoor", 4], ["turn", 2], ["stairUp", 3], ["stairDown", 3],
+  ["carryStairUp", 3], ["carryStairDown", 3],
+];
 
 export class Servant {
+  /**
+   * @type {string|null}
+   */
+  #testAnimation = null;
+  /**
+   * @type {number}
+   */
+  #testTime = 0;
   /**
    * @type {ActorStatusEffects}
    */
@@ -54,12 +71,12 @@ export class Servant {
     * @returns {Array<string>}
    */
   static get modelUrls() {
-    return [servantModelUrl, ...TerraceServiceActions.modelUrls];
+    return [servantModelUrl, elderServantModelUrl, ...TerraceServiceActions.modelUrls];
   }
 
   /**
    *
-    * @type {TerraceServantBehavior|null}
+    * @type {import("../../ObjectTypes.js").MapObjectDefinition}
    */
   #definition;
   /**
@@ -97,13 +114,14 @@ export class Servant {
 
   /**
    *
-   * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, definition: import("src/game/objects/ObjectTypes.js").MapObjectDefinition, runtime: import("src/game/objects/ObjectTypes.js").MapObjectRuntime}} options
+   * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, definition: import("src/game/objects/ObjectTypes.js").MapObjectDefinition, runtime: import("src/game/objects/ObjectTypes.js").MapObjectRuntime, modelLibrary: import("../../../models/GameModelLibrary.js").GameModelLibrary}} options
    * @param {typeof import("playcanvas")} options.pc
    * @param {import("playcanvas").Application} options.app
    * @param {import("src/game/objects/ObjectTypes.js").MapObjectDefinition} options.definition
    * @param {import("src/game/objects/ObjectTypes.js").MapObjectRuntime} options.runtime
+   * @param {import("../../../models/GameModelLibrary.js").GameModelLibrary} options.modelLibrary
    */
-  constructor({ pc, app, definition, runtime }) {
+  constructor({ pc, app, definition, runtime, modelLibrary }) {
     this.#pc = pc;
     this.#runtime = runtime;
     this.#app = app;
@@ -111,6 +129,22 @@ export class Servant {
     this.#definition = definition;
     this.#entity = new pc.Entity(`${definition.id} servant`);
     this.#entity.tags.add("map-object", definition.id, this.constructor.name);
+    if (definition.animation) {
+      this.#resident = new TerraceActor({
+        pc,
+        modelLibrary,
+        modelUrl: this.#modelUrl,
+        kind: "servant",
+      });
+      this.#entity.addChild(this.#resident.entity);
+      const scale = CHARACTER_HEIGHT / this.#resident.height;
+      this.#resident.entity.setLocalScale(scale, scale, scale);
+      const { x, y, z } = definition.position;
+      this.#entity.setLocalPosition(x, y, z);
+      this.testAnimation = definition.animation;
+
+      return;
+    }
     const castle = runtime.objects
       .getAll("castle")
       .at(definition.castleIndex ?? 0);
@@ -122,6 +156,159 @@ export class Servant {
    */
   advanceStatus(deltaTime) {
     this.#statusEffects.advance(deltaTime);
+    if (this.#definition.animation && this.#motion) {
+      this.#motion.update(deltaTime);
+      if (this.#motion.arrived) {
+        this.#resident.pose(this.#testAnimation, 0);
+        this.#resident.evaluatePose();
+      }
+
+      return;
+    }
+    if (this.#testAnimation) {
+      this.#testTime += deltaTime;
+      let action = this.#testAnimation;
+      let time = this.#testTime;
+      if (action === "showcase") {
+        time %= 33;
+        for (const [candidate, duration] of REVIEW_ACTIONS) {
+          action = candidate;
+          if (time < duration) {
+            break;
+          }
+          time -= duration;
+        }
+      }
+      this.#resident.pose(action, time);
+      this.#resident.evaluatePose();
+    }
+  }
+
+  /**
+   * @param {string} action
+   */
+  set testAnimation(action) {
+    if (this.#definition.animation) {
+      this.#motion?.stop();
+      this.#motion = null;
+      this.#resident?.entity.setLocalPosition(0, 0, 0);
+      this.#resident?.entity.setLocalEulerAngles(0, 0, 0);
+    }
+    this.#testAnimation = action;
+    this.#testTime = 0;
+  }
+
+  /**
+   * @returns {string}
+   */
+  get testStatus() {
+    if (!this.#definition.animation) {
+      const service = this.#serviceActions?.state;
+
+      return `${this.#definition.variant ?? "servant"}: ${this.#behavior?.stagePhase ?? "idle"}` +
+        ` | table grip: ${service?.tableGripDistance?.toFixed(3) ?? "—"}` +
+        ` | pot grip: ${service?.potHandDistance?.toFixed(3) ?? "—"}`;
+    }
+
+    return `${this.#definition.variant ?? "servant"}: ${this.#testAnimation ?? "resident"} ${this.#testTime.toFixed(1)}s`;
+  }
+
+  async capturePreview() {
+    this.testAnimation = "idle";
+    this.#resident.pose("idle", 0);
+    this.#resident.evaluatePose();
+    await ServantPreview.capture(this.#pc, this.#app, this.#resident.entity);
+  }
+
+  /**
+   * @param {number} duration
+   * @returns {Promise<void>}
+   */
+  recordReview(duration = 35) {
+    return ServantPreview.record(this.#app, duration);
+  }
+
+  /**
+   * Exercise the production route follower on a map-authored stair assembly.
+   * @param {import("../../ObjectTypes.js").MapObjectDefinition} stair
+   * @param {boolean} returning
+   * @param {boolean} carrying
+   */
+  testStairs(stair, returning = false, carrying = false) {
+    if (!this.#definition.animation) {
+      return;
+    }
+    const pc = this.#pc;
+    const center = stair.position;
+    const radius = stair.radius;
+    const bottom = new pc.Vec3(center.x - radius / 2, center.y, center.z + radius + 0.2);
+    const top = new pc.Vec3(center.x + radius / 2, center.y + stair.rise, center.z + radius + 0.2);
+    this.#resident.entity.setPosition(returning ? top : bottom);
+    const geometry = {
+      ...stair,
+      center,
+      yaw: stair.rotation ?? 0,
+      straight: true,
+    };
+    const layout = {
+      origin: new pc.Vec3(),
+      walkableAreas: [
+        {
+          minX: center.x - radius,
+          maxX: center.x,
+          minZ: center.z + radius,
+          maxZ: center.z + radius + 1,
+          floorY: center.y,
+        },
+        {
+          minX: center.x,
+          maxX: center.x + radius,
+          minZ: center.z + radius,
+          maxZ: center.z + radius + 1,
+          floorY: center.y + stair.rise,
+        },
+      ],
+      authoredStairs: [geometry],
+      stairs: null,
+      /**
+       * @param {number} x
+       * @param {number} z
+       */
+      toLocal: (x, z) => ({
+        x,
+        z,
+      }),
+      /**
+       * @param {number} x
+       * @param {number} z
+       * @param {number} y
+       */
+      toWorld: (x, z, y) => new pc.Vec3(x, y, z),
+      /**
+       * @param {number} x
+       * @param {number} z
+       * @param {number} elevation
+       */
+      surfaceHeightAt: (x, z, elevation) => castleStraightStairHeight(geometry, x, z, elevation) ??
+        (z >= center.z + radius ? (x < center.x ? center.y : center.y + stair.rise) : null),
+    };
+    // The route fixture uses the same authored treads; production castle travel
+    // additionally supplies the residence's door and furnishing collision checks.
+    this.#motion = new CastleResidentMotion({
+      actor: this.#resident,
+      layout,
+      blocked: () => false,
+      clear: () => true,
+    });
+    this.#testAnimation = carrying ? "carry" : "idle";
+    this.#motion.moveTo(returning ? bottom : top, carrying ? "carry" : "walk");
+  }
+
+  /**
+   * @returns {string}
+   */
+  get #modelUrl() {
+    return this.#definition.variant === "elder-servant" ? elderServantModelUrl : servantModelUrl;
   }
 
   /**
@@ -154,7 +341,7 @@ export class Servant {
     this.#resident = new TerraceActor({
       pc,
       modelLibrary,
-      modelUrl: servantModelUrl,
+      modelUrl: this.#modelUrl,
       kind: "servant",
     });
     this.#resident.entity.name = "Basement servant resident";

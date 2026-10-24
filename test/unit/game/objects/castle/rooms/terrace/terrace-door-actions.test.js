@@ -132,6 +132,9 @@ it("walks the existing servant from home, inspects, and returns without visibili
   };
   scene.addChild(inspector.entity);
   const original = inspector.entity;
+  inspector.rightHand = new pc.Entity("Palm");
+  inspector.rightHand.setLocalPosition(0, 0.8, 0.35);
+  original.addChild(inspector.rightHand);
   const layout = {
     origin: { y: 0 },
     walkableAreas: [{
@@ -157,7 +160,13 @@ it("walks the existing servant from home, inspects, and returns without visibili
     actor: inspector,
     layout,
     blocked: () => false,
-    clear: () => true,
+    clear: (point) => {
+      if (!point) {
+        door.operator = null;
+      }
+
+      return true;
+    },
   });
   const door = {
     entity: new pc.Entity(),
@@ -166,6 +175,9 @@ it("walks the existing servant from home, inspects, and returns without visibili
     onOpen: null,
   };
   scene.addChild(door.entity);
+  door.insideHandle = new pc.Entity("Ring handle");
+  door.insideHandle.setPosition(5, 0.8, 5);
+  scene.addChild(door.insideHandle);
   const actions = new Actions({
     pc,
     root,
@@ -184,6 +196,9 @@ it("walks the existing servant from home, inspects, and returns without visibili
     const before = original.getPosition().clone();
     motion.update(0.1);
     actions.update(0.1, PHASE.DORMANT);
+    if ([INSPECTION.GRASP, INSPECTION.CLOSE].includes(actions.state.inspectionPhase)) {
+      assert.equal(door.operator, original, "the handle operator survives navigation cancellation");
+    }
     if (door.sequenceOpenAmount !== null) {
       door.openAmount = door.sequenceOpenAmount;
     }
@@ -195,4 +210,50 @@ it("walks the existing servant from home, inspects, and returns without visibili
   actions.destroy();
   assert.equal(original.enabled, true);
   assert.equal(original.parent, scene);
+});
+
+it("notices an already-open door after the servant becomes available and waits for traffic", () => {
+  const root = new pc.Entity();
+  const stage = new pc.Entity();root.addChild(stage);
+  const inspector = {
+    entity: new pc.Entity(),
+    height: 1.8,
+    pose: () => {},
+    evaluatePose: () => {},
+  };
+  root.addChild(inspector.entity);
+  const door = {
+    entity: new pc.Entity(),
+    openAmount: 1,
+    sequenceOpenAmount: null,
+    onOpen: null,
+  };
+  let available = false;
+  const actions = new Actions({
+    pc,
+    root,
+    stage,
+    inspector,
+    door,
+    canInspect: () => available,
+  });
+  actions.update(40, PHASE.DORMANT);
+  assert.equal(actions.state.inspectionPhase, INSPECTION.IDLE);
+  available = true;
+  actions.update(40, PHASE.SERVANT_ENTER);
+  assert.equal(actions.state.inspectionPhase, INSPECTION.WAIT);
+  actions.update(0.1, PHASE.DORMANT);
+  assert.equal(actions.state.inspectionPhase, INSPECTION.NOTICE);
+  let closing = false;
+  for (let i=0;i<200;i++) {
+    actions.update(0.1, PHASE.DORMANT);
+    closing ||= actions.state.inspectionPhase === INSPECTION.CLOSE;
+    if (door.sequenceOpenAmount !== null) {
+      door.openAmount = door.sequenceOpenAmount;
+    }
+  }
+  assert.ok(closing);
+  assert.equal(door.openAmount, 0);
+  assert.equal(actions.state.inspectionPhase, INSPECTION.IDLE);
+  actions.destroy();root.destroy();
 });

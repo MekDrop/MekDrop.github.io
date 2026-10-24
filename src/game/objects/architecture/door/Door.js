@@ -372,6 +372,14 @@ export class Door {
   }
 
   /**
+   * The moving leaf's frame, independent of collision-query hinge configuration.
+   * @returns {import("playcanvas").Quat|null}
+   */
+  get handleRotation() {
+    return this.#insideHandle?.parent?.getRotation() ?? null;
+  }
+
+  /**
    * @returns {import("playcanvas").Quat|null}
    */
   get hingeRotation() {

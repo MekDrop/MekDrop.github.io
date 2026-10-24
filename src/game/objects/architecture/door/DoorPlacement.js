@@ -165,6 +165,7 @@ export class DoorPlacement {
       entity,
       modelLibrary,
       modelUrl,
+      handleName: framedInterior ? "Right castle door ring handle" : null,
       animationName: placement?.openWide === false ? CASTLE_DOOR_ANIMATION.OPEN : CASTLE_DOOR_ANIMATION.OPEN_WIDE,
       collision: () => createDoorCollision(pc, entity),
       center: geometry.center,

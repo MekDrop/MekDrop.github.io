@@ -280,6 +280,11 @@ function upperDoor(floorY = 3, side = "NORTH", main = false, placement = null) {
     };
   });
   entity.findComponents = () => renders;
+  if (!main) {
+    const handle = new Entity("Right castle door ring handle");
+    handle.setLocalPosition(1.575, 0.81, -0.305);
+    left.addChild(handle);
+  }
   let wide = false;
   const layer = {
     play: (name) => {
@@ -339,6 +344,18 @@ it("keeps an upstairs door closed for ground-floor visitors and clear of ground 
   assert.equal(door.blocksCameraAt(0, 3.5, 2.155, 0.1), true);
   assert.equal(door.intersectsFootprint(0, 2, 0.1), false);
   assert.equal(door.blocksCameraAt(0, 0.5, 2, 0.1), false);
+});
+
+it("exposes the interior ring handle as it follows the moving leaf", () => {
+  const { door, entity } = upperDoor();
+  assert.equal(door.insideHandle, entity.findByName("Right castle door ring handle"));
+  const closed = door.insideHandle.getPosition().clone();
+  const closedRotation = door.handleRotation.clone();
+  door.openTemporarily(10);
+  door.update(0.2);
+  assert.ok(door.insideHandle.getPosition().distance(closed) > 0.1);
+  assert.ok(Math.abs(door.handleRotation.dot(closedRotation)) < 0.999);
+  door.destroy();
 });
 
 it("keeps both interior casing faces proud of quarter-metre masonry in every orientation", () => {

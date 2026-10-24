@@ -1,6 +1,7 @@
 import tableUrl from "../../../../models/castle/leisure/tea-table.glb?url";
 import chairUrl from "../../../../models/chair/chair.glb?url";
 import { CASTLE_TERRACE_PHASE as PHASE } from "../../../../enum/CastleTerracePhase.js";
+import { TerracePropGrip } from "./TerracePropGrip.js";
 
 const DEFINITIONS = {
   table: {
@@ -10,13 +11,13 @@ const DEFINITIONS = {
   chair: {
     url: chairUrl,
     position: [-0.75, 0, 3.2],
+    grips: [[-0.19, 0.43, 0], [0.19, 0.43, 0]],
   },
 };
 const TABLE_GRIPS = [
   [-0.415, 1.069, -0.468],
   [0.415, 1.069, -0.468],
 ];
-const TABLE_GRIP_MIDPOINT = [0, 1.069, -0.468];
 /**
  *
  * @param {number} value
@@ -145,11 +146,13 @@ export class TerraceFurnitureActions {
       0,
     );
     prop.setLocalRotation(new this.#pc.Quat().slerp(
-      this.#servant.entity.getLocalRotation(),
+      this.#stage.getRotation().clone().invert().mul(this.#servant.entity.getRotation()),
       floorRotation,
       progress,
     ));
     prop.enabled = this.#servant.entity.enabled;
+    TerracePropGrip.align(this.#pc, prop, this.#servant,
+      name === "table" ? TABLE_GRIPS : DEFINITIONS.chair.grips);
   }
 
   /**
@@ -157,23 +160,10 @@ export class TerraceFurnitureActions {
    * @param {string} name
    */
   #carryPosition(name) {
-    if (name === "table") {
-      const left = this.#servant.leftHand.getPosition();
-      const midpoint = left.clone().lerp(
-        left,
-        this.#servant.rightHand.getPosition(),
-        0.5,
-      );
-      const offset = this.#servant.entity.getWorldTransform()
-        .transformVector(new this.#pc.Vec3(...TABLE_GRIP_MIDPOINT));
-
-      return this.#stage.getWorldTransform().clone().invert().transformPoint(midpoint.sub(offset));
-    }
-    const world = this.#servant.entity.getWorldTransform().transformPoint(
-      new this.#pc.Vec3(0, 0.55, 0.75),
+    return TerracePropGrip.carryPosition(
+      this.#pc, this.#stage, this.#props[name], this.#servant,
+      name === "table" ? TABLE_GRIPS : DEFINITIONS.chair.grips,
     );
-
-    return this.#stage.getWorldTransform().clone().invert().transformPoint(world);
   }
 
   #tableGripDistance() {

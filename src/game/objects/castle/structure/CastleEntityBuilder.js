@@ -1267,7 +1267,9 @@ export class CastleEntityBuilder {
               Math.abs(door.entity.getPosition().y - point.y) < 2.8) {
         // Walking traffic must yield to the swing. Only the handle-inspection
         // action owns the operator exemption from doorway reactions.
-        door.openTemporarily(1);
+        if (door.operator !== operator) {
+          door.openTemporarily(1);
+        }
       } else if (door.operator === operator) {
         door.operator = null;
       }

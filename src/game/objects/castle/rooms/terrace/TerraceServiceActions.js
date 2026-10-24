@@ -17,6 +17,18 @@ const EMPTY_STATE = Object.freeze({
  */
 export class TerraceServiceActions {
   /**
+   * @type {import("playcanvas").EventHandle|null}
+   */
+  #contactUpdate = null;
+  /**
+   * @type {import("./TerraceServantBehavior.js").TerraceServantBehavior|null}
+   */
+  #servantBehavior = null;
+  /**
+   * @type {import("./RoyalTerraceActivityBehavior.js").RoyalTerraceActivityBehavior|null}
+   */
+  #royalBehavior = null;
+  /**
    *
     * @returns {Array<string>}
    */
@@ -70,6 +82,7 @@ export class TerraceServiceActions {
         stage,
         royal,
       });
+    this.#contactUpdate = pc.Application?.getApplication()?.on("prerender", this.#finishContacts, this) ?? null;
   }
 
   /**
@@ -95,10 +108,26 @@ export class TerraceServiceActions {
    * @param {import("./RoyalTerraceActivityBehavior.js").RoyalTerraceActivityBehavior} royalBehavior
    */
   sync(servantBehavior, royalBehavior) {
+    this.#servantBehavior = servantBehavior;
+    this.#royalBehavior = royalBehavior;
     if (servantBehavior.reacting) {
       return;
     }
     this.#servant.sync(servantBehavior);
+    this.#servant.actor.evaluatePose();
+    this.syncProps(servantBehavior, royalBehavior);
+  }
+
+  /**
+   * Synchronize service props with the current actor behaviors.
+   * @param {import("./TerraceServantBehavior.js").TerraceServantBehavior} servantBehavior
+   * @param {import("./RoyalTerraceActivityBehavior.js").RoyalTerraceActivityBehavior} royalBehavior
+   */
+  syncProps(servantBehavior, royalBehavior) {
+    if (servantBehavior.reacting) {
+      return;
+    }
+    this.#servant.actor.resetHandContacts?.();
     this.#service.sync(
       servantBehavior,
       royalBehavior,
@@ -107,7 +136,17 @@ export class TerraceServiceActions {
   }
 
   destroy() {
+    this.#contactUpdate?.off();
+    this.#contactUpdate = null;
+    this.#servantBehavior = null;
+    this.#royalBehavior = null;
     this.#service.destroy?.();
     this.#servant.destroy();
+  }
+
+  #finishContacts() {
+    if (this.#servantBehavior && this.#royalBehavior && this.#servant.actor.behavior === this.#servantBehavior) {
+      this.syncProps(this.#servantBehavior, this.#royalBehavior);
+    }
   }
 }

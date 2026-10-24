@@ -1,12 +1,15 @@
 import potUrl from "../../../../models/castle/leisure/teapot.glb?url";
 import cupUrl from "../../../../models/castle/leisure/teacup.glb?url";
 import { CASTLE_TERRACE_PHASE as PHASE } from "../../../../enum/CastleTerracePhase.js";
+import { TerracePropGrip } from "./TerracePropGrip.js";
 
 const POSITIONS = {
   pot: [0.92, 1.2, 3.0],
   cup: [0.25, 1.2, 3.25],
 };
 const TRAY_POSITION = [0.61, 1.08, 3.08];
+const TRAY_GRIPS = [[-0.55, 0.105, 0], [0.55, 0.105, 0]];
+const POT_GRIP = [-0.30, 0.23, 0];
 /**
  *
  * @param {number} value
@@ -120,7 +123,8 @@ export class TerraceTeaSetActions {
   get state() {
     const pouring = this.#servantBehavior?.stagePhase === PHASE.POUR;
     const potHandDistance = pouring && this.#servant
-      ? this.#pot.getPosition().distance(this.#servant.rightHand.getPosition())
+      ? this.#pot.getWorldTransform().transformPoint(new this.#pc.Vec3(...POT_GRIP))
+        .distance(this.#servant.rightHand.getPosition())
       : null;
     const sipping = [PHASE.SETTLE, PHASE.ACTIVITY, PHASE.RISE]
       .includes(this.#royalBehavior?.stagePhase);
@@ -220,16 +224,18 @@ export class TerraceTeaSetActions {
       behavior.progress * 4,
       (1 - behavior.progress) * 4,
     ));
-    const hand = this.#stage.getWorldTransform().clone().invert()
-      .transformPoint(this.#servant.rightHand.getPosition());
     const resting = POSITIONS.pot;
-    const grip = new this.#pc.Vec3(hand.x - 0.24, hand.y - 0.2, hand.z);
+    this.#pot.setLocalEulerAngles(0, 180 * progress, -35 * progress);
+    const offset = this.#pot.getWorldTransform().transformVector(new this.#pc.Vec3(...POT_GRIP));
+    const grip = this.#stage.getWorldTransform().clone().invert().transformPoint(
+      this.#servant.rightHand.getPosition().clone().sub(offset),
+    );
     this.#pot.setLocalPosition(
       resting[0] + (grip.x - resting[0]) * progress,
       resting[1] + (grip.y - resting[1]) * progress,
       resting[2] + (grip.z - resting[2]) * progress,
     );
-    this.#pot.setLocalEulerAngles(0, 180 * progress, -35 * progress);
+    TerracePropGrip.align(this.#pc, this.#pot, this.#servant, [POT_GRIP], "right");
     if (progress <= 0.95) {
       return;
     }
@@ -284,21 +290,16 @@ export class TerraceTeaSetActions {
     );
     this.#tray.setLocalRotation(new this.#pc.Quat().slerp(
       new this.#pc.Quat(),
-      this.#servant.entity.getLocalRotation(),
+      this.#stage.getRotation().clone().invert().mul(this.#servant.entity.getRotation()),
       progress,
     ));
+    TerracePropGrip.align(this.#pc, this.#tray, this.#servant, TRAY_GRIPS, null, progress);
   }
 
   #heldTrayPosition() {
-    const left = this.#servant.leftHand.getPosition();
-    const world = left.clone().lerp(
-      left,
-      this.#servant.rightHand.getPosition(),
-      0.5,
+    return TerracePropGrip.carryPosition(
+      this.#pc, this.#stage, this.#tray, this.#servant, TRAY_GRIPS,
     );
-    world.y -= 0.1;
-
-    return this.#stage.getWorldTransform().clone().invert().transformPoint(world);
   }
 
   /**

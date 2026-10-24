@@ -23,6 +23,44 @@ const Collider = new Function("CASTLE_BLOCK_SIZE", `return class {
   ${method("#intersectsGroundColumns(")}
 }`)(0.25);
 
+it("does not reopen the door being operated while nearby walking traffic still requests clearance", () => {
+  const Clearance = new Function(`return class {
+    #animatedDoors;
+    constructor(doors) { this.#animatedDoors = doors; }
+    clear(point, actor) { return this.#clear(point, actor); }
+    ${method("#clear(")}
+  }`)();
+  const actor = {};
+  const visitor = {};
+  let openings = 0;
+  const door = {
+    entity: {
+      getPosition: () => ({
+        x: 0,
+        y: 0,
+        z: 0,
+      }),
+    },
+    operator: actor,
+    openTemporarily: () => openings++,
+    blocksCameraAt: () => false,
+  };
+  const clearance = new Clearance([door]);
+  const point = {
+    x: 0.5,
+    y: 0,
+    z: 0.5,
+  };
+  assert.equal(clearance.clear(point, actor), true);
+  assert.equal(openings, 0);
+  assert.equal(clearance.clear(point, visitor), true);
+  assert.equal(openings, 1);
+  clearance.clear(null, actor);
+  assert.equal(door.operator, null);
+  clearance.clear(point, actor);
+  assert.equal(openings, 2);
+});
+
 it("preserves castle collision at every sampled level, radius, and masonry boundary", () => {
   const blocks = [];
   const index = new SurfaceSpatialIndex();

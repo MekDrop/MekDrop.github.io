@@ -160,7 +160,7 @@ export class TerraceServantActions {
       this.#motion.moveTo(leave ? this.#motion.home
         : this.#stage.getWorldTransform().transformPoint(point, point), behavior.action);
       if (this.#motion.arrived) {
-        this.#servant.pose(behavior.action === "carry" ? "carry" : "idle", behavior.elapsed);
+        this.#servant.pose(behavior.action === "carry" ? "carry" : "idle", 0);
       }
     } else if ([PHASE.FURNISH, PHASE.POUR, PHASE.PACK].includes(phase)) {
       this.#servant.pose(behavior.action, phase === PHASE.POUR ? behavior.elapsed

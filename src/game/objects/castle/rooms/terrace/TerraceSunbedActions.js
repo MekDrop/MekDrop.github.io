@@ -3,9 +3,10 @@ import { FoldingDaybedDelivery } from "../../residents/FoldingDaybedDelivery.js"
 import bookUrl from "../../../../models/castle/leisure/open-book.glb?url";
 import { BOOK_ANIMATION } from "../../../../enum/BookAnimation.js";
 import { CASTLE_TERRACE_PHASE as PHASE } from "../../../../enum/CastleTerracePhase.js";
+import { TerracePropGrip } from "./TerracePropGrip.js";
 
 const SUNBED_POSITION = [0, 0, 3.1];
-const SUNBED_CARRY_OFFSET = [0, 0.75, 0.9];
+const SUNBED_GRIPS = [[-0.425, 0.09, 0.335], [0.425, 0.09, 0.335]];
 /**
  *
  * @param {number} value
@@ -85,15 +86,16 @@ export class TerraceSunbedActions {
     this.#pc = pc;
     this.#stage = stage;
     this.#royal = royal;
-    this.#sunbed = modelLibrary.instantiate(sunbedUrl);
-    this.#sunbed.name = "Terrace sunbed";
+    this.#sunbed = new pc.Entity("Terrace sunbed");
+    const model = modelLibrary.instantiate(sunbedUrl);
+    this.#sunbed.addChild(model);
     stage.addChild(this.#sunbed);
     const daybedTrack = modelLibrary.getAnimationTracks(sunbedUrl, ["UnfoldDaybed"]).get("UnfoldDaybed");
-    this.#sunbed.addComponent("anim", { activate: true });
-    this.#sunbed.anim.addAnimationState("UnfoldDaybed", daybedTrack, 1, false);
-    this.#sunbed.anim.baseLayer.play("UnfoldDaybed");
-    this.#sunbed.anim.speed = 0;
-    this.#daybedAnimationLayer = this.#sunbed.anim.baseLayer;
+    model.addComponent("anim", { activate: true });
+    model.anim.addAnimationState("UnfoldDaybed", daybedTrack, 1, false);
+    model.anim.baseLayer.play("UnfoldDaybed");
+    model.anim.speed = 0;
+    this.#daybedAnimationLayer = model.anim.baseLayer;
     this.#daybedAnimationDuration = daybedTrack.duration;
     this.#book = modelLibrary.instantiate(bookUrl);
     this.#book.name = "Terrace book";
@@ -144,11 +146,9 @@ export class TerraceSunbedActions {
     if (!moving) {
       return;
     }
-    const world = servant.entity.getWorldTransform().transformPoint(
-      new this.#pc.Vec3(...SUNBED_CARRY_OFFSET),
+    const carry = TerracePropGrip.carryPosition(
+      this.#pc, this.#stage, this.#sunbed, servant, SUNBED_GRIPS,
     );
-    const carry = this.#stage.getWorldTransform().clone().invert()
-      .transformPoint(world);
     const progress = pose.placement;
     this.#sunbed.setLocalPosition(
       carry.x + (SUNBED_POSITION[0] - carry.x) * progress,
@@ -156,11 +156,12 @@ export class TerraceSunbedActions {
       carry.z + (SUNBED_POSITION[2] - carry.z) * progress,
     );
     this.#sunbed.setLocalRotation(new this.#pc.Quat().slerp(
-      servant.entity.getLocalRotation(),
+      this.#stage.getRotation().clone().invert().mul(servant.entity.getRotation()),
       new this.#pc.Quat(),
       progress,
     ));
     this.#sunbed.enabled = servant.entity.enabled;
+    TerracePropGrip.align(this.#pc, this.#sunbed, servant, SUNBED_GRIPS, null, 1 - pose.unfold);
   }
 
   /**

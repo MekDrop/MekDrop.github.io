@@ -1,8 +1,9 @@
 import { Vector3, Vehicle } from "yuka";
+import { math } from "playcanvas";
 import { castleStraightStairSurfaces } from "../stairs/CastleStraightStairs.js";
 
 /**
- * @typedef {{entity:import("playcanvas").Entity,behavior?:import("../../shared/NpcStateMachine.js").NpcStateMachine,pose:(action:string,time:number) => void,settleNavigationOffset?:() => boolean}} ResidentActor
+ * @typedef {{entity:import("playcanvas").Entity,behavior?:import("../../shared/NpcStateMachine.js").NpcStateMachine,pose:(action:string,time:number) => void,settleNavigationOffset?:() => boolean,locomotionStride?:number,supportsStairAnimation?:boolean,alignFeet?:(surfaceHeight:(x:number,z:number,elevation:number) => number|null) => void}} ResidentActor
  * @typedef {{point:import("playcanvas").Vec3,links:ResidentRouteNode[],ix?:number,iz?:number,y?:number}} ResidentRouteNode
  */
 
@@ -10,6 +11,10 @@ import { castleStraightStairSurfaces } from "../stairs/CastleStraightStairs.js";
  * Routes a resident through authored floors and stair flights at walking speed.
  */
 export class CastleResidentMotion {
+  /**
+   * @type {number}
+   */
+  #yaw = 0;
   /**
    * @type {import("./CastleResidentialLayout.js").CastleResidentialLayout}
    */
@@ -77,6 +82,7 @@ export class CastleResidentMotion {
     this.#clear = clear;
     this.#homeArea = homeArea;
     this.#home = actor.entity.getPosition().clone();
+    this.#yaw = actor.entity.getEulerAngles().y;
     this.#vehicle.maxSpeed = 1.2;
   }
 
@@ -171,7 +177,6 @@ export class CastleResidentMotion {
     if (this.#actor.behavior?.reacting) {
       return;
     }
-    this.#time += deltaTime;
     let remaining = this.#vehicle.maxSpeed * Math.min(deltaTime, 0.1);
     const entity = this.#actor.entity;
     const position = entity.getPosition().clone();
@@ -198,16 +203,30 @@ export class CastleResidentMotion {
       this.#vehicle.position.set(position.x, position.y, position.z);
       this.#vehicle.velocity.copy(new Vector3(direction.x, direction.y, direction.z).normalize().multiplyScalar(this.#vehicle.maxSpeed));
       if (Math.hypot(direction.x, direction.z) > 0.001) {
-        entity.setEulerAngles(0, Math.atan2(direction.x, direction.z) * 180 / Math.PI, 0);
+        const targetYaw = Math.atan2(direction.x, direction.z) * 180 / Math.PI;
+        this.#yaw = math.lerpAngle(this.#yaw, targetYaw, Math.min(1, deltaTime * 10));
+        entity.setEulerAngles(0, this.#yaw, 0);
       }
       remaining -= step;
       if (distance <= step + 0.00001) {
         this.#route.shift();
       }
     }
-    const moved = position.distance(entity.getPosition()) > 0.00001;
+    const distanceMoved = position.distance(entity.getPosition());
+    const elevationChange = position.y - entity.getPosition().y;
+    const moved = distanceMoved > 0.00001;
+    this.#time += distanceMoved / (this.#actor.locomotionStride ?? 1.2);
     entity.setPosition(position);
-    this.#actor.pose(moved || this.#walkAction === "carry" ? this.#walkAction : "idle", this.#time);
+    let action = moved || this.#walkAction === "carry" ? this.#walkAction : "idle";
+    if (moved && this.#actor.supportsStairAnimation && Math.abs(elevationChange) > 0.0001) {
+      action = this.#walkAction === "carry"
+        ? (elevationChange > 0 ? "carryStairUp" : "carryStairDown")
+        : (elevationChange > 0 ? "stairUp" : "stairDown");
+    }
+    this.#actor.pose(action, moved ? this.#time : 0);
+    if (this.#layout.surfaceHeightAt) {
+      this.#actor.alignFeet?.(this.#surfaceHeight.bind(this));
+    }
     if (!this.#route.length) {
       this.#clear(null, entity);
     }
@@ -226,6 +245,16 @@ export class CastleResidentMotion {
       // Seated homes can sit on a low throne dais above the room floor.
       (area) => Math.abs(area.floorY - y) <= 0.32 &&
       x >= area.minX && x <= area.maxX && z >= area.minZ && z <= area.maxZ);
+  }
+
+  /**
+   * @param {number} x
+   * @param {number} z
+   * @param {number} elevation
+   * @returns {number|null}
+   */
+  #surfaceHeight(x, z, elevation) {
+    return this.#layout.surfaceHeightAt(x, z, elevation, this.#actor);
   }
 
   #build() {
