@@ -4,6 +4,7 @@ import { GameFrameLoop } from "./rendering/GameFrameLoop.js";
 import { MapTestControls } from "./debug/MapTestControls.js";
 import { MapTestControlsHud } from "./ui/MapTestControlsHud.js";
 import { DirectionalShadowBudget } from "./rendering/DirectionalShadowBudget.js";
+import { DirectionalShadowCoverage } from "./rendering/DirectionalShadowCoverage.js";
 import { useDebounceFn } from "@vueuse/core";
 import { AmmoRuntime } from "./physics/AmmoRuntime.js";
 import * as playCanvas from "playcanvas/build/playcanvas/src/index.js";
@@ -108,8 +109,6 @@ const SIDE_VARIANT_TRANSFORMS = [
 ];
 const CAMERA_PITCH = Math.atan(1 / Math.sqrt(2));
 const CAMERA_DISTANCE = 80;
-const SHADOW_DISTANCE = 150;
-const FIRST_PERSON_SHADOW_DISTANCE = 24;
 const MAP_FIT_ZOOM = 1;
 const HERO_VIEWPORT_MARGIN = 32;
 const HERO_CAMERA_CENTER_HEIGHT = 0.85;
@@ -640,7 +639,7 @@ export class PlayCanvasRenderer {
       intensity: 1.95,
       castShadows: this.#graphicsSettingsStore.shadows,
       shadowType: pc.SHADOW_PCF5,
-      shadowDistance: SHADOW_DISTANCE,
+      shadowDistance: this.#camera.component.farClip,
       shadowResolution: this.#graphicsSettingsStore.shadowResolution,
       shadowIntensity: 0.82,
       // Keep small feet and trunks attached to their shadows without extra passes.
@@ -651,6 +650,7 @@ export class PlayCanvasRenderer {
     sunlight.setEulerAngles(48, 132, 0);
     this.#app.root.addChild(sunlight);
     this.#shadowBudget = new DirectionalShadowBudget(pc, sunlight.light);
+    new DirectionalShadowCoverage(this.#app, sunlight.light, this.#camera.component);
 
     if (this.#destroyed) {
       return;
@@ -1057,12 +1057,6 @@ export class PlayCanvasRenderer {
     this.#camera.manuallyMoved = nextEnabled;
     this.#islandOffsetsApplied = false;
     this.#shadowBudget.limited = nextEnabled;
-    const sunlight = this.#app.root.findByName("Sunlight");
-    if (sunlight?.light) {
-      sunlight.light.shadowDistance = nextEnabled
-        ? FIRST_PERSON_SHADOW_DISTANCE
-        : SHADOW_DISTANCE;
-    }
     const statusHud = this.getHud(GameStatusHud);
     if (statusHud) {
       statusHud.firstPersonVisible = nextEnabled;
