@@ -1231,6 +1231,26 @@ export class Hero {
   }
 
   /**
+   * Continue live movement after scenery replacement without a spawn or teleport.
+   * @param {Hero} previousHero
+   */
+  continueMovementFrom(previousHero) {
+    this.#position = { ...previousHero.#position };
+    this.#velocity = { ...previousHero.#velocity };
+    this.#input.copy(previousHero.#input);
+    this.#running = previousHero.#running;
+    this.#facingYaw = previousHero.#facingYaw;
+    this.#grounded = previousHero.#grounded;
+    this.#coyoteRemaining = previousHero.#coyoteRemaining;
+    this.#jumpsUsed = previousHero.#jumpsUsed;
+    this.#jumpMovement = previousHero.#jumpMovement;
+    this.#stableGroundPosition = { ...previousHero.#stableGroundPosition };
+    this.#physics.resume(this.#position, this.#velocity);
+    this.#syncIslandVisualPosition();
+    this.#syncState();
+  }
+
+  /**
    * @param {{x: number, y: number, z: number}} position
    * @returns {boolean}
    */

@@ -19,7 +19,6 @@ const HERO_ELEVATION_TOLERANCE = 0.45;
 const ACTIVATION_RADIUS = HERO_PRESS_RADIUS;
 const ACTIVATION_ELEVATION_TOLERANCE = 2;
 const HERO_PRESS_FORCE = 0.005;
-const GRAVITY_COMPENSATION = MARKER_MASS * 9.81;
 const CENTER_SPRING_STIFFNESS = 0.2;
 const CENTER_SPRING_DAMPING = 0.09;
 const MAXIMUM_CENTER_SPRING_FORCE = 0.02;
@@ -35,6 +34,10 @@ const MINIMUM_NORMAL_Y = 0.2;
  * A map-authored pressure plate that runs JavaScript when its active state changes.
  */
 export class TriggerArea {
+  /**
+   * @type {import("playcanvas").Vec3}
+   */
+  #gravity;
   /**
    *
     * @type {boolean}
@@ -116,6 +119,7 @@ export class TriggerArea {
    */
   constructor({ pc, app, definition, runtime = {} }) {
     const { id, color, position, script } = definition;
+    this.#gravity = app?.systems?.rigidbody?.gravity ?? new pc.Vec3(0, -9.81, 0);
 
     this.#definition = definition;
     this.#active = definition.active ?? false;
@@ -399,6 +403,11 @@ export class TriggerArea {
     * @type {() => void}
    */
   #update = () => {
+    // App updates also fire while a replacement scene is disabled. Forces must
+    // not accumulate on its body before it joins the physics simulation.
+    if (!this.#entity.enabled) {
+      return;
+    }
     const body = this.#entity.rigidbody;
     const surface = this.#surfaceState();
     const linearVelocity = body.linearVelocity;
@@ -415,7 +424,7 @@ export class TriggerArea {
           linearVelocity.y * CENTER_SPRING_DAMPING,
       ),
     );
-    body.applyForce(0, GRAVITY_COMPENSATION + centerSpringForce, 0);
+    body.applyForce(0, -MARKER_MASS * this.#gravity.y + centerSpringForce, 0);
     body.applyTorque(
       -surface.normal.z * ANGULAR_SPRING_STIFFNESS -
         angularVelocity.x * ANGULAR_SPRING_DAMPING,

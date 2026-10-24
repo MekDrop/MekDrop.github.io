@@ -146,6 +146,10 @@ export class PlayCanvasRenderer {
    * @type {boolean}
    */
   #replacingScene = false;
+  /**
+   * @type {Hero|null}
+   */
+  #replacementHero = null;
 
   /**
    * Allow the browser to paint before continuing construction.
@@ -774,11 +778,17 @@ export class PlayCanvasRenderer {
     this.#mapData = mapData;
     this.#prepareMap(mapData);
     this.#mapObjectReplacement = this.#preparedMaps.get(mapData);
+    const retainedCameraState = this.#replacingScene ? this.#cameraState : null;
     this.#camera.reset(mapData, CAMERA_TARGET_HEIGHT);
+    if (retainedCameraState) {
+      this.#setCameraState(retainedCameraState);
+    }
     this.#scene?.reset();
     this.#updateFitCenter();
-    this.#camera.panX = this.#camera.fitCenterX;
-    this.#camera.panZ = this.#camera.fitCenterZ;
+    if (!this.#replacingScene) {
+      this.#camera.panX = this.#camera.fitCenterX;
+      this.#camera.panZ = this.#camera.fitCenterZ;
+    }
     yield* this.#rebuildScene();
     this.#huds.remove(MapTestControlsHud);
     if (mapData.testControls?.panels?.length) {
@@ -802,7 +812,7 @@ export class PlayCanvasRenderer {
     this.#fitCamera();
     this.#updateCamera();
     this.#heroVisibility?.schedule();
-    if (this.#mapData.animationViewport) {
+    if (!this.#replacingScene && this.#mapData.animationViewport) {
       initialViewport = {
         zoom: 1.5,
         rotation: 0,
@@ -876,7 +886,7 @@ export class PlayCanvasRenderer {
    * @returns {import("src/game/GameContracts.js").StoreContract}
    */
   get heroState() {
-    const hero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
+    const hero = this.hero;
     if (!hero) {
       return null;
     }
@@ -1138,7 +1148,7 @@ export class PlayCanvasRenderer {
    * @returns {Hero|null}
    */
   get hero() {
-    return this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO) ?? null;
+    return this.#replacementHero ?? this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO) ?? null;
   }
 
   returnCameraToHero() {
@@ -1793,6 +1803,12 @@ export class PlayCanvasRenderer {
       if (this.#replacingScene && this.#decorationsEnabled) {
         yield this.#decorations.start();
       }
+      const previousHero = retired?.objects.getOne(SCENE_OBJECT_TYPE.HERO);
+      const nextHero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
+      if (previousHero && nextHero) {
+        nextHero.continueMovementFrom(previousHero);
+      }
+      this.#replacementHero = null;
       this.#mapRoot.enabled = true;
       this.#captureCameraVisualBounds();
     } finally {
@@ -1827,6 +1843,7 @@ export class PlayCanvasRenderer {
     if (this.#destroyed || replacement !== this.#mapObjectReplacement) {
       return false;
     }
+    this.#replacementHero = this.hero;
     this.#replacingScene = true;
     try {
       let lastYield = performance.now();
@@ -1850,6 +1867,7 @@ export class PlayCanvasRenderer {
         return false;
       }
     } finally {
+      this.#replacementHero = null;
       if (this.#mapData === map) {
         this.#replacingScene = false;
       }
@@ -1900,6 +1918,9 @@ export class PlayCanvasRenderer {
   }
 
   #buildClouds() {
+    if (this.#cloudField) {
+      return;
+    }
     this.#cloudField = new CubeCloudField({
       pc: this.#pc,
       app: this.#app,
@@ -2192,10 +2213,15 @@ export class PlayCanvasRenderer {
    */
   #updateFrame = (deltaTime) => {
     this.#shadowBudget?.update(deltaTime);
-    if (this.#frameUpdateFailed || this.#replacingScene) {
+    if (this.#frameUpdateFailed) {
       return;
     }
     try {
+      if (this.#replacingScene) {
+        this.#cloudField?.update(deltaTime);
+
+        return;
+      }
       this.#updateRuntimeSystems(deltaTime);
     } catch (error) {
       this.#frameUpdateFailed = true;
@@ -2420,6 +2446,9 @@ export class PlayCanvasRenderer {
    */
   #handleHeroPositionChange = ({ x, y, z }) => {
     const hero = this.#sceneObjects.getOne(SCENE_OBJECT_TYPE.HERO);
+    if (!hero || this.#replacingScene) {
+      return;
+    }
     this.#camera.orbitPivot = null;
     this.#updateCastlesForHero({
       x,
@@ -2643,7 +2672,7 @@ export class PlayCanvasRenderer {
    * @param {boolean} preserveFocus
    */
   #updateCamera(panOrigin = null, preserveFocus = false) {
-    if (!this.#camera || !this.#mapData) {
+    if (!this.#camera || !this.#mapData || this.#replacingScene) {
       return;
     }
     if (
@@ -3105,8 +3134,10 @@ export class PlayCanvasRenderer {
     this.#terrainRenderer?.destroy();
     this.#terrainRenderer = null;
     this.#buriedTreasure = null;
-    this.#cloudField?.destroy();
-    this.#cloudField = null;
+    if (!this.#replacingScene || this.#destroyed) {
+      this.#cloudField?.destroy();
+      this.#cloudField = null;
+    }
     this.#setInteractionTarget(null);
     this.#mapRoot?.destroy();
     this.#mapRoot = null;

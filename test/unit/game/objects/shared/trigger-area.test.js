@@ -47,6 +47,7 @@ class FakeRigidBody {
 }
 
 class FakeEntity {
+  enabled = true;
   children = [];
   components = new Map();
   normal = new FakeVec3(0, 1, 0);
@@ -169,6 +170,7 @@ describe("trigger area grass physics", () => {
     let update = null;
     const objects = { calls: [] };
     const app = {
+      systems: { rigidbody: { gravity: new FakeVec3(0, -22, 0) } },
       on: (event, callback) => {
         assert.equal(event, "update");
         update = callback;
@@ -216,6 +218,13 @@ describe("trigger area grass physics", () => {
     assert.equal(marker.components.get("rigidbody").type, "dynamic");
     assert.equal(marker.components.get("rigidbody").mass, 0.01);
 
+    marker.enabled = false;
+    update();
+    update();
+    assert.deepEqual(marker.rigidbody.forces, []);
+    assert.deepEqual(marker.rigidbody.torques, []);
+    marker.enabled = true;
+
     field.updateHeroPosition({
       x: 0.3,
       y: 2,
@@ -223,6 +232,7 @@ describe("trigger area grass physics", () => {
     });
     assert.deepEqual(objects.calls, [true]);
     update();
+    assert.equal(marker.rigidbody.forces[0][1], 0.22);
     const heroForce = marker.rigidbody.forces.at(-1);
     assert.deepEqual(heroForce.slice(0, 3), [0, -0.005, 0]);
     assert.ok(heroForce[3] > 0.29);
