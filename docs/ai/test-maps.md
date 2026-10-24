@@ -42,7 +42,8 @@ All scene entities must still be authored through `objects`.
 
 Panel coordinates use the HUD's 1280 × 720 reference resolution, measured from
 the top left. Maps with multiple panels automatically show them as tabs in a
-fixed-width HUD at (16, 96), with the selected panel below at (16, 140).
+fixed-width HUD at (16, 106), joined to the selected panel at (16, 140).
+Tabs use flat borders, with the active tab sharing the panel's surface.
 The `<` and `>` buttons scroll the tab strip one tab at a time; selecting a tab
 shows only that group's controls and live status. Existing panel titles become
 tab labels. Explicit panel positions still apply to maps with a single panel.

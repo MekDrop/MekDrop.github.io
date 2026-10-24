@@ -18,6 +18,10 @@ class Entity {
   addChild(child) {
     child.parent = this; this.children.push(child);
   }
+  removeChild(child) {
+    this.children = this.children.filter((entry) => entry !== child);
+    child.parent = null;
+  }
   setLocalPosition(x, y) {
     this.x = x; this.y = y;
   }
@@ -36,6 +40,13 @@ class TestHud extends MapTestControlsHud {
       context: {
         scale: () => {},
         fillText: () => {},
+        fillRect: () => {},
+        strokeRect: () => {},
+        beginPath: () => {},
+        moveTo: () => {},
+        lineTo: () => {},
+        fill: () => {},
+        stroke: () => {},
       },
       canvas: {},
       texture: { setSource: () => {} },
@@ -52,6 +63,18 @@ test("tabs scroll to every group, isolate actions, and clean up input", () => {
       value: "white",
     },
     textMuted: {
+      configurable: true,
+      value: "gray",
+    },
+    surfaceTop: {
+      configurable: true,
+      value: "navy",
+    },
+    surfaceInsetTop: {
+      configurable: true,
+      value: "black",
+    },
+    outline: {
       configurable: true,
       value: "gray",
     },
@@ -133,18 +156,19 @@ test("tabs scroll to every group, isolate actions, and clean up input", () => {
         type: "pointerup",
       });
     };
-    const [strip, ...panels] = hud.entity.children;
+    const panels = hud.entity.children.slice(0, -1);
+    const strip = hud.entity.children.at(-1);
     assert.deepEqual(panels.map((panel) => panel.enabled), [true, false, false, false, false]);
-    click(300, 115);
-    click(40, 195);
+    click(200, 115);
+    click(40, 163);
     assert.deepEqual(executed, ["Action 1"]);
     for (let index = 0; index < 8; index++) {
-      click(470, 115);
+      click(245, 115);
     }
     assert.equal(strip.children[1].element.opacity, 0.35);
     assert.equal(strip.children[6].enabled, true);
-    click(300, 115);
-    click(40, 195);
+    click(200, 115);
+    click(40, 163);
     assert.deepEqual(executed, ["Action 1", "Action 4"]);
     for (let index = 0; index < 8; index++) {
       click(30, 115);
@@ -155,7 +179,7 @@ test("tabs scroll to every group, isolate actions, and clean up input", () => {
     hud.destroy();
     assert.equal(listeners.size, 0);
   } finally {
-    for (const name of ["text", "textMuted", "info", "font", "playCanvasColor"]) {
+    for (const name of ["text", "textMuted", "surfaceTop", "surfaceInsetTop", "outline", "info", "font", "playCanvasColor"]) {
       delete gameUiTheme[name];
       if (originals[name]) {
         Object.defineProperty(gameUiTheme, name, originals[name]);

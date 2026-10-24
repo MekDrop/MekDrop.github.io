@@ -44,7 +44,7 @@ export class MapTestControlsHud extends GamePanelHud {
    */
   #pressed = -1;
   /**
-   * @type {import("playcanvas").Entity[]}
+   * @type {Array<{entity: import("playcanvas").Entity, active: import("playcanvas").Texture, inactive: import("playcanvas").Texture}>}
    */
   #tabs = [];
   /**
@@ -78,16 +78,17 @@ export class MapTestControlsHud extends GamePanelHud {
     this.#controls = controls;
     this.#canvas = app.graphicsDevice.canvas;
     const tabbed = panels.length > 1;
+    let strip = null;
     if (tabbed) {
-      const strip = this.createPanel({
+      strip = this.createPanel({
         name: "Test control tabs",
         x: 16,
-        y: 96,
-        width: 480,
-        height: 38,
+        y: 106,
+        width: 240,
+        height: 36,
       });
-      this.#previousTab = this.#label(strip, "<", 0, 0, 34, 38);
-      this.#nextTab = this.#label(strip, ">", 446, 0, 34, 38);
+      this.#previousTab = this.#label(strip, "<", 0, 3, 18, 30, true);
+      this.#nextTab = this.#label(strip, ">", 222, 3, 18, 30, true);
       this.#buttons.push({
         entity: this.#previousTab,
         action: () => this.#scrollTabs(-1),
@@ -96,17 +97,32 @@ export class MapTestControlsHud extends GamePanelHud {
         action: () => this.#scrollTabs(1),
       });
       for (const [index, definition] of panels.entries()) {
-        const entity = this.#label(strip, definition.title, 38, 0, 200, 38);
-        this.#tabs.push(entity);
+        const active = this.#tabTexture(definition.title, true);
+        const inactive = this.#tabTexture(definition.title, false);
+        const entity = this.createImage({
+          parent: strip,
+          name: definition.title,
+          x: 18,
+          y: 0,
+          width: 102,
+          height: 36,
+          texture: inactive,
+        });
+        this.#tabs.push({
+          entity,
+          active,
+          inactive,
+        });
         this.#buttons.push({
           entity,
           action: () => this.#selectTab(index),
         });
       }
     }
-    const width = tabbed ? 480 : 240;
+    const width = 240;
+    const contentTop = tabbed ? 10 : 42;
     for (const [index, definition] of panels.entries()) {
-      const height = 46 + definition.buttons.length * 38 + (definition.statusTargetId ? 36 : 0);
+      const height = contentTop + 4 + definition.buttons.length * 38 + (definition.statusTargetId ? 36 : 0);
       const panel = this.createPanel({
         name: definition.title,
         x: tabbed ? 16 : definition.x ?? 16,
@@ -116,7 +132,11 @@ export class MapTestControlsHud extends GamePanelHud {
       });
       const background = this.createTextureRecord(definition.title, width * 2, height * 2);
       background.context.scale(2, 2);
-      this.drawPanelFrame(background.context, width, height);
+      if (tabbed) {
+        this.#flatFrame(background.context, width, height);
+      } else {
+        this.drawPanelFrame(background.context, width, height);
+      }
       background.texture.setSource(background.canvas);
       this.createImage({
         parent: panel,
@@ -128,9 +148,11 @@ export class MapTestControlsHud extends GamePanelHud {
         texture: background.texture,
       });
       this.#panels.push(panel);
-      this.#label(panel, definition.title, 10, 10, width - 20, 26);
+      if (!tabbed) {
+        this.#label(panel, definition.title, 10, 10, width - 20, 26);
+      }
       for (const [buttonIndex, button] of definition.buttons.entries()) {
-        const entity = this.#label(panel, button.label, 10, 42 + buttonIndex * 38, width - 20, 30);
+        const entity = this.#label(panel, button.label, 10, contentTop + buttonIndex * 38, width - 20, 30);
         this.#buttons.push({
           entity,
           button,
@@ -154,6 +176,11 @@ export class MapTestControlsHud extends GamePanelHud {
           previous: "",
         });
       }
+    }
+    if (strip) {
+      // Draw the active tab over the panel's top border to join their surfaces.
+      this.entity.removeChild(strip);
+      this.entity.addChild(strip);
     }
     this.#refreshTabs();
     this.syncDrawOrder();
@@ -188,13 +215,65 @@ export class MapTestControlsHud extends GamePanelHud {
     for (const [index, panel] of this.#panels.entries()) {
       panel.enabled = index === this.#activeTab;
     }
-    for (const [index, tab] of this.#tabs.entries()) {
+    for (const [index, { entity: tab, active, inactive }] of this.#tabs.entries()) {
       tab.enabled = index >= this.#firstTab && index < this.#firstTab + 2;
-      tab.setLocalPosition(38 + (index - this.#firstTab) * 204, 0, 0);
-      tab.element.color = gameUiTheme.playCanvasColor(this.pc, index === this.#activeTab ? "#ffffff" : gameUiTheme.textMuted);
+      tab.setLocalPosition(18 + (index - this.#firstTab) * 102, 0, 0);
+      tab.element.texture = index === this.#activeTab ? active : inactive;
     }
     this.#previousTab.element.opacity = this.#firstTab > 0 ? 1 : 0.35;
     this.#nextTab.element.opacity = this.#firstTab + 2 < this.#tabs.length ? 1 : 0.35;
+  }
+
+  /**
+   * @param {CanvasRenderingContext2D} context
+   * @param {number} width
+   * @param {number} height
+   */
+  #flatFrame(context, width, height) {
+    context.fillStyle = gameUiTheme.surfaceTop;
+    context.fillRect(0, 0, width, height);
+    context.strokeStyle = gameUiTheme.outline;
+    context.lineWidth = 1;
+    context.strokeRect(0.5, 0.5, width - 1, height - 1);
+  }
+
+  /**
+   * @param {string} title
+   * @param {boolean} active
+   * @returns {import("playcanvas").Texture}
+   */
+  #tabTexture(title, active) {
+    const record = this.createTextureRecord(title, 204, 72);
+    const { context } = record;
+    context.scale(2, 2);
+    const top = active ? 0.5 : 3.5;
+    const bottom = active ? 36 : 33.5;
+    context.beginPath();
+    context.moveTo(0.5, bottom);
+    context.lineTo(0.5, top + 3);
+    context.lineTo(3.5, top);
+    context.lineTo(98.5, top);
+    context.lineTo(101.5, top + 3);
+    context.lineTo(101.5, bottom);
+    context.fillStyle = active ? gameUiTheme.surfaceTop : gameUiTheme.surfaceInsetTop;
+    context.fill();
+    context.strokeStyle = gameUiTheme.outline;
+    context.lineWidth = 1;
+    context.stroke();
+    if (!active) {
+      context.beginPath();
+      context.moveTo(0.5, bottom);
+      context.lineTo(101.5, bottom);
+      context.stroke();
+    }
+    context.fillStyle = active ? gameUiTheme.text : gameUiTheme.textMuted;
+    context.font = gameUiTheme.font(active ? 700 : 500, 12);
+    context.textAlign = "center";
+    context.textBaseline = "middle";
+    context.fillText(title, 51, active ? 18 : 19, 82);
+    record.texture.setSource(record.canvas);
+
+    return record.texture;
   }
 
   /**
@@ -204,13 +283,18 @@ export class MapTestControlsHud extends GamePanelHud {
    * @param {number} y
    * @param {number} width
    * @param {number} height
+   * @param {boolean} flat
    * @returns {import("playcanvas").Entity}
    */
-  #label(parent, text, x, y, width, height) {
+  #label(parent, text, x, y, width, height, flat = false) {
     const record = this.createTextureRecord(text, width * 2, height * 2);
     const context = record.context;
     context.scale(2, 2);
-    this.drawPanelFrame(context, width, height);
+    if (flat) {
+      this.#flatFrame(context, width, height);
+    } else {
+      this.drawPanelFrame(context, width, height);
+    }
     context.fillStyle = gameUiTheme.text;
     context.font = gameUiTheme.font(700, 12);
     context.textAlign = "center";
