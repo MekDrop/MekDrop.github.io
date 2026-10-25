@@ -7,8 +7,7 @@ const DURATION = 1.35;
 const FAREWELL_DURATION = 4.2;
 const ASH_START = 0.68;
 const SUBMERGE_DEPTH = 0.82;
-const FAREWELL_SUBMERGE_DEPTH = 1.9;
-const FAREWELL_HAND_HOLD_DEPTH = 0.8;
+const FAREWELL_SUBMERGE_DEPTH = 1.28;
 
 export class HeroBurningActionState extends HeroRuntimeActionState {
   /**
@@ -68,11 +67,9 @@ export class HeroBurningActionState extends HeroRuntimeActionState {
     const sinkStart = 0.08;
     const sinkProgress = Math.max(0, Math.min(1, (progress - sinkStart) / 0.72));
     const easedSink = sinkProgress * sinkProgress * (3 - 2 * sinkProgress);
-    // Submerge the head first, hold only the fist above the surface, then lower it.
-    const bodySink = Math.max(0, Math.min(1, (action.elapsed - 0.2) / 1.6));
-    const handSink = Math.max(0, Math.min(1, (action.elapsed - 3.2) / 0.85));
-    const farewellDepth = FAREWELL_HAND_HOLD_DEPTH * bodySink
-      + (FAREWELL_SUBMERGE_DEPTH - FAREWELL_HAND_HOLD_DEPTH) * handSink;
+    // Continue sinking at the same speed after the head passes below the surface.
+    const farewellSink = Math.max(0, Math.min(1, (action.elapsed - 0.2) / 3.85));
+    const farewellDepth = FAREWELL_SUBMERGE_DEPTH * farewellSink;
     feedback.setHeight(action.surfaceY - (action.farewell
       ? farewellDepth : SUBMERGE_DEPTH * easedSink));
     this.#effect?.update(progress);

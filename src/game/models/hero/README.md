@@ -299,9 +299,15 @@ thumb is replaced by the articulated right thumb.
 
 `LavaFarewell` lasts 4.2 seconds. The torso leans below the extended right arm,
 then the closed fist opens its thumb after the head passes below the lava.
-Runtime sinking pauses with only the fist above the surface before lowering it.
+Runtime sinking continues smoothly as the head and then the hand disappear.
 Keep all farewell NLA channels extended through frame 100.8 at 24 FPS so the
 body does not return to its rest transform during the hand-only hold.
+Each object owns one complete `LavaFarewell` NLA strip, including its rotation
+channels. Splitting translation and rotation across tracks with the same name
+can export a frozen pose. The wrist turns as the thumb opens to keep the gesture
+upright and readable above the lava. The thumb points vertically upward from
+the closed fist and stays locked through the final sinking motion. The hand
+continues descending without pausing or releasing the pose.
 
 ## Climbing
 

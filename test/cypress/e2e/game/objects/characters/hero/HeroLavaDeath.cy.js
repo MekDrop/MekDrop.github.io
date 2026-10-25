@@ -25,14 +25,29 @@ describe("Hero lava death presentation", () => {
             "Hero head",
           ]);
           expect(pose.time).to.be.greaterThan(2.1);
+          expect(pose.time).to.be.lessThan(3.2);
           expect(pose.joints["Hero head"].y).to.be.lessThan(1.5);
           expect(pose.joints["Right thumb 2"].y).to.be.greaterThan(1.5);
           expect(pose.joints["Right white glove"].y).to.be.greaterThan(
             pose.joints["Hero head"].y,
           );
           expect(pose.joints["Right thumb 2"].y).to.be.greaterThan(
-            pose.joints["Right white glove"].y,
+            pose.joints["Right white glove"].y + 0.04,
           );
+        });
+        cy.window().should((window) => {
+          const pose = window.gameMovementTest.animationPose([
+            "Right thumb 1",
+            "Right thumb 2",
+          ]);
+          expect(pose.clip).to.equal("LavaFarewell");
+          expect(pose.time).to.be.greaterThan(3.5);
+          expect(pose.joints["Right thumb 2"].y - pose.joints["Right thumb 1"].y)
+            .to.be.greaterThan(0.03);
+          expect(Math.abs(pose.joints["Right thumb 2"].x - pose.joints["Right thumb 1"].x))
+            .to.be.lessThan(0.003);
+          expect(Math.abs(pose.joints["Right thumb 2"].z - pose.joints["Right thumb 1"].z))
+            .to.be.lessThan(0.003);
         });
       }
       cy.window().should((window) => {
