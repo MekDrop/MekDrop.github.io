@@ -4,6 +4,76 @@ import * as pc from "playcanvas";
 import { CastleResidentMotion } from "../../../../../../src/game/objects/castle/residents/CastleResidentMotion.js";
 import { CastleAuthoredBuildPlan } from "../../../../../../src/game/generator/castle/CastleAuthoredBuildPlan.js";
 import { CastleResidentialLayout } from "../../../../../../src/game/objects/castle/residents/CastleResidentialLayout.js";
+import { ResidentClearance } from "../../../../../../src/game/objects/castle/residents/ResidentClearance.js";
+
+it("leaves either wall for the corridor center and still reaches exact endpoints", () => {
+  for (const width of [1, 2, 3]) {
+    for (const side of [0.125, width - 0.125]) {
+      const entity = new pc.Entity();
+      entity.setPosition(0.25, 0, side);
+      const motion = new CastleResidentMotion({
+        actor: {
+          entity,
+          pose: () => {},
+        },
+        layout: {
+          origin: { y: 0 },
+          walkableAreas: [{
+            minX: 0,
+            maxX: 8,
+            minZ: 0,
+            maxZ: width,
+            floorY: 0,
+          }],
+          authoredStairs: [],
+          stairs: null,
+          toLocal: (x, z) => ({
+            x,
+            z,
+          }),
+          toWorld: (x, z, y) => ({
+            x,
+            y,
+            z,
+          }),
+        },
+        blocked: () => false,
+        clear: () => true,
+      });
+      for (const x of [7.75, 0.25]) {
+        motion.moveTo(new pc.Vec3(x, 0, side));
+        let samples = 0;
+        let previousHeading = null;
+        for (let frame = 0; frame < 200 && !motion.arrived; frame++) {
+          const before = entity.getPosition().clone();
+          const beforeYaw = Math.atan2(entity.forward.x, entity.forward.z) * 180 / Math.PI;
+          motion.update(0.1);
+          const point = entity.getPosition();
+          const yaw = Math.atan2(entity.forward.x, entity.forward.z) * 180 / Math.PI;
+          const rotation = ((yaw - beforeYaw) % 360 + 540) % 360 - 180;
+          assert.ok(Math.abs(rotation) <= 24.001, `turn rate: ${rotation}`);
+          const movement = point.clone().sub(before);
+          if (movement.length() > 0.03) {
+            const heading = Math.atan2(movement.x, movement.z) * 180 / Math.PI;
+            if (previousHeading !== null) {
+              const bend = ((heading - previousHeading) % 360 + 540) % 360 - 180;
+              assert.ok(Math.abs(bend) <= 45, `route bend: ${bend}, width ${width}, side ${side}, frame ${frame}, point ${point}`);
+            }
+            previousHeading = heading;
+          }
+          if (point.x > 3 && point.x < 5) {
+            assert.ok(Math.abs(point.z - width / 2) <= 0.25,
+              `width ${width}, side ${side}: ${point}`);
+            samples++;
+          }
+        }
+        assert.ok(samples > 0);
+        assert.equal(motion.arrived, true);
+        assert.ok(entity.getPosition().distance(new pc.Vec3(x, 0, side)) < 0.025);
+      }
+    }
+  }
+});
 
 it("replans around new solid objects and returns to a raised seating home", () => {
   const entity = new pc.Entity();
@@ -135,10 +205,7 @@ it("walks existing residents through authored castle stairs and home without jum
     });
     const layout = new CastleResidentialLayout(plan);
     const blocks = plan.metadata.collision.cameraBlocks;
-    const blocked = (point) => blocks.some((block) => block.y + block.halfY > point.y + 0.32 &&
-      block.y - block.halfY < point.y + 1.6 && Math.hypot(
-      Math.max(0, Math.abs(point.x - block.x) - block.halfX),
-      Math.max(0, Math.abs(point.z - block.z) - block.halfZ)) < 0.22);
+    const blocked = (point) => ResidentClearance.blockedByWalls(blocks, point, ResidentClearance.wallRadiusAt(layout, point));
     for (const room of [layout.rooms.work, layout.rooms.servantBedroom]) {
       const entity = new pc.Entity("Resident");
       const scene = new pc.Entity();
@@ -376,10 +443,7 @@ it("carries terrace equipment out of furnished basement storage and back in both
     const blocked = point => {
       const local = layout.toLocal(point.x, point.z);
 
-      return blocks.some(block => block.y + block.halfY > point.y + 0.32 &&
-        block.y - block.halfY < point.y + 1.6 && Math.hypot(
-        Math.max(0, Math.abs(point.x - block.x) - block.halfX),
-        Math.max(0, Math.abs(point.z - block.z) - block.halfZ)) < 0.22) ||
+      return ResidentClearance.blockedByWalls(blocks, point, ResidentClearance.wallRadiusAt(layout, point)) ||
         furniture.some(item => Math.abs(item.floorY - point.y) < 0.1 && Math.hypot(
           Math.max(0, Math.abs(local.x - item.x) - item.width * item.scale / 2),
           Math.max(0, Math.abs(local.z - item.z) - item.depth * item.scale / 2)) < 0.22);

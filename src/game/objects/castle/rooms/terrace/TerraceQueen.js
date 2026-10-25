@@ -72,6 +72,14 @@ export class TerraceQueen {
   }
 
   /**
+   * Resume travel from the visible doorway sidestep.
+   * @returns {boolean}
+   */
+  settleNavigationOffset() {
+    return this.#actor.settleNavigationOffset();
+  }
+
+  /**
    *
     * @returns {number}
    */

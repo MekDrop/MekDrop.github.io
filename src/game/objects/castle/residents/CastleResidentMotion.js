@@ -12,9 +12,17 @@ import { castleStraightStairSurfaces } from "../stairs/CastleStraightStairs.js";
  */
 export class CastleResidentMotion {
   /**
+   * @type {WeakSet<import("playcanvas").Vec3>}
+   */
+  #stairPoints = new WeakSet();
+  /**
    * @type {number}
    */
   #yaw = 0;
+  /**
+   * @type {boolean}
+   */
+  #moving = false;
   /**
    * @type {import("./CastleResidentialLayout.js").CastleResidentialLayout}
    */
@@ -82,7 +90,9 @@ export class CastleResidentMotion {
     this.#clear = clear;
     this.#homeArea = homeArea;
     this.#home = actor.entity.getPosition().clone();
-    this.#yaw = actor.entity.getEulerAngles().y;
+    // Euler decomposition can report Y=0 for a root facing 180 degrees.
+    // Read its heading from the forward vector to preserve the loaded pose.
+    this.#yaw = Math.atan2(-actor.entity.forward.x, -actor.entity.forward.z) * 180 / Math.PI;
     this.#vehicle.maxSpeed = 1.2;
   }
 
@@ -103,6 +113,7 @@ export class CastleResidentMotion {
    * Cancels travel at the current position and releases doorway requests.
    */
   stop() {
+    this.#moving = false;
     this.#route = null;
     this.#target = null;
     this.#clear(null, this.#actor.entity);
@@ -123,6 +134,7 @@ export class CastleResidentMotion {
       return;
     }
     this.#target = target.clone();
+    this.#moving = false;
     this.#route = this.#find(this.#actor.entity.getPosition(), target);
   }
 
@@ -163,6 +175,7 @@ export class CastleResidentMotion {
    */
   update(deltaTime) {
     if (this.#target && this.#route?.length !== 0 && this.#actor.settleNavigationOffset?.()) {
+      this.#moving = false;
       this.#route = this.#find(this.#actor.entity.getPosition(), this.#target);
     }
     this.#retry = Math.max(0, this.#retry - deltaTime);
@@ -175,11 +188,26 @@ export class CastleResidentMotion {
     }
     this.#clear(this.#actor.entity.getPosition(), this.#actor.entity);
     if (this.#actor.behavior?.reacting) {
+      this.#moving = false;
+
       return;
     }
-    let remaining = this.#vehicle.maxSpeed * Math.min(deltaTime, 0.1);
     const entity = this.#actor.entity;
     const position = entity.getPosition().clone();
+    const stepTime = Math.min(deltaTime, 0.1);
+    const heading = this.#route[0].clone().sub(position);
+    const targetYaw = Math.hypot(heading.x, heading.z) > 0.001
+      ? Math.atan2(heading.x, heading.z) * 180 / Math.PI : this.#yaw;
+    const yawError = ((targetYaw - this.#yaw) % 360 + 540) % 360 - 180;
+    const turn = math.clamp(yawError * (1 - Math.exp(-10 * stepTime)), -240 * stepTime, 240 * stepTime);
+    this.#yaw += turn;
+    entity.setEulerAngles(0, this.#yaw, 0);
+    // Turn toward travel before stepping, rather than sliding sideways while
+    // the body catches up. Apply rotation once per frame, not per grid point.
+    const facingError = Math.abs(yawError - turn);
+    const facingTravel = facingError <= (this.#moving ? 45 : 15);
+    let remaining = facingTravel ? this.#vehicle.maxSpeed * stepTime *
+      Math.max(0, Math.cos(facingError * Math.PI / 180)) : 0;
     while (remaining > 0 && this.#route.length) {
       const next = this.#route[0];
       const direction = next.clone().sub(position);
@@ -202,11 +230,6 @@ export class CastleResidentMotion {
       position.copy(candidate);
       this.#vehicle.position.set(position.x, position.y, position.z);
       this.#vehicle.velocity.copy(new Vector3(direction.x, direction.y, direction.z).normalize().multiplyScalar(this.#vehicle.maxSpeed));
-      if (Math.hypot(direction.x, direction.z) > 0.001) {
-        const targetYaw = Math.atan2(direction.x, direction.z) * 180 / Math.PI;
-        this.#yaw = math.lerpAngle(this.#yaw, targetYaw, Math.min(1, deltaTime * 10));
-        entity.setEulerAngles(0, this.#yaw, 0);
-      }
       remaining -= step;
       if (distance <= step + 0.00001) {
         this.#route.shift();
@@ -215,8 +238,11 @@ export class CastleResidentMotion {
     const distanceMoved = position.distance(entity.getPosition());
     const elevationChange = position.y - entity.getPosition().y;
     const moved = distanceMoved > 0.00001;
+    this.#moving = moved;
     this.#time += distanceMoved / (this.#actor.locomotionStride ?? 1.2);
     entity.setPosition(position);
+    // Steering owns yaw. Keep a standing pose during pivots instead of layering
+    // a baked turn clip's visual-root rotation on top of navigation rotation.
     let action = moved || this.#walkAction === "carry" ? this.#walkAction : "idle";
     if (moved && this.#actor.supportsStairAnimation && Math.abs(elevationChange) > 0.0001) {
       action = this.#walkAction === "carry"
@@ -258,6 +284,7 @@ export class CastleResidentMotion {
   }
 
   #build() {
+    this.#stairPoints = new WeakSet();
     const lookup = new Map();
     for (const area of this.#layout.walkableAreas) {
       for (let ix = Math.ceil(area.minX * 8); ix <= Math.floor(area.maxX * 8); ix++) {
@@ -321,6 +348,9 @@ export class CastleResidentMotion {
         points = stair.treads.map(this.#mapPoint.bind(this));
       }
       const route = points.map(CastleResidentMotion.#mapPoint2);
+      for (const point of points) {
+        this.#stairPoints.add(point);
+      }
       for (let index = 1; index < route.length; index++) {
         route[index - 1].links.push(route[index]); route[index].links.push(route[index - 1]);
       }
@@ -413,6 +443,12 @@ export class CastleResidentMotion {
         goalNeighbors.add(node);
       }
     }
+    if (source.links.length === 0 || goalNeighbors.size === 0) {
+      return null;
+    }
+    // Recompute clearance for each journey: furniture and doors can move.
+    // A soft cost keeps narrow passages usable and preserves exact task targets.
+    const clearanceCosts = new Map();
     const costs = new Map([[source, 0]]), previous = new Map(), open = new Set([source]);
     while (open.size) {
       let current = null, score = Infinity;
@@ -428,14 +464,17 @@ export class CastleResidentMotion {
           route.unshift(node.point);
         }
 
-        return route;
+        return this.#smoothRoute(start, route, avoidDoors);
       }
       open.delete(current);
       for (const neighbor of [...current.links, ...(goalNeighbors.has(current) ? [goal] : [])]) {
         if (!this.#collisionFree(current.point, neighbor.point, avoidDoors)) {
           continue;
         }
-        const cost = costs.get(current) + current.point.distance(neighbor.point);
+        if (!clearanceCosts.has(neighbor)) {
+          clearanceCosts.set(neighbor, neighbor === goal ? 1 : this.#clearanceCost(neighbor.point));
+        }
+        const cost = costs.get(current) + current.point.distance(neighbor.point) * clearanceCosts.get(neighbor);
         if (cost >= (costs.get(neighbor) ?? Infinity)) {
           continue;
         }
@@ -444,6 +483,99 @@ export class CastleResidentMotion {
     }
 
     return null;
+  }
+
+  /**
+   * Remove grid-sized zigzags without straightening away the center preference,
+   * then round floor corners. Stair flights retain their authored profile.
+   * @param {import("playcanvas").Vec3} start
+   * @param {import("playcanvas").Vec3[]} route
+   * @param {boolean} avoidDoors
+   * @returns {import("playcanvas").Vec3[]}
+   */
+  #smoothRoute(start, route, avoidDoors) {
+    const points = [start, ...route];
+    const simplified = [start];
+    for (let index = 0; index < points.length - 1;) {
+      let last = index + 1;
+      for (let end = index + 2; end < points.length; end++) {
+        if (this.#stairPoints.has(points[index + 1]) || this.#stairPoints.has(points[end])) {
+          break;
+        }
+        const direction = points[end].clone().sub(points[index]);
+        if (Math.abs(direction.y) > 0.0001) {
+          break;
+        }
+        let close = true;
+        for (let middle = index + 1; middle < end; middle++) {
+          const offset = points[middle].clone().sub(points[index]);
+          const fraction = math.clamp(offset.dot(direction) / Math.max(0.000001, direction.lengthSq()), 0, 1);
+          const projected = points[index].clone().add(direction.clone().mulScalar(fraction));
+          if (Math.abs(offset.y) > 0.0001 || projected.distance(points[middle]) > 0.1) {
+            close = false;
+            break;
+          }
+        }
+        if (!close || !this.#segment(points[index], points[end], avoidDoors)) {
+          break;
+        }
+        last = end;
+      }
+      simplified.push(points[last]);
+      index = last;
+    }
+    const rounded = [];
+    for (let index = 1; index < simplified.length - 1; index++) {
+      const before = simplified[index - 1], corner = simplified[index], after = simplified[index + 1];
+      const distance = Math.min(0.5, before.distance(corner) / 2, corner.distance(after) / 2);
+      if (this.#stairPoints.has(corner) || Math.abs(before.y - corner.y) > 0.0001 || Math.abs(after.y - corner.y) > 0.0001 || distance < 0.025) {
+        rounded.push(corner);
+        continue;
+      }
+      const entry = corner.clone().lerp(corner, before, distance / corner.distance(before));
+      const exit = corner.clone().lerp(corner, after, distance / corner.distance(after));
+      const curve = [entry];
+      let clear = true;
+      const steps = Math.ceil(distance * 2 / 0.08);
+      for (let step = 1; step <= steps; step++) {
+        const t = step / steps;
+        const point = entry.clone().mulScalar((1 - t) ** 2)
+          .add(corner.clone().mulScalar(2 * (1 - t) * t)).add(exit.clone().mulScalar(t ** 2));
+        if (!this.#segment(curve.at(-1), point, avoidDoors)) {
+          clear = false;
+          break;
+        }
+        curve.push(point);
+      }
+      rounded.push(...(clear ? curve : [corner]));
+    }
+    rounded.push(simplified.at(-1));
+
+    return rounded;
+  }
+
+  /**
+   * Prefer the middle of free floor space rather than the shortest wall edge.
+   * Collision queries already include the resident's body radius. Sample beyond
+   * that footprint, including diagonals so corners receive the same preference.
+   * @param {import("playcanvas").Vec3} point
+   * @returns {number}
+   */
+  #clearanceCost(point) {
+    const sample = point.clone();
+    for (let distance = 0.125; distance <= 1.5; distance += 0.125) {
+      for (let direction = 0; direction < 8; direction++) {
+        const angle = direction * Math.PI / 4;
+        sample.set(point.x + Math.cos(angle) * distance, point.y,
+          point.z + Math.sin(angle) * distance);
+        const local = this.#layout.toLocal(sample.x, sample.z);
+        if (!this.#floor(local.x, local.z, point.y) || this.#blocked(sample, false)) {
+          return 1 + 6 * (1 - distance / 1.5) ** 2;
+        }
+      }
+    }
+
+    return 1;
   }
 
   /**

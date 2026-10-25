@@ -1,6 +1,7 @@
 import { SurfaceSpatialIndex } from "../../shared/SurfaceSpatialIndex.js";
 import { createCastleMasonryVoxels } from "./CastleMasonryPhysics.js";
 import { NpcObstacleProbe } from "../../shared/NpcObstacleProbe.js";
+import { ResidentClearance } from "../residents/ResidentClearance.js";
 import { addGeneratedVoxelPhysics } from "../../shared/GeneratedVoxelPhysics.js";
 import stoneBlockUrl from "../../../models/castle/residential/masonry-block.glb?url";
 import { DynamicRenderBatch } from "../../../rendering/DynamicRenderBatch.js";
@@ -763,22 +764,17 @@ export class CastleEntityBuilder {
    */
   #canNpcMove = (point) => {
     const layout = this.#residence?.layout;
-    if (layout) {
-      const local = layout.toLocal(point.x, point.z);
-      const supported = [...layout.walkableAreas, ...Object.values(layout.rooms)].some(/**
-       * @param {{floorY:number,minX:number,maxX:number,minZ:number,maxZ:number}} area
-       */ (area) =>
-          Math.abs(area.floorY - point.y) < 0.15 && local.x >= area.minX + 0.22 &&
-        local.x <= area.maxX - 0.22 && local.z >= area.minZ + 0.22 && local.z <= area.maxZ - 0.22);
-      if (!supported) {
-        return false;
-      }
+    if (!layout) {
+      return !this.blocksCameraAt(point.x, point.y + 0.6, point.z, 0.22) &&
+        !this.blocksCameraAt(point.x, point.y + 1.3, point.z, 0.22) &&
+        !this.#npcObstacleProbe?.blockedAt(point);
+    }
+    if (!ResidentClearance.isSupported(layout, point)) {
+      return false;
     }
     // Yielding uses the same footprint as walking, so a valid aisle remains
     // escapable when a nearby door asks its occupant to step aside.
-    return !this.blocksCameraAt(point.x, point.y + 0.6, point.z, 0.22) &&
-      !this.blocksCameraAt(point.x, point.y + 1.3, point.z, 0.22) &&
-      !this.#npcObstacleProbe?.blockedAt(point);
+    return !this.#blocked(point, true);
   };
 
   /**
@@ -1229,22 +1225,14 @@ export class CastleEntityBuilder {
    */
   #blocked(point, avoidDoors = false, includeProps = true) {
     this.#npcObstacleProbe ??= new NpcObstacleProbe(this.#app, this.#royal?.audienceActor.entity);
+    const radius = ResidentClearance.wallRadiusAt(this.#residence.layout, point);
 
     return (
       (avoidDoors && this.#animatedDoors.some(/**
            * @param {Door} door
-           */ (door) => door.openAmount > 0.02 && door.blocksCameraAt(point.x, point.y + 0.4, point.z, 0.22))) || this.#residence.blocksMovementAt(point.x, point.z, 0.22, point.y) ||
-          this.#cameraCollisionBlocks.some(/**
-           *
-           * @param {{x:number,y:number,z:number,halfX:number,halfY:number,halfZ:number}} block
-           */
-            (block) => {
-              if (block.y + block.halfY <= point.y + 0.32 || block.y - block.halfY >= point.y + 1.6) {
-                return false;
-              }
-              return Math.hypot(Math.max(0, Math.abs(point.x - block.x) - block.halfX),
-                Math.max(0, Math.abs(point.z - block.z) - block.halfZ)) < 0.22;
-            }) || (includeProps && this.#npcObstacleProbe.blockedAt(point))
+           */ (door) => door.openAmount > 0.02 && door.blocksCameraAt(point.x, point.y + 0.4, point.z, radius))) || this.#residence.blocksMovementAt(point.x, point.z, 0.22, point.y) ||
+          ResidentClearance.blockedByWalls(this.#cameraCollisionIndex.query(point.x, point.z, radius), point, radius) ||
+          (includeProps && this.#npcObstacleProbe.blockedAt(point))
     );
   }
 
@@ -1275,11 +1263,13 @@ export class CastleEntityBuilder {
       }
     }
 
+    const radius = ResidentClearance.wallRadiusAt(this.#residence.layout, point);
+
     return !this.#animatedDoors.some(/**
            *
            * @param {Door} door
            */
-      (door) => door.blocksCameraAt(point.x, point.y + 0.4, point.z, 0.22));
+      (door) => door.blocksCameraAt(point.x, point.y + 0.4, point.z, radius));
   }
 
   /**
