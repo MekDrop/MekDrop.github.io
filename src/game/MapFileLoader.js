@@ -50,6 +50,19 @@ export class MapFileLoader {
   }
 
   /**
+   * Install updated JSON without invalidating other test maps or the Vue mount.
+   * @param {string} path
+   * @param {import("./objects/ObjectTypes.js").GameMapData} map
+   * @returns {string}
+   */
+  static replaceDevelopmentMap(path, map) {
+    const [name] = this.#map([path, null]);
+    this.#loaders.set(name, async () => map);
+
+    return name;
+  }
+
+  /**
    *
    * @param {{"0": number, "1": number}} options
    * @param {number} options."0"

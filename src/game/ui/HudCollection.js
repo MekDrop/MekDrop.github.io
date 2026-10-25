@@ -1,5 +1,9 @@
 export class HudCollection extends Map {
   /**
+   * @type {Map<string, Record<string, never>>}
+   */
+  #options = new Map();
+  /**
    * @type {typeof import("playcanvas")|null}
    */
   #pc;
@@ -46,6 +50,7 @@ export class HudCollection extends Map {
       hud.destroy();
       throw error;
     }
+    this.#options.set(key, options);
 
     return hud;
   }
@@ -70,7 +75,38 @@ export class HudCollection extends Map {
     }
 
     this.delete(key);
+    this.#options.delete(key);
     hud.destroy();
+
+    return true;
+  }
+
+  /**
+   * Replace one HUD while keeping its input dependencies and displayed state.
+   * Build before retiring the old HUD so a failed update leaves it usable.
+   * @param {typeof import("./GamePanelHud.js").GamePanelHud} HudClass
+   * @returns {boolean}
+   */
+  reloadDevelopment(HudClass) {
+    const previous = this.getHud(HudClass);
+    if (!previous) {
+      return false;
+    }
+    const next = new HudClass({
+      ...this.#options.get(HudClass.name),
+      pc: this.#pc,
+      app: this.#app,
+    });
+    try {
+      next.developmentState = previous.developmentState;
+      next.visible = previous.entity?.enabled ?? true;
+      next.attach();
+    } catch (error) {
+      next.destroy();
+      throw error;
+    }
+    previous.destroy();
+    this.set(HudClass.name, next);
 
     return true;
   }
@@ -90,6 +126,7 @@ export class HudCollection extends Map {
       hud.destroy();
     }
     this.clear();
+    this.#options.clear();
     this.#pc = null;
     this.#app = null;
   }

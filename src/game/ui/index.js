@@ -6,5 +6,6 @@ export { gameUiTheme } from "./GameUiTheme.js";
 export { HudCollection } from "./HudCollection.js";
 export { HeroLifeHud } from "./HeroLifeHud.js";
 export { CoinHud } from "./CoinHud.js";
+export { MapTestControlsHud } from "./MapTestControlsHud.js";
 export { InventoryHud } from "./InventoryHud.js";
 export { InventoryItemProjector } from "./InventoryItemProjector.js";

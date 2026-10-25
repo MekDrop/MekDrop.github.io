@@ -210,6 +210,7 @@ let interactionSuggestion = null;
 let gameCommandRegistry = null;
 let loadingOperationId = 0;
 let controlsConnected = false;
+let developmentReload = null;
 const pluginControlActions = {};
 const pluginControlKeyboard = {
   keydownActions: [],
@@ -783,6 +784,33 @@ async function init() {
     gameCommandRegistry = createGameCommandRegistry({ target: window });
     gameCommandRegistry.install();
     gameReady.value = true;
+    if (import.meta.hot) {
+      const { GameDevelopmentReload } = await import("src/game/development/GameDevelopmentReload.js");
+      if (renderer !== activeRenderer) {
+        return;
+      }
+      developmentReload = new GameDevelopmentReload({
+        whenReady: () => mapRouteLoadPromise,
+        getMap: () => mapData,
+        /**
+         * @param {string[]} names
+         */
+        reloadObjects: (names) => activeRenderer.reloadDevelopmentObjects(names),
+        /**
+         * @param {Array<typeof import("src/game/ui/GamePanelHud.js").GamePanelHud>} classes
+         */
+        reloadHuds: (classes) => activeRenderer.reloadDevelopmentHuds(classes),
+        /**
+         * @param {string} name
+         */
+        reloadMap: (name) => {
+          mapRouteLoadPromise = loadMapRoute(name);
+
+          return mapRouteLoadPromise;
+        },
+        onError: reportRuntimeError,
+      });
+    }
   } finally {
     await finishLoading(loadingId);
   }
@@ -794,6 +822,8 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+  developmentReload?.destroy();
+  developmentReload = null;
   mapNavigationId += 1;
   gameReady.value = false;
   firstPersonCameraEnabled.value = false;

@@ -78,6 +78,17 @@ export class CoinHud extends GamePanelHud {
     this.#drawNumber(COIN_TYPE.COPPER);
   }
 
+  /**
+   * @returns {Record<string, number>}
+   */
+  get developmentState() {
+    return { ...this.#wallet };
+  }
+
+  set developmentState(wallet) {
+    this.setWallet(wallet);
+  }
+
   destroy() {
     this.#coinTextures.clear();
     this.#numberTextures.clear();

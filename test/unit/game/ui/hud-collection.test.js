@@ -37,6 +37,49 @@ class StaticHud {
 }
 
 describe("HudCollection", () => {
+  it("replaces only the changed HUD and preserves state, visibility and options", () => {
+    const huds = new HudCollection({
+      pc: {},
+      app: {},
+    });
+    const previous = huds.add(TestHud, { getMood: () => "happy" });
+    const other = huds.add(StaticHud);
+    previous.developmentState = { copper: 12 };
+    previous.entity = { enabled: false };
+    const Updated = class TestHud extends previous.constructor {};
+    assert.equal(huds.reloadDevelopment(Updated), true);
+    const next = huds.getHud(Updated);
+    assert.notEqual(next, previous);
+    assert.deepEqual(next.developmentState, { copper: 12 });
+    assert.equal(next.visible, false);
+    assert.equal(next.context.getMood(), "happy");
+    assert.equal(previous.destroyCount, 1);
+    assert.equal(next.attachCount, 1);
+    assert.equal(huds.getHud(StaticHud), other);
+    assert.equal(other.destroyCount, 0);
+    huds.destroy();
+    assert.equal(next.destroyCount, 1);
+  });
+
+  it("retains the previous HUD if a replacement cannot attach", () => {
+    const huds = new HudCollection({
+      pc: {},
+      app: {},
+    });
+    const previous = huds.add(TestHud);
+    let failed;
+    const Updated = class TestHud extends previous.constructor {
+      attach() {
+        failed = this;
+        throw new TypeError("cannot attach");
+      }
+    };
+    assert.throws(() => huds.reloadDevelopment(Updated), /cannot attach/);
+    assert.equal(huds.getHud(TestHud), previous);
+    assert.equal(previous.destroyCount, 0);
+    assert.equal(failed.destroyCount, 1);
+    huds.destroy();
+  });
   it("adds each HUD class once with the shared rendering context", () => {
     const context = {
       pc: {},

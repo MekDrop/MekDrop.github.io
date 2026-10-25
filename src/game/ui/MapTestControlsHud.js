@@ -16,6 +16,16 @@ import { INPUT_EVENT_TYPE } from "../enum/InputEventType.js";
  */
 export class MapTestControlsHud extends GamePanelHud {
   /**
+   * @returns {number}
+   */
+  get developmentState() {
+    return this.#activeTab;
+  }
+
+  set developmentState(tab) {
+    this.#selectTab(Math.max(0, Math.min(tab ?? 0, this.#tabs.length - 1)));
+  }
+  /**
    * @type {import("../debug/MapTestControls.js").MapTestControls}
    */
   #controls;

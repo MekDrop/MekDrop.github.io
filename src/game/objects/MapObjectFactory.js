@@ -208,6 +208,13 @@ for (const [path, module] of Object.entries(enemyModules)) {
  */
 export class MapObjectFactory {
   /**
+   * @param {string} name
+   * @returns {MapObjectConstructor|undefined}
+   */
+  static classFor(name) {
+    return OBJECT_CLASSES.get(name);
+  }
+  /**
    * Creates a registered object, including objects owned by another map object.
    * @param {import("./ObjectTypes.js").MapObjectOptions} options
    * @returns {import("./ObjectTypes.js").MapObjectLike}
@@ -338,7 +345,7 @@ export class MapObjectFactory {
     const pending = [...definitions];
     for (const definition of pending) {
       const ObjectClass = definition.object === "Vegetation"
-        ? VoxelVegetation : OBJECT_CLASSES.get(definition.object);
+        ? OBJECT_CLASSES.get("Vegetation") : OBJECT_CLASSES.get(definition.object);
       if (ObjectClass) {
         classes.add(ObjectClass);
         pending.push(...ObjectClass.assetDefinitionsFor?.(definition) ?? []);
@@ -403,7 +410,8 @@ export class MapObjectFactory {
       yield object;
     }
     if (vegetationDefinitions.length) {
-      const vegetation = new VoxelVegetation({
+      const VegetationClass = OBJECT_CLASSES.get("Vegetation");
+      const vegetation = new VegetationClass({
         pc,
         app,
         modelLibrary,

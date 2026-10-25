@@ -73,6 +73,18 @@ export class GameStatusHud extends GamePanelHud {
     };
   }
 
+  /**
+   * @returns {GameStatusState}
+   */
+  get developmentState() {
+    return this.state;
+  }
+
+  set developmentState(state) {
+    this.firstPersonVisible = state.firstPersonVisible;
+    this.setInteraction(state.interaction);
+  }
+
   set firstPersonVisible(visible) {
     this.#firstPersonVisible = Boolean(visible);
     if (this.#firstPersonPanel) {

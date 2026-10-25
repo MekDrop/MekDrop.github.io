@@ -2,7 +2,6 @@ import { MapObjectReplacement } from "./rendering/scene/MapObjectReplacement.js"
 import { SceneDecorationQueue } from "./rendering/scene/SceneDecorationQueue.js";
 import { GameFrameLoop } from "./rendering/GameFrameLoop.js";
 import { MapTestControls } from "./debug/MapTestControls.js";
-import { MapTestControlsHud } from "./ui/MapTestControlsHud.js";
 import { DirectionalShadowBudget } from "./rendering/DirectionalShadowBudget.js";
 import { DirectionalShadowCoverage } from "./rendering/DirectionalShadowCoverage.js";
 import { useDebounceFn } from "@vueuse/core";
@@ -46,6 +45,7 @@ import {
   HeroLifeHud,
   HeroMoodHud,
   HudCollection,
+  MapTestControlsHud,
 } from "./ui/index.js";
 import { colorFromHex } from "./helpers/colors.js";
 import { MapObjectFactory } from "./objects/MapObjectFactory.js";
@@ -1537,6 +1537,61 @@ export class PlayCanvasRenderer {
    */
   removeHud(HudClass) {
     return this.#huds?.remove(HudClass) ?? false;
+  }
+
+  /**
+   * Presentation-only updates preserve the application, world and hero.
+   * Stateful objects request the normal map lifecycle instead.
+   * @param {string[]} names
+   * @returns {Promise<boolean>}
+   */
+  async reloadDevelopmentObjects(names) {
+    if (this.#destroyed || this.#replacingScene) {
+      return false;
+    }
+    const changed = new Set(names);
+    const affected = [...this.#sceneObjects].filter(
+      /**
+       * @param {import("./objects/ObjectTypes.js").MapObjectLike} object
+       */
+      (object) => changed.has(object.definition?.object));
+    /**
+     * @param {import("./objects/shared/AbstractCastleProp.js").AbstractCastleProp} object
+     */
+    const canReload = (object) => object.canReloadDevelopment?.(
+      MapObjectFactory.classFor(object.definition.object));
+    const represented = new Set(affected.map(
+      /**
+       * @param {import("./objects/ObjectTypes.js").MapObjectLike} object
+       */
+      (object) => object.definition.object));
+    /**
+     * @param {import("./objects/ObjectTypes.js").MapObjectDefinition} definition
+     */
+    const missing = (definition) => changed.has(definition.object) && !represented.has(definition.object);
+    if (!affected.length || !affected.every(canReload) || this.#mapData.objects.some(missing)) {
+      return false;
+    }
+    const map = this.#mapData;
+    await this.prepareMapAssets(map);
+    if (this.#destroyed || this.#mapData !== map) {
+      return true;
+    }
+    for (const object of affected) {
+      object.reloadDevelopment(MapObjectFactory.classFor(object.definition.object));
+    }
+    this.#captureCameraVisualBounds();
+
+    return true;
+  }
+
+  /**
+   * @param {Array<typeof import("./ui/GamePanelHud.js").GamePanelHud>} classes
+   */
+  reloadDevelopmentHuds(classes) {
+    for (const Class of classes) {
+      this.#huds?.reloadDevelopment(Class);
+    }
   }
 
   destroy() {

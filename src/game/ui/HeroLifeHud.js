@@ -161,6 +161,24 @@ export class HeroLifeHud extends GamePanelHud {
   }
 
   /**
+   * @returns {{lives: number, maxLives: number, castleLives: number, maxCastleLives: number}}
+   */
+  get developmentState() {
+    return {
+      lives: this.#lives,
+      maxLives: this.#maxLives,
+      castleLives: this.#castleLives,
+      maxCastleLives: this.#maxCastleLives,
+    };
+  }
+
+  set developmentState(state) {
+    this.setLives(state.lives, state.maxLives);
+    this.setCastleLives(state.castleLives, state.maxCastleLives);
+    this.#deathAnimationElapsed = null;
+  }
+
+  /**
    *
    * @param {number} current
    * @param {number} maximum

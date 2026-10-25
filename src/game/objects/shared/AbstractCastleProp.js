@@ -9,6 +9,18 @@ import { DynamicRenderBatch } from "../../rendering/DynamicRenderBatch.js";
  */
 export class AbstractCastleProp {
   /**
+   * @type {ConstructorParameters<typeof AbstractCastleProp>[0]}
+   */
+  #developmentOptions;
+  /**
+   * @type {typeof AbstractCastleProp|null}
+   */
+  #developmentClass = null;
+  /**
+   * @type {[number, number, number[]]|null}
+   */
+  #developmentOffsets = null;
+  /**
    * @type {WeakMap<import("playcanvas").Material, Map<string, {material: import("playcanvas").Material, owners: number}>>}
    */
   static #weatheredMaterials = new WeakMap();
@@ -60,6 +72,14 @@ export class AbstractCastleProp {
    * @param {{pc: typeof import("playcanvas"), modelLibrary: import("../../models/GameModelLibrary.js").GameModelLibrary, definition: import("../ObjectTypes.js").MapObjectDefinition, runtime?: import("../ObjectTypes.js").MapObjectRuntime}} options
    */
   constructor({ pc, modelLibrary, definition, runtime = {} }) {
+    if (import.meta.env?.DEV) {
+      this.#developmentOptions = {
+        pc,
+        modelLibrary,
+        definition,
+        runtime,
+      };
+    }
     this.#pc = pc;
     this.#definition = definition;
     this.#entity = new pc.Entity(`${definition.id} island ownership`);
@@ -152,7 +172,7 @@ export class AbstractCastleProp {
    * @returns {boolean}
    */
   get hasAuthoredCollision() {
-    return this.constructor.hasAuthoredCollision;
+    return (this.#developmentClass ?? this.constructor).hasAuthoredCollision;
   }
 
   get entity() {
@@ -163,7 +183,7 @@ export class AbstractCastleProp {
    * @returns {string}
    */
   get modelUrl() {
-    return this.constructor.modelUrl;
+    return (this.#developmentClass ?? this.constructor).modelUrl;
   }
   /**
    * Apply instance-specific authored part placement before creating its collider.
@@ -197,8 +217,57 @@ export class AbstractCastleProp {
    * @param {number[]} [offsets]
    */
   setIslandOffsets(near, far, offsets = [near, far]) {
+    if (import.meta.env?.DEV) {
+      this.#developmentOffsets = [near, far, [...offsets]];
+    }
     this.#islandRoots.setOffsets(near, far, offsets);
     this.#visual.rigidbody?.syncEntityToBody();
+  }
+
+  /**
+   * Only leaf props using this base's entire instance lifecycle can be swapped.
+   * Never patch a prototype: changed private fields require a fresh instance.
+   * @param {typeof AbstractCastleProp} ObjectClass
+   * @returns {boolean}
+   */
+  canReloadDevelopment(ObjectClass) {
+    return AbstractCastleProp.#isPresentationClass(this.constructor) &&
+      AbstractCastleProp.#isPresentationClass(ObjectClass);
+  }
+
+  /**
+   * Keep the public root and object identity used by residents and collision queries.
+   * Replace only their owned model, materials, batches and authored colliders.
+   * @param {typeof AbstractCastleProp} ObjectClass
+   */
+  reloadDevelopment(ObjectClass) {
+    const next = new ObjectClass(this.#developmentOptions);
+    this.#releaseVisual();
+    for (const child of [...this.#entity.children]) {
+      child.destroy();
+    }
+    this.#entity.addChild(next.#entity);
+    this.#visual = next.#visual;
+    this.#islandRoots = next.#islandRoots;
+    this.#collisionGraph = next.#collisionGraph;
+    this.#instanceMaterials = next.#instanceMaterials;
+    this.#releaseWeatheredMaterials = next.#releaseWeatheredMaterials;
+    this.#developmentClass = ObjectClass;
+    if (this.#developmentOffsets) {
+      this.setIslandOffsets(...this.#developmentOffsets);
+    }
+    this.onSceneReady();
+  }
+
+  /**
+   * @param {typeof AbstractCastleProp} ObjectClass
+   * @returns {boolean}
+   */
+  static #isPresentationClass(ObjectClass) {
+    return typeof ObjectClass === "function" &&
+      Object.getPrototypeOf(ObjectClass) === AbstractCastleProp &&
+      Object.hasOwn(ObjectClass, "developmentVisualOnly") &&
+      ObjectClass.developmentVisualOnly;
   }
   onSceneReady() {
     if (this.#renderBatch) {
@@ -215,9 +284,15 @@ export class AbstractCastleProp {
     );
   }
   destroy() {
+    this.#releaseVisual();
+    this.#entity.destroy();
+  }
+
+  #releaseVisual() {
     this.#renderBatch?.destroy();
     this.#renderBatch = null;
-    this.#entity.destroy();
+    // Remove rigid bodies before releasing their authored collision geometry.
+    this.#visual.destroy();
     this.#collisionGraph?.destroy();
     for (const release of this.#releaseWeatheredMaterials) {
       release();
@@ -226,5 +301,6 @@ export class AbstractCastleProp {
     for (const material of this.#instanceMaterials) {
       material.destroy();
     }
+    this.#instanceMaterials = [];
   }
 }
