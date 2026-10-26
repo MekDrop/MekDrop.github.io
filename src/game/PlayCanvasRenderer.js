@@ -2153,7 +2153,8 @@ export class PlayCanvasRenderer {
       setRotation: (rotation) => {
         if (
           this.#cameraLocked ||
-          hero.isInDeathSequence ||
+          hero.isDying ||
+          hero.isRespawning ||
           (this.#camera.orbitPivot && this.#camera.manuallyMoved)
         ) {
           return;
@@ -2162,6 +2163,9 @@ export class PlayCanvasRenderer {
         this.#updateCamera();
       },
       shouldPreserveRotation: () => {
+        if (hero.isDying || hero.isRespawning) {
+          return true;
+        }
         if (this.#camera.orbitPivot && this.#camera.manuallyMoved) {
           return true;
         }
@@ -2563,7 +2567,7 @@ export class PlayCanvasRenderer {
       return;
     }
 
-    if (hero?.isInDeathSequence) {
+    if (hero.isDying) {
       return;
     }
 

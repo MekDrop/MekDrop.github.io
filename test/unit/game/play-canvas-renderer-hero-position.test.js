@@ -9,8 +9,52 @@ const source = readFileSync(
 const start = source.indexOf("  #handleHeroPositionChange = (");
 const end = source.indexOf("\n  };", start) + "\n  };".length;
 const method = source.slice(start, end).replaceAll("#", "_");
-const Driver = new Function("SCENE_OBJECT_TYPE", `return class { ${method} }`)({
+const Driver = new Function("SCENE_OBJECT_TYPE", `
+  const HERO_CAMERA_CENTER_HEIGHT = 0.85;
+  const HERO_VIEWPORT_MARGIN = 80;
+  return class { ${method} }
+`)({
   HERO: "hero",
+});
+
+it("does not follow or schedule visibility rotation for a dying hero", () => {
+  const driver = new Driver();
+  const position = {
+    x: 1,
+    y: 0.5,
+    z: 3,
+  };
+  driver._sceneObjects = {
+    getOne: () => ({
+      isDying: true,
+      isRespawning: false,
+      entity: { getPosition: () => position },
+    }),
+  };
+  driver._camera = {
+    manuallyMoved: true,
+    camera: {
+      worldToScreen: () => ({
+        x: 320,
+        y: 240,
+      }),
+    },
+  };
+  driver._pc = { Vec3: class {} };
+  driver.canvas = {
+    clientWidth: 640,
+    clientHeight: 480,
+  };
+  driver._updateCastlesForHero = () => {};
+  driver._updateInteractionTarget = () => {};
+  let scheduled = false;
+  driver._heroVisibility = {
+    schedule: () => {
+      scheduled = true;
+    },
+  };
+  driver._handleHeroPositionChange(position);
+  assert.equal(scheduled, false);
 });
 
 it("ignores position callbacks when the hero is no longer registered", () => {
