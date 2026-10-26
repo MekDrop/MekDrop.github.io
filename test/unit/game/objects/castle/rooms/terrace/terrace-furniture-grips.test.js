@@ -43,7 +43,7 @@ it("centers table grips on the palms when furniture and actor scales differ", ()
       leftHand,
       rightHand,
     });
-    const grip = props.table.getWorldTransform().transformPoint(new pc.Vec3(0, 1.069, -0.468));
+    const grip = props.table.getWorldTransform().transformPoint(new pc.Vec3(0, 1.069, -0.573));
     const midpoint = new pc.Vec3().lerp(leftHand.getPosition(), rightHand.getPosition(), 0.5);
     assert.ok(grip.distance(midpoint) < 0.00001, `yaw ${yaw}: ${grip.distance(midpoint)}`);
     stage.destroy();

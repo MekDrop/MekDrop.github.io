@@ -347,6 +347,18 @@ export class CastleEntityBuilder {
   }
 
   /**
+   * Navigation shared by residents and map-authored route reviews.
+   * @returns {Omit<ConstructorParameters<typeof import("../residents/CastleResidentMotion.js").CastleResidentMotion>[0], "actor">}
+   */
+  get residentNavigation() {
+    return {
+      layout: this.#residence.layout,
+      blocked: this.#blocked.bind(this),
+      clear: this.#clear.bind(this),
+    };
+  }
+
+  /**
    *
    * @returns {number}
    */
@@ -1061,11 +1073,7 @@ export class CastleEntityBuilder {
     this.#terraceActivity = this.#royal.connectToCastle({
       ...this.#terraceContext,
       door: this.#terraceDoor,
-      navigation: {
-        layout: this.#residence.layout,
-        blocked: this.#blocked.bind(this),
-        clear: this.#clear.bind(this),
-      },
+      navigation: this.residentNavigation,
       servant: this.#servant,
       audienceRoom: this.#audienceRoom,
       /**

@@ -6,7 +6,7 @@ import { CASTLE_TERRACE_PHASE as PHASE } from "../../../../enum/CastleTerracePha
 import { TerracePropGrip } from "./TerracePropGrip.js";
 
 const SUNBED_POSITION = [0, 0, 3.1];
-const SUNBED_GRIPS = [[-0.425, 0.09, 0.335], [0.425, 0.09, 0.335]];
+const SUNBED_GRIPS = [[-0.425, 0.67, 0.565], [0.425, 0.67, 0.565]];
 /**
  *
  * @param {number} value
@@ -148,6 +148,7 @@ export class TerraceSunbedActions {
     }
     const carry = TerracePropGrip.carryPosition(
       this.#pc, this.#stage, this.#sunbed, servant, SUNBED_GRIPS,
+      null, 0.035, 90, 180,
     );
     const progress = pose.placement;
     this.#sunbed.setLocalPosition(
@@ -156,12 +157,14 @@ export class TerraceSunbedActions {
       carry.z + (SUNBED_POSITION[2] - carry.z) * progress,
     );
     this.#sunbed.setLocalRotation(new this.#pc.Quat().slerp(
-      this.#stage.getRotation().clone().invert().mul(servant.entity.getRotation()),
+      this.#stage.getRotation().clone().invert().mul(servant.carryRotation ?? servant.entity.getRotation())
+        .mul(new this.#pc.Quat().setFromEulerAngles(90, 180, 0)),
       new this.#pc.Quat(),
       progress,
     ));
     this.#sunbed.enabled = servant.entity.enabled;
-    TerracePropGrip.align(this.#pc, this.#sunbed, servant, SUNBED_GRIPS, null, 1 - pose.unfold);
+    TerracePropGrip.align(this.#pc, this.#sunbed, servant, SUNBED_GRIPS, null, 1 - pose.unfold,
+      [[0, 0, 1], [0, 0, 1]]);
   }
 
   /**

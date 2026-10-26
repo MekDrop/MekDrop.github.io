@@ -59,7 +59,9 @@ it("keeps the folded sunbed's authored origin inside the carrier root",()=>{
   const carrier=stage.findByName("Terrace sunbed");
   assert.notEqual(carrier,model,"folding animation must not own the carried transform");
   assert.ok(model.getLocalPosition().equals(new pc.Vec3(...sourceRoot.translation)));
-  const points=rails.map(r=>model.findByName(r.name).getPosition().clone());
+  // Contact sits on the upper wooden frame, rather than the animation pivots.
+  const points=[[-.425,.67,.565],[.425,.67,.565]].map(point=>
+    carrier.getWorldTransform().transformPoint(new pc.Vec3(...point)));
   for(const hand of [actor.leftHand,actor.rightHand]){
     assert.ok(Math.min(...points.map(p=>p.distance(hand.getPosition())))<.00001);
   }

@@ -9,7 +9,7 @@
   },
   "coordinates": {
     "width": 16,
-    "depth": 21,
+    "depth": 23.5,
     "north": "-z",
     "units": "metres",
     "recommendedUnitMetres": 1
@@ -23,20 +23,45 @@
     "width": 2,
     "bridge": [
       7,
-      19.875,
+      22.375,
       2,
       0.5
     ],
     "doorOwnedByRoom": true,
     "approachRamp": true,
-    "approach": [[-1.5, 5], [7.5, 5], [7.5, -5], [-1.5, -5], [-1.5, 0], [0, 0]]
+    "approach": [
+      [
+        -1.5,
+        5
+      ],
+      [
+        7.5,
+        5
+      ],
+      [
+        7.5,
+        -5
+      ],
+      [
+        -1.5,
+        -5
+      ],
+      [
+        -1.5,
+        0
+      ],
+      [
+        0,
+        0
+      ]
+    ]
   },
   "buildings": [
     {
       "id": "hall",
       "bounds": [
         0.25,
-        4.25,
+        6.75,
         15.5,
         6.25
       ],
@@ -49,7 +74,7 @@
         6.25,
         0.25,
         3.5,
-        4
+        6.5
       ],
       "elevation": 0,
       "height": 8
@@ -65,7 +90,7 @@
           "label": "Throne room",
           "bounds": [
             0.5,
-            4.5,
+            7,
             6,
             5.75
           ],
@@ -73,7 +98,7 @@
           "kind": "room",
           "furnishingBounds": [
             1,
-            4.5,
+            7,
             5.5,
             5.75
           ],
@@ -105,7 +130,7 @@
           "label": "Servant room",
           "bounds": [
             9.5,
-            4.5,
+            7,
             6,
             2.75
           ],
@@ -113,7 +138,7 @@
           "kind": "room",
           "furnishingBounds": [
             10.75,
-            4.5,
+            7,
             4.75,
             2.75
           ],
@@ -145,7 +170,7 @@
           "label": "Storeroom",
           "bounds": [
             9.5,
-            7.25,
+            9.75,
             6,
             3
           ],
@@ -180,7 +205,7 @@
           "floorFinish": "wood",
           "bounds": [
             6.5,
-            4.5,
+            7,
             3,
             5.75
           ],
@@ -239,7 +264,7 @@
           "label": "Spiral tower entrance aperture",
           "bounds": [
             7,
-            19.625,
+            22.125,
             2,
             0.25
           ],
@@ -264,7 +289,7 @@
             6.5,
             0.5,
             3,
-            3.75
+            6.25
           ],
           "kind": "room",
           "generator": null,
@@ -292,7 +317,7 @@
           "label": "Roof terrace",
           "bounds": [
             0.25,
-            4.25,
+            6.75,
             15.5,
             6.25
           ],
@@ -324,7 +349,7 @@
           "label": "Entrance bridge over monster path",
           "bounds": [
             6.75,
-            10.5,
+            13,
             2.5,
             3.875
           ],
@@ -358,7 +383,7 @@
             6.5,
             0.5,
             3,
-            3.75
+            6.25
           ],
           "kind": "room",
           "generator": null,
@@ -383,7 +408,7 @@
       "id": "terrace-descent",
       "bounds": [
         6.5,
-        0.75,
+        2,
         3,
         3
       ],
@@ -391,7 +416,8 @@
       "to": 1,
       "entrySide": "SOUTH",
       "radius": 1.35,
-      "landingProfile": false
+      "landingProfile": false,
+      "approachDepth": 0.7
     }
   ],
   "roofs": [
@@ -399,7 +425,7 @@
       "id": "full-terrace",
       "bounds": [
         0.25,
-        4.25,
+        6.75,
         15.5,
         6.25
       ],
@@ -413,7 +439,7 @@
         6.25,
         0.25,
         3.5,
-        4
+        6.5
       ],
       "elevation": 8,
       "shape": "flat",
@@ -423,7 +449,7 @@
   "roundTower": {
     "center": [
       8,
-      16.75
+      19.25
     ],
     "radius": 3.25,
     "wallThickness": 0.5,
@@ -437,7 +463,7 @@
   },
   "audienceBounds": [
     1,
-    4.5,
+    7,
     6,
     5.75
   ],
@@ -447,7 +473,7 @@
       "object": "SpiralStaircase",
       "position": {
         "x": 8,
-        "z": 16.75
+        "z": 19.25
       },
       "Z1": 0,
       "Z2": 4,
@@ -461,7 +487,7 @@
       "object": "SpiralStaircase",
       "position": {
         "x": 8,
-        "z": 16.75
+        "z": 19.25
       },
       "Z1": 4,
       "Z2": 8,
@@ -478,7 +504,7 @@
       "position": {
         "x": 8,
         "y": 8.02,
-        "z": 16.75
+        "z": 19.25
       },
       "rotation": 0
     },
@@ -488,7 +514,7 @@
       "position": {
         "x": 11.2,
         "y": 0,
-        "z": 7.625
+        "z": 10.125
       },
       "variant": "storage",
       "scale": 1.5,
@@ -557,7 +583,7 @@
       "position": {
         "x": 13.8,
         "y": 0,
-        "z": 7.625
+        "z": 10.125
       },
       "variant": "storage",
       "scale": 1.5,
@@ -626,7 +652,7 @@
       "position": {
         "x": 14.75,
         "y": 0,
-        "z": 8.9
+        "z": 11.4
       }
     },
     {
@@ -635,7 +661,7 @@
       "position": {
         "x": 14.75,
         "y": 0,
-        "z": 9.7
+        "z": 12.2
       }
     },
     {
@@ -644,7 +670,7 @@
       "position": {
         "x": 13.1,
         "y": 0,
-        "z": 9.5
+        "z": 12
       }
     },
     {
@@ -653,7 +679,7 @@
       "position": {
         "x": 14.1,
         "y": 0,
-        "z": 9.5
+        "z": 12
       }
     },
     {
@@ -662,7 +688,7 @@
       "position": {
         "x": 15,
         "y": 0,
-        "z": 7.6
+        "z": 10.1
       }
     },
     {
@@ -671,7 +697,7 @@
       "position": {
         "x": 15.623999999999999,
         "y": 1.5,
-        "z": 8.1
+        "z": 10.6
       },
       "type": "entrance",
       "rotation": 270

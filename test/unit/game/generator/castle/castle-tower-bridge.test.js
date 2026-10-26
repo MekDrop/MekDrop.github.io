@@ -61,6 +61,13 @@ it('keeps the bridge underpass open and both tower exits aligned after rotation 
       assert.ok(plan.metadata.runtime.roomDoors.some(door => door.roomId === 'tower-terrace' && door.y === 6));
       assert.ok(plan.metadata.runtime.roomDoors.some(door => door.roomId === 'descent-tower-upper' && door.y === 6));
       assert.equal(r.authoredStairs.length, 1);
+      const descent = r.authoredStairs[0];
+      const towerRoom = r.rooms['descent-tower-ground'];
+      assert.equal(descent.approachDepth, 0.7, 'the furniture approach survives plan compilation');
+      assert.ok(descent.localCenter.z - descent.radius - towerRoom.minZ >= 1.8,
+        'loads must align with the flight after clearing the doorway');
+      assert.ok(towerRoom.maxZ - descent.localCenter.z - descent.radius >= 1.5,
+        'the turning landing must leave room ahead of the carried load');
       const below = layout.toWorld((bridge.minX + bridge.maxX) / 2, (bridge.minZ + bridge.maxZ) / 2, 1);
       assert.equal(plan.metadata.collision.cameraBlocks.some(block => Math.abs(block.x - below.x) < block.halfX && Math.abs(block.y - below.y) < block.halfY && Math.abs(block.z - below.z) < block.halfZ), false);
     }

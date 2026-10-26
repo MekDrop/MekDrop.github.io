@@ -219,6 +219,7 @@ export class TerraceTeaSetActions {
     if (behavior.stagePhase !== PHASE.POUR) {
       return;
     }
+    this.#servant.prepareGrip?.(0.025 * this.#pot.getWorldTransform().getScale().x, "right");
     const progress = ease(Math.min(
       1,
       behavior.progress * 4,
@@ -290,15 +291,24 @@ export class TerraceTeaSetActions {
     );
     this.#tray.setLocalRotation(new this.#pc.Quat().slerp(
       new this.#pc.Quat(),
-      this.#stage.getRotation().clone().invert().mul(this.#servant.entity.getRotation()),
+      this.#stage.getRotation().clone().invert().mul(this.#servant.carryRotation ?? this.#servant.entity.getRotation()),
       progress,
     ));
     TerracePropGrip.align(this.#pc, this.#tray, this.#servant, TRAY_GRIPS, null, progress);
   }
 
   #heldTrayPosition() {
+    // The saucer overhangs the tray. Include the complete loaded assembly in
+    // the clearance query, with each item at its actual tray-relative pose.
+    for (const [name, prop] of [["pot", this.#pot], ["cup", this.#cup]]) {
+      prop.setLocalPosition(this.#trayItemPosition(name));
+      prop.setLocalRotation(this.#tray.getLocalRotation());
+      prop.setLocalScale(1, 1, 1);
+    }
+
     return TerracePropGrip.carryPosition(
       this.#pc, this.#stage, this.#tray, this.#servant, TRAY_GRIPS,
+      null, 0.022, 0, 0, [this.#pot, this.#cup],
     );
   }
 

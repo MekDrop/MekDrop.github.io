@@ -51,6 +51,38 @@ Tables, chairs, trays, the teapot handle, and the folded sunbed attach to palm
 sockets. The sunbed's animated model root stays inside a separate carrier entity,
 so unfolding cannot overwrite its carrying transform.
 
+Carrying measures the cargo's descendant mesh bounds in its own frame and keeps
+the nearest surface ahead of the torso and swinging knees. This uses the actual
+furnishing scale and follows the carrier's heading and elevation on stairs.
+Finger curls fit the scaled rim, rail, or handle thickness; contact sockets move
+to the space enclosed by the fingers and opposing thumb before arm fitting.
+The authored pose and attachment sockets are restored when contact ends.
+
+Cargo vertices and sampled flat triangle interiors use the exact authored tread
+records shared with the visible stairs and Ammo mesh; other low surfaces retain
+physics queries. This avoids thousands of raycasts per carrying frame. The load
+rises ahead of the feet.
+Carrying clearance follows a continuous upper envelope of those treads, including
+a short approach outside each flight, so loads rise before risers without popping.
+Loaded tray queries include the pot, cup and overhanging saucer in their actual
+tray-relative poses, rather than treating the tray outline as the whole load.
+Tables travel with the pedestal upward, held at the rear rim. Folded daybeds
+travel upright, held at the upper wooden frame. Wrists align to the rim or rail
+axis, and the clavicles can protract by at most 25 degrees before the two arm
+segments are fitted, without stretching bones or moving the head.
+Stair routes reserve the load's width behind the divider, retain authored
+landing corners, and begin loaded pivots before reaching the back wall.
+Initial heading comes from the forward vector, avoiding Euler decomposition's
+ambiguous Y value at 180 degrees.
+
+The animation fixture's Cargo tab selects table, chair, loaded tea tray, or folded
+sunbed for both servant variants. The selected cargo stays attached during the
+existing stair-travel controls, using the same service actions as castle visits.
+`/map/test_servant-tower-cargo` covers the real enclosed tower, its approach,
+doorways and landings. Its tower has larger front and rear clearances; compiled
+approach points align loads with each flight. Loaded doorway sidesteps retain
+their facing, and a final prop/contact update follows doorway reaction poses.
+
 Terrace furnishings use a shared stage scale of `CHARACTER_HEIGHT / 2`, matching
 their approximately two-unit human authoring reference. Balcony dimensions do
 not shrink the furniture; the service arrangement remains centered on the

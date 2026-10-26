@@ -865,6 +865,36 @@
   "testControls": {
     "panels": [
       {
+        "title": "Cargo",
+        "statusTargetId": "servant-review",
+        "buttons": [
+          {
+            "label": "Carry table",
+            "script": "objects.getOne('hero').entity.enabled=false;for(const actor of [...objects].filter(actor=>actor.definition?.object==='Servant')){actor.testAnimation='carry';actor.testCargo='table';}"
+          },
+          {
+            "label": "Carry chair",
+            "script": "objects.getOne('hero').entity.enabled=false;for(const actor of [...objects].filter(actor=>actor.definition?.object==='Servant')){actor.testAnimation='carry';actor.testCargo='chair';}"
+          },
+          {
+            "label": "Carry tea",
+            "script": "objects.getOne('hero').entity.enabled=false;for(const actor of [...objects].filter(actor=>actor.definition?.object==='Servant')){actor.testAnimation='carry';actor.testCargo='tea';}"
+          },
+          {
+            "label": "Carry sunbed",
+            "script": "objects.getOne('hero').entity.enabled=false;for(const actor of [...objects].filter(actor=>actor.definition?.object==='Servant')){actor.testAnimation='carry';actor.testCargo='sunbed';}"
+          },
+          {
+            "label": "Empty hands",
+            "script": "for(const actor of [...objects].filter(actor=>actor.definition?.object==='Servant'))actor.testCargo=null;"
+          },
+          {
+            "label": "Pour tea",
+            "script": "objects.getOne('hero').entity.enabled=false;for(const actor of [...objects].filter(actor=>actor.definition?.object==='Servant')){actor.testAnimation='pour';actor.testCargo='tea';actor.statusEntity.setLocalPosition(.44,0,2.85);actor.statusEntity.setLocalEulerAngles(0,180,0);}"
+          }
+        ]
+      },
+      {
         "title": "Actions",
         "statusTargetId": "servant-review",
         "buttons": [

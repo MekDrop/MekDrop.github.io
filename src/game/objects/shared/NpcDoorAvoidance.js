@@ -8,6 +8,11 @@ import { NPC_DOOR_AVOIDANCE_PHASE as PHASE } from "../../enum/NpcDoorAvoidancePh
  */
 export class NpcDoorAvoidance {
   /**
+   * Loaded actors sidestep without swinging their cargo through the doorway.
+   * @type {boolean}
+   */
+  preserveFacing = false;
+  /**
    * @type {Set<NpcDoorAvoidance>}
    */
   static #participants = new Set();
@@ -353,7 +358,9 @@ export class NpcDoorAvoidance {
     }
     this.#entity.setPosition(next.x, position.y, next.z);
     const rotation = this.#vehicle.rotation;
-    this.#entity.setRotation(rotation.x, rotation.y, rotation.z, rotation.w);
+    if (!this.preserveFacing) {
+      this.#entity.setRotation(rotation.x, rotation.y, rotation.z, rotation.w);
+    }
     this.#elapsed += step;
     this.#onPose?.("walk", this.#elapsed);
     if (next.distanceTo(this.#target) < 0.04 &&

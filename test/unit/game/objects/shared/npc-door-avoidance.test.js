@@ -31,6 +31,25 @@ function scene() {
   };
 }
 
+it("sidesteps a loaded actor without rotating its cargo across the doorway", () => {
+  const { app, door, npc, behavior } = scene();
+  npc.setEulerAngles(0, 180, 0);
+  const facing = npc.getRotation().clone();
+  behavior.preserveFacing = true;
+  try {
+    NpcDoorAvoidance.requestClearance(door, point => Math.abs(point.x) < 1, () => true);
+    for (let frame = 0; frame < 120; frame++) {
+      NpcDoorAvoidance.requestClearance(door, point => Math.abs(point.x) < 1, () => true);
+      app.fire("update", 1 / 60);
+      app.fire("prerender");
+      assert.ok(npc.getRotation().equals(facing));
+    }
+    assert.ok(Math.abs(npc.getPosition().x) >= 1, "the actor must still step out of the swing");
+  } finally {
+    behavior.destroy();
+  }
+});
+
 it("lets walking traffic resume at a safe sidestep while its old position is reserved", () => {
   const { app, door, npc, behavior } = scene();
   const inSwing = point => Math.abs(point.x) < 1;

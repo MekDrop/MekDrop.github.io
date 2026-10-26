@@ -3,6 +3,7 @@ import { NpcDoorAvoidance } from "../../../shared/NpcDoorAvoidance.js";
 import { ServantHeroClearance } from "../../../shared/ServantHeroClearance.js";
 import { ResidentFootPlacement } from "../../residents/ResidentFootPlacement.js";
 import { ResidentHandContact } from "../../residents/ResidentHandContact.js";
+import { castleStraightStairSurfaces, castleStraightStairSurfaceHeight, castleStraightStairStepCount } from "../../stairs/CastleStraightStairs.js";
 
 const LOOPING_ANIMATIONS = new Set([
   TERRACE_ACTOR_ANIMATION.IDLE,
@@ -22,6 +23,10 @@ const LOOPING_ANIMATIONS = new Set([
  */
 export class TerraceActor {
   /**
+   * @type {WeakMap<object, {sine:number,cosine:number,surfaces:ReturnType<typeof castleStraightStairSurfaces>}>}
+   */
+  static #carrySurfaceCache = new WeakMap();
+  /**
    * @type {ResidentHandContact|null}
    */
   #handContact;
@@ -29,6 +34,23 @@ export class TerraceActor {
    * @type {ResidentFootPlacement|null}
    */
   #footPlacement = null;
+  /**
+   * @type {import("playcanvas").RigidBodyComponentSystem|null}
+   */
+  #carryPhysics = null;
+  /**
+   * @type {typeof import("playcanvas")}
+   */
+  #pc;
+  /**
+   * @type {number}
+   */
+  carryTurnRadius = 0.5;
+  /**
+   * Canonical tread records shared by the visible geometry and Ammo mesh.
+   * @type {import("../../stairs/CastleStraightStairs.js").StraightStairGeometry[]}
+   */
+  carryStairs = [];
   /**
    * @type {ServantHeroClearance|null}
    */
@@ -114,6 +136,8 @@ export class TerraceActor {
    * @param {string} options.kind
    */
   constructor({ pc, modelLibrary, modelUrl, kind }) {
+    this.#pc = pc;
+    this.#carryPhysics = pc.Application?.getApplication()?.systems.rigidbody ?? null;
     this.#kind = kind;
     this.#entity = new pc.Entity(`Terrace ${kind}`);
     this.#body = new pc.Entity("Terrace posture");
@@ -207,6 +231,20 @@ export class TerraceActor {
   }
 
   /**
+   * @returns {import("playcanvas").Quat}
+   */
+  get carryRotation() {
+    return this.#body.getRotation();
+  }
+
+  /**
+   * @returns {import("playcanvas").Vec3}
+   */
+  get carryOrigin() {
+    return this.#body.parent.getPosition();
+  }
+
+  /**
    * Resume navigation at a safe doorway sidestep without moving the visible body.
    * @returns {boolean}
    */
@@ -272,6 +310,9 @@ export class TerraceActor {
     this.#handContact?.restore();
     this.#footPlacement?.restore();
     if (!this.#applyingDoorPose) {
+      if (this.#doorAvoidance) {
+        this.#doorAvoidance.preserveFacing = action.startsWith("carry");
+      }
       this.#authoredPose = {
         action,
         time,
@@ -345,8 +386,8 @@ export class TerraceActor {
     this.#applyingDoorPose = true;
     try {
       const pose = action === "resume" ? this.#authoredPose : {
-        action,
-        time,
+        action: this.#authoredPose.action.startsWith("carry") ? "carry" : action,
+        time: this.#authoredPose.action.startsWith("carry") && action !== "walk" ? 0 : time,
         blend: 1,
       };
       this.pose(pose.action, pose.time, pose.blend);
@@ -363,9 +404,23 @@ export class TerraceActor {
   /**
    * @param {string} side
    * @param {import("playcanvas").Vec3} target
+   * @param {import("playcanvas").Vec3|null} gripAxis
    */
-  alignHand(side, target) {
-    this.#handContact?.apply(side, target);
+  alignHand(side, target, gripAxis = null) {
+    this.#handContact?.apply(side, target, gripAxis);
+  }
+
+  /**
+   * @param {number} radius World-space thickness of the grip surface.
+   * @param {string|null} side
+   */
+  prepareGrip(radius, side = null) {
+    if (side) {
+      this.#handContact?.grasp(side, radius);
+    } else {
+      this.#handContact?.grasp("left", radius);
+      this.#handContact?.grasp("right", radius);
+    }
   }
 
   resetHandContacts() {
@@ -378,6 +433,83 @@ export class TerraceActor {
   alignFeet(surfaceHeight) {
     this.evaluatePose();
     this.#footPlacement?.apply(surfaceHeight);
+  }
+
+  /**
+   * Query actual tread colliders below a carried mesh, excluding overhead floors.
+   * @param {import("playcanvas").Vec3} point
+   * @returns {number|null}
+   */
+  carrySupportHeight(point) {
+    const elevation = this.carryOrigin.y;
+    // Thousands of per-vertex Ammo raycasts stall a carrying frame. These are
+    // the exact same authored tread records used to construct its collider;
+    // no separate ramp or physics integration is approximated here.
+    let treadHeight = null;
+    for (const stair of this.carryStairs) {
+      if (!stair.straight) {
+        continue;
+      }
+      let query = TerraceActor.#carrySurfaceCache.get(stair);
+      if (!query) {
+        const angle = stair.yaw * Math.PI / 180;
+        query = {
+          sine: Math.sin(angle),
+          cosine: Math.cos(angle),
+          surfaces: castleStraightStairSurfaces(stair),
+        };
+        TerraceActor.#carrySurfaceCache.set(stair, query);
+      }
+      const dx = point.x - stair.center.x;
+      const dz = point.z - stair.center.z;
+      const x = dx * query.cosine - dz * query.sine;
+      const z = dx * query.sine + dz * query.cosine;
+      for (const surface of query.surfaces) {
+        const distance = Math.hypot(Math.max(surface.minX - x, 0, x - surface.maxX),
+          Math.max(surface.minZ - z, 0, z - surface.maxZ));
+        const approach = 0.25;
+        if (distance >= approach) {
+          continue;
+        }
+        const progress = Math.max(0, Math.min(1, (surface.reverse ? surface.maxZ - z : z - surface.minZ) /
+            (surface.maxZ - surface.minZ)));
+          // A continuous upper envelope reaches each riser before the load
+          // crosses it. Snapping directly to tread heights visibly jolts cargo.
+        const rise = surface.high - surface.low;
+        const envelope = Math.min(surface.high, surface.low + rise * (progress + 1 / castleStraightStairStepCount(surface)));
+        const support = stair.center.y + Math.max(envelope, castleStraightStairSurfaceHeight(surface, z));
+        const weight = 1 - distance / approach;
+        const height = elevation + (support - elevation) * weight * weight * (3 - 2 * weight);
+        if (height >= elevation - 0.35 && height <= elevation + 1.8 &&
+          (treadHeight === null || height > treadHeight)) {
+          treadHeight = height;
+        }
+      }
+    }
+    if (treadHeight !== null) {
+      return treadHeight;
+    }
+    if (point.y > elevation + 0.4) {
+      return null;
+    }
+    if (!this.#carryPhysics) {
+      return null;
+    }
+    // Tall flights rise across the load's footprint. Only authored stair support
+    // may count this far above the feet; wall tops and overhead floors must not
+    // pull a carried object out of the actor's reach.
+    const start = new this.#pc.Vec3(point.x, Math.max(elevation + 1.8, point.y + 0.35), point.z);
+    const end = new this.#pc.Vec3(point.x, elevation - 0.35, point.z);
+    let highest = null;
+    for (const hit of this.#carryPhysics.raycastAll(start, end)) {
+      if (hit.normal.y > 0.5 &&
+        (hit.entity.tags.has("capsule-support") || hit.point.y <= elevation + 0.32) &&
+        (highest === null || hit.point.y > highest)) {
+        highest = hit.point.y;
+      }
+    }
+
+    return highest;
   }
 
   destroy() {

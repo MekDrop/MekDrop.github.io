@@ -18,7 +18,7 @@ import { GardenTerraceRoomGenerator } from "./rooms/terrace/GardenTerraceRoomGen
 /**
  * @typedef {{kind:string,side:string,offset:number,width:number,bottom:number,height:number,swing?:string,openWide?:boolean,frameClearance?:number,openingInset?:number,open?:boolean}} AuthoredCastleOpening
  * @typedef {{id:string,label:string,kind:string,bounds:number[],generator:string|null,openings:AuthoredCastleOpening[],floorFinish?:string,furnish?:boolean}} AuthoredCastleSpace
- * @typedef {{id:string,bounds:number[],from:number,to:number,landingProfile?:boolean,radius?:number,flightGap?:number,flightShift?:number,landingLift?:number,entrySide?:string}} AuthoredCastleStair
+ * @typedef {{id:string,bounds:number[],from:number,to:number,landingProfile?:boolean,radius?:number,flightGap?:number,flightShift?:number,landingLift?:number,approachDepth?:number,entrySide?:string}} AuthoredCastleStair
  * @typedef {{id:string,bounds:number[],elevation:number,shape:string,height?:number,battlements?:boolean}} AuthoredCastleRoof
  * @typedef {{id:string,bounds:number[],elevation:number,height:number}} AuthoredCastleBuilding
  * @typedef {{index:number,elevation:number,spaces:AuthoredCastleSpace[]}} AuthoredCastleFloor
@@ -369,6 +369,7 @@ export class CastleBasePlanGenerator {
           to: stair.to,
           entrySide: stair.entrySide,
           landingProfile: stair.landingProfile,
+          approachDepth: (stair.approachDepth ?? 0.2) * scale,
           flightGap: (stair.flightGap ?? 0) * scale,
           flightShift: (stair.flightShift ?? 0) * scale,
           landingLift: (stair.landingLift ?? 0) * scale,

@@ -299,6 +299,7 @@ export class CastleAuthoredBuildPlan {
           stairBounds.maxZ = Math.max(stairBounds.maxZ, rearZ);
         }
         stairs.push({
+          approachDepth: shaft.approachDepth ?? 0.2,
           landingLift: shaft.landingLift ?? 0,
           localCenter: {
             x,

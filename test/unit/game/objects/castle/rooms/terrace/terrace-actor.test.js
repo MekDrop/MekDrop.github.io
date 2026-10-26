@@ -4,6 +4,43 @@ import { it } from "node:test";
 import * as pc from "playcanvas";
 import { TerraceActor } from "../../../../../../../src/game/objects/castle/rooms/terrace/TerraceActor.js";
 import { TERRACE_ACTOR_ANIMATION } from "../../../../../../../src/game/enum/TerraceActorAnimation.js";
+import { NpcDoorAvoidance } from "../../../../../../../src/game/objects/shared/NpcDoorAvoidance.js";
+import { castleStraightStairSurfaces, castleStraightStairSurfaceHeight } from "../../../../../../../src/game/objects/castle/stairs/CastleStraightStairs.js";
+
+it("raises carried surfaces continuously before every riser and flight entrance", () => {
+  const { root } = royalModel("servant");
+  const actor = new TerraceActor({
+    pc,
+    kind: "servant",
+    modelUrl: "servant",
+    modelLibrary: { instantiate: () => root },
+  });
+  const stair = {
+    center: {
+      x: 0,
+      y: 0,
+      z: 0,
+    },
+    radius: 1.35,
+    rise: 4,
+    yaw: 0,
+    straight: true,
+  };
+  actor.carryStairs = [stair];
+  const surface = castleStraightStairSurfaces(stair)[0];
+  let previous = 0;
+  for (let z = surface.maxZ + 0.25; z > surface.minZ; z -= 0.002) {
+    const fraction = Math.max(0, (surface.maxZ - z) / (surface.maxZ - surface.minZ));
+    actor.entity.setPosition(-0.675, fraction * 2, z);
+    const height = actor.carrySupportHeight(new pc.Vec3(-0.675, fraction * 2 + 1, z)) ?? 0;
+    assert.ok(Math.abs(height - previous) < 0.025, `clearance must not jump at ${z}: ${previous} -> ${height}`);
+    if (z <= surface.maxZ) {
+      assert.ok(height >= castleStraightStairSurfaceHeight(surface, z) - 0.00001, "smoothing must stay above each physical tread");
+    }
+    previous = height;
+  }
+  actor.destroy();
+});
 
 // Exercise the authored object hierarchy without a GPU context.
 function royalModel(kind) {
@@ -53,6 +90,97 @@ function royalModel(kind) {
     buffer,
   };
 }
+
+it("probes tall tower treads without treating divider tops or overhead floors as support", () => {
+  const { root } = royalModel("queen");
+  const stair = new pc.Entity();
+  stair.tags.add("capsule-support");
+  const wall = new pc.Entity();
+  let rayStart;
+  const actor = new TerraceActor({
+    pc: {
+      ...pc,
+      Application: {
+        getApplication: () => ({
+          on: () => ({ off: () => {} }),
+          root: new pc.Entity(),
+          systems: {
+            rigidbody: {
+              raycastAll: (start) => {
+                rayStart = start.clone();
+
+                return [
+                  {
+                    entity: wall,
+                    normal: pc.Vec3.UP,
+                    point: new pc.Vec3(0, 3.7, 0),
+                  },
+                  {
+                    entity: stair,
+                    normal: pc.Vec3.UP,
+                    point: new pc.Vec3(0, 3.4, 0),
+                  },
+                  {
+                    entity: wall,
+                    normal: pc.Vec3.UP,
+                    point: new pc.Vec3(0, 2.1, 0),
+                  },
+                ];
+              },
+            },
+          },
+        }),
+      },
+    },
+    kind: "queen",
+    modelUrl: "queen",
+    modelLibrary: { instantiate: () => root },
+  });
+  actor.entity.setPosition(0, 2, 0);
+  assert.equal(actor.carrySupportHeight(new pc.Vec3(0, 2.3, -1)), 3.4);
+  assert.ok(rayStart.y >= 3.8, "the old foot + 0.65 probe starts below the leading tread");
+  actor.destroy();
+});
+
+it("retains a loaded arm pose while yielding to a doorway", () => {
+  const app = new pc.EventHandler();
+  app.systems = {};
+  app.root = new pc.Entity();
+  app.root._enabledInHierarchy = true;
+  const { root } = royalModel("queen");
+  const actor = new TerraceActor({
+    pc: {
+      ...pc,
+      Application: { getApplication: () => app },
+    },
+    kind: "queen",
+    modelUrl: "queen",
+    modelLibrary: { instantiate: () => root },
+  });
+  app.root.addChild(actor.entity);
+  const door = new pc.Entity();
+  app.root.addChild(door);
+  const original = actor.pose.bind(actor);
+  const poses = [];
+  actor.pose = /**
+   * @param {string} action
+   * @param {number} time
+   * @param {number} blend
+   */ (action, time, blend) => {
+      poses.push(action);
+      original(action, time, blend);
+    };
+  try {
+    actor.pose("carry", 0.5);
+    NpcDoorAvoidance.requestClearance(door, () => true, () => false);
+    app.fire("update", 1 / 60);
+    app.fire("prerender");
+    assert.equal(poses.at(-1), "carry", "yielding must not replace the loaded pose with empty hands");
+  } finally {
+    actor.destroy();
+    app.root.destroy();
+  }
+});
 
 for (const kind of ["king", "queen", "princess", "servant", "elder-servant"]) {
   it(`normalizes ${kind} and preserves placement and facial attachments`, () => {

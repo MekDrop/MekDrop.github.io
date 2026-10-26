@@ -124,9 +124,8 @@ export class TerraceServiceActions {
    * @param {import("./RoyalTerraceActivityBehavior.js").RoyalTerraceActivityBehavior} royalBehavior
    */
   syncProps(servantBehavior, royalBehavior) {
-    if (servantBehavior.reacting) {
-      return;
-    }
+    this.#servantBehavior = servantBehavior;
+    this.#royalBehavior = royalBehavior;
     this.#servant.actor.resetHandContacts?.();
     this.#service.sync(
       servantBehavior,
@@ -145,7 +144,7 @@ export class TerraceServiceActions {
   }
 
   #finishContacts() {
-    if (this.#servantBehavior && this.#royalBehavior && this.#servant.actor.behavior === this.#servantBehavior) {
+    if (this.#servantBehavior && this.#royalBehavior) {
       this.syncProps(this.#servantBehavior, this.#royalBehavior);
     }
   }

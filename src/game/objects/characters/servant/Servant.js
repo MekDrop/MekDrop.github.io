@@ -9,6 +9,7 @@ import { TerraceServantBehavior } from "../../castle/rooms/terrace/TerraceServan
 import { TerraceServiceActions } from "../../castle/rooms/terrace/TerraceServiceActions.js";
 import { castleStraightStairHeight } from "../../castle/stairs/CastleStraightStairs.js";
 import { ServantPreview } from "./ServantPreview.js";
+import { CASTLE_TERRACE_PHASE as PHASE } from "../../../enum/CastleTerracePhase.js";
 
 const REVIEW_ACTIONS = [
   ["idle", 2], ["walk", 3], ["carry", 3], ["place", 3], ["pour", 4],
@@ -25,6 +26,18 @@ export class Servant {
    * @type {number}
    */
   #testTime = 0;
+  /**
+   * @type {string|null}
+   */
+  #testCargo = null;
+  /**
+   * @type {import("playcanvas").Entity|null}
+   */
+  #testCargoStage = null;
+  /**
+   * @type {import("../../../models/GameModelLibrary.js").GameModelLibrary}
+   */
+  #modelLibrary;
   /**
    * @type {ActorStatusEffects}
    */
@@ -123,6 +136,7 @@ export class Servant {
    */
   constructor({ pc, app, definition, runtime, modelLibrary }) {
     this.#pc = pc;
+    this.#modelLibrary = modelLibrary;
     this.#runtime = runtime;
     this.#app = app;
     this.#statusUpdateHandle = app?.on("update", this.advanceStatus, this) ?? null;
@@ -162,6 +176,7 @@ export class Servant {
         this.#resident.pose(this.#testAnimation, 0);
         this.#resident.evaluatePose();
       }
+      this.#syncTestCargo();
 
       return;
     }
@@ -179,9 +194,73 @@ export class Servant {
           time -= duration;
         }
       }
+      if (action === "pour" && this.#testCargo === "tea") {
+        time %= 3;
+      }
       this.#resident.pose(action, time);
       this.#resident.evaluatePose();
+      this.#syncTestCargo();
     }
+  }
+
+  /**
+   * Attach the production service cargo to the animation/stair review actor.
+   * @param {string|null} cargo
+   */
+  set testCargo(cargo) {
+    if (!this.#definition.animation) {
+      return;
+    }
+    this.#serviceActions?.destroy();
+    this.#serviceActions = null;
+    const servingTray = this.#runtime.objects.getAll("mapObject").find(
+      /**
+       * @param {import("../../ObjectTypes.js").MapObjectLike} object
+       */
+      (object) => object.definition?.carrierId === this.#definition.id,
+    );
+    if (this.#testCargoStage && servingTray) {
+      servingTray.attachTo(this.#entity).enabled = false;
+    }
+    this.#testCargoStage?.destroy();
+    this.#testCargoStage = null;
+    this.#testCargo = cargo;
+    if (!cargo) {
+      return;
+    }
+    this.#testCargoStage = new this.#pc.Entity("Servant cargo review");
+    const scale = CHARACTER_HEIGHT / 2;
+    this.#testCargoStage.setLocalScale(scale, scale, scale);
+    this.#entity.addChild(this.#testCargoStage);
+    this.#serviceActions = new TerraceServiceActions({
+      pc: this.#pc,
+      modelLibrary: this.#modelLibrary,
+      stage: this.#testCargoStage,
+      kind: cargo === "sunbed" ? "queen" : "princess",
+      royal: this.#resident,
+      servingTray,
+      actor: this.#resident,
+    });
+    this.#syncTestCargo();
+  }
+
+  /**
+   * Fit the selected cargo after the locomotion and stair pose is evaluated.
+   */
+  #syncTestCargo() {
+    if (!this.#testCargo) {
+      return;
+    }
+    const pouring = this.#testCargo === "tea" && this.#testAnimation === "pour";
+    this.#serviceActions.syncProps({
+      stagePhase: pouring ? PHASE.POUR : PHASE.SERVANT_ENTER,
+      cargo: this.#testCargo,
+      installedCount: pouring ? 3 : 0,
+      progress: (this.#testTime % 3) / 3,
+      elapsed: this.#testTime,
+    }, {
+      stagePhase: PHASE.DORMANT,
+    });
   }
 
   /**
@@ -244,6 +323,9 @@ export class Servant {
     const bottom = new pc.Vec3(center.x - radius / 2, center.y, center.z + radius + 0.2);
     const top = new pc.Vec3(center.x + radius / 2, center.y + stair.rise, center.z + radius + 0.2);
     this.#resident.entity.setPosition(returning ? top : bottom);
+    // Both approaches enter their flight toward -Z. Teleporting a review actor
+    // must not swing a loaded table through the divider before travel begins.
+    this.#resident.entity.setEulerAngles(0, (stair.rotation ?? 0) + 180, 0);
     const geometry = {
       ...stair,
       center,
@@ -302,6 +384,39 @@ export class Servant {
     });
     this.#testAnimation = carrying ? "carry" : "idle";
     this.#motion.moveTo(returning ? bottom : top, carrying ? "carry" : "walk");
+    this.#resident.pose(this.#testAnimation, 0);
+    this.#resident.evaluatePose();
+    this.#syncTestCargo();
+  }
+
+  /**
+   * Review a loaded actor against the castle's real walls, doors and floors.
+   * @param {Omit<ConstructorParameters<typeof CastleResidentMotion>[0], "actor">} navigation
+   * @param {{x:number,y:number,z:number,yaw?:number}} from
+   * @param {{x:number,y:number,z:number}} to
+   */
+  testResidenceRoute(navigation, from, to) {
+    if (!this.#definition.animation) {
+      return;
+    }
+    this.#resident.entity.setPosition(from.x, from.y, from.z);
+    this.#resident.entity.setEulerAngles(0, from.yaw ?? 180, 0);
+    this.#testAnimation = "carry";
+    this.#resident.pose("carry", 0);
+    this.#resident.evaluatePose();
+    this.#syncTestCargo();
+    this.#motion = new CastleResidentMotion({
+      ...navigation,
+      actor: this.#resident,
+    });
+    this.#motion.moveTo(new this.#pc.Vec3(to.x, to.y, to.z), "carry");
+  }
+
+  /**
+   * @returns {boolean}
+   */
+  get testRouteArrived() {
+    return this.#motion?.arrived ?? false;
   }
 
   /**

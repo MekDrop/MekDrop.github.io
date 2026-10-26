@@ -12,6 +12,10 @@ import { castleStraightStairSurfaces } from "../stairs/CastleStraightStairs.js";
  */
 export class CastleResidentMotion {
   /**
+   * @type {number}
+   */
+  #carryRadius = 0;
+  /**
    * @type {WeakSet<import("playcanvas").Vec3>}
    */
   #stairPoints = new WeakSet();
@@ -86,6 +90,7 @@ export class CastleResidentMotion {
   constructor({ actor, layout, blocked, clear, homeArea = null }) {
     this.#actor = actor;
     this.#layout = layout;
+    actor.carryStairs = [...layout.authoredStairs, layout.stairs, layout.serviceStair].filter(Boolean);
     this.#blocked = blocked;
     this.#clear = clear;
     this.#homeArea = homeArea;
@@ -125,6 +130,12 @@ export class CastleResidentMotion {
    */
   moveTo(target, action = "walk") {
     this.#walkAction = action;
+    const radius = action === "carry" ? Math.max(0.5, this.#actor.carryTurnRadius ?? 0) : 0;
+    if (Math.abs(radius - this.#carryRadius) > 0.001) {
+      this.#carryRadius = radius;
+      this.#nodes = [];
+      this.#target = null;
+    }
     if (this.#homeArea && target.distance(this.#home) < 0.01 &&
       (!this.#homeRelocated || this.#blocked(target, true))) {
       this.#relocateHome();
@@ -196,6 +207,15 @@ export class CastleResidentMotion {
     const position = entity.getPosition().clone();
     const stepTime = Math.min(deltaTime, 0.1);
     const heading = this.#route[0].clone().sub(position);
+    if (this.#carryRadius > 0 && this.#route.length > 1 &&
+      this.#stairPoints.has(this.#route[0]) && this.#stairPoints.has(this.#route[1]) &&
+      Math.abs(heading.y) < 0.02 && Math.abs(this.#route[1].y - position.y) < 0.02) {
+      // Begin the loaded pivot before reaching the landing corner. Waiting
+      // until the carrier stops there swings the leading edge into the back
+      // wall, even though the carrier's own footprint fits the landing.
+      const blend = math.clamp(1 - heading.length() / 0.65, 0, 1);
+      heading.lerp(heading, this.#route[1].clone().sub(this.#route[0]), blend);
+    }
     const targetYaw = Math.hypot(heading.x, heading.z) > 0.001
       ? Math.atan2(heading.x, heading.z) * 180 / Math.PI : this.#yaw;
     const yawError = ((targetYaw - this.#yaw) % 360 + 540) % 360 - 180;
@@ -325,11 +345,13 @@ export class CastleResidentMotion {
         const [up, landing, down] = castleStraightStairSurfaces(stair);
         const left = (up.minX + up.maxX) / 2;
         const right = (down.minX + down.maxX) / 2;
-        const turn = (landing.minZ + landing.maxZ) / 2;
-        points = [[left, up.maxZ + 0.2, 0], [left, up.maxZ, 0],
+        const approach = stair.approachDepth ?? 0.2;
+        const turn = Math.max(landing.minZ + 0.15,
+          Math.min((landing.minZ + landing.maxZ) / 2, landing.maxZ - this.#carryRadius));
+        points = [[left, up.maxZ + approach, 0], [left, up.maxZ, 0],
           [left, up.minZ, up.high], [left, turn, up.high], [right, turn, up.high],
           [right, down.minZ, down.low], [right, down.maxZ, down.high],
-          [right, up.maxZ + 0.2, stair.rise]].map(/**
+          [right, up.maxZ + approach, stair.rise]].map(/**
            *
            * @param {number[]} options
            * @param {number} options."0"

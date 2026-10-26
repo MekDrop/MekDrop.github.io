@@ -143,7 +143,7 @@ export function castleStraightStairSurfaceHeight(surface,z) {
 }
 
 /**
- * @typedef {{center:{x:number,y:number,z:number},yaw:number,radius:number,rise:number,straight?:boolean,id?:string,flightGap?:number,flightShift?:number,landingBack?:number,landingLift?:number,flightBounds?:{minX:number,maxX:number,inner:number},continuesAbove?:boolean}} StraightStairGeometry
+ * @typedef {{center:{x:number,y:number,z:number},yaw:number,radius:number,rise:number,straight?:boolean,id?:string,flightGap?:number,flightShift?:number,landingBack?:number,landingLift?:number,flightBounds?:{minX:number,maxX:number,inner:number},continuesAbove?:boolean,approachDepth?:number}} StraightStairGeometry
  */
 
 /**

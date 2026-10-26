@@ -11,12 +11,12 @@ const DEFINITIONS = {
   chair: {
     url: chairUrl,
     position: [-0.75, 0, 3.2],
-    grips: [[-0.19, 0.43, 0], [0.19, 0.43, 0]],
+    grips: [[-0.19, 0.385, 0], [0.19, 0.385, 0]],
   },
 };
 const TABLE_GRIPS = [
-  [-0.415, 1.069, -0.468],
-  [0.415, 1.069, -0.468],
+  [-0.25, 1.069, -0.573],
+  [0.25, 1.069, -0.573],
 ];
 /**
  *
@@ -114,7 +114,7 @@ export class TerraceFurnitureActions {
         (placing || packing || carrying);
       prop.enabled = installed || moving;
       prop.setLocalPosition(...definition.position);
-      prop.setLocalEulerAngles(0, name === "chair" ? 90 : 0, 0);
+      prop.setLocalEulerAngles(0, name === "chair" ? 180 : 0, 0);
       prop.setLocalScale(1, 1, 1);
       if (moving) {
         this.#move(name, prop, definition.position, placing, packing);
@@ -142,17 +142,22 @@ export class TerraceFurnitureActions {
     );
     const floorRotation = new this.#pc.Quat().setFromEulerAngles(
       0,
-      name === "chair" ? 90 : 0,
+      name === "chair" ? 180 : 0,
       0,
     );
     prop.setLocalRotation(new this.#pc.Quat().slerp(
-      this.#stage.getRotation().clone().invert().mul(this.#servant.entity.getRotation()),
+      this.#stage.getRotation().clone().invert().mul(this.#servant.carryRotation ?? this.#servant.entity.getRotation())
+        .mul(new this.#pc.Quat().setFromEulerAngles(name === "table" ? -155 : 0, name === "table" ? 180 : 0, 0)),
       floorRotation,
       progress,
     ));
     prop.enabled = this.#servant.entity.enabled;
     TerracePropGrip.align(this.#pc, prop, this.#servant,
-      name === "table" ? TABLE_GRIPS : DEFINITIONS.chair.grips);
+      name === "table" ? TABLE_GRIPS : DEFINITIONS.chair.grips,
+      null, 1,
+      name === "table" ? TABLE_GRIPS.map(/**
+       * @param {number[]} grip
+       */ grip => [-grip[2], 0, grip[0]]) : null);
   }
 
   /**
@@ -163,6 +168,9 @@ export class TerraceFurnitureActions {
     return TerracePropGrip.carryPosition(
       this.#pc, this.#stage, this.#props[name], this.#servant,
       name === "table" ? TABLE_GRIPS : DEFINITIONS.chair.grips,
+      null, name === "table" ? 0.045 : 0.025,
+      name === "table" ? -155 : 0,
+      name === "table" ? 180 : 0,
     );
   }
 
