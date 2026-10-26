@@ -31,7 +31,8 @@ class IslandRoots {
     this.parent.addChild(child);
   }
 }
-const Painting = new Function("paintingUrl", "royalBedroomUrl", "vestibuleUrl", "IslandObjectRoots", "addAuthoredMeshPhysics", `${source}\nreturn Painting;`)("painting.glb", "royal.glb", "vestibule.glb", IslandRoots, (pc, root, graph) => {
+const paintingModels = { "castle-gate": "castle-gate.glb" };
+const Painting = new Function("paintingModels", "paintingUrl", "royalBedroomUrl", "vestibuleUrl", "IslandObjectRoots", "addAuthoredMeshPhysics", `${source}\nreturn Painting;`)(paintingModels, "painting.glb", "royal.glb", "vestibule.glb", IslandRoots, (pc, root, graph) => {
   root.collisionGraph = graph;
 });
 
@@ -64,8 +65,8 @@ test("painting uses world placement and compresses depth independently of pictur
 });
 
 test("painting variants retain authored depth, scale, and matching collision geometry", () => {
-  assert.deepEqual(Painting.modelUrls, ["painting.glb", "royal.glb", "vestibule.glb"]);
-  for (const [variant, expected] of [["royal-bedroom", "royal.glb"], ["vestibule", "vestibule.glb"]]) {
+  assert.deepEqual(Painting.modelUrls, ["painting.glb", "royal.glb", "vestibule.glb", "castle-gate.glb"]);
+  for (const [variant, expected] of [["royal-bedroom", "royal.glb"], ["vestibule", "vestibule.glb"], ["castle-gate", "castle-gate.glb"]]) {
     const models = [];
     const urls = [];
     const painting = new Painting({

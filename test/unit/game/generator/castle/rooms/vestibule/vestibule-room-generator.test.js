@@ -1,3 +1,4 @@
+import { PaintingCatalog } from "../../../../../../../src/game/objects/castle-props/painting/PaintingCatalog.js";
 import assert from "node:assert/strict";
 import { it } from "node:test";
 import { CastleBasePlanGenerator } from "../../../../../../../src/game/generator/castle/CastleBasePlanGenerator.js";
@@ -42,7 +43,7 @@ it("furnishes the arrival room while preserving circulation and window approache
     assert.equal(cloaks.length, 2);
     assert.ok(cloaks.every(item => item.y > bench.y + bench.height && item.rotation === bench.rotation));
     assert.ok(Math.abs((cloaks[0].z + cloaks[1].z) / 2 - bench.z) < 1e-6);
-    const painting = items.find(item => item.object === "Painting" && item.variant === "vestibule");
+    const painting = items.find(item => item.object === "Painting" && PaintingCatalog.arrivalSubjects.includes(item.variant));
     const chest = items.find(item => item.object === "Chest");
     assert.equal(painting.z, chest.z);
     assert.ok(painting.y > chest.height * chest.scale);

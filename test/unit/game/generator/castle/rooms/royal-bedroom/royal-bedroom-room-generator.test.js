@@ -1,3 +1,4 @@
+import { PaintingCatalog } from "../../../../../../../src/game/objects/castle-props/painting/PaintingCatalog.js";
 import { LibraryRoomMapObjects } from "../../../../../../../src/game/objects/castle/rooms/library/LibraryRoomMapObjects.js";
 import assert from "node:assert/strict";
 import { test } from "node:test";
@@ -54,10 +55,16 @@ test("royal layouts repeat independently and all five concepts have distinct arr
       id: "another-bedroom",
     }, { seed: 99 });
     assert.deepEqual(generator.furnish(room, context), items);
-    assert.deepEqual(generator.furnish(room, {
+    const mirroredSeedItems = generator.furnish(room, {
       ...context,
       seed: variant * 2 + 1,
-    }), items);
+    });
+    // Paired seeds retain the layout while independently selecting artwork.
+    const layoutOnly = item => item.object === "Painting" ? {
+      ...item,
+      variant: undefined,
+    } : item;
+    assert.deepEqual(mirroredSeedItems.map(layoutOnly), items.map(layoutOnly));
     assert.ok(items.every(item => item.furnishingVariant === RoyalBedroomRoomGenerator.variations[variant]));
     assert.equal(items.filter(item => item.role === "royalBed").length, 1);
     assert.ok(items.some(item => item.role === "wardrobe"));
@@ -219,7 +226,7 @@ test("the saved ladder castle contains the new side-tower bedroom instead of the
   assert.equal(plan.furniture.find(item => item.roomId === "royal-chamber" && item.role === "royalBed").height, 2.03);
   assert.ok(plan.furniture.some(item => item.roomId === "royal-chamber" && item.object === "Rug" && item.model === "royal-bedroom-rug.glb" && item.floorCovering));
   assert.ok(!plan.furniture.some(item => item.roomId === "royal-chamber" && item.object === "Banner"));
-  const painting = plan.furniture.find(item => item.roomId === "royal-chamber" && item.object === "Painting" && item.variant === "royal-bedroom");
+  const painting = plan.furniture.find(item => item.roomId === "royal-chamber" && item.object === "Painting" && PaintingCatalog.bedroomSubjects.includes(item.variant));
   const bed = plan.furniture.find(item => item.roomId === "royal-chamber" && item.role === "royalBed");
   assert.ok(painting?.wallAttachment);
   assert.equal((painting.rotation - bed.rotation + 360) % 360, 180);

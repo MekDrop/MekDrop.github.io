@@ -281,3 +281,19 @@ fasteners, warm leather joints and an oak base. The matte finish preserves the
 room's stylized shading; this color refinement keeps geometry and bounds intact.
 Both replacement assets retain packed textures capped at 1024 pixels and were
 validated after fresh GLB import.
+
+## Wall picture subjects
+
+`PaintingCatalog` contains 20 distinct framed pictures: ten travel/estate subjects
+for vestibules and ten peaceful landscapes, gardens and still lifes for royal
+bedrooms. The original castle landscape (`vestibule`) and moonlit sailboat
+(`royal-bedroom`) remain explicit subjects. Room generation selects and stores a
+concrete subject in `variant`, using the furnishing seed, room identity, level and
+mounting position. Reloads preserve the subject without consuming another room's
+random stream. An explicitly authored variant always selects that picture.
+
+The 18 additions reuse the original oak frame, bronze studs and recessed support.
+Their editable flat painted shapes are authored in the adjacent `.blend` files;
+all retain the 1.05 m width, 0.78 m height and rear mounting plane. The exported
+frames share the external timber texture. `/map/test_paintings` displays all 20
+subjects through the normal object factory and PlayCanvas renderer.

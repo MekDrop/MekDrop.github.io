@@ -1,3 +1,4 @@
+import { PaintingCatalog } from "../../../../objects/castle-props/painting/PaintingCatalog.js";
 import { Vec2 } from "playcanvas";
 import { AbstractCastleRoomGenerator } from "../AbstractCastleRoomGenerator.js";
 import { VestibuleIslandFurnishing } from "./VestibuleIslandFurnishing.js";
@@ -192,7 +193,7 @@ export class VestibuleRoomGenerator extends AbstractCastleRoomGenerator {
         const painting = {
           role: "vestibuleProp",
           object: "Painting",
-          variant: "vestibule",
+          variant: PaintingCatalog.select("vestibule", `${room.furnishingSeed ?? 0}:${room.id}:${room.level}:${chest.x}:${chest.z}`),
           wallMountBack: -0.024,
           x: oppositeWall - 0.3,
           z: chest.z,

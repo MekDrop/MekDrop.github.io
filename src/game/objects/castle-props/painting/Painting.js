@@ -1,3 +1,4 @@
+import { paintingModels } from "./PaintingModels.js";
 import { DynamicRenderBatch } from "../../../rendering/DynamicRenderBatch.js";
 import royalBedroomUrl from "../../../models/castle/props/royal-bedroom-painting.glb?url";
 import vestibuleUrl from "../../../models/castle/props/vestibule-painting.glb?url";
@@ -42,7 +43,7 @@ export class Painting {
    * @returns {string[]}
    */
   static get modelUrls() {
-    return [paintingUrl, royalBedroomUrl, vestibuleUrl];
+    return [paintingUrl, royalBedroomUrl, vestibuleUrl, ...Object.values(paintingModels)];
   }
 
   /**
@@ -59,8 +60,8 @@ export class Painting {
     const { x, y, z } = definition.position;
     this.#visual.setLocalPosition(x, y, z);
     this.#visual.setLocalEulerAngles(definition.tilt?.x ?? 0, definition.rotation ?? 0, definition.tilt?.z ?? 0);
-    const modelUrl = definition.variant === "royal-bedroom" ? royalBedroomUrl :
-      definition.variant === "vestibule" ? vestibuleUrl : paintingUrl;
+    const modelUrl = paintingModels[definition.variant] ?? (definition.variant === "royal-bedroom" ? royalBedroomUrl :
+      definition.variant === "vestibule" ? vestibuleUrl : paintingUrl);
     const model = modelLibrary.instantiate(modelUrl);
     // Compress only authored depth: the raised frame retains its relief.
     const scale = definition.scale ?? 1;

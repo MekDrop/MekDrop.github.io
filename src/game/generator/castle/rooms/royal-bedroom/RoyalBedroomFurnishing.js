@@ -1,3 +1,4 @@
+import { PaintingCatalog } from "../../../../objects/castle-props/painting/PaintingCatalog.js";
 import { RoomPlacementRules } from "../RoomPlacementRules.js";
 
 /**
@@ -41,6 +42,10 @@ export class RoyalBedroomFurnishing {
    * @type {number}
    */
   #variant;
+  /**
+   * @type {string|number}
+   */
+  #paintingSeed;
 
   /**
    * @param {import("../AbstractCastleRoomGenerator.js").PlannedCastleRoom} room
@@ -48,6 +53,7 @@ export class RoyalBedroomFurnishing {
    */
   constructor(room, context) {
     this.#room = room;
+    this.#paintingSeed = room.furnishingSeed ?? context.seed;
     this.#doors = context.openings.filter(
       RoyalBedroomFurnishing.#filterOpening,
     );
@@ -443,7 +449,7 @@ export class RoyalBedroomFurnishing {
         id: this.#room.id + "-bedroom-painting",
         role: "royalBedroomProp",
         object: "Painting",
-        variant: "royal-bedroom",
+        variant: PaintingCatalog.select("royal-bedroom", `${this.#paintingSeed}:${this.#room.id}:${this.#room.level}:${x}:${z}`),
         wallMountBack: -0.024,
         x,
         z,
