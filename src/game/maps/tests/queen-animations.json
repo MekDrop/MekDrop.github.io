@@ -1,0 +1,995 @@
+{
+  "grid": [
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  ],
+  "heightmap": [
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  ],
+  "tileMeta": [
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ]
+  ],
+  "cols": 11,
+  "rows": 11,
+  "numPaths": 0,
+  "pipeData": [],
+  "mergeZones": [],
+  "trunkStart": null,
+  "mapName": "test_queen-animations",
+  "layoutSignature": "test_queen-animations",
+  "animationViewport": {
+    "zoom": 2.8,
+    "rotation": 0,
+    "panX": 0,
+    "panZ": 0
+  },
+  "objects": [
+    {
+      "id": "queen-TerraceRead",
+      "object": "SeatedRoyal",
+      "variant": "queen",
+      "animation": "TerraceRead",
+      "position": {
+        "x": 3,
+        "z": 1,
+        "y": 2.3
+      },
+      "rotation": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "scale": 0.76
+    },
+    {
+      "id": "queen-TerraceRecline",
+      "object": "SeatedRoyal",
+      "variant": "queen",
+      "animation": "TerraceRecline",
+      "position": {
+        "x": 1,
+        "z": 1,
+        "y": 2.3
+      },
+      "rotation": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "scale": 0.76
+    },
+    {
+      "id": "queen-TerraceMountSunbed",
+      "object": "SeatedRoyal",
+      "variant": "queen",
+      "animation": "TerraceMountSunbed",
+      "position": {
+        "x": -1,
+        "z": 1,
+        "y": 2.3
+      },
+      "rotation": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "scale": 0.76
+    },
+    {
+      "id": "queen-Cry",
+      "object": "SeatedRoyal",
+      "variant": "queen",
+      "animation": "Cry",
+      "position": {
+        "x": -3,
+        "z": 1,
+        "y": 2.3
+      },
+      "rotation": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "scale": 0.76
+    },
+    {
+      "id": "queen-WalkOut",
+      "object": "SeatedRoyal",
+      "variant": "queen",
+      "animation": "WalkOut",
+      "position": {
+        "x": 3,
+        "z": -1,
+        "y": 2.3
+      },
+      "rotation": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "scale": 0.76
+    },
+    {
+      "id": "queen-RoyalSit",
+      "object": "SeatedRoyal",
+      "variant": "queen",
+      "animation": "RoyalSit",
+      "position": {
+        "x": 1,
+        "z": -1,
+        "y": 2.3
+      },
+      "rotation": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "scale": 0.76
+    },
+    {
+      "id": "queen-TerraceWalk",
+      "object": "SeatedRoyal",
+      "variant": "queen",
+      "animation": "TerraceWalk",
+      "position": {
+        "x": -1,
+        "z": -1,
+        "y": 2.3
+      },
+      "rotation": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "scale": 0.76
+    },
+    {
+      "id": "queen-TerraceIdle",
+      "object": "SeatedRoyal",
+      "variant": "queen",
+      "animation": "TerraceIdle",
+      "position": {
+        "x": -3,
+        "z": -1,
+        "y": 2.3
+      },
+      "rotation": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "scale": 0.76
+    },
+    {
+      "id": "queen-review-floor",
+      "object": "WoodenFloor",
+      "from": {
+        "x": -1.5,
+        "y": 2.3,
+        "z": -1.5
+      },
+      "to": {
+        "x": 1.5,
+        "y": 2.3,
+        "z": 1.5
+      }
+    },
+    {
+      "id": "queen-review-spawn",
+      "object": "SpawnPoint",
+      "position": {
+        "x": -3,
+        "y": 2.03,
+        "z": 3
+      }
+    }
+  ],
+  "testControls": {
+    "panels": [
+      {
+        "title": "Queen skeleton / all animations",
+        "x": 16,
+        "y": 140,
+        "buttons": [
+          {
+            "label": "TerraceIdle",
+            "script": "for (const actor of objects) { if (actor.entity?.name.endsWith(' animation actor')) { const model = actor.entity.findByTag('map-animation-actor')[0]; if (model?.anim) { actor.entity.enabled = model.tags.has('TerraceIdle'); if (actor.entity.enabled) { actor.entity.setLocalPosition(0,2.3,0); model.anim.speed = 1; model.anim.baseLayer.play('TerraceIdle'); model.anim.baseLayer.activeStateCurrentTime = 0; } } } } camera.setViewport({zoom:5.5,rotation:0,panX:0,panZ:0});"
+          },
+          {
+            "label": "TerraceWalk",
+            "script": "for (const actor of objects) { if (actor.entity?.name.endsWith(' animation actor')) { const model = actor.entity.findByTag('map-animation-actor')[0]; if (model?.anim) { actor.entity.enabled = model.tags.has('TerraceWalk'); if (actor.entity.enabled) { actor.entity.setLocalPosition(0,2.3,0); model.anim.speed = 1; model.anim.baseLayer.play('TerraceWalk'); model.anim.baseLayer.activeStateCurrentTime = 0; } } } } camera.setViewport({zoom:5.5,rotation:0,panX:0,panZ:0});"
+          },
+          {
+            "label": "RoyalSit",
+            "script": "for (const actor of objects) { if (actor.entity?.name.endsWith(' animation actor')) { const model = actor.entity.findByTag('map-animation-actor')[0]; if (model?.anim) { actor.entity.enabled = model.tags.has('RoyalSit'); if (actor.entity.enabled) { actor.entity.setLocalPosition(0,2.3,0); model.anim.speed = 1; model.anim.baseLayer.play('RoyalSit'); model.anim.baseLayer.activeStateCurrentTime = 0; } } } } camera.setViewport({zoom:5.5,rotation:0,panX:0,panZ:0});"
+          },
+          {
+            "label": "WalkOut",
+            "script": "for (const actor of objects) { if (actor.entity?.name.endsWith(' animation actor')) { const model = actor.entity.findByTag('map-animation-actor')[0]; if (model?.anim) { actor.entity.enabled = model.tags.has('WalkOut'); if (actor.entity.enabled) { actor.entity.setLocalPosition(0,2.3,0); model.anim.speed = 1; model.anim.baseLayer.play('WalkOut'); model.anim.baseLayer.activeStateCurrentTime = 0; } } } } camera.setViewport({zoom:5.5,rotation:0,panX:0,panZ:0});"
+          },
+          {
+            "label": "Cry",
+            "script": "for (const actor of objects) { if (actor.entity?.name.endsWith(' animation actor')) { const model = actor.entity.findByTag('map-animation-actor')[0]; if (model?.anim) { actor.entity.enabled = model.tags.has('Cry'); if (actor.entity.enabled) { actor.entity.setLocalPosition(0,2.3,0); model.anim.speed = 1; model.anim.baseLayer.play('Cry'); model.anim.baseLayer.activeStateCurrentTime = 0; } } } } camera.setViewport({zoom:5.5,rotation:0,panX:0,panZ:0});"
+          },
+          {
+            "label": "TerraceMountSunbed",
+            "script": "for (const actor of objects) { if (actor.entity?.name.endsWith(' animation actor')) { const model = actor.entity.findByTag('map-animation-actor')[0]; if (model?.anim) { actor.entity.enabled = model.tags.has('TerraceMountSunbed'); if (actor.entity.enabled) { actor.entity.setLocalPosition(0,2.3,0); model.anim.speed = 1; model.anim.baseLayer.play('TerraceMountSunbed'); model.anim.baseLayer.activeStateCurrentTime = 0; } } } } camera.setViewport({zoom:5.5,rotation:0,panX:0,panZ:0});"
+          },
+          {
+            "label": "TerraceRecline",
+            "script": "for (const actor of objects) { if (actor.entity?.name.endsWith(' animation actor')) { const model = actor.entity.findByTag('map-animation-actor')[0]; if (model?.anim) { actor.entity.enabled = model.tags.has('TerraceRecline'); if (actor.entity.enabled) { actor.entity.setLocalPosition(0,2.3,0); model.anim.speed = 1; model.anim.baseLayer.play('TerraceRecline'); model.anim.baseLayer.activeStateCurrentTime = 0; } } } } camera.setViewport({zoom:5.5,rotation:0,panX:0,panZ:0});"
+          },
+          {
+            "label": "TerraceRead",
+            "script": "for (const actor of objects) { if (actor.entity?.name.endsWith(' animation actor')) { const model = actor.entity.findByTag('map-animation-actor')[0]; if (model?.anim) { actor.entity.enabled = model.tags.has('TerraceRead'); if (actor.entity.enabled) { actor.entity.setLocalPosition(0,2.3,0); model.anim.speed = 1; model.anim.baseLayer.play('TerraceRead'); model.anim.baseLayer.activeStateCurrentTime = 0; } } } } camera.setViewport({zoom:5.5,rotation:0,panX:0,panZ:0});"
+          },
+          {
+            "label": "Front",
+            "script": "camera.setViewport({zoom:5.5,rotation:0,panX:0,panZ:0});"
+          },
+          {
+            "label": "Side",
+            "script": "camera.setViewport({zoom:5.5,rotation:1,panX:0,panZ:0});"
+          },
+          {
+            "label": "Back",
+            "script": "camera.setViewport({zoom:5.5,rotation:2,panX:0,panZ:0});"
+          },
+          {
+            "label": "Body / dress",
+            "script": "for (const actor of objects) { const model = actor.entity?.findByTag('map-animation-actor')[0]; if (!model) continue; for (const part of model.find(e => e.name.startsWith('Queen continuous cloth gown') || e.name.startsWith('Queen sewn gown seam') || e.name.startsWith('Queen sewn hem'))) part.enabled = !part.enabled; }"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,6 +1,7 @@
 import { GRASS_SURFACE_LIFT } from "../config/terrain.js";
 import { HERO_ANIMATION } from "../enum/HeroAnimation.js";
 import { ROYAL_ANIMATION } from "../enum/RoyalAnimation.js";
+import { TERRACE_ACTOR_ANIMATION } from "../enum/TerraceActorAnimation.js";
 import {
   AnimationActorObjectNotSupportedError,
   AnimationActorVariantNotSupportedError,
@@ -32,6 +33,13 @@ const AXE_ANIMATIONS = new Set([
  * A map-positioned model playing one animation clip in a loop.
  */
 export class MapAnimationActor {
+  /**
+   * @returns {Array<string>}
+   */
+  static get modelUrls() {
+    return [...Hero.modelUrls, ...SeatedRoyal.modelUrls];
+  }
+
   /**
    *
    * @type {pc.Entity}
@@ -130,6 +138,7 @@ export class MapAnimationActor {
     } else if (animation === ROYAL_ANIMATION.CRY) {
       this.#ownedObject.beginCrying();
     } else {
+      this.#model.anim.speed = 1;
       this.#model.anim.baseLayer.play(animation);
     }
 
@@ -197,6 +206,18 @@ export class MapAnimationActor {
       modelLibrary,
       modelUrl,
     });
+    const tracks = modelLibrary.getAnimationTracks(modelUrl, [definition.animation]);
+    for (const [name, track] of tracks) {
+      if ([ROYAL_ANIMATION.SIT, ROYAL_ANIMATION.WALK_OUT, ROYAL_ANIMATION.CRY].includes(name)) {
+        continue;
+      }
+      this.#ownedObject.entity.anim.addAnimationState(
+        name,
+        track,
+        1,
+        name !== TERRACE_ACTOR_ANIMATION.SIT,
+      );
+    }
 
     return this.#ownedObject.entity;
   }
