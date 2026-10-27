@@ -32,18 +32,21 @@ export class MapObjectReplacement {
     if (!this.#template.objects.some(matchesDefinitionId)) {
       return null;
     }
-    const map = structuredClone(this.#template);
     const current = new Map(
       currentDefinitions
         .filter(MapObjectReplacement.#filterEntry)
         .map(MapObjectReplacement.#mapEntry),
     );
     current.set(definition.id, definition);
-    map.objects = map.objects.map(/**
-     *
-     * @param {import("../../objects/ObjectTypes.js").MapObjectDefinition} entry
-     */
-      (entry) => structuredClone(current.get(entry.id) ?? entry));
+    // Select live definitions before cloning so large build plans are copied once.
+    const map = structuredClone({
+      ...this.#template,
+      objects: this.#template.objects.map(/**
+       *
+       * @param {import("../../objects/ObjectTypes.js").MapObjectDefinition} entry
+       */
+        (entry) => current.get(entry.id) ?? entry),
+    });
     MapObjectDefinitions.prepare(map);
     map.heroSpawn = { ...heroPosition };
 

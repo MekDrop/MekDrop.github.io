@@ -121,6 +121,22 @@ test("authored voxel bowls cook compact hulls and keep only the current drop dyn
     for (const pose of poses) {
       assert.ok(Number.isFinite(pose.position.y) && pose.position.y > -0.1 && pose.position.y < 0.4);
     }
+    const recipe = { items: [{ object: "GreenVegetable" }] };
+    const packed = BowlPacking.settle(shell, [vegetable], recipe);
+    const expected = packed[0].position.clone();
+    const supportsBeforeReuse = supports;
+    packed[0].position.y = 100;
+    const reused = await BowlPacking.settleAsync(shell, [vegetable], recipe);
+    assert.equal(supports, supportsBeforeReuse, "replacement bowls reuse poses without constructing physics bodies");
+    assert.deepEqual(reused[0].position, expected, "caller mutation cannot corrupt cached poses");
+    const changed = {
+      ...vegetable,
+      positions: vegetable.positions.map(value => value * 0.9),
+      bounds: new BoundingBox(),
+    };
+    changed.bounds.compute(changed.positions);
+    BowlPacking.settle(shell, [changed], recipe);
+    assert.ok(supports > supportsBeforeReuse, "changed geometry must settle again");
   } finally {
     AmmoPhysicsWorld.prototype.addBody = addBody;
     AmmoPhysicsWorld.prototype.removeBody = removeBody;

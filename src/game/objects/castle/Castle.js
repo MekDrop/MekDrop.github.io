@@ -162,18 +162,14 @@ export class Castle extends CastleEntityBuilder {
     let effect;
     try {
       effect = new CastleSwapEffect(this.#pc, this.#effectApp, this.#definition.buildPlan.input.position, this.entity);
-      await new Promise(/**
-       *
-       * @param {() => void} resolve
-       */
-        (resolve) => globalThis.setTimeout(resolve, 1200));
-      if (!this.entity) {
-        return null;
-      }
-      const buildPlan = await CastleGenerator.generate({
-        ...this.#definition,
-        seed,
-      });
+      // Build during the mist fade-in instead of adding its duration to generation.
+      const [buildPlan] = await Promise.all([
+        CastleGenerator.generate({
+          ...this.#definition,
+          seed,
+        }),
+        new Promise(Castle.#waitForMist),
+      ]);
       if (!this.entity) {
         return null;
       }
@@ -206,6 +202,13 @@ export class Castle extends CastleEntityBuilder {
       effect?.destroy();
       this.#regenerating = false;
     }
+  }
+
+  /**
+   * @param {() => void} resolve
+   */
+  static #waitForMist(resolve) {
+    globalThis.setTimeout(resolve, 1200);
   }
 
   get definition() {

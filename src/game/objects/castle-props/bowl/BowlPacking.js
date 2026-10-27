@@ -10,6 +10,12 @@ import { UnpackableObjectError } from "../../../errors/assets/index.js";
  */
 export class BowlPacking {
   /**
+   * Rebuilt castles reuse local packing recipes, never live entities or bodies.
+   * @type {Map<string, Array<{position: Vec3, rotation: Quat}>>}
+   */
+  static #settledRecipes = new Map();
+
+  /**
    * Cook render tessellation into a compact Bullet hull before simulating contacts.
    * Feeding every coplanar voxel vertex directly to GJK makes packing pathological.
    * @param {number[]} positions
@@ -100,10 +106,17 @@ export class BowlPacking {
    * @returns {Array<{position: Vec3, rotation: Quat}>}
    */
   static settle(shell, items, recipe = null) {
+    const key = recipe ? ObjectDataCache.key({
+      shell,
+      items,
+      recipe,
+    }) : null;
     const poses = ObjectDataCache.resolve("bowls", recipe ?? {
       shell,
       items,
-    }, () => this.#settle(shell, items));
+    }, () => key && this.#settledRecipes.has(key)
+      ? this.#settledRecipes.get(key) : this.#settle(shell, items));
+    this.#rememberRecipe(key, poses);
 
     return poses.map(BowlPacking.#restorePose);
   }
@@ -142,10 +155,18 @@ export class BowlPacking {
    * @returns {Promise<Array<{position: Vec3, rotation: Quat}>>}
    */
   static async settleAsync(shell, items, recipe = null) {
+    const key = recipe ? ObjectDataCache.key({
+      shell,
+      items,
+      recipe,
+    }) : null;
     const poses = await ObjectDataCache.resolveAsync("bowls", recipe ?? {
       shell,
       items,
     }, async () => {
+      if (key && this.#settledRecipes.has(key)) {
+        return this.#settledRecipes.get(key);
+      }
       const steps = this.#settleSteps(shell, items);
       let deadline = performance.now() + 6;
       try {
@@ -167,8 +188,24 @@ export class BowlPacking {
         steps.return();
       }
     });
+    this.#rememberRecipe(key, poses);
 
     return poses.map(BowlPacking.#restorePose);
+  }
+
+  /**
+   * Keep bounded private copies so caller mutation cannot alter another castle.
+   * @param {string|null} key
+   * @param {Array<{position: Vec3, rotation: Quat}>} poses
+   */
+  static #rememberRecipe(key, poses) {
+    if (!key) {
+      return;
+    }
+    if (this.#settledRecipes.size >= 32) {
+      this.#settledRecipes.delete(this.#settledRecipes.keys().next().value);
+    }
+    this.#settledRecipes.set(key, poses.map(BowlPacking.#restorePose));
   }
 
   /**
