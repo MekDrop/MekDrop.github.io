@@ -1,5 +1,7 @@
 import { Vec2 } from "playcanvas";
 import { AbstractCastleRoomGenerator } from "../AbstractCastleRoomGenerator.js";
+import { RoomFurnishingChoices } from "../RoomFurnishingChoices.js";
+import { StorageRoomBarrels } from "./StorageRoomBarrels.js";
 
 /**
  * Stores spare terrace equipment along the walls, with the tea set on its table.
@@ -11,15 +13,21 @@ export class TerraceStorageRoomGenerator extends AbstractCastleRoomGenerator {
 
   /**
    * @param {import("../AbstractCastleRoomGenerator.js").PlannedCastleRoom} room
+   * @param {import("./StorageRoomBarrels.js").StorageContext} [context]
    * @returns {import("../AbstractCastleRoomGenerator.js").RoomItem[]}
    */
-  furnish(room) {
+  furnish(room, context = {}) {
     if (room.maxX - room.minX < this.min.x || room.maxZ - room.minZ < this.min.y) {
       return [];
     }
     const storageScale = 0.65;
     const tableX = room.maxX - 0.1 - 0.625 * storageScale;
     const tableZ = room.minZ + 0.1 + 0.625 * storageScale;
+    // Turn the complete tea service on its square support; tray, cups and book
+    // retain their measured relationships and never consume another floor slot.
+    const tabletopYaw = RoomFurnishingChoices.order([0, 90, 180, 270], room,
+      "stored-tea-service", context.seed ?? room.furnishingSeed ?? 0)[0];
+    const angle = tabletopYaw * Math.PI / 180;
     const definitions = [
       // The north-west opening belongs to the neighbouring kitchen. Keep its
       // approach clear even though storage itself authors no door openings.
@@ -39,7 +47,7 @@ export class TerraceStorageRoomGenerator extends AbstractCastleRoomGenerator {
       }],
     ];
 
-    return definitions.map(/**
+    const items = definitions.map(/**
      * @param {Array<string|number>} definition
      * @param {number} index
      */
@@ -47,16 +55,19 @@ export class TerraceStorageRoomGenerator extends AbstractCastleRoomGenerator {
         role: "serviceProp",
         object,
         properties,
-        x: index >= 3 ? tableX + (x - tableX) * storageScale : x,
-        z: index >= 3 ? tableZ + (z - tableZ) * storageScale : z,
-        width,
-        depth,
+        x: index >= 3 ? tableX + ((x - tableX) * Math.cos(angle) + (z - tableZ) * Math.sin(angle)) * storageScale : x,
+        z: index >= 3 ? tableZ + (-(x - tableX) * Math.sin(angle) + (z - tableZ) * Math.cos(angle)) * storageScale : z,
+        width: index >= 3 && tabletopYaw % 180 ? depth : width,
+        depth: index >= 3 && tabletopYaw % 180 ? width : depth,
         height,
         scale: scale * storageScale,
         y: y * storageScale,
-        rotation: index === 0 ? 90 : 0,
+        rotation: index === 0 ? 90 : index >= 3 ? tabletopYaw : 0,
         id: `${room.id}-terrace-storage-${index}`,
         ...(index >= 3 ? { supportId: `${room.id}-terrace-storage-${index === 4 || index === 5 ? 3 : 1}` } : {}),
       }));
+    items.push(...StorageRoomBarrels.furnish(room, items, context));
+
+    return items;
   }
 }

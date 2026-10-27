@@ -51,6 +51,7 @@ export class StairwellRoomGenerator extends AbstractCastleRoomGenerator {
 
         return state / 4294967296;
       };
+      const packing = Math.floor(random() * 3);
       // Keep a continuous walkable strip against the central stair divider.
       const slots = [-1.26, 1.14];
       const rowScales = [0.92 + random() * 0.06, 0.92 + random() * 0.06, 0.92 + random() * 0.06];
@@ -69,9 +70,15 @@ export class StairwellRoomGenerator extends AbstractCastleRoomGenerator {
         if (row === 2 && across < 0) {
           continue;
         }
+        // Leave whole pockets empty in lighter inventories; never remove a
+        // supporting tier while leaving its contents suspended above it.
+        if (packing === 1 && row === 2 || packing === 2 && row === 0 && across > 0) {
+          continue;
+        }
         const maxScale = 1;
         const half = 0.302;
-        const tiers = outer ? (row === 2 ? 3 : 2) : (row === 1 && across > 0 ? 2 : 1);
+        const fullTiers = outer ? (row === 2 ? 3 : 2) : (row === 1 && across > 0 ? 2 : 1);
+        const tiers = packing === 1 && row !== 1 ? Math.max(1, fullTiers - 1) : fullTiers;
         if (across - half < turning.minX || across + half > turning.maxX) {
           continue;
         }
@@ -143,6 +150,7 @@ export class StairwellRoomGenerator extends AbstractCastleRoomGenerator {
         turning,
         items,
         -0.30,
+        Math.floor(random() * 3),
       );
       StairwellRoomGenerator.#addTerminalStack(
         stair,
@@ -152,6 +160,7 @@ export class StairwellRoomGenerator extends AbstractCastleRoomGenerator {
         turning,
         items,
         0.24,
+        Math.floor(random() * 3),
       );
       for (const prop of [
         {
@@ -526,6 +535,7 @@ export class StairwellRoomGenerator extends AbstractCastleRoomGenerator {
    * @param {{high:number}} turning
    * @param {import("../AbstractCastleRoomGenerator.js").RoomItem[]} items
    * @param {number} across
+   * @param {number} variant
    */
   static #addTerminalStack(
     stair,
@@ -535,6 +545,7 @@ export class StairwellRoomGenerator extends AbstractCastleRoomGenerator {
     turning,
     items,
     across,
+    variant,
   ) {
     const along = -0.91;
     const x = stair.localCenter.x + across * cosine + along * sine;
@@ -550,7 +561,7 @@ export class StairwellRoomGenerator extends AbstractCastleRoomGenerator {
       return;
     }
     let y = 0.002;
-    for (const prop of [
+    const supplies = [
       {
         object: "Chest",
         width: 0.7,
@@ -572,7 +583,19 @@ export class StairwellRoomGenerator extends AbstractCastleRoomGenerator {
         height: 0.3,
         scale: 1,
       },
-    ]) {
+    ];
+    if (variant === 1) {
+      supplies.shift();
+    } else if (variant === 2) {
+      supplies.splice(1, 2, {
+        object: "FoldedLinens",
+        width: 0.3,
+        depth: 0.22,
+        height: 0.16,
+        scale: 1,
+      });
+    }
+    for (const prop of supplies) {
       if (y + prop.height * prop.scale > turning.high - 0.3) {
         break;
       }

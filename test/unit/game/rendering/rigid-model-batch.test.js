@@ -88,6 +88,18 @@ test("rigid parts retain local placement, shadow settings and parent motion with
     for (let index = 0; index < before.length; index++) {
       assert.ok(Math.abs(after[index] - before[index]) < 0.00001, "world vertices survive float32 local baking");
     }
+    for (const instance of instances) {
+      const bounds = instance.aabb;
+      const vertices = positions([instance]);
+      for (let index = 0; index < vertices.length; index += 3) {
+        const point = new pc.Vec3(vertices[index], vertices[index + 1], vertices[index + 2]);
+        const tolerance = 0.00001;
+        assert.ok(Math.abs(point.x - bounds.center.x) <= bounds.halfExtents.x + tolerance &&
+          Math.abs(point.y - bounds.center.y) <= bounds.halfExtents.y + tolerance &&
+          Math.abs(point.z - bounds.center.z) <= bounds.halfExtents.z + tolerance,
+        "merged culling bounds enclose every transformed vertex");
+      }
+    }
     owner.setLocalPosition(10, 4, -7);
     const moved = positions(instances);
     const delta = [3, 1, -2];

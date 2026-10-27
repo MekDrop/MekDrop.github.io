@@ -109,10 +109,11 @@ it("keeps the audience aisle and door approaches clear and omits a blocked table
   for (const item of items.filter(item => item.elevation < 0.2 && item.object !== "ThroneDais")) {
     assert.ok(Math.abs(item.x - center) - item.width * item.scale / 2 >= 0.6, item.object);
   }
+  const table = items.find(item => item.object === "Table");
   const blocked = generator.furnish(room, {
     stairs: [{
-      minX: 4,
-      maxX: 6.5,
+      minX: table.x - 1,
+      maxX: table.x + 1,
       minZ: 9,
       maxZ: 12,
       from: 0,
@@ -123,4 +124,39 @@ it("keeps the audience aisle and door approaches clear and omits a blocked table
   assert.ok(!blocked.some(item => item.supportId));
   const candle = items.find(item => item.properties.variant === "court");
   assert.equal(roomPropHeight(candle, 0), 1.615);
+});
+
+it("permutes the throne-end floor elements while preserving the central audience approach", () => {
+  const room = {
+    id: "throne-hall",
+    level: 0,
+    floorY: 0,
+    height: 3,
+    minX: 0,
+    maxX: 6,
+    minZ: 0,
+    maxZ: 7,
+  };
+  const generator = new ThroneRoomGenerator();
+  const arrangements = new Set();
+  for (let seed = 0; seed < 20; seed++) {
+    const items = generator.furnish(room, { seed });
+    const rear = items.filter(item => item.z < 1.2 && ["CandleStand", "StandingArmor", "Planter"].includes(item.object));
+    assert.equal(rear.length, 6);
+    assert.equal(rear.filter(item => item.object === "CandleStand").length, 2);
+    assert.equal(rear.filter(item => item.object === "StandingArmor").length, 2);
+    arrangements.add(JSON.stringify(rear.map(item => [item.object, item.x, item.z])));
+    for (const item of rear) {
+      assert.ok(Math.abs(item.x - 3) - item.width * item.scale / 2 >= 0.6);
+      for (const other of rear) {
+        if (item === other) {
+          continue;
+        }
+        assert.ok(Math.abs(item.x - other.x) >= (item.width * item.scale + other.width * other.scale) / 2 ||
+          Math.abs(item.z - other.z) >= (item.depth * item.scale + other.depth * other.scale) / 2);
+      }
+    }
+    assert.deepEqual(generator.furnish(room, { seed }), items);
+  }
+  assert.ok(arrangements.size >= 4);
 });

@@ -36,6 +36,10 @@ export class RigidModelBatch {
           continue;
         }
         const source = group[0];
+        // The Engine's batch stores bounds on its mesh instance and skips
+        // calculating mesh-local bounds. This replacement instance needs the
+        // baked owner's-local envelope, otherwise it culls around the origin.
+        batch.meshInstance.mesh.aabb.copy(batch.meshInstance.aabb);
         const part = new pc.Entity(`${source.node.name} merged`);
         output.addChild(part);
         const instance = new pc.MeshInstance(batch.meshInstance.mesh, batch.meshInstance.material, part);

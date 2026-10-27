@@ -1428,7 +1428,7 @@ export class CastleAuthoredBuildPlan {
         runtime: {
           entranceDoorOwnedByRoom: envelope.entrance.doorOwnedByRoom === true,
           authoredObjects: [...(envelope.objects ?? []), ...SpiralStairStorage.furnish(envelope.roundTower,
-            authored.mirrored ? (gate.axis === "z" ? "x" : "z") : null)].map(/**
+            authored.mirrored ? (gate.axis === "z" ? "x" : "z") : null, options.seed)].map(/**
            *
            * @param {import("../../objects/ObjectTypes.js").MapObjectDefinition} item
            */

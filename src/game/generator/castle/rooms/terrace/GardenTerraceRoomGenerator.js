@@ -9,7 +9,7 @@ import { CASTLE_TERRACE_STYLE } from "../../../../enum/CastleTerraceStyle.js";
  */
 export class GardenTerraceRoomGenerator extends AbstractCastleRoomGenerator {
   constructor() {
-    super("garden-terrace", new Vec2(10, 5));
+    super("garden-terrace", new Vec2(11.1, 5));
   }
 
   /**
@@ -18,25 +18,27 @@ export class GardenTerraceRoomGenerator extends AbstractCastleRoomGenerator {
    * @returns {string}
    */
   static styleFor(seed = 0) {
-    const numeric = Number(seed);
-    const value = Number.isFinite(numeric) ? Math.abs(Math.trunc(numeric))
-      : new GenerationRandom(`${seed}:terrace`).rng(0, 2147483646);
+    const value = GardenTerraceRoomGenerator.#seedNumber(seed);
 
     return Math.floor(value / 2) % 2 === 0
       ? CASTLE_TERRACE_STYLE.ROYAL_GARDEN : CASTLE_TERRACE_STYLE.STORYBOOK;
   }
 
   /**
-   * The left seating bay never crosses the two-metre central circulation band.
+   * Move the complete seating group between bays, preserving the tower approach.
    * @param {import("../AbstractCastleRoomGenerator.js").PlannedCastleRoom} room
    * @returns {import("../AbstractCastleRoomGenerator.js").RoomItem[]}
    */
   furnish(room) {
-    if (room.maxX - room.minX < 10 || room.maxZ - room.minZ < 5) {
+    const width = room.maxX - room.minX;
+    if (width < this.min.x || room.maxZ - room.minZ < this.min.y) {
       return [];
     }
     const storybook = GardenTerraceRoomGenerator.styleFor(room.furnishingSeed) === CASTLE_TERRACE_STYLE.STORYBOOK;
-    const x = room.minX + 3;
+    // Bay choice is independent of decorative style and shared by mirrored pairs.
+    const rightBay = Math.floor(GardenTerraceRoomGenerator.#seedNumber(room.furnishingSeed) / 4) % 2 === 1;
+    const bayCenter = Math.min(3, (width - 2) / 4);
+    const x = rightBay ? room.maxX - bayCenter : room.minX + bayCenter;
     const z = (room.minZ + room.maxZ) / 2;
     const shelterId = `${room.id}-garden-shelter`;
     const tableId = `${room.id}-garden-table`;
@@ -100,21 +102,37 @@ export class GardenTerraceRoomGenerator extends AbstractCastleRoomGenerator {
       if (offset > room.maxX - room.minX - 0.5) {
         continue;
       }
-      items.push(this.#item("Planter", room.minX + offset, room.maxZ - 0.75, 0.7, 0.7, {
+      const planterX = rightBay ? room.maxX - offset : room.minX + offset;
+      if (Math.abs(planterX - (room.minX + room.maxX) / 2) < 1.35) {
+        continue;
+      }
+      items.push(this.#item("Planter", planterX, room.maxZ - 0.75, 0.7, 0.7, {
         variant: "flowers",
         height: 1,
       }));
     }
-    items.push(this.#item("Planter", room.maxX - 0.85, room.minZ + 0.85, 0.7, 0.7, {
+    const oppositeEdge = rightBay ? room.minX + 0.85 : room.maxX - 0.85;
+    items.push(this.#item("Planter", oppositeEdge, room.minZ + 0.85, 0.7, 0.7, {
       variant: "flowers",
       height: 1,
-    }), this.#item(storybook ? "Barrel" : "Planter", room.maxX - 0.85, z, 0.7, 0.7, {
+    }), this.#item(storybook ? "Barrel" : "Planter", oppositeEdge, z, 0.7, 0.7, {
       variant: storybook ? undefined : "flowers",
       height: 1,
       properties: storybook ? { weathering: 0.55 } : {},
     }));
 
     return items;
+  }
+
+  /**
+   * @param {string|number} [seed]
+   * @returns {number}
+   */
+  static #seedNumber(seed = 0) {
+    const numeric = Number(seed);
+
+    return Number.isFinite(numeric) ? Math.abs(Math.trunc(numeric))
+      : new GenerationRandom(`${seed}:terrace`).rng(0, 2147483646);
   }
 
   /**

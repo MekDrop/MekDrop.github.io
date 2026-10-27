@@ -1,6 +1,7 @@
 import { Vec2 } from "playcanvas";
 import { AbstractCastleRoomGenerator } from "../AbstractCastleRoomGenerator.js";
 import { FireplaceWallBacking } from "../FireplaceWallBacking.js";
+import { RoomFurnishingChoices } from "../RoomFurnishingChoices.js";
 
 export class KitchenRoomGenerator extends AbstractCastleRoomGenerator {
   constructor() {
@@ -33,6 +34,13 @@ export class KitchenRoomGenerator extends AbstractCastleRoomGenerator {
     };
     const width = room.maxX - room.minX;
     const depth = room.maxZ - room.minZ;
+    /**
+     * @param {number[]} values
+     * @param {string} purpose
+     * @returns {number[]}
+     */
+    const choices = (values, purpose) => RoomFurnishingChoices.order(values, room, purpose,
+      context.seed ?? room.furnishingSeed ?? 0);
     const items = [];
     const inset = (context.wallThickness ?? 0.25) / 2 + 0.025;
     /**
@@ -174,13 +182,21 @@ export class KitchenRoomGenerator extends AbstractCastleRoomGenerator {
     }
     let tableX = sideEntry ? room.minX + (eastEntry ? 2.3 : 2.2) + random() * (eastEntry ? 0.05 : 0.18) : room.maxX - inset - 0.314;
     let tableZ = sideEntry ? eastEntry ? walls.maxZ - (context.wallThickness ?? 0.25) / 2 - 0.314 - 0.015 : walls.minZ + (context.wallThickness ?? 0.25) / 2 + 0.314 + 0.015 : room.minZ + 1.5 + random() * 0.18;
+    // Keep the hearth and door aisle fixed, but try the available lengths of
+    // the preparation wall in a different order for each room.
+    const prepFractions = choices([0.2, 0.5, 0.8], "preparation-bank");
+    if (sideEntry) {
+      tableX = room.minX + inset + 0.625 + prepFractions[0] * (width - 2 * inset - 1.25);
+    } else {
+      tableZ = room.minZ + inset + 0.625 + prepFractions[0] * (depth - 2 * inset - 1.25);
+    }
     let tablePlaced = prop("Table", tableX, tableZ, sideEntry ? 1.25 : 0.628, sideEntry ? 0.628 : 1.25, 0, sideEntry ? 90 : 0, undefined, undefined, {
       width: 0.6271365,
       height: 0.56465894,
       depth: 1.25,
     });
     for (const bank of sideEntry ? [0, 1] : [0]) {
-      for (const fraction of [0.2, 0.5, 0.8]) {
+      for (const fraction of prepFractions) {
         if (tablePlaced) {
           break;
         }
@@ -203,10 +219,11 @@ export class KitchenRoomGenerator extends AbstractCastleRoomGenerator {
       // Authored table's top is 0.564499 metres above its bottom-centre pivot.
       const top = 0.564499;
       const reverse = random() < 0.5 ? -1 : 1;
+      const foodSlots = choices([-0.38, 0, 0.38], "preparation-food");
       prop(
         "Bowl",
-        sideEntry ? tableX - reverse * 0.38 : tableX,
-        sideEntry ? tableZ : tableZ - reverse * 0.38,
+        sideEntry ? tableX + reverse * foodSlots[0] : tableX,
+        sideEntry ? tableZ : tableZ + reverse * foodSlots[0],
         0.291,
         0.3,
         top,
@@ -216,8 +233,8 @@ export class KitchenRoomGenerator extends AbstractCastleRoomGenerator {
       );
       prop(
         "Bowl",
-        tableX,
-        tableZ,
+        sideEntry ? tableX + reverse * foodSlots[1] : tableX,
+        sideEntry ? tableZ : tableZ + reverse * foodSlots[1],
         0.3,
         0.3,
         top,
@@ -227,8 +244,8 @@ export class KitchenRoomGenerator extends AbstractCastleRoomGenerator {
       );
       prop(
         "Bowl",
-        sideEntry ? tableX + reverse * 0.38 : tableX,
-        sideEntry ? tableZ : tableZ + reverse * 0.38,
+        sideEntry ? tableX + reverse * foodSlots[2] : tableX,
+        sideEntry ? tableZ : tableZ + reverse * foodSlots[2],
         0.278,
         0.3,
         top,
@@ -292,7 +309,7 @@ export class KitchenRoomGenerator extends AbstractCastleRoomGenerator {
     }
     if (width >= 3.5 && depth >= 3.4) {
       let supplies = 0;
-      for (const fraction of [0.2, 0.5, 0.8]) {
+      for (const fraction of choices([0.2, 0.5, 0.8], "supply-bank")) {
         for (const z of [room.maxZ - inset - 0.3, room.minZ + inset + 0.3]) {
           const x = room.minX + inset + 0.3 + fraction * (width - 2 * inset - 0.6);
           if (!(x - 0.277 < room.minX + 1.2 && z + 0.277 > room.maxZ - 1.35) && supplies < 3 && prop(supplies === 0 ? "Barrel" : "Crate", x, z, 0.554, 0.554)) {

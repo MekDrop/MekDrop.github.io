@@ -4,6 +4,7 @@ import { AbstractCastleRoomGenerator } from "../AbstractCastleRoomGenerator.js";
 import { VestibuleIslandFurnishing } from "./VestibuleIslandFurnishing.js";
 import { VestibuleWallFurnishing } from "./VestibuleWallFurnishing.js";
 import { VestibuleWindowFurnishing } from "./VestibuleWindowFurnishing.js";
+import { roomPropBottom, roomPropHeight } from "../RoomPropHeights.js";
 
 /**
  * Arrival storage surrounds either central seating or a map table where space permits.
@@ -15,10 +16,14 @@ export class VestibuleRoomGenerator extends AbstractCastleRoomGenerator {
 
   /**
    * @param {import("../AbstractCastleRoomGenerator.js").PlannedCastleRoom} room
-   * @param {{wallThickness?:number,openings?:import("../../CastleBasePlanGenerator.js").CompiledCastleOpening[],stairs?:Array}} [context]
+   * @param {{seed?:string|number,wallThickness?:number,openings?:import("../../CastleBasePlanGenerator.js").CompiledCastleOpening[],stairs?:Array,chimneys?:Array<{minX:number,maxX:number,minZ:number,maxZ:number,bottom:number,top:number}>}} [context]
    * @returns {import("../AbstractCastleRoomGenerator.js").RoomItem[]}
    */
   furnish(room, context = {}) {
+    room = {
+      ...room,
+      furnishingSeed: context.seed ?? room.furnishingSeed,
+    };
     const items = [];
     const inset = (context.wallThickness ?? 0.25) / 2;
     const wall = room.minX;
@@ -36,6 +41,17 @@ export class VestibuleRoomGenerator extends AbstractCastleRoomGenerator {
       const halfZ = item.depth * item.scale / 2;
       if (item.x - halfX < room.minX || item.x + halfX > room.maxX ||
         item.z - halfZ < room.minZ || item.z + halfZ > room.maxZ) {
+        return false;
+      }
+      const bottom = room.floorY + (item.y ?? item.elevation ?? 0) + roomPropBottom(item) * item.scale;
+      const top = bottom + roomPropHeight(item, room.height) * item.scale;
+      /**
+       * @param {{minX:number,maxX:number,minZ:number,maxZ:number,bottom:number,top:number}} chimney
+       */
+      const blocksChimney = chimney => bottom < chimney.top - 0.005 && top > chimney.bottom + 0.005 &&
+        item.x + halfX > chimney.minX && item.x - halfX < chimney.maxX &&
+        item.z + halfZ > chimney.minZ && item.z - halfZ < chimney.maxZ;
+      if ((context.chimneys ?? []).some(blocksChimney)) {
         return false;
       }
       /**
@@ -96,6 +112,7 @@ export class VestibuleRoomGenerator extends AbstractCastleRoomGenerator {
       const stand = {
         role: "vestibuleProp",
         object: "VestibuleStickStand",
+        properties: { seed: room.furnishingSeed ?? 0 },
         x: wall + 0.25,
         z: z + 1,
         width: 0.36,
@@ -310,9 +327,21 @@ export class VestibuleRoomGenerator extends AbstractCastleRoomGenerator {
         items.push(banner);
       }
     }
-    const wallFurniture = VestibuleWallFurnishing.furnish(room, items, safe, context.wallThickness ?? 0.25);
-    const islands = VestibuleIslandFurnishing.furnish(room, [...items.slice(arrivalCornerCount), ...wallFurniture],
+    const islands = VestibuleIslandFurnishing.furnish(room, items.slice(arrivalCornerCount),
       safe, context.wallThickness ?? 0.25);
+    const wallObstacles = [...items];
+    if (islands.length) {
+      // Moving the console must not consume the island's established walking lane.
+      wallObstacles.push({
+        ...islands[0],
+        id: `${room.id}-island-approach`,
+        object: undefined,
+        width: islands[0].width * islands[0].scale + 1.4,
+        depth: islands[0].depth * islands[0].scale + 1.4,
+        scale: 1,
+      });
+    }
+    const wallFurniture = VestibuleWallFurnishing.furnish(room, wallObstacles, safe, context.wallThickness ?? 0.25);
     // A central arrival layout replaces the old perimeter seating corner.
     if (islands.length) {
       items.splice(0, arrivalCornerCount);
@@ -348,6 +377,7 @@ export class VestibuleRoomGenerator extends AbstractCastleRoomGenerator {
         floorCovering: true,
       });
       items.push(...VestibuleWindowFurnishing.furnish(room, items, context.openings ?? [], safe, context.wallThickness ?? 0.25));
+      items.push(...VestibuleWallFurnishing.companions(room, items, safe, context.wallThickness ?? 0.25));
 
       return items;
     }
@@ -374,6 +404,8 @@ export class VestibuleRoomGenerator extends AbstractCastleRoomGenerator {
     if (safe(rug)) {
       items.push(rug);
     }
+    items.push(...VestibuleWallFurnishing.companions(room, items, safe, context.wallThickness ?? 0.25));
+
     return items;
   }
 

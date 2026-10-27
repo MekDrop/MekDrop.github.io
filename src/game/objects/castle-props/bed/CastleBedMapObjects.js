@@ -26,6 +26,7 @@ export class CastleBedMapObjects {
           id: `${castle.id}-bed-${index++}`,
           object: "Bed",
           variant: placement.role === "royalBed" ? "royal" : "servant",
+          seed: `${castle.buildPlan.input.seed ?? castle.seed ?? 0}:${placement.role}:${index}`,
           position,
           rotation: placement.yaw,
           collisionRotation: layout.yaw,

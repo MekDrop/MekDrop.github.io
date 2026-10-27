@@ -1,7 +1,10 @@
+import { RoomFurnishingChoices } from "../RoomFurnishingChoices.js";
+import { RoomPlacementRules } from "../RoomPlacementRules.js";
+
 /**
  * @typedef {import("../AbstractCastleRoomGenerator.js").RoomItem} CourtItem
  * @typedef {import("../AbstractCastleRoomGenerator.js").PlannedCastleRoom} CourtRoom
- * @typedef {{openings?:import("../../CastleBasePlanGenerator.js").CompiledCastleOpening[],stairs?:Array<{minX:number,maxX:number,minZ:number,maxZ:number,from:number,to:number}>}} CourtContext
+ * @typedef {{seed?:string|number,openings?:import("../../CastleBasePlanGenerator.js").CompiledCastleOpening[],stairs?:Array<{minX:number,maxX:number,minZ:number,maxZ:number,from:number,to:number}>}} CourtContext
  */
 
 /**
@@ -24,6 +27,10 @@ export class WorkingCourtFurnishing {
    * @type {number}
    */
   #center;
+  /**
+   * @type {number}
+   */
+  #deskDirection;
 
   /**
    * @param {CourtRoom} room
@@ -33,6 +40,8 @@ export class WorkingCourtFurnishing {
     this.#room = room;
     this.#context = context;
     this.#center = (room.minX + room.maxX) / 2;
+    this.#deskDirection = RoomFurnishingChoices.order([-1, 1], room,
+      "court-desktop", context.seed ?? room.furnishingSeed ?? 0)[0];
     const rear = room.minZ;
     const dais = this.#add("ThroneDais", this.#center, rear + 0.65, 1.1, 0.95);
     dais.height = 0.1;
@@ -47,14 +56,17 @@ export class WorkingCourtFurnishing {
     }
     this.#rearGroup(-1);
     this.#rearGroup(1);
-    this.#corner(-1);
-    this.#corner(1);
     // Work on the side opposite an east door. Every group is tested as a unit.
     const eastDoor = (context.openings ?? []).some(/**
      * @param {import("../../CastleBasePlanGenerator.js").CompiledCastleOpening} opening
      */
       opening => opening.kind === "door" && opening.roomId === room.id && opening.side === "EAST");
-    const side = eastDoor ? -1 : 1;
+    const westDoor = (context.openings ?? []).some(/**
+     * @param {import("../../CastleBasePlanGenerator.js").CompiledCastleOpening} opening
+     */
+      opening => opening.kind === "door" && opening.roomId === room.id && opening.side === "WEST");
+    const side = eastDoor ? -1 : westDoor ? 1 : RoomFurnishingChoices.order([-1, 1], room,
+      "court-work-side", context.seed ?? room.furnishingSeed ?? 0)[0];
     this.#desk(side);
     this.#bench(-side, rear + 2);
     this.#bench(-side, rear + 3.55);
@@ -101,32 +113,49 @@ export class WorkingCourtFurnishing {
    */
   #rearGroup(side) {
     const room = this.#room;
-    const banner = this.#add("Banner", this.#center + side * 1.35, room.minZ + 0.38, 0.98, 0.1, 2.7);
+    const seed = this.#context.seed ?? room.furnishingSeed ?? 0;
+    const bannerOffset = RoomFurnishingChoices.order([1.2, 1.35, 1.5], room, `court-banner:${side}`, seed)[0];
+    const banner = this.#add("Banner", this.#center + side * bannerOffset, room.minZ + 0.38, 0.98, 0.1, 2.7);
     banner.stretch = {
       x: 0.975,
       y: 1.4,
       z: 1,
     };
     banner.height = 1.38;
-    const candleX = this.#center + side * 0.92;
-    if (this.#fits(candleX, room.minZ + 0.8, 0.54, 0.36)) {
-      this.#add("CandleStand", candleX, room.minZ + 0.8, 0.54, 0.36, 0.05, 0, { variant: "court" }).height = 1.615;
-    }
-    const armorX = this.#center + side * 1.7;
-    if (this.#fits(armorX, room.minZ + 0.65, 0.65, 0.55)) {
-      this.#add("StandingArmor", armorX, room.minZ + 0.65, 0.65, 0.55);
-    }
-  }
-
-  /**
-   * @param {number} side
-   */
-  #corner(side) {
-    const x = side < 0 ? this.#room.minX + 0.4 : this.#room.maxX - 0.4;
-    const z = this.#room.minZ + 0.55;
-    if (this.#fits(x, z, 0.5, 0.5)) {
-      const planter = this.#add("Planter", x, z, 0.625, 0.625);
-      planter.scale = 0.8;
+    const offsets = [1.02, 1.64, (room.maxX - room.minX) / 2 - 0.4];
+    const configurations = RoomFurnishingChoices.order([
+      ["CandleStand", "StandingArmor", "Planter"],
+      ["CandleStand", "Planter", "StandingArmor"],
+      ["StandingArmor", "CandleStand", "Planter"],
+      ["StandingArmor", "Planter", "CandleStand"],
+      ["Planter", "StandingArmor", "CandleStand"],
+      ["Planter", "CandleStand", "StandingArmor"],
+    ], room, `court-rear-furniture:${side}`, seed);
+    for (const configuration of configurations) {
+      const before = this.#items.length;
+      for (const [index, object] of configuration.entries()) {
+        const width = object === "StandingArmor" ? 0.65 : object === "CandleStand" ? 0.54 : 0.5;
+        const depth = object === "StandingArmor" ? 0.55 : object === "CandleStand" ? 0.36 : 0.5;
+        const x = this.#center + side * offsets[index], z = room.minZ + 0.8;
+        if (!this.#fits(x, z, width, depth)) {
+          break;
+        }
+        const item = this.#add(object, x, z, width, depth, 0.05, 0,
+          object === "CandleStand" ? { variant: "court" } : {});
+        item.height = object === "CandleStand" ? 1.615 : object === "Planter" ? 0.99 : 1.8;
+        if (object === "Planter") {
+          item.width = item.depth = 0.625;
+          item.scale = 0.8;
+        }
+        if (!RoomPlacementRules.accepts(item, room, this.#items.slice(0, -1))) {
+          this.#items.pop();
+          break;
+        }
+      }
+      if (this.#items.length === before + configuration.length) {
+        return;
+      }
+      this.#items.length = before;
     }
   }
 
@@ -179,7 +208,7 @@ export class WorkingCourtFurnishing {
    * @returns {CourtItem}
    */
   #detail(object, table, x, z, width, depth, elevation, properties = {}) {
-    const item = this.#add(object, table.x + x, table.z + z, width, depth, elevation, 0, properties);
+    const item = this.#add(object, table.x + x, table.z + z * this.#deskDirection, width, depth, elevation, 0, properties);
     item.supportId = table.id;
 
     return item;
@@ -215,8 +244,8 @@ export class WorkingCourtFurnishing {
    */
   #fits(x, z, width, depth) {
     const room = this.#room;
-    if (x - width / 2 < room.minX + 0.15 || x + width / 2 > room.maxX - 0.15 ||
-      z - depth / 2 < room.minZ + 0.15 || z + depth / 2 > room.maxZ - 0.15) {
+    if (x - width / 2 < room.minX + 0.15 - 1e-6 || x + width / 2 > room.maxX - 0.15 + 1e-6 ||
+      z - depth / 2 < room.minZ + 0.15 - 1e-6 || z + depth / 2 > room.maxZ - 0.15 + 1e-6) {
       return false;
     }
     for (const door of this.#context.openings ?? []) {

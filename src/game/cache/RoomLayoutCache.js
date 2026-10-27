@@ -22,6 +22,7 @@ export class RoomLayoutCache {
     }
 
     return ObjectDataCache.resolve("room-layouts", {
+      recipeVersion: 3,
       generator: generator.constructor.name,
       configuration: { ...generator },
       room,

@@ -6,8 +6,14 @@ import { CastleGenerator } from "../../../../../../../src/game/generator/castle/
 import { StairwellRoomMapObjects } from "../../../../../../../src/game/objects/castle/rooms/stairwell/StairwellRoomMapObjects.js";
 
 it("reproduces sparse stair-room decoration and varies independent seed pairs", async () => {
-  const first = await CastleBasePlanGenerator.generate({ seed: 42 });
-  const repeated = await CastleBasePlanGenerator.generate({ seed: 42 });
+  const first = await CastleBasePlanGenerator.generate({
+    planId: "castle-demo-compact",
+    seed: 42,
+  });
+  const repeated = await CastleBasePlanGenerator.generate({
+    planId: "castle-demo-compact",
+    seed: 42,
+  });
   const second = await CastleBasePlanGenerator.generate({
     planId: "castle-demo-compact",
     seed: 44,
@@ -66,6 +72,7 @@ it("keeps measured lantern bounds, apertures and the full stair approach clear",
 
 it("publishes native prop definitions once and replaces stale seed furnishings", async () => {
   const options = {
+    basePlanId: "castle-demo-compact",
     position: {
       x: -6.5,
       z: -5.5,
@@ -135,8 +142,10 @@ it("omits decoration when a compact host has no safe wall outside its shaft", ()
 });
 
 it("confines crates to supported low-headroom stair pockets and leaves floor voids empty", async () => {
-  for (const seed of [42, 43, 44]) {
+  const inventories = new Set();
+  for (const seed of [42, 43, 44, 46, 48, 50]) {
     const build = await CastleGenerator.generate({
+      basePlanId: "castle-demo-compact",
       position: {
         x: -6.5,
         z: -5.5,
@@ -153,21 +162,16 @@ it("confines crates to supported low-headroom stair pockets and leaves floor voi
     });
     const plan = build.metadata.runtime.residential;
     const crates = plan.furniture.filter(item => item.underStair);
+    inventories.add(JSON.stringify(crates.map(item => item.object).sort()));
     assert.ok(crates.length >= 10, "wall alignment retains the full storage inventory");
     const pocket = crates.filter(item => item.backPocketStorage);
     assert.equal(pocket.length, 2);
     assert.equal(pocket[1].supportId, pocket[0].id);
     assert.equal(pocket[0].x, pocket[1].x);
     assert.equal(pocket[0].z, pocket[1].z);
-    for (const [object, count] of Object.entries({
-      Crate: 12,
-      Chest: 5,
-      Barrel: 2,
-      WaterBucket: 1,
-      PotteryJar: 3,
-    })) {
-      assert.equal(crates.filter(item => item.object === object).length, count,
-        `${object}: wall alignment must preserve the original inventory`);
+    for (const object of ["Crate", "Chest", "Barrel", "WaterBucket", "PotteryJar"]) {
+      assert.ok(crates.some(item => item.object === object),
+        `${object}: storage retains its useful supply kit`);
     }
     assert.ok(crates.every(item => item.floorY === -3));
     for (const barrel of crates.filter(item => item.object === "Barrel")) {
@@ -250,4 +254,5 @@ it("confines crates to supported low-headroom stair pockets and leaves floor voi
       }));
     }
   }
+  assert.ok(inventories.size >= 3, "seeds change whole piles and inventory, beyond crate rotation");
 });

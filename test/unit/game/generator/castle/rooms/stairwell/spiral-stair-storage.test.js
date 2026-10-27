@@ -19,51 +19,55 @@ const dimensions = {
 };
 
 it("fills the open half below the upper spiral while preserving the doorway and lower flight", () => {
-  const props = SpiralStairStorage.furnish(tower);
-  const bounds = [];
-  assert.deepEqual(props, SpiralStairStorage.furnish(tower));
-  assert.deepEqual(new Set(props.map(prop => prop.object)), new Set(Object.keys(dimensions)));
-  for (const prop of props) {
-    const [width, depth, height] = dimensions[prop.object].map(value => value * prop.scale);
-    const angle = prop.rotation * Math.PI / 180;
-    const halfX = (width * Math.abs(Math.cos(angle)) + depth * Math.abs(Math.sin(angle))) / 2;
-    const halfZ = (width * Math.abs(Math.sin(angle)) + depth * Math.abs(Math.cos(angle))) / 2;
-    const box = {
-      id: prop.id,
-      minX: prop.position.x - halfX,
-      maxX: prop.position.x + halfX,
-      minZ: prop.position.z - halfZ,
-      maxZ: prop.position.z + halfZ,
-      minY: prop.position.y,
-      maxY: prop.position.y + height,
-    };
-    for (const other of bounds) {
-      const overlapX = Math.min(box.maxX, other.maxX) - Math.max(box.minX, other.minX);
-      const overlapY = Math.min(box.maxY, other.maxY) - Math.max(box.minY, other.minY);
-      const overlapZ = Math.min(box.maxZ, other.maxZ) - Math.max(box.minZ, other.minZ);
-      assert.ok(Math.min(overlapX, overlapY, overlapZ) < 0.005, `${prop.id} intersects ${other.id}`);
+  for (const seed of [0, 2, 4, 6]) {
+    const props = SpiralStairStorage.furnish(tower, null, seed);
+    const bounds = [];
+    assert.deepEqual(props, SpiralStairStorage.furnish(tower, null, seed));
+    if (seed === 0) {
+      assert.deepEqual(new Set(props.map(prop => prop.object)), new Set(Object.keys(dimensions)));
     }
-    bounds.push(box);
-    for (const dx of [-width / 2, width / 2]) {
-      for (const dz of [-depth / 2, depth / 2]) {
-        const x = prop.position.x - tower.center[0] + dx * Math.cos(angle) + dz * Math.sin(angle);
-        const z = prop.position.z - tower.center[1] - dx * Math.sin(angle) + dz * Math.cos(angle);
-        assert.ok(Math.hypot(x, z) > 0.4, `${prop.id} intrudes into the central column`);
-        assert.ok(Math.hypot(x, z) < 2.75, `${prop.id} intrudes into the wall`);
-        assert.ok(x < -0.65, `${prop.id} obstructs the doorway and stair approach`);
-        if (Math.hypot(x, z) <= 1.77) {
-          const progress = (Math.atan2(x, z) * 180 / Math.PI - 90 + 360) % 360;
-          const underside = progress < 240 ? Math.floor(progress / 12) * 0.2 : 3.75;
-          assert.ok(prop.position.y + height + 0.15 <= underside, `${prop.id} intersects a tread`);
+    for (const prop of props) {
+      const [width, depth, height] = dimensions[prop.object].map(value => value * prop.scale);
+      const angle = prop.rotation * Math.PI / 180;
+      const halfX = (width * Math.abs(Math.cos(angle)) + depth * Math.abs(Math.sin(angle))) / 2;
+      const halfZ = (width * Math.abs(Math.sin(angle)) + depth * Math.abs(Math.cos(angle))) / 2;
+      const box = {
+        id: prop.id,
+        minX: prop.position.x - halfX,
+        maxX: prop.position.x + halfX,
+        minZ: prop.position.z - halfZ,
+        maxZ: prop.position.z + halfZ,
+        minY: prop.position.y,
+        maxY: prop.position.y + height,
+      };
+      for (const other of bounds) {
+        const overlapX = Math.min(box.maxX, other.maxX) - Math.max(box.minX, other.minX);
+        const overlapY = Math.min(box.maxY, other.maxY) - Math.max(box.minY, other.minY);
+        const overlapZ = Math.min(box.maxZ, other.maxZ) - Math.max(box.minZ, other.minZ);
+        assert.ok(Math.min(overlapX, overlapY, overlapZ) < 0.005, `${prop.id} intersects ${other.id}`);
+      }
+      bounds.push(box);
+      for (const dx of [-width / 2, width / 2]) {
+        for (const dz of [-depth / 2, depth / 2]) {
+          const x = prop.position.x - tower.center[0] + dx * Math.cos(angle) + dz * Math.sin(angle);
+          const z = prop.position.z - tower.center[1] - dx * Math.sin(angle) + dz * Math.cos(angle);
+          assert.ok(Math.hypot(x, z) > 0.4, `${prop.id} intrudes into the central column`);
+          assert.ok(Math.hypot(x, z) < 2.75, `${prop.id} intrudes into the wall`);
+          assert.ok(x < -0.65, `${prop.id} obstructs the doorway and stair approach`);
+          if (Math.hypot(x, z) <= 1.77) {
+            const progress = (Math.atan2(x, z) * 180 / Math.PI - 90 + 360) % 360;
+            const underside = progress < 240 ? Math.floor(progress / 12) * 0.2 : 3.75;
+            assert.ok(prop.position.y + height + 0.15 <= underside, `${prop.id} intersects a tread`);
+          }
         }
       }
-    }
-    assert.ok(prop.position.y + height < 1.2);
-    if (prop.position.y > 0.01) {
-      const support = props.find(candidate => candidate !== prop &&
-        candidate.position.x === prop.position.x && candidate.position.z === prop.position.z &&
-        Math.abs(candidate.position.y + dimensions[candidate.object][2] * candidate.scale - prop.position.y) < 1e-6);
-      assert.ok(support, `${prop.id} has no supporting prop`);
+      assert.ok(prop.position.y + height < 1.2);
+      if (prop.position.y > 0.01) {
+        const support = props.find(candidate => candidate !== prop &&
+          candidate.position.x === prop.position.x && candidate.position.z === prop.position.z &&
+          Math.abs(candidate.position.y + dimensions[candidate.object][2] * candidate.scale - prop.position.y) < 1e-6);
+        assert.ok(support, `${prop.id} has no supporting prop`);
+      }
     }
   }
 });
@@ -88,6 +92,27 @@ it("leaves tight towers and plans without a round tower unfurnished", () => {
     ...tower,
     radius: 2.25,
   }), []);
+});
+
+it("varies complete spiral piles by seed while retaining supported contents and the clear half", () => {
+  const inventories = new Set();
+  for (const seed of [0, 2, 4, 6]) {
+    const props = SpiralStairStorage.furnish(tower, null, seed);
+    assert.deepEqual(props, SpiralStairStorage.furnish(tower, null, seed + 1));
+    inventories.add(JSON.stringify(props.map(prop => [prop.object, prop.position.x, prop.position.z])));
+    for (const prop of props) {
+      const [width, depth, height] = dimensions[prop.object].map(value => value * prop.scale);
+      assert.ok(prop.position.x + width / 2 < tower.center[0] - 0.65);
+      assert.ok(prop.position.y + height < 1.2);
+      assert.ok(Math.hypot(prop.position.x - tower.center[0], prop.position.z - tower.center[1]) + Math.max(width, depth) / 2 < tower.radius - tower.wallThickness + 0.15);
+      if (prop.position.y > 0.01) {
+        assert.ok(props.some(support => support !== prop &&
+          support.position.x === prop.position.x && support.position.z === prop.position.z &&
+          Math.abs(support.position.y + dimensions[support.object][2] * support.scale - prop.position.y) < 1e-6));
+      }
+    }
+  }
+  assert.equal(inventories.size, 4);
 });
 
 it("publishes spiral supplies as ordinary map objects without duplicates or upper-floor piles", async () => {

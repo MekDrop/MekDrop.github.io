@@ -40,6 +40,10 @@ export class LibraryRoomFurnishing {
    * @type {number}
    */
   #topOffset = 0;
+  /**
+   * @type {boolean}
+   */
+  #reverseShelfRow = false;
 
   /**
    * @param {StudyRoom} room
@@ -52,16 +56,20 @@ export class LibraryRoomFurnishing {
     }
     const sides = [0, 90, 180, 270];
     this.#topOffset = this.#state % 4;
+    this.#reverseShelfRow = (this.#state & 4) !== 0;
     for (let index = 3; index > 0; index--) {
       const next = Math.floor(this.#random() * (index + 1));
       [sides[index], sides[next]] = [sides[next], sides[index]];
     }
-    // Furnish the solid end wall first, so the desk cannot consume the
-    // bookcase row. Neighbouring cases share their reading aisle.
+    // Keep the solid end-wall bank, then reserve one cabinet at either end of
+    // the long study wall. The desk uses the remaining bay on that same wall,
+    // so cabinet/desk order changes without moving a bookcase into its aisle.
     this.#shelves([90], 4);
+    this.#shelves([0], 1);
     let desk;
-    for (const yaw of sides) {
-      for (const along of this.#positions(yaw)) {
+    const deskSides = [90, ...sides.filter(LibraryRoomFurnishing.#otherWall)];
+    for (const yaw of deskSides) {
+      for (const along of this.#positions(yaw, 0.525)) {
         const group = this.#point(yaw, along, 0.85);
         const width = yaw % 180 ? 1.7 : 1.05, depth = yaw % 180 ? 1.05 : 1.7;
         if (!this.#clear(group, width, depth, 1.1)) {
@@ -95,9 +103,8 @@ export class LibraryRoomFurnishing {
       if (this.#random() < 0.85) {
         this.#items.push(this.#item("DeskGlobe", top(-0.305, -0.07), 0.24, 0.285, desk.rotation, 0.650));
       }
-      if (this.#random() < 0.8) {
-        this.#items.push(this.#item("CandleStand", top(0.29, 0.115), 0.141, 0.192, desk.rotation, 0.650, {variant: "table"}));
-      }
+      this.#items.push(this.#item("CandleStand", top(0.29, 0.115), 0.141, 0.192,
+        desk.rotation + (this.#random() < 0.5 ? 0 : 180), 0.650, {variant: "table"}));
     }
     this.#shelves(sides, 1);
     // Use every remaining safe wall slot rather than stopping at a random
@@ -266,6 +273,9 @@ export class LibraryRoomFurnishing {
     for (let along = min + half + 0.01; along <= max - half - 0.01; along += half * 2 + 0.001) {
       values.push(along);
     }
+    if (this.#reverseShelfRow) {
+      values.reverse();
+    }
     // A desk can leave a usable gap between the regular module positions.
     // Check those gaps too, after the adjoining row has been placed.
     for (let along = min + half + 0.01; along <= max - half - 0.01; along += 0.1) {
@@ -284,15 +294,22 @@ export class LibraryRoomFurnishing {
   }
   /**
    * @param {number} yaw
+   * @param {number} [halfWidth]
    * @returns {number[]}
    */
-  #positions(yaw) {
+  #positions(yaw, halfWidth = 0.6) {
     const bounds = this.#room.contentBounds ?? this.#room;
     const min = yaw % 180 ? bounds.minZ : bounds.minX;
     const max = yaw % 180 ? bounds.maxZ : bounds.maxX;
     const values = [];
     for (let along = min + this.#inset + 0.6; along < max - this.#inset - 0.6; along += 0.45) {
       values.push(along);
+    }
+    // Narrow but valid bays can fall between the sampling grid. Try the exact
+    // reserved cabinet/reading-aisle edges before abandoning this wall.
+    for (const occupied of this.#occupied.concat(this.#shelfAisles)) {
+      values.push((yaw % 180 ? occupied.maxZ : occupied.maxX) + halfWidth + 0.00001,
+        (yaw % 180 ? occupied.minZ : occupied.minX) - halfWidth - 0.00001);
     }
     const start = Math.floor(this.#random() * Math.max(1, values.length));
 
@@ -460,5 +477,13 @@ export class LibraryRoomFurnishing {
    */
   #findShaft(shaft) {
     return shaft.to === this.#room.level;
+  }
+
+  /**
+   * @param {number} yaw
+   * @returns {boolean}
+   */
+  static #otherWall(yaw) {
+    return yaw !== 90;
   }
 }

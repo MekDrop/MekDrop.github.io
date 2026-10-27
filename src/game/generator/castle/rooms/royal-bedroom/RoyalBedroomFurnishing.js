@@ -1,5 +1,6 @@
 import { PaintingCatalog } from "../../../../objects/castle-props/painting/PaintingCatalog.js";
 import { RoomPlacementRules } from "../RoomPlacementRules.js";
+import { RoomFurnishingChoices } from "../RoomFurnishingChoices.js";
 
 /**
  * Five compact arrangements using the existing royal bed and castle prop kit.
@@ -46,13 +47,23 @@ export class RoyalBedroomFurnishing {
    * @type {string|number}
    */
   #paintingSeed;
+  /**
+   * @type {number}
+   */
+  #layoutSeed;
+  /**
+   * @type {number}
+   */
+  #attempt;
 
   /**
    * @param {import("../AbstractCastleRoomGenerator.js").PlannedCastleRoom} room
    * @param {{seed:string|number,wallThickness:number,openings:import("../../CastleBasePlanGenerator.js").CompiledCastleOpening[],stairs:Array<{minX:number,maxX:number,minZ:number,maxZ:number}>}} context
+   * @param {number} [attempt]
    */
-  constructor(room, context) {
+  constructor(room, context, attempt = 0) {
     this.#room = room;
+    this.#attempt = attempt;
     this.#paintingSeed = room.furnishingSeed ?? context.seed;
     this.#doors = context.openings.filter(
       RoyalBedroomFurnishing.#filterOpening,
@@ -67,9 +78,13 @@ export class RoyalBedroomFurnishing {
       }
     }
     this.#variant = Math.floor(Math.abs(seed) / 2) % 5;
+    this.#layoutSeed = Math.floor(Math.abs(seed) / 2);
     const walls = this.#variant === 1 || this.#variant === 3 ? [180, 90, 0, 270] : [90, 180, 270, 0];
     const bed = this.#perimeter("royalBed", 1.2, 1.805, 2.03, walls);
     if (!bed) {
+      if (attempt < 6) {
+        this.#items = new RoyalBedroomFurnishing(room, context, attempt + 1).items;
+      }
       return;
     }
     if (this.#variant === 1) {
@@ -128,6 +143,40 @@ export class RoyalBedroomFurnishing {
     for (const item of this.#items) {
       item.furnishingVariant = RoyalBedroomFurnishing.variations[this.#variant];
     }
+    // A different first slot must not cost the room its essential furniture.
+    // Retry complete compositions, then fall back to the original preference.
+    if (attempt < 6 && !this.#complete) {
+      this.#items = new RoyalBedroomFurnishing(room, context, attempt + 1).items;
+    }
+  }
+
+  /**
+   * @returns {boolean}
+   */
+  get #complete() {
+    const roles = new Set(this.#items.map(RoyalBedroomFurnishing.#itemRole));
+    const objects = new Set(this.#items.map(RoyalBedroomFurnishing.#itemObject));
+
+    return roles.has("wardrobe") && objects.has("CandleStand") && objects.has("Rug") &&
+      (this.#variant !== 1 || objects.has("DeskParchment")) &&
+      (this.#variant !== 2 || objects.has("Chair")) &&
+      (this.#variant !== 4 || objects.has("WashBasin"));
+  }
+
+  /**
+   * @param {import("../AbstractCastleRoomGenerator.js").RoomItem} item
+   * @returns {string}
+   */
+  static #itemRole(item) {
+    return item.role;
+  }
+
+  /**
+   * @param {import("../AbstractCastleRoomGenerator.js").RoomItem} item
+   * @returns {string|undefined}
+   */
+  static #itemObject(item) {
+    return item.object;
   }
 
   /**
@@ -204,7 +253,13 @@ export class RoyalBedroomFurnishing {
       const sideways = rotation % 180 !== 0;
       const halfX = (sideways ? depth : width) / 2;
       const halfZ = (sideways ? width : depth) / 2;
-      for (const fraction of [0.8, 0.2, 0.5, 0, 1, 0.65, 0.35]) {
+      const fractions = [0.8, 0.2, 0.5, 0, 1, 0.65, 0.35];
+      const longRoomAnchor = this.#room.maxZ - this.#room.minZ > this.#room.maxX - this.#room.minX &&
+        (this.#room.maxZ - this.#room.minZ) * (this.#room.maxX - this.#room.minX) > 18 &&
+        ["royalBed", "deskReserve"].includes(object);
+      const positions = this.#attempt === 6 || longRoomAnchor ? fractions : RoomFurnishingChoices.order(fractions,
+        this.#room, `${object}:${rotation}:${this.#attempt}`, this.#layoutSeed);
+      for (const fraction of positions) {
         candidates.push({
           rotation,
           x: rotation === 90 ? room.minX + inset + halfX : rotation === 270 ? room.maxX - inset - halfX

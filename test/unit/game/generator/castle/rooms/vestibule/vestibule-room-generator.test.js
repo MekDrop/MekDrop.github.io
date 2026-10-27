@@ -6,7 +6,10 @@ import { VestibuleRoomGenerator } from "../../../../../../../src/game/generator/
 
 it("furnishes the arrival room while preserving circulation and window approaches in both mirrors", async () => {
   for (const seed of [20, 21]) {
-    const plan = await CastleBasePlanGenerator.generate({ seed });
+    const plan = await CastleBasePlanGenerator.generate({
+      planId: "castle-demo-compact",
+      seed,
+    });
     const items = plan.furniture.filter(item => item.role === "vestibuleProp");
     for (const object of ["Bench", "VestibuleCloakRail", "Banner", "Rug", "Lantern",
       "Painting", "StandingArmor", "Chest", "TravelKit", "Boots", "VestibuleStickStand"]) {
@@ -54,15 +57,17 @@ it("furnishes the arrival room while preserving circulation and window approache
     assert.equal(armor[0].rotation, painting.rotation);
     assert.ok(armor[0].z > painting.z, "use the spacious side opposite the stairs door");
     assert.ok(Math.abs(armor[0].z - painting.z) >= (armor[0].depth + painting.depth) / 2 + 0.08);
-    const runner = items.find(item => item.object === "Rug" && item.roomId === bench.roomId);
-    assert.ok(runner.depth > 3 && runner.width === 1.3);
+    // The longer entrance room contains the lower kitchen's chimney reservation.
+    // The clear southern corridor still gets its full-length walking runner.
+    const runner = items.find(item => item.object === "Rug");
+    const runnerRoom = plan.spaces.find(room => room.id === runner.roomId);
+    assert.equal(runner.width, 1.3);
+    assert.ok(runner.depth >= runnerRoom.maxZ - runnerRoom.minZ - 0.13);
     const window = plan.openings.find(opening => opening.roomId === bench.roomId && opening.kind === "window");
     const windowBench = items.find(item => item.object === "Bench" && item.variant === "wall" && item.stretch?.x === 0.8);
     assert.ok(windowBench, `window bay furnished for seed ${seed}`);
     assert.ok(windowBench.y + windowBench.height * windowBench.scale < window.bottom);
     assert.equal(windowBench.height * windowBench.scale, bench.height * bench.scale);
-    const arrivalRoom = plan.spaces.find(room => room.id === bench.roomId);
-    assert.ok(runner.depth >= arrivalRoom.maxZ - arrivalRoom.minZ - 0.13);
     assert.ok(items.some(item => item.object === "Planter"));
   }
 });
@@ -133,7 +138,10 @@ it("leaves cramped and fully occupied stair rooms unfurnished", () => {
 
 it("chooses either seating or a map table and keeps all door approaches connected in both mirrors", async () => {
   for (const seed of [4, 5, 10, 11]) {
-    const plan = await CastleBasePlanGenerator.generate({ seed });
+    const plan = await CastleBasePlanGenerator.generate({
+      planId: "castle-compact-service-wing",
+      seed,
+    });
     const room = plan.spaces.find(room => room.id === "vestibule");
     const items = plan.furniture.filter(item => item.roomId === room.id);
     const islands = items.filter(item => (item.object === "Bench" && item.variant === "island" || item.object === "Table" && item.properties?.height === 1));
@@ -163,7 +171,13 @@ it("chooses either seating or a map table and keeps all door approaches connecte
       "arrival furniture has its own broad floor covering");
     assert.ok(items.some(item => item.object === "WarCouncilShield" && item.id.endsWith("arrival-shield")),
       "the entrance wall has a shield above the low furnishings");
-    assert.ok(Math.abs(console.x - islands[0].x) < 0.85, "console sits beside the arrival end of the central group");
+    assert.ok(console.x - console.width / 2 >= room.minX + 0.15 - 1e-6 &&
+      console.x + console.width / 2 <= room.maxX - 0.15 + 1e-6,
+    "the varied console bay stays completely inside the wall ends");
+    assert.ok(Math.abs(console.z - (room.maxZ - 0.375)) < 1e-6,
+      "the console remains against the arrival wall");
+    assert.ok(console.z - console.depth / 2 - (islands[0].z + islands[0].depth / 2) >= 0.7,
+      "every console bay retains a comfortable island-side aisle");
     if (seed < 6) {
       assert.equal(islands[0].width, 2.7);
       assert.equal(islands[0].depth, 1.2);
@@ -171,8 +185,6 @@ it("chooses either seating or a map table and keeps all door approaches connecte
       const chest = items.find(item => item.object === "Chest");
       const endGap = Math.abs(chest.x - islands[0].x) - (chest.width * chest.scale + islands[0].width) / 2;
       assert.ok(endGap >= 0.7 && endGap <= 1.1, "seating groups with the far-wall chest instead of floating midway along the room");
-      assert.ok(console.z - console.depth / 2 - (islands[0].z + islands[0].depth / 2) >= 0.7,
-        "the console-side aisle remains comfortable");
     }
     assert.ok(items.some(item => item.object === "VestibuleCloakRail" && item.id === `${console.id}-hooks`));
     for (const object of ["Lantern", "Planter"]) {

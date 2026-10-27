@@ -7,13 +7,22 @@ export class SpiralStairStorage {
    * @param {import("../../CastleRoundTower.js").RoundTowerDefinition|undefined} tower
    * @param {"x"|"z"|null} [mirrorAxis] Compensates for the compiler's reflection;
    * the spiral itself retains its handedness in reflected castles.
+   * @param {string|number} [seed]
    * @returns {import("../../../../objects/ObjectTypes.js").MapObjectDefinition[]}
    */
-  static furnish(tower, mirrorAxis = null) {
+  static furnish(tower, mirrorAxis = null, seed = 0) {
     if (!tower || tower.radius - tower.wallThickness < 2.7) {
       return [];
     }
     const items = [];
+    let value = Number(seed);
+    if (!Number.isFinite(value)) {
+      value = 0;
+      for (const character of String(seed)) {
+        value = (Math.imul(value, 31) + character.charCodeAt(0)) >>> 0;
+      }
+    }
+    const packing = Math.floor(Math.abs(value) / 2) % 4;
     const stacks = [
       ["Crate", "Crate", "PotteryJar"],
       ["Chest", "Crate", "Crate"],
@@ -23,9 +32,12 @@ export class SpiralStairStorage {
     const spacing = (tower.radius - tower.wallThickness) / 2.75;
     for (let column = 0; column < 3; column++) {
       for (let row = 0; row < 8; row++) {
+        if (packing !== 0 && (row + column + packing) % 4 === 0) {
+          continue;
+        }
         const dx = (-1.04 - column * 0.65) * spacing;
         const dz = (-2.1 + row * 0.6) * spacing;
-        const stack = stacks[(column * 8 + row) % stacks.length];
+        const stack = stacks[(column * 8 + row + packing) % stacks.length];
         // Reserve the widest base's complete footprint, including wall cuts.
         const halfX = stack[0] === "Chest" ? 0.315 : 0.25;
         const ceiling = this.#ceiling(tower, dx, dz, halfX, 0.25);

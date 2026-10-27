@@ -87,6 +87,7 @@ export class VestibuleWindowFurnishing {
         {
           role: "vestibuleProp",
           object: "VestibuleStickStand",
+          properties: { seed: room.furnishingSeed ?? 0 },
           x: table.x,
           z: table.z - 0.65,
           width: 0.36,

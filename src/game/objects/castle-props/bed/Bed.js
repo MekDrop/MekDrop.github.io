@@ -2,6 +2,7 @@ import royalUrl from "../../../models/castle/residential/royal-bed.glb?url";
 import servantUrl from "../../../models/castle/residential/servant-bed.glb?url";
 import { AbstractCastleProp } from "../../shared/AbstractCastleProp.js";
 import { addGeneratedVoxelPhysics } from "../../shared/GeneratedVoxelPhysics.js";
+import { BedPatchMaterial } from "./BedPatchMaterial.js";
 
 /**
  * Grounded royal or servant bed with the original solid furniture envelope.
@@ -36,6 +37,23 @@ export class Bed extends AbstractCastleProp {
    */
   get modelUrl() {
     return this.definition.variant === "servant" ? servantUrl : royalUrl;
+  }
+  /**
+   * Recolor only the authored repairs; every instance owns its cloth finish.
+   * @param {import("playcanvas").Entity} model
+   * @param {boolean} collision
+   */
+  prepareModel(model, collision) {
+    if (collision || this.definition.variant !== "servant") {
+      return;
+    }
+    for (const render of model.findComponents("render")) {
+      for (const mesh of render.meshInstances) {
+        const material = this.cloneMaterial(mesh.material);
+        BedPatchMaterial.configure(material, this.definition.seed ?? this.definition.id);
+        mesh.material = material;
+      }
+    }
   }
   /**
    * @param {ConstructorParameters<typeof AbstractCastleProp>[0]} options

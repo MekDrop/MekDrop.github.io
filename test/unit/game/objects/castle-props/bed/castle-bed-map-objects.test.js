@@ -56,6 +56,7 @@ it("publishes both bed variants with unchanged placement and castle-aligned coll
       const bed = beds[index];
       const placement = placements[index];
       assert.deepEqual(bed.position, placement.position);
+      assert.equal(bed.seed, `${buildPlan.input.seed ?? 0}:${placement.role}:${index + 1}`);
       assert.equal(bed.rotation, placement.yaw);
       assert.equal(bed.collisionRotation, layout.yaw);
       assert.equal(bed.scale * bed.stretch.y, placement.scale.y);

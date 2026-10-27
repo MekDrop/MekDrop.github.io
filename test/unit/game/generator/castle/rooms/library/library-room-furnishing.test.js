@@ -7,10 +7,30 @@ import { LibraryRoomGenerator } from "../../../../../../../src/game/generator/ca
 import { LibraryRoomMapObjects } from "../../../../../../../src/game/objects/castle/rooms/library/LibraryRoomMapObjects.js";
 import { CastleAuthoredBuildPlan } from "../../../../../../../src/game/generator/castle/CastleAuthoredBuildPlan.js";
 
+it("exchanges cabinet and desk order along the same solid study wall", async () => {
+  const orderings = new Set();
+  for (const seed of [0, 4, 24, 48]) {
+    const plan = await CastleBasePlanGenerator.generate({
+      planId: "castle-demo-compact",
+      seed,
+    });
+    const furniture = plan.furniture.filter(item => item.role === "libraryProp");
+    const desk = furniture.find(item => item.object === "Table");
+    const cabinet = furniture.find(item => item.object === "Shelf" && item.rotation === desk.rotation);
+    assert.ok(cabinet);
+    assert.ok(Math.abs(cabinet.z - desk.z) < 0.2);
+    orderings.add(Math.sign(desk.x - cabinet.x));
+  }
+  assert.deepEqual([...orderings].sort(), [-1, 1]);
+});
+
 it("repeats study groups and preserves the end-wall bookcase row across seeds", async () => {
   const signatures = new Set();
   for (let seed = 0; seed < 60; seed++) {
-    const plan = await CastleBasePlanGenerator.generate({ seed });
+    const plan = await CastleBasePlanGenerator.generate({
+      planId: "castle-demo-compact",
+      seed,
+    });
     const furniture = plan.furniture.filter(item => item.role === "libraryProp");
     const room = plan.spaces.find(room => room.purpose === "Library");
     const desk = furniture.find(item => item.object === "Table" && (item.variant ?? item.properties?.variant) === "writingDesk");
@@ -25,7 +45,7 @@ it("repeats study groups and preserves the end-wall bookcase row across seeds", 
     assert.ok(-Math.cos(angle) * (desk.x - chair.x) + Math.sin(angle) * (desk.z - chair.z) > 0.6);
     assert.ok(furniture.some(item => item.object === "Shelf"));
     const endWallShelves = furniture.filter(item => item.object === "Shelf" && Math.abs(item.rotation % 180) === 90);
-    assert.ok(endWallShelves.length >= 4, `seed ${seed} fills the solid end wall`);
+    assert.ok(endWallShelves.length >= 3, `seed ${seed} fills the solid end wall`);
     assert.ok(Math.abs(Math.abs(endWallShelves[0].z - endWallShelves[1].z) - 0.791) < 1e-6);
     for (const shelf of endWallShelves) {
       assert.ok(Math.abs(Math.min(Math.abs(shelf.x - room.wallBounds.minX), Math.abs(shelf.x - room.wallBounds.maxX)) - 0.18) < 1e-6);
@@ -72,7 +92,10 @@ it("repeats study groups and preserves the end-wall bookcase row across seeds", 
           item.z + item.depth / 2 <= stair.minZ - clearance || item.z - item.depth / 2 >= stair.maxZ + clearance);
       }
     }
-    assert.deepEqual((await CastleBasePlanGenerator.generate({ seed })).furniture.filter(item => item.role === "libraryProp"), furniture);
+    assert.deepEqual((await CastleBasePlanGenerator.generate({
+      planId: "castle-demo-compact",
+      seed,
+    })).furniture.filter(item => item.role === "libraryProp"), furniture);
     for (const item of furniture) {
       assert.ok(item.x - item.width / 2 >= room.wallBounds.minX - 1e-6);
       assert.ok(item.x + item.width / 2 <= room.wallBounds.maxX + 1e-6);
@@ -111,7 +134,10 @@ it("small studies omit groups that cannot preserve their approaches", () => {
 
 it("keeps a connected player-width route from the door to desk and shelf approaches", async () => {
   for (let seed = 0; seed < 60; seed++) {
-    const plan = await CastleBasePlanGenerator.generate({ seed });
+    const plan = await CastleBasePlanGenerator.generate({
+      planId: "castle-demo-compact",
+      seed,
+    });
     const room = plan.spaces.find(room => room.purpose === "Library");
     const furniture = plan.furniture.filter(item => item.role === "libraryProp" && item.y === 0);
     const door = plan.openings.find(item => item.roomId === room.id && item.kind === "door");
