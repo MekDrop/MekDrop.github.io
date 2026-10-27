@@ -1,0 +1,925 @@
+{
+  "grid": [
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  ],
+  "heightmap": [
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  ],
+  "tileMeta": [
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ]
+  ],
+  "cols": 11,
+  "rows": 11,
+  "numPaths": 0,
+  "pipeData": [],
+  "mergeZones": [],
+  "trunkStart": null,
+  "mapName": "test_king-animations",
+  "layoutSignature": "test_king-animations",
+  "animationViewport": {
+    "zoom": 5.2,
+    "rotation": 2,
+    "panX": 0,
+    "panZ": 0
+  },
+  "objects": [
+    {
+      "id": "king-review-TerraceWalk",
+      "object": "SeatedRoyal",
+      "variant": "king",
+      "animation": "TerraceIdle",
+      "position": {
+        "x": 0,
+        "y": 2.3,
+        "z": 0
+      },
+      "rotation": {
+        "x": 0,
+        "y": 45,
+        "z": 0
+      },
+      "scale": 0.72
+    },
+    {
+      "id": "king-review-floor",
+      "object": "WoodenFloor",
+      "from": {
+        "x": -4.5,
+        "y": 2.3,
+        "z": -2
+      },
+      "to": {
+        "x": 4.5,
+        "y": 2.3,
+        "z": 4.5
+      }
+    },
+    {
+      "id": "king-review-spawn",
+      "object": "SpawnPoint",
+      "position": {
+        "x": -4,
+        "y": 2.03,
+        "z": 4
+      }
+    },
+    {
+      "id": "king-review-chair",
+      "object": "Chair",
+      "position": {
+        "x": 0,
+        "y": 2.3,
+        "z": -0.035
+      },
+      "rotation": 135,
+      "scale": 1
+    }
+  ],
+  "testControls": {
+    "panels": [
+      {
+        "title": "King humanoid motion",
+        "x": 16,
+        "y": 140,
+        "buttons": [
+          {
+            "label": "Idle",
+            "script": "for (const actor of objects) { if (actor.definition?.id === 'king-review-chair') { actor.entity.enabled = 'TerraceIdle' === 'RoyalSit'; } const model = actor.entity?.findByTag('map-animation-actor')[0]; if (model?.tags.has('SeatedRoyal')) { model.kingCapeWalkHandle?.off(); model.kingCapeWalkHandle = null; actor.entity.enabled = true; actor.entity.setLocalPosition(0, 2.3, 0); model.kingCapeYaw = 45; model.setLocalEulerAngles(0, 45, 0); model.anim.speed = 1; model.anim.baseLayer.play('TerraceIdle'); model.anim.baseLayer.activeStateCurrentTime = 0; } } camera.setViewport({zoom:5.2,rotation:0,panX:0,panZ:0});"
+          },
+          {
+            "label": "Weighted sword walk",
+            "script": "for (const actor of objects) { if (actor.definition?.id === 'king-review-chair') { actor.entity.enabled = 'TerraceWalk' === 'RoyalSit'; } const model = actor.entity?.findByTag('map-animation-actor')[0]; if (model?.tags.has('SeatedRoyal')) { model.kingCapeWalkHandle?.off(); model.kingCapeWalkHandle = null; actor.entity.enabled = true; actor.entity.setLocalPosition(0, 2.3, 0); model.kingCapeYaw = 45; model.setLocalEulerAngles(0, 45, 0); model.anim.speed = 1; model.anim.baseLayer.play('TerraceWalk'); model.anim.baseLayer.activeStateCurrentTime = 0; } } camera.setViewport({zoom:5.2,rotation:0,panX:0,panZ:0});"
+          },
+          {
+            "label": "Walk out",
+            "script": "for (const actor of objects) { if (actor.definition?.id === 'king-review-chair') { actor.entity.enabled = 'WalkOut' === 'RoyalSit'; } const model = actor.entity?.findByTag('map-animation-actor')[0]; if (model?.tags.has('SeatedRoyal')) { model.kingCapeWalkHandle?.off(); model.kingCapeWalkHandle = null; actor.entity.enabled = true; actor.entity.setLocalPosition(0, 2.3, 0); model.kingCapeYaw = 45; model.setLocalEulerAngles(0, 45, 0); model.anim.speed = 1; model.anim.baseLayer.play('WalkOut'); model.anim.baseLayer.activeStateCurrentTime = 0; } } camera.setViewport({zoom:5.2,rotation:0,panX:0,panZ:0});"
+          },
+          {
+            "label": "Seated on throne",
+            "script": "for (const actor of objects) { if (actor.definition?.id === 'king-review-chair') { actor.entity.enabled = 'RoyalSit' === 'RoyalSit'; } const model = actor.entity?.findByTag('map-animation-actor')[0]; if (model?.tags.has('SeatedRoyal')) { model.kingCapeWalkHandle?.off(); model.kingCapeWalkHandle = null; actor.entity.enabled = true; actor.entity.setLocalPosition(0, 2.3, 0); model.kingCapeYaw = 45; model.setLocalEulerAngles(0, 45, 0); model.anim.speed = 1; model.anim.baseLayer.play('RoyalSit'); model.anim.baseLayer.activeStateCurrentTime = 0; } } camera.setViewport({zoom:5.2,rotation:0,panX:0,panZ:0});"
+          },
+          {
+            "label": "Cry / sword support",
+            "script": "for (const actor of objects) { if (actor.definition?.id === 'king-review-chair') { actor.entity.enabled = 'Cry' === 'RoyalSit'; } const model = actor.entity?.findByTag('map-animation-actor')[0]; if (model?.tags.has('SeatedRoyal')) { model.kingCapeWalkHandle?.off(); model.kingCapeWalkHandle = null; actor.entity.enabled = true; actor.entity.setLocalPosition(0, 2.3, 0); model.kingCapeYaw = 45; model.setLocalEulerAngles(0, 45, 0); model.anim.speed = 1; model.anim.baseLayer.play('Cry'); model.anim.baseLayer.activeStateCurrentTime = 0; } } camera.setViewport({zoom:5.2,rotation:0,panX:0,panZ:0});"
+          },
+          {
+            "label": "Overhead sword strike",
+            "script": "for (const actor of objects) { if (actor.definition?.id === 'king-review-chair') { actor.entity.enabled = 'SwordOverheadStrike' === 'RoyalSit'; } const model = actor.entity?.findByTag('map-animation-actor')[0]; if (model?.tags.has('SeatedRoyal')) { model.kingCapeWalkHandle?.off(); model.kingCapeWalkHandle = null; actor.entity.enabled = true; actor.entity.setLocalPosition(0, 2.3, 0); model.kingCapeYaw = 45; model.setLocalEulerAngles(0, 45, 0); model.anim.speed = 1; model.anim.baseLayer.play('SwordOverheadStrike'); model.anim.baseLayer.activeStateCurrentTime = 0; } } camera.setViewport({zoom:5.2,rotation:0,panX:0,panZ:0});"
+          },
+          {
+            "label": "Side sword slash",
+            "script": "for (const actor of objects) { if (actor.definition?.id === 'king-review-chair') { actor.entity.enabled = 'SwordSideSlash' === 'RoyalSit'; } const model = actor.entity?.findByTag('map-animation-actor')[0]; if (model?.tags.has('SeatedRoyal')) { model.kingCapeWalkHandle?.off(); model.kingCapeWalkHandle = null; actor.entity.enabled = true; actor.entity.setLocalPosition(0, 2.3, 0); model.kingCapeYaw = 45; model.setLocalEulerAngles(0, 45, 0); model.anim.speed = 1; model.anim.baseLayer.play('SwordSideSlash'); model.anim.baseLayer.activeStateCurrentTime = 0; } } camera.setViewport({zoom:5.2,rotation:0,panX:0,panZ:0});"
+          },
+          {
+            "label": "Low sword defense",
+            "script": "for (const actor of objects) { if (actor.definition?.id === 'king-review-chair') { actor.entity.enabled = 'SwordLowDefense' === 'RoyalSit'; } const model = actor.entity?.findByTag('map-animation-actor')[0]; if (model?.tags.has('SeatedRoyal')) { model.kingCapeWalkHandle?.off(); model.kingCapeWalkHandle = null; actor.entity.enabled = true; actor.entity.setLocalPosition(0, 2.3, 0); model.kingCapeYaw = 45; model.setLocalEulerAngles(0, 45, 0); model.anim.speed = 1; model.anim.baseLayer.play('SwordLowDefense'); model.anim.baseLayer.activeStateCurrentTime = 0; } } camera.setViewport({zoom:5.2,rotation:0,panX:0,panZ:0});"
+          },
+          {
+            "label": "Sword parry",
+            "script": "for (const actor of objects) { if (actor.definition?.id === 'king-review-chair') { actor.entity.enabled = 'SwordParry' === 'RoyalSit'; } const model = actor.entity?.findByTag('map-animation-actor')[0]; if (model?.tags.has('SeatedRoyal')) { model.kingCapeWalkHandle?.off(); model.kingCapeWalkHandle = null; actor.entity.enabled = true; actor.entity.setLocalPosition(0, 2.3, 0); model.kingCapeYaw = 45; model.setLocalEulerAngles(0, 45, 0); model.anim.speed = 1; model.anim.baseLayer.play('SwordParry'); model.anim.baseLayer.activeStateCurrentTime = 0; } } camera.setViewport({zoom:5.2,rotation:0,panX:0,panZ:0});"
+          }
+        ]
+      },
+      {
+        "title": "King review cameras",
+        "x": 16,
+        "y": 140,
+        "buttons": [
+          {
+            "label": "Front",
+            "script": "camera.setViewport({zoom:5.2,rotation:0,panX:0,panZ:0});"
+          },
+          {
+            "label": "Left side",
+            "script": "camera.setViewport({zoom:5.2,rotation:1,panX:0,panZ:0});"
+          },
+          {
+            "label": "Back",
+            "script": "camera.setViewport({zoom:5.2,rotation:2,panX:0,panZ:0});"
+          },
+          {
+            "label": "Right side",
+            "script": "camera.setViewport({zoom:5.2,rotation:3,panX:0,panZ:0});"
+          }
+        ]
+      },
+      {
+        "title": "Cape motion",
+        "x": 16,
+        "y": 140,
+        "buttons": [
+          {
+            "label": "Walk 1.5 m",
+            "script": "let model; for (const actor of objects) { if (actor.definition?.id === 'king-review-chair') actor.entity.enabled = false; const candidate = actor.entity?.findByTag('map-animation-actor')[0]; if (candidate?.tags.has('SeatedRoyal')) { actor.entity.enabled = candidate.tags.has('king-review-TerraceWalk'); if (actor.entity.enabled) model = candidate; } } if (model) { model.kingCapeWalkHandle?.off(); model.kingCapeWalkDistance = 0; model.kingCapeYaw ??= 45; model.setLocalEulerAngles(0, model.kingCapeYaw, 0); model.anim.speed = 1; model.anim.baseLayer.play('TerraceWalk'); const app = model.anim.system.app; model.kingCapeWalkHandle = app.on('update', (dt) => { const distance = Math.min(Math.max(dt, 0), .05) * .45; model.parent.translate(-model.forward.x * distance, 0, -model.forward.z * distance); model.kingCapeWalkDistance += distance; if (model.kingCapeWalkDistance >= 1.5) { model.kingCapeWalkHandle.off(); model.kingCapeWalkHandle = null; model.anim.baseLayer.transition('TerraceIdle', .12); } }); if (!model.kingCapeWalkCleanup) { model.kingCapeWalkCleanup = true; model.once('destroy', () => model.kingCapeWalkHandle?.off()); } }"
+          },
+          {
+            "label": "Turn left 90",
+            "script": "let model; for (const actor of objects) { if (actor.definition?.id === 'king-review-chair') actor.entity.enabled = false; const candidate = actor.entity?.findByTag('map-animation-actor')[0]; if (candidate?.tags.has('SeatedRoyal')) { actor.entity.enabled = candidate.tags.has('king-review-TerraceWalk'); if (actor.entity.enabled) model = candidate; } } if (model) { model.kingCapeYaw = (model.kingCapeYaw ?? 45) + 90; model.setLocalEulerAngles(0, model.kingCapeYaw, 0); }"
+          },
+          {
+            "label": "Turn right 90",
+            "script": "let model; for (const actor of objects) { if (actor.definition?.id === 'king-review-chair') actor.entity.enabled = false; const candidate = actor.entity?.findByTag('map-animation-actor')[0]; if (candidate?.tags.has('SeatedRoyal')) { actor.entity.enabled = candidate.tags.has('king-review-TerraceWalk'); if (actor.entity.enabled) model = candidate; } } if (model) { model.kingCapeYaw = (model.kingCapeYaw ?? 45) + -90; model.setLocalEulerAngles(0, model.kingCapeYaw, 0); }"
+          },
+          {
+            "label": "Stop and settle",
+            "script": "let model; for (const actor of objects) { if (actor.definition?.id === 'king-review-chair') actor.entity.enabled = false; const candidate = actor.entity?.findByTag('map-animation-actor')[0]; if (candidate?.tags.has('SeatedRoyal')) { actor.entity.enabled = candidate.tags.has('king-review-TerraceWalk'); if (actor.entity.enabled) model = candidate; } } if (model) { model.kingCapeWalkHandle?.off(); model.kingCapeWalkHandle = null; model.anim.speed = 1; model.anim.baseLayer.transition('TerraceIdle', .12); }"
+          },
+          {
+            "label": "Reset / back view",
+            "script": "let model; for (const actor of objects) { if (actor.definition?.id === 'king-review-chair') actor.entity.enabled = false; const candidate = actor.entity?.findByTag('map-animation-actor')[0]; if (candidate?.tags.has('SeatedRoyal')) { actor.entity.enabled = candidate.tags.has('king-review-TerraceWalk'); if (actor.entity.enabled) model = candidate; } } if (model) { model.kingCapeWalkHandle?.off(); model.kingCapeWalkHandle = null; model.anim.speed = 1; model.anim.baseLayer.transition('TerraceIdle', .12); } if (model) { model.parent.setLocalPosition(0, 2.3, 0); model.kingCapeYaw = 45; model.setLocalEulerAngles(0, 45, 0); } camera.setViewport({zoom:5.2,rotation:2,panX:0,panZ:0});"
+          }
+        ]
+      }
+    ]
+  }
+}

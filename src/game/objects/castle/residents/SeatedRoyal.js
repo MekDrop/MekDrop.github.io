@@ -10,6 +10,7 @@ import { QueenGameOverBehavior } from "./QueenGameOverBehavior.js";
 import { RoyalGameOverRouteFollower } from "./RoyalGameOverRouteFollower.js";
 import { RoyalTears } from "./RoyalTears.js";
 import { NpcDoorAvoidance } from "../../shared/NpcDoorAvoidance.js";
+import { KingCapePhysics } from "../../characters/royal/king/KingCapePhysics.js";
 
 const MODEL_URLS = Object.freeze([
   kingModelUrl,
@@ -33,6 +34,10 @@ const FALLBACK_VISUAL_SIZE = Object.freeze({
  * An imported seated royal whose local +Z axis faces the visitor.
  */
 export class SeatedRoyal {
+  /**
+   * @type {KingCapePhysics|null}
+   */
+  #capePhysics = null;
   /**
    * @type {NpcDoorAvoidance}
    */
@@ -159,6 +164,13 @@ export class SeatedRoyal {
       this.#doorAvoidance.behavior = this.#gameOverBehavior.stateMachine;
     }
     this.sit();
+    if (kind === "KING") {
+      this.#capePhysics = new KingCapePhysics({
+        pc,
+        app,
+        modelRoot: this.#model,
+      });
+    }
   }
 
   /**
@@ -348,6 +360,8 @@ export class SeatedRoyal {
   }
 
   destroy() {
+    this.#capePhysics?.destroy();
+    this.#capePhysics = null;
     this.#doorAvoidance?.destroy();
     this.#tears?.destroy();
     if (!this.#resident) {

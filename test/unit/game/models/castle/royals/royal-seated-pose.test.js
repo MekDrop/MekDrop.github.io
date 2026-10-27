@@ -11,7 +11,7 @@ for (const name of ["king", "queen", "princess"]) {
     const binaryOffset = 28 + jsonLength;
     const clip = gltf.animations.find((animation) => animation.name === "RoyalSit");
     assert.ok(clip, "dedicated seated animation");
-    if (name === "queen") {
+    if (name === "king" || name === "queen") {
       const transforms = gltf.nodes.map((node) => ({
         translation: node.translation ?? [0, 0, 0],
         rotation: node.rotation ?? [0, 0, 0, 1],
@@ -48,7 +48,7 @@ for (const name of ["king", "queen", "princess"]) {
       for (const side of ["left", "right"]) {
         const hip = pose.get(`Royal ${side} leg rig`);
         const knee = pose.get(`Royal ${side} knee`);
-        const ankle = pose.get(`Queen ${side} foot`);
+        const ankle = pose.get(`${name === "king" ? "King" : "Queen"} ${side} foot`);
         assert.ok(hip && knee && ankle, `${side} seated leg requires hip, knee, and ankle joints`);
         const thigh = knee.clone().sub(hip).normalize();
         const shin = ankle.clone().sub(knee).normalize();
