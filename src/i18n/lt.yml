@@ -90,6 +90,7 @@ game:
     webgl_fallback: WebGPU nepasiekiamas. Naudojamas suderinamumo WebGL 2 atvaizdavimas.
   interaction:
     ring_bell: Skambinti varpu
+    smash_bridge: Sugriauti tiltą
     collect_flower: Skinti gėles
     collect_mushroom: Rinkti grybus
     chop_tree: Kirsti medį

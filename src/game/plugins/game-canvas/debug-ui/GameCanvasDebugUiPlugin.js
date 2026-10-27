@@ -6,6 +6,8 @@ import { DebugAxesHud } from "./ui/DebugAxesHud.js";
 import { DebugFpsHud } from "./ui/DebugFpsHud.js";
 import { DebugCastleRoomHud } from "../../../ui/DebugCastleRoomHud.js";
 import { CastleRoomLocator } from "./debug/CastleRoomLocator.js";
+import { EnemyPathDebug } from "../../../debug/EnemyPathDebug.js";
+import { EnemyPathLegendHud } from "../../../ui/EnemyPathLegendHud.js";
 
 export class GameCanvasDebugUiPlugin {
   /**
@@ -21,6 +23,18 @@ export class GameCanvasDebugUiPlugin {
    * @type {import("src/game/GameContracts.js").GameMapData|null}
    */
   #mapData = null;
+  /**
+   * @type {EnemyPathDebug|null}
+   */
+  #enemyPaths = null;
+  /**
+   * @type {EnemyPathLegendHud|null}
+   */
+  #enemyPathLegend = null;
+  /**
+   * @type {import("playcanvas").EventHandle|null}
+   */
+  #bridgeHandle = null;
   /**
    *
    * @type {null}
@@ -96,6 +110,16 @@ export class GameCanvasDebugUiPlugin {
       pc,
       app,
     });
+    this.#enemyPaths = new EnemyPathDebug({
+      pc,
+      app,
+    });
+    this.#enemyPathLegend = new EnemyPathLegendHud({
+      pc,
+      app,
+    });
+    this.#enemyPathLegend.attach();
+    this.#bridgeHandle = app.on("bridge:collapsed", this.#refreshPaths, this);
     if (import.meta.env.DEV) {
       this.#devWireframeInspector = new DevWireframeInspector({
         pc,
@@ -118,6 +142,12 @@ export class GameCanvasDebugUiPlugin {
 
   beforeRender() {
     this.#mapData = null;
+    if (this.#enemyPaths) {
+      this.#enemyPaths.mapData = null;
+    }
+    if (this.#enemyPathLegend) {
+      this.#enemyPathLegend.visible = false;
+    }
     this.#pathArrows?.clear();
     this.#devWireframeInspector?.refresh();
   }
@@ -128,6 +158,8 @@ export class GameCanvasDebugUiPlugin {
    */
   afterRender(mapData) {
     this.#mapData = mapData;
+    this.#enemyPaths.mapData = mapData;
+    this.#applyDebugSettings();
     this.#syncCastleRoom();
     const mapRoot = this.#context.renderer().mapRoot;
     if (!mapRoot) {
@@ -148,6 +180,12 @@ export class GameCanvasDebugUiPlugin {
   }
 
   destroy() {
+    this.#bridgeHandle?.off();
+    this.#bridgeHandle = null;
+    this.#enemyPaths?.destroy();
+    this.#enemyPaths = null;
+    this.#enemyPathLegend?.destroy();
+    this.#enemyPathLegend = null;
     this.#castleRoomHud?.destroy();
     this.#castleRoomHud = null;
     this.#mapData = null;
@@ -172,6 +210,8 @@ export class GameCanvasDebugUiPlugin {
     this.#castleRoomHud.visible = this.#context.debugStore.hasAny;
     this.#syncCastleRoom();
     this.#pathArrows.visible = this.#context.debugStore.pathArrows;
+    this.#enemyPaths.visible = this.#context.debugStore.pathArrows;
+    this.#enemyPathLegend.visible = this.#context.debugStore.pathArrows && Boolean(this.#mapData?.enemyNavigation?.gaps.length);
     this.#debugAxesHud.visible = this.#context.debugStore.debugAxesHud;
     this.#debugFpsHud.visible = this.#context.debugStore.debugFpsHud;
     if (this.#context.debugStore.hasAny) {
@@ -184,6 +224,17 @@ export class GameCanvasDebugUiPlugin {
   #syncDebugFramesPerSecond() {
     this.#context.debugStore.framesPerSecond =
       this.#debugFpsHud?.framesPerSecond ?? 0;
+  }
+
+  #refreshPaths() {
+    if (!this.#mapData) {
+      return;
+    }
+    const root = this.#context.renderer().mapRoot;
+    if (root) {
+      this.#pathArrows.render(this.#mapData, root);
+    }
+    this.#applyDebugSettings();
   }
 
   #syncCastleRoom() {

@@ -1,0 +1,150 @@
+{
+  "visualVersion": 3,
+  "recordedOn": "2026-10-27",
+  "route": "/map/test_bridge-collapse?camera-test",
+  "video": "bridge-collapse-before-after-v3.mp4",
+  "baseline": "bridge-collapse-before-v1.mp4",
+  "normalSpeedComparison": true,
+  "halfSpeedDetail": "Explicitly labeled 0.5x detail only; before/after and all angle proofs retain normal speed.",
+  "interaction": "Real keyboard E in all7 revised takes",
+  "recording": "Production GameRecorder MP4. Test-control HUD hidden during capture; debug axes enables free camera while path lines are off for material review.",
+  "clips": [
+    {
+      "name": "1-tile-front",
+      "rotation": 0,
+      "heroGroundedAfter": true,
+      "heroActionAfter": "exploring",
+      "wholeSpanRemoved": true,
+      "remainingDeckRenderComponents": 0
+    },
+    {
+      "name": "3-tile-front",
+      "rotation": 0,
+      "heroGroundedAfter": true,
+      "heroActionAfter": "exploring",
+      "wholeSpanRemoved": true,
+      "remainingDeckRenderComponents": 0
+    },
+    {
+      "name": "3-tile-side",
+      "rotation": 1,
+      "heroGroundedAfter": true,
+      "heroActionAfter": "exploring",
+      "wholeSpanRemoved": true,
+      "remainingDeckRenderComponents": 0
+    },
+    {
+      "name": "3-tile-reverse",
+      "rotation": 2,
+      "heroGroundedAfter": true,
+      "heroActionAfter": "exploring",
+      "wholeSpanRemoved": true,
+      "remainingDeckRenderComponents": 0
+    },
+    {
+      "name": "6-tile-front",
+      "rotation": 0,
+      "heroGroundedAfter": true,
+      "heroActionAfter": "exploring",
+      "wholeSpanRemoved": true,
+      "remainingDeckRenderComponents": 0
+    },
+    {
+      "name": "6-tile-side",
+      "rotation": 1,
+      "heroGroundedAfter": true,
+      "heroActionAfter": "exploring",
+      "wholeSpanRemoved": true,
+      "remainingDeckRenderComponents": 0
+    },
+    {
+      "name": "6-tile-reverse",
+      "rotation": 2,
+      "heroGroundedAfter": true,
+      "heroActionAfter": "exploring",
+      "wholeSpanRemoved": true,
+      "remainingDeckRenderComponents": 0
+    }
+  ],
+  "physicalPoseEvidence": [
+    {
+      "name": "Falling bridge deck 5",
+      "appearedAfterE": 1.552900000035763,
+      "crossedDropThresholdAfterE": 1.760199999988079,
+      "secondsFromCreationToDrop": 0.20729999995231618,
+      "settledRootY": 0.09027187526226044,
+      "minimumDeckCornerY": -0.07943306017667057
+    },
+    {
+      "name": "Falling bridge deck 6",
+      "appearedAfterE": 1.760199999988079,
+      "crossedDropThresholdAfterE": 1.853,
+      "secondsFromCreationToDrop": 0.0928000000119209,
+      "settledRootY": 0.07185003906488419,
+      "minimumDeckCornerY": -0.07424415169283749
+    },
+    {
+      "name": "Falling bridge deck 7",
+      "appearedAfterE": 1.853,
+      "crossedDropThresholdAfterE": 2.0015,
+      "secondsFromCreationToDrop": 0.14850000000000008,
+      "settledRootY": 0.3697197735309601,
+      "minimumDeckCornerY": -0.05365962959825993
+    },
+    {
+      "name": "Falling bridge deck 8",
+      "appearedAfterE": 2.0015,
+      "crossedDropThresholdAfterE": 2.159100000023842,
+      "secondsFromCreationToDrop": 0.15760000002384178,
+      "settledRootY": 0.3709031343460083,
+      "minimumDeckCornerY": -0.048353911340236644
+    },
+    {
+      "name": "Falling bridge deck 9",
+      "appearedAfterE": 2.159100000023842,
+      "crossedDropThresholdAfterE": 2.3051000000238417,
+      "secondsFromCreationToDrop": 0.1459999999999999,
+      "settledRootY": 0.37001514434814453,
+      "minimumDeckCornerY": -0.06405352666974068
+    },
+    {
+      "name": "Falling bridge deck 10",
+      "appearedAfterE": 2.3051000000238417,
+      "crossedDropThresholdAfterE": 2.401900000035763,
+      "secondsFromCreationToDrop": 0.09680000001192113,
+      "settledRootY": 0.10075312852859497,
+      "minimumDeckCornerY": -0.09429269075393676
+    }
+  ],
+  "cleanup": "Observed continuous fade after age5.5s to7s in the extended6tile-front take, followed by complete removal.",
+  "previews": [
+    {
+      "folder": "path",
+      "map": "bridge-collapse",
+      "solid": 53721,
+      "clear": 208423,
+      "bounds": [
+        41,
+        130,
+        470,
+        374
+      ],
+      "roots": [
+        "bridge-x-6-10.5-2"
+      ]
+    }
+  ],
+  "visualCritique": {
+    "baseline": [
+      "Golden paving changed into plain repeated strips at impact.",
+      "Repeated fan motion produced an unrelated board pile.",
+      "The initial physical candidate jammed at the bank until timeout and fell through the rendered bed."
+    ],
+    "revised": [
+      "Deck paving, fascia, and attached rails remain recognizable during motion.",
+      "Neighbor release follows actual hinged edge descent rather than the bank timeout.",
+      "Coherent pieces settle on the visible floor instead of passing through it.",
+      "Material fade removes settled rubble without an abrupt cleanup pop."
+    ]
+  }
+}

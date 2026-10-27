@@ -8,7 +8,7 @@ export class HeroToolActionState extends HeroRuntimeActionState {
    * @returns {boolean}
    */
   get allowsFootPlacement() {
-    return this.payload?.tool?.name === "axe" && !this.payload.positioning
+    return ["axe", "hammer"].includes(this.payload?.tool?.name) && !this.payload.positioning
       ? false : super.allowsFootPlacement;
   }
 
@@ -17,7 +17,7 @@ export class HeroToolActionState extends HeroRuntimeActionState {
    * @returns {boolean}
    */
   get locksHeadForward() {
-    return this.payload?.tool?.name === "axe";
+    return ["axe", "hammer"].includes(this.payload?.tool?.name);
   }
 
   constructor() {

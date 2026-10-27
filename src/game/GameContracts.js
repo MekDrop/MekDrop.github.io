@@ -87,6 +87,9 @@
  * @property {string} [direction]
  * @property {string} [surfaceType]
  * @property {string} [renderMode]
+ * @property {boolean} [bridgeCollapsed] Missing two-lane bridge station, set on hammer impact.
+ * @property {boolean} [bridgeCollapsing] Unsupported station queued to fall; enemies avoid the complete failing span.
+ * @property {number} [bridgeGroundHeight] Terrain retained beneath a bridge deck.
  * @property {number} [baseHeight]
  * @property {{lowHeight: number, highHeight: number, riseDirection: string}} [slope]
  * @property {{direction: string, elevation: number}} [overpass]

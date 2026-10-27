@@ -1,0 +1,21 @@
+{
+  "verified": true,
+  "route": "/map/test_bridge-collapse?camera-test",
+  "bridgeLength": 3,
+  "heroStartedOnStation": 6,
+  "heroStruckNextStation": 7,
+  "wholeSpanRemoved": true,
+  "remainingDeckRenderComponents": 0,
+  "heroFell": true,
+  "initialPosition": {
+    "x": -1.1022511720657349,
+    "y": 1.999999761581421,
+    "z": 0.000027674246666720137
+  },
+  "minimumY": -14.0903959274292,
+  "observedActions": [
+    "usingTool",
+    "fallingToDeath",
+    "respawning"
+  ]
+}

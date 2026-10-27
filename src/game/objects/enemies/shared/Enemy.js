@@ -2,6 +2,8 @@
  * @typedef {{entity?: import("playcanvas").Entity, position?: import("playcanvas").Vec3, alive?: boolean, isRoyal?: boolean, beginGameOver?: Function, audienceActor?: {entity: import("playcanvas").Entity}}} EnemyActor
  */
 import { NpcStateMachine } from "../../shared/NpcStateMachine.js";
+import { EnemyBridgeNavigation } from "../../../navigation/EnemyBridgeNavigation.js";
+import { ENEMY_TRAVERSAL } from "../../../enum/EnemyTraversal.js";
 
 /**
  * Map-owned enemy foundation. Subclasses own their Yuka states and artwork.
@@ -24,6 +26,10 @@ export class Enemy {
    * @type {boolean}
    */
   #destroyed = false;
+  /**
+   * @type {EnemyBridgeNavigation}
+   */
+  #bridgeNavigation;
 
   /**
    * @param {import("../../ObjectTypes.js").MapObjectOptions} options
@@ -55,6 +61,14 @@ export class Enemy {
     this.bellImmune = false;
     this.radius = definition.radius ?? 0.3;
     this.height = definition.height ?? 1;
+    this.#bridgeNavigation = new EnemyBridgeNavigation(this);
+  }
+
+  /**
+   * @returns {string}
+   */
+  get traversalCapability() {
+    return ENEMY_TRAVERSAL.WALKING;
   }
 
   /**
@@ -235,8 +249,16 @@ export class Enemy {
    * @param {number} arrivalRadius
    */
   moveToward(target, speed = 1.2, arrivalRadius = 0.05) {
-    const point = this.targetPosition(target);
+    let point = this.targetPosition(target);
     if (!point || !Number.isFinite(speed) || speed < 0 || !this.alive || this.carrier || this.airborne || this.statuses.has("stun")) {
+      this.stop();
+
+      return false;
+    }
+    const next = this.#bridgeNavigation.next(point, speed);
+    point = next.point;
+    speed = next.speed;
+    if (!point) {
       this.stop();
 
       return false;

@@ -1,0 +1,24 @@
+{
+  "visualVersion": 3,
+  "verified": true,
+  "route": "/map/test_bridge-collapse?camera-test",
+  "bridgeLength": 3,
+  "heroStartedOnStation": 6,
+  "heroStruckNextStation": 7,
+  "wholeSpanRemoved": true,
+  "remainingDeckRenderComponents": 0,
+  "heroLostBridgeFooting": true,
+  "minimumY": -4.515941753879815e-8,
+  "finalPosition": {
+    "x": -1.0789525508880615,
+    "y": -2.4267816201017922e-8,
+    "z": 0.000004626059308066033
+  },
+  "finalGrounded": true,
+  "landedOnRealFloorZero": true,
+  "observedActions": [
+    "usingTool",
+    "exploring"
+  ],
+  "note": "Hero lands alive on the actual underlying floor; the earlier ghost-floor death result is retained only as v1 baseline."
+}

@@ -10,11 +10,18 @@ import { FuseWarningState } from "./states/FuseWarningState.js";
 import { FuseStoppedState } from "./states/FuseStoppedState.js";
 import { FusePassengerState } from "./states/FusePassengerState.js";
 import { FuseTerminalState } from "./states/FuseTerminalState.js";
+import { ENEMY_TRAVERSAL } from "../../../enum/EnemyTraversal.js";
 
 /**
  * Royal bomber with a Tripo-based mechanical rig and an uninterrupted fuse clock.
  */
 export class FuseHopper extends Enemy {
+  /**
+   * @returns {string}
+   */
+  get traversalCapability() {
+    return ENEMY_TRAVERSAL.JUMPING;
+  }
   /**
    * @type {string|null}
    */

@@ -6,6 +6,9 @@
  * @typedef {{col: number, row: number, elevation?: number, terrainHeight?: number, direction?: string, flowScale?: number}} RiverCell
  * @typedef {object} MapObjectDefinition
  * @property {string} id
+ * @property {import("./path/BridgeRailingKit.js").BridgeSpan} [span] Destructible bridge station topology.
+ * @property {number} [elevation] Bridge deck surface height.
+ * @property {string} [material] Bridge fascia material key.
  * @property {string|number} [firewoodSeed] Repeatable FirewoodStack layout; defaults to its id.
  * @property {string|number} [spearSeed] Repeatable SpearRack spear variation; defaults to its id.
  * @property {number} [length] SpearRack line length along local X, or BridgeRailing run length, in metres.
@@ -105,7 +108,7 @@
  * @property {string} [mapName]
  * @property {Array<Array<number|string>>} grid
  * @property {Array<Array<number>>} heightmap
- * @property {Array<Array<{shape?: string, overpassId?: string, bridgeGroundHeight?: number, renderMode?: string}>>} [tileMeta]
+ * @property {import("../GameContracts.js").TileMetadata[][]} [tileMeta]
  * @property {Array<MapObjectDefinition>} [objects]
  * @property {import("../cache/CompiledMapCache.js").CompiledMapLayout} [compiledMap]
  * @property {Array<RenderCommand>} [renderCommands]
@@ -121,7 +124,7 @@
  * @property {(item: MapObjectLike) => void} [onCollectibleRemoved]
  * @property {(definition: MapObjectDefinition) => Promise<boolean>} [replaceObjectDefinition]
  * @property {GameMapData} [mapData]
- * @property {Iterable<MapObjectLike>} [objects]
+ * @property {Iterable<MapObjectLike> & {revision?:number}} [objects]
  * @property {import("playcanvas").Entity} [root]
  * @property {{zoom: number}} [camera]
  * @property {import("src/game/collision/GroundCollisionWorld.js").GroundCollisionWorld} [collisionWorld]

@@ -49,7 +49,7 @@ import { HeroClothPhysics } from "./HeroClothPhysics.js";
 import { HERO_MOOD } from "../../../enum/HeroMood.js";
 import { HERO_STAT } from "../../../enum/HeroStat.js";
 import { BuffSystem } from "../../../buffs/BuffSystem.js";
-import { AxeTool, KnifeTool, ShovelTool } from "./tools/index.js";
+import { AxeTool, HammerTool, KnifeTool, ShovelTool } from "./tools/index.js";
 import { projectFirstPersonMovement } from "./projectFirstPersonMovement.js";
 import { projectIsometricMovement } from "./projectIsometricMovement.js";
 import { HeroLadderClimb, LADDER_CLIMB_SPEED } from "./HeroLadderClimb.js";
@@ -421,6 +421,7 @@ export class Hero {
     return [
       ...Object.values(HERO_MODEL_URLS),
       AxeTool.modelUrl,
+      HammerTool.modelUrl,
       KnifeTool.modelUrl,
       ShovelTool.modelUrl,
     ];
@@ -953,6 +954,7 @@ export class Hero {
     );
     this.#modelLibrary = modelLibrary;
     this.#tools.set(AxeTool.name, new AxeTool({ modelLibrary }));
+    this.#tools.set(HammerTool.name, new HammerTool({ modelLibrary }));
     this.#tools.set(KnifeTool.name, new KnifeTool({ modelLibrary }));
     this.#tools.set(ShovelTool.name, new ShovelTool({
       modelLibrary,
@@ -2041,6 +2043,27 @@ export class Hero {
     };
 
     return true;
+  }
+
+  /**
+   * Strike the adjacent bridge deck without stepping onto the doomed section.
+   * @param {{targetX:number,targetZ:number,onImpact:()=>void,onComplete?:()=>void}} options
+   * @returns {boolean}
+   */
+  smashBridge({ targetX, targetZ, onImpact, onComplete }) {
+    return this.useTool(this.#tools.get(HammerTool.name), {
+      targetPosition: {
+        x: targetX,
+        y: this.#position.y,
+        z: targetZ,
+      },
+      context: { action: "smash-bridge" },
+      onImpact: () => {
+        onImpact();
+      },
+      onCycle: () => false,
+      onComplete,
+    });
   }
 
   /**

@@ -1,5 +1,22 @@
 # Hero animation
 
+## Bridge breaker hammer
+
+`SummonHammer` and `DismissHammer` last 0.57 seconds. `SmashBridge` is a
+1.8-second, two-handed overhead strike, with a held anticipation at 0.67 seconds,
+contact at 0.94 seconds, rebound and a return to its ready stance. The new clips
+are stored in both playable heroes' editable sources and exports. The original
+49 default hero clips retain their existing animation data.
+
+The separate `tools/hammer.blend` / `hammer.glb` asset has a grained oak shaft,
+leather wraps and a bevelled forged head. It mounts with zero local offset on
+the animated `Hammer grip` beneath `Right white glove`. The right palm grips
+at the tool origin and the left palm sits 0.15 authored units along its shaft.
+The head centre is 1.7 authored units up the shaft; at impact it reaches roughly
+one world tile ahead. Both palms remain attached throughout the baked stroke.
+The tool action preserves the authored feet and head pose, blocks movement and
+calls bridge destruction once at contact. It does not approach the doomed deck.
+
 ## Vegetation cutting
 
 The trousers form one welded, skinned seat/crotch/thigh surface. Flexible sleeves

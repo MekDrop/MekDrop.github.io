@@ -4,6 +4,7 @@ import { SkyIslandScenery } from "../scenery/SkyIslandScenery.js";
 import { MAP_TILE_TYPE } from "../../enum/MapTileType.js";
 import { tileVariantIndex } from "../../rendering/terrain/TileVariantIndex.js";
 import { MapObjectDefinitions } from "../MapObjectDefinitions.js";
+import { BridgeDefinitions } from "../path/BridgeDefinitions.js";
 
 /**
  * Publishes terrain geometry as authored block records and shared mesh commands.
@@ -16,6 +17,8 @@ export class TerrainBlockDefinitions {
     MapObjectDefinitions.prepare(mapData);
     mapData.earthTextureVariants ??= createEarthTextureVariants(mapData);
     if (mapData.renderCommands) {
+      BridgeDefinitions.populate(mapData);
+
       return;
     }
     const objects = [];
@@ -125,6 +128,7 @@ export class TerrainBlockDefinitions {
     }).build(new SkyIslandScenery(mapData).createUndersideVoxels());
     mapData.objects = [...objects, ...(mapData.objects ?? [])];
     mapData.renderCommands = commands;
+    BridgeDefinitions.populate(mapData);
   }
 
   /**

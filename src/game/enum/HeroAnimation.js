@@ -1,4 +1,7 @@
 export const HERO_ANIMATION = Object.freeze({
+  SMASH_BRIDGE: "SmashBridge",
+  SUMMON_HAMMER: "SummonHammer",
+  DISMISS_HAMMER: "DismissHammer",
   RING_BELL: "RingBell",
   IDLE: "Idle",
   PAT_ANNOYED: "PatAnnoyed",

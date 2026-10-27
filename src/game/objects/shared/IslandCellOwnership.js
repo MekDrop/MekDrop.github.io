@@ -43,11 +43,13 @@ export class IslandCellOwnership {
     const connectorCells = new Set(
       (connector.cells ?? []).map(IslandCellOwnership.#mapCell),
     );
+    const spans = (mapData.objects ?? []).filter(IslandCellOwnership.#isBridge).map(IslandCellOwnership.#bridgeSpan);
     for (const command of mapData.renderCommands ?? []) {
-      if (command.method !== "addSpan") {
-        continue;
+      if (command.method === "addSpan") {
+        spans.push(command.args[0]);
       }
-      const span = command.args[0];
+    }
+    for (const span of spans) {
       const keys = span.cells.map(IslandCellOwnership.#mapCell2);
       // Prefer the connector's near-island owner, even if the render span starts
       // on the other island. All deck tiles, fascia, and rails share this owner.
@@ -73,6 +75,22 @@ export class IslandCellOwnership {
 
   get groups() {
     return this.#groups;
+  }
+
+  /**
+   * @param {import("../ObjectTypes.js").MapObjectDefinition} definition
+   * @returns {boolean}
+   */
+  static #isBridge(definition) {
+    return definition.object === "Bridge";
+  }
+
+  /**
+   * @param {import("../ObjectTypes.js").MapObjectDefinition} definition
+   * @returns {import("../path/BridgeRailingKit.js").BridgeSpan}
+   */
+  static #bridgeSpan(definition) {
+    return definition.span;
   }
 
   /**

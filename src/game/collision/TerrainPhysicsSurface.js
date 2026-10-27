@@ -108,6 +108,7 @@ export class TerrainPhysicsSurface {
     this.#entity.tags.add("terrain-physics-surface");
     this.#indexSourceCovers();
     this.refresh();
+    this.#app.on?.("bridge:collapsed", this.#onBridgeCollapsed, this);
   }
 
   get entity() {
@@ -157,6 +158,7 @@ export class TerrainPhysicsSurface {
   }
 
   destroy() {
+    this.#app.off?.("bridge:collapsed", this.#onBridgeCollapsed, this);
     this.#entity?.destroy();
     this.#mesh?.destroy();
     this.#material?.destroy();
@@ -166,6 +168,15 @@ export class TerrainPhysicsSurface {
     this.#material = null;
     this.#sourceCovers.clear();
     this.#riverBridges.clear();
+  }
+
+  /**
+   * @param {{map: import("../GameContracts.js").GameMapData}} event
+   */
+  #onBridgeCollapsed(event) {
+    if (event.map === this.#mapData) {
+      this.refresh();
+    }
   }
 
   #indexSourceCovers() {
@@ -260,6 +271,12 @@ export class TerrainPhysicsSurface {
    */
   #tileSurface(col, row) {
     const type = this.#mapData.grid[row][col];
+    const collapsed = this.#mapData.tileMeta?.[row]?.[col];
+    if (collapsed?.bridgeCollapsed) {
+      const ground = collapsed.bridgeGroundHeight;
+
+      return Number.isFinite(ground) ? [ground, ground, ground, ground] : null;
+    }
     const sourceCover = this.#sourceCovers.get(`${col},${row}`);
     if (!WALKABLE_TILES.has(type) && !Number.isFinite(sourceCover)) {
       return null;
@@ -349,7 +366,10 @@ export class TerrainPhysicsSurface {
    * @returns {boolean}
    */
   #isBridge(col, row) {
-    return this.#riverBridges.has(`${col},${row}`);
+    const metadata = this.#mapData.tileMeta?.[row]?.[col];
+
+    return !metadata?.bridgeCollapsed &&
+      (metadata?.renderMode === "BRIDGE" || this.#riverBridges.has(`${col},${row}`));
   }
 
   /**

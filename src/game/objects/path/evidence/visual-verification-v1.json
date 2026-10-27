@@ -1,0 +1,157 @@
+{
+  "recordedOn": "2026-10-27",
+  "route": "/map/test_bridge-collapse?camera-test",
+  "interaction": "Keyboard E in all nine recordings",
+  "controls": "Pause enables path debug and free camera; Q or middle-drag orbits",
+  "recording": "Production GameRecorder MP4; PlayCanvas test HUD hidden during video only",
+  "clips": [
+    {
+      "name": "1-tile-front",
+      "rotation": 0,
+      "heroFacing": {
+        "x": 1,
+        "z": 6.123233995736766e-17
+      },
+      "heroGroundedAfter": true,
+      "heroActionAfter": "exploring",
+      "wholeSpanRemoved": true,
+      "remainingDeckRenderComponents": 0
+    },
+    {
+      "name": "1-tile-side",
+      "rotation": 1,
+      "heroFacing": {
+        "x": 1,
+        "z": 6.123233995736766e-17
+      },
+      "heroGroundedAfter": true,
+      "heroActionAfter": "exploring",
+      "wholeSpanRemoved": true,
+      "remainingDeckRenderComponents": 0
+    },
+    {
+      "name": "1-tile-reverse",
+      "rotation": 2,
+      "heroFacing": {
+        "x": 1,
+        "z": 6.123233995736766e-17
+      },
+      "heroGroundedAfter": true,
+      "heroActionAfter": "exploring",
+      "wholeSpanRemoved": true,
+      "remainingDeckRenderComponents": 0
+    },
+    {
+      "name": "3-tile-front",
+      "rotation": 0,
+      "heroFacing": {
+        "x": 1,
+        "z": 6.123233995736766e-17
+      },
+      "heroGroundedAfter": true,
+      "heroActionAfter": "exploring",
+      "wholeSpanRemoved": true,
+      "remainingDeckRenderComponents": 0
+    },
+    {
+      "name": "3-tile-side",
+      "rotation": 1,
+      "heroFacing": {
+        "x": 1,
+        "z": 6.123233995736766e-17
+      },
+      "heroGroundedAfter": true,
+      "heroActionAfter": "exploring",
+      "wholeSpanRemoved": true,
+      "remainingDeckRenderComponents": 0
+    },
+    {
+      "name": "3-tile-reverse",
+      "rotation": 2,
+      "heroFacing": {
+        "x": 1,
+        "z": 6.123233995736766e-17
+      },
+      "heroGroundedAfter": true,
+      "heroActionAfter": "exploring",
+      "wholeSpanRemoved": true,
+      "remainingDeckRenderComponents": 0
+    },
+    {
+      "name": "6-tile-front",
+      "rotation": 0,
+      "heroFacing": {
+        "x": 1,
+        "z": 6.123233995736766e-17
+      },
+      "heroGroundedAfter": true,
+      "heroActionAfter": "exploring",
+      "wholeSpanRemoved": true,
+      "remainingDeckRenderComponents": 0
+    },
+    {
+      "name": "6-tile-side",
+      "rotation": 1,
+      "heroFacing": {
+        "x": 1,
+        "z": 6.123233995736766e-17
+      },
+      "heroGroundedAfter": true,
+      "heroActionAfter": "exploring",
+      "wholeSpanRemoved": true,
+      "remainingDeckRenderComponents": 0
+    },
+    {
+      "name": "6-tile-reverse",
+      "rotation": 2,
+      "heroFacing": {
+        "x": 1,
+        "z": 6.123233995736766e-17
+      },
+      "heroGroundedAfter": true,
+      "heroActionAfter": "exploring",
+      "wholeSpanRemoved": true,
+      "remainingDeckRenderComponents": 0
+    }
+  ],
+  "previews": [
+    {
+      "folder": "characters/hero",
+      "map": "bridge-collapse",
+      "solid": 32513,
+      "clear": 229631,
+      "bounds": [
+        192,
+        55,
+        329,
+        434
+      ],
+      "roots": [
+        "Hero model instance"
+      ]
+    },
+    {
+      "folder": "path",
+      "map": "bridge-collapse",
+      "solid": 53687,
+      "clear": 208457,
+      "bounds": [
+        41,
+        130,
+        470,
+        374
+      ],
+      "roots": [
+        "bridge-x-6-10.5-2"
+      ]
+    }
+  ],
+  "observations": [
+    "Hero and complete target bridge remain visible in windup, impact, cascade, and aftermath from all three views.",
+    "Hammer remains attached; head reaches the next deck station while hero feet stay on the supported bank.",
+    "Every deck station collapses after the first impact; no unsupported deck or continuous rail remains.",
+    "Deck, rails, and posts fall with live physics.",
+    "Path debug distinguishes walk stop, flight, and only a one-tile jump across the final gap."
+  ],
+  "behavior": "Hammer impact removes the next station, then every remaining bridge station collapses in a short outward cascade."
+}

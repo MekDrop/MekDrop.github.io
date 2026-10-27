@@ -2,6 +2,7 @@ import { everyTruthy } from "../helpers/collections.js";
 import { MAP_TILE_TYPE } from "../enum/MapTileType.js";
 import { RouteDataBuilder } from "../generator/map/RouteDataBuilder.js";
 import { MapObjectDefinitions } from "../objects/MapObjectDefinitions.js";
+import { EnemyPaths } from "./EnemyPaths.js";
 
 /**
  * @typedef {{col: number, row: number, elevation: number}} WalkingPoint
@@ -21,7 +22,7 @@ export class WalkingPaths {
    */
   static rebuild(map) {
     MapObjectDefinitions.prepare(map);
-    const graph = new Map();
+    let graph = new Map();
     const points = new Map();
     /**
      * @param {number} col
@@ -128,6 +129,7 @@ export class WalkingPaths {
      */
       ([, point]) =>
         point.col === door.centerCol && point.row === door.centerRow)?.[0] : null;
+    graph = EnemyPaths.rebuild(map, graph, points);
     const distances = new Map(target ? [[target, 0]] : []);
     const queue = target ? [target] : [];
     for (let index = 0; index < queue.length; index++) {

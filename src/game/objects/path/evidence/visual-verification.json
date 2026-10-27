@@ -1,0 +1,167 @@
+{
+  "visualVersion": 4,
+  "recordedOn": "2026-10-27",
+  "route": "/map/test_bridge-collapse?camera-test",
+  "video": "bridge-collapse-impact-rubble-v4.mp4",
+  "previousVersion": "bridge-collapse-before-after-v3.mp4",
+  "interaction": "Real keyboard E in all7 final takes",
+  "recording": "Native production GameRecorder. No screenshots or readback during recording; all critical frames extracted from finalized MP4s.",
+  "playback": "Normal-speed full sequence and angle proof; only explicitly labeled0.5x contact detail is slowed.",
+  "clips": [
+    {
+      "name": "6-tile-front",
+      "rotation": 0,
+      "heroGroundedAfter": true,
+      "wholeSpanRemoved": true,
+      "remainingIntactRenderComponents": 0
+    },
+    {
+      "name": "1-tile-front",
+      "rotation": 0,
+      "heroGroundedAfter": true,
+      "wholeSpanRemoved": true,
+      "remainingIntactRenderComponents": 0
+    },
+    {
+      "name": "3-tile-front",
+      "rotation": 0,
+      "heroGroundedAfter": true,
+      "wholeSpanRemoved": true,
+      "remainingIntactRenderComponents": 0
+    },
+    {
+      "name": "3-tile-side",
+      "rotation": 1,
+      "heroGroundedAfter": true,
+      "wholeSpanRemoved": true,
+      "remainingIntactRenderComponents": 0
+    },
+    {
+      "name": "3-tile-reverse",
+      "rotation": 2,
+      "heroGroundedAfter": true,
+      "wholeSpanRemoved": true,
+      "remainingIntactRenderComponents": 0
+    },
+    {
+      "name": "6-tile-side",
+      "rotation": 1,
+      "heroGroundedAfter": true,
+      "wholeSpanRemoved": true,
+      "remainingIntactRenderComponents": 0
+    },
+    {
+      "name": "6-tile-reverse",
+      "rotation": 2,
+      "heroGroundedAfter": true,
+      "wholeSpanRemoved": true,
+      "remainingIntactRenderComponents": 0
+    }
+  ],
+  "phases": {
+    "firstLargeSectionAfterE": 1.554300000011921,
+    "firstSmallPiecesAfterE": 2.0075,
+    "peakSmallPieces": 60,
+    "lastObservedSmallPiecesAfterE": 4.903899999976158,
+    "allTransientDecksAndChipsGoneAtEnd": true,
+    "groundContactGroups": [
+      {
+        "station": 5,
+        "lowerTerrainContactAfterE": 1.991,
+        "firstSmallPiecesAfterE": 2.0075,
+        "smallPiecesFollowContact": true
+      },
+      {
+        "station": 6,
+        "lowerTerrainContactAfterE": 2.0576000000238417,
+        "firstSmallPiecesAfterE": 2.1003999999761582,
+        "smallPiecesFollowContact": true
+      },
+      {
+        "station": 7,
+        "lowerTerrainContactAfterE": 2.191100000023842,
+        "firstSmallPiecesAfterE": 2.207800000011921,
+        "smallPiecesFollowContact": true
+      },
+      {
+        "station": 8,
+        "lowerTerrainContactAfterE": 2.324800000011921,
+        "firstSmallPiecesAfterE": 2.3503999999761582,
+        "smallPiecesFollowContact": true
+      },
+      {
+        "station": 9,
+        "lowerTerrainContactAfterE": 2.471800000011921,
+        "firstSmallPiecesAfterE": 2.508399999976158,
+        "smallPiecesFollowContact": true
+      },
+      {
+        "station": 10,
+        "lowerTerrainContactAfterE": 2.578600000023842,
+        "firstSmallPiecesAfterE": 2.6103000000119208,
+        "smallPiecesFollowContact": true
+      }
+    ]
+  },
+  "performance": {
+    "method": "Cold fresh page, no native recording, no screenshots, in-page frameend timestamps and contact/count sampling; source includes shared meshes and deferred shader preparation.",
+    "beforeOptimization": {
+      "impactMaxMs": 146,
+      "fadeMaxMs": 169
+    },
+    "afterOptimization": {
+      "fallAndImpact": {
+        "frames": 105,
+        "medianMs": 13.300000011920929,
+        "p95Ms": 17.30000001192093,
+        "maxMs": 21.600000023841858,
+        "framesOver50Ms": 0
+      },
+      "bounceAndFade": {
+        "frames": 195,
+        "medianMs": 13.300000011920929,
+        "p95Ms": 14.600000023841858,
+        "maxMs": 16.30000001192093,
+        "framesOver50Ms": 0
+      },
+      "afterCleanup": {
+        "frames": 300,
+        "medianMs": 13.300000011920929,
+        "p95Ms": 14.300000011920929,
+        "maxMs": 17.100000023841858,
+        "framesOver50Ms": 0
+      },
+      "preImpactFirstToolReveal": {
+        "frames": 82,
+        "medianMs": 13.399999976158142,
+        "p95Ms": 14.100000023841858,
+        "maxMs": 139.89999997615814,
+        "framesOver50Ms": 1
+      }
+    }
+  },
+  "fadeEvidence": "Final video frames show small pieces becoming translucent and disappearing after bounce; per-mesh-instance opacity preserves shared materials.",
+  "preview": [
+    {
+      "folder": "path",
+      "map": "bridge-collapse",
+      "solid": 53721,
+      "clear": 208423,
+      "bounds": [
+        41,
+        130,
+        470,
+        374
+      ],
+      "roots": [
+        "bridge-x-6-10.5-2"
+      ]
+    }
+  ],
+  "visualReview": [
+    "Hinged original deck sections remain recognizable during airborne sag.",
+    "Small paving and timber pieces begin only after lower static terrain contact; upper bank brushes do not shatter the section.",
+    "Large falling sections and small landed debris coexist while the collapse front progresses.",
+    "Small pieces bounce and fade; no large intact span remains."
+  ]
+}

@@ -82,14 +82,20 @@ it("keeps complete bridge spans on the connector owner's island without mutating
       },
     ]).flat(),
   };
-  const ownership = new IslandCellOwnership({
-    islandConnectorData: connector,
-    renderCommands: [{
-      method: "addSpan",
-      args: [span],
-    }],
-  });
-  assert.equal(ownership.groups[0].size, 0);
-  assert.equal(ownership.groups[1].size, 6);
-  assert.deepEqual(connector, original);
+  for (const authored of [false, true]) {
+    const ownership = new IslandCellOwnership({
+      islandConnectorData: connector,
+      objects: authored ? [{
+        object: "Bridge",
+        span,
+      }] : [],
+      renderCommands: authored ? [] : [{
+        method: "addSpan",
+        args: [span],
+      }],
+    });
+    assert.equal(ownership.groups[0].size, 0);
+    assert.equal(ownership.groups[1].size, 6);
+    assert.deepEqual(connector, original);
+  }
 });

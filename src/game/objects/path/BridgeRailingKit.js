@@ -10,6 +10,8 @@ import { SLOPE_DIRECTION } from "../../enum/SlopeDirection.js";
  * @property {number} crossCenter
  * @property {number} start
  * @property {number} end
+ * @property {number} length
+ * @property {Array<{col: number, row: number}>} cells
  */
 
 /**
@@ -222,8 +224,9 @@ export class BridgeRailingKit {
    * @param {import("playcanvas").Vec3} options.direction
    * @param {number} [options.postSpacing]
    * @param {string} [options.material]
+   * @param {boolean} [options.endPost] Leave a shared joint post attached to the next deck section.
    */
-  addRailing({ position, length, direction, postSpacing = 1, material = "wood" }) {
+  addRailing({ position, length, direction, postSpacing = 1, material = "wood", endPost = true }) {
     const directionLength = direction.length();
     if (!Number.isFinite(length) || length <= 0 || !Number.isFinite(postSpacing) || postSpacing <= 0 || !Number.isFinite(directionLength) || directionLength <= 0) {
       return;
@@ -233,7 +236,9 @@ export class BridgeRailingKit {
     let previous;
     for (let index = 0; index <= bays; index += 1) {
       const base = position.clone().add(step.clone().mulScalar(index / bays));
-      this.#addPost(material, new this.#pc.Vec3(base.x, base.y + 0.17, base.z));
+      if (index < bays || endPost) {
+        this.#addPost(material, new this.#pc.Vec3(base.x, base.y + 0.17, base.z));
+      }
       const rail = new this.#pc.Vec3(base.x, base.y + 0.34, base.z);
       if (previous) {
         this.#addSegment(material, previous, rail);

@@ -1,0 +1,23 @@
+{
+  "visualVersion": 4,
+  "verified": true,
+  "route": "/map/test_bridge-collapse?camera-test",
+  "bridgeLength": 3,
+  "heroStartedOnStation": 6,
+  "heroStruckNextStation": 7,
+  "wholeSpanRemoved": true,
+  "remainingDeckRenderComponents": 0,
+  "heroLostBridgeFooting": true,
+  "minimumY": -5.074248221603739e-8,
+  "finalPosition": {
+    "x": -1.1052584648132324,
+    "y": -3.508140622443534e-8,
+    "z": 0.00003940067472285591
+  },
+  "finalGrounded": true,
+  "landedOnRealFloorZero": true,
+  "observedActions": [
+    "usingTool",
+    "exploring"
+  ]
+}

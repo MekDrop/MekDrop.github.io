@@ -14,12 +14,20 @@ import { FrostPuffDeathState } from "./states/FrostPuffDeathState.js";
 import { FrostPuffClipTestState } from "./states/FrostPuffClipTestState.js";
 import { FROST_PUFF_ANIMATION as ANIMATION } from "./FrostPuffAnimation.js";
 import { FrostPuffPreview } from "./FrostPuffPreview.js";
+import { ENEMY_TRAVERSAL } from "../../../enum/EnemyTraversal.js";
+import { EnemyPaths } from "../../../navigation/EnemyPaths.js";
 
 /**
  * Floating ice creature. Its model corrections stay below the semantic Ammo
  * root; Yuka owns decisions and the physics engine owns contact and flight.
  */
 export class FrostPuff extends Enemy {
+  /**
+   * @returns {string}
+   */
+  get traversalCapability() {
+    return ENEMY_TRAVERSAL.FLYING;
+  }
   /**
    * @type {WeakSet<import("../shared/Enemy.js").EnemyActor>}
    */
@@ -342,8 +350,11 @@ export class FrostPuff extends Enemy {
     const point = this.position;
     const floor = physics.raycastFirst(point.clone().add(new this.pc.Vec3(0, 0.1, 0)),
       point.clone().add(new this.pc.Vec3(0, -1.5, 0)), { filterCallback: this.#excludeSelf.bind(this) });
-    if (floor?.normal.y > 0.5) {
-      const error = floor.point.y + 0.35 - point.y;
+    const map = this.runtime.mapData;
+    const gap = map?.enemyNavigation && EnemyPaths.crossing(map.enemyNavigation, point, point, 0, map.cols, map.rows);
+    if (floor?.normal.y > 0.5 || gap) {
+      const floorY = gap?.elevation ?? floor.point.y;
+      const error = floorY + 0.35 - point.y;
       const force = -physics.gravity.y + error * 35 - body.linearVelocity.y * 10;
       body.applyForce(0, Math.max(-20, Math.min(35, force)) * body.mass, 0);
     }

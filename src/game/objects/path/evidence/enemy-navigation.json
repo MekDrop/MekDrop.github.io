@@ -1,0 +1,151 @@
+{
+  "date": "2026-10-27",
+  "map": "/map/test_bridge-collapse?camera-test",
+  "verification": "Actual game application, one hammer strike propagates through the entire authored bridge span, production enemy classes and models, live Ammo bodies. A separately loaded model library and a harmless destination actor isolate movement; Fuse goal ignition disabled in verification fixture after arrival.",
+  "visualReview": "Inspected rendered final screenshots: actual enemy models and missing deck are framed, no error notifications, capability route colors and HUD legend are visible.",
+  "passed": true,
+  "pageErrors": [],
+  "tests": [
+    {
+      "label": "enemy-BellBug-gap1",
+      "passed": true,
+      "start": {
+        "t": 0.013299999999999272,
+        "x": -2.4000000953674316,
+        "y": 2.1376535892486572,
+        "z": -7,
+        "grounded": false,
+        "v": -0.36666667461395264,
+        "state": "BellBugPursueState"
+      },
+      "end": {
+        "t": 11.171099999999942,
+        "x": -1.7866674661636353,
+        "y": 1.9999626874923706,
+        "z": -6.999991416931152,
+        "grounded": true,
+        "v": 0.00000286102294921875,
+        "state": "BellBugPursueState"
+      },
+      "minY": 1.999931812286377,
+      "maxY": 2.1376535892486572,
+      "sampleCount": 823,
+      "runtimeToasts": [],
+      "recording": "tmp/bridge-collapse-evidence/enemy-BellBug-gap1.mp4",
+      "screenshot": "tmp/bridge-collapse-evidence/enemy-BellBug-gap1.png"
+    },
+    {
+      "label": "enemy-FrostPuff-gap6",
+      "passed": true,
+      "start": {
+        "t": 0.013399999999999636,
+        "x": -4.800000190734863,
+        "y": 2.1351969242095947,
+        "z": 7,
+        "grounded": false,
+        "v": -0.36666667461395264,
+        "state": "FrostPuffPursueState"
+      },
+      "end": {
+        "t": 9.789599999999957,
+        "x": 4.238531589508057,
+        "y": 2.34999942779541,
+        "z": 6.999990463256836,
+        "grounded": true,
+        "v": 0.0000027693452011590125,
+        "state": "FrostPuffPursueState"
+      },
+      "minY": 1.762123703956604,
+      "maxY": 2.3527374267578125,
+      "sampleCount": 722,
+      "runtimeToasts": [],
+      "recording": "tmp/bridge-collapse-evidence/enemy-FrostPuff-gap6.mp4",
+      "screenshot": "tmp/bridge-collapse-evidence/enemy-FrostPuff-gap6.png"
+    },
+    {
+      "label": "enemy-FuseHopper-gap1",
+      "passed": true,
+      "start": {
+        "t": 0.013299999999999272,
+        "x": -2.4000000953674316,
+        "y": 2.1352946758270264,
+        "z": -7,
+        "grounded": false,
+        "v": -0.36666667461395264,
+        "state": "FusePursuitState"
+      },
+      "end": {
+        "t": 9.789599999999966,
+        "x": 4.212011337280273,
+        "y": 1.9999996423721313,
+        "z": -6.986950397491455,
+        "grounded": true,
+        "v": 0.000001430511474609375,
+        "state": "FusePursuitState"
+      },
+      "minY": 1.9863524436950684,
+      "maxY": 3.7963244915008545,
+      "sampleCount": 721,
+      "runtimeToasts": [],
+      "recording": "tmp/bridge-collapse-evidence/enemy-FuseHopper-gap1.mp4",
+      "screenshot": "tmp/bridge-collapse-evidence/enemy-FuseHopper-gap1.png"
+    },
+    {
+      "label": "enemy-FuseHopper-gap3",
+      "passed": true,
+      "start": {
+        "t": 0.013600000000000364,
+        "x": -3.799999952316284,
+        "y": 2.13871693611145,
+        "z": 0,
+        "grounded": false,
+        "v": -0.36666667461395264,
+        "state": "FusePursuitState"
+      },
+      "end": {
+        "t": 9.783199999999967,
+        "x": -2.733276605606079,
+        "y": 1.9998340606689453,
+        "z": 0.00014911996549926698,
+        "grounded": true,
+        "v": 0,
+        "state": "FusePursuitState"
+      },
+      "minY": 1.999807357788086,
+      "maxY": 2.13871693611145,
+      "sampleCount": 726,
+      "runtimeToasts": [],
+      "recording": "tmp/bridge-collapse-evidence/enemy-FuseHopper-gap3.mp4",
+      "screenshot": "tmp/bridge-collapse-evidence/enemy-FuseHopper-gap3.png"
+    },
+    {
+      "label": "enemy-FuseHopper-gap6",
+      "passed": true,
+      "start": {
+        "t": 0.013399999999999636,
+        "x": -4.800000190734863,
+        "y": 2.1351113319396973,
+        "z": 7,
+        "grounded": false,
+        "v": -0.36666667461395264,
+        "state": "FusePursuitState"
+      },
+      "end": {
+        "t": 9.796499999999973,
+        "x": -3.7333920001983643,
+        "y": 1.9999845027923584,
+        "z": 7.000230312347412,
+        "grounded": true,
+        "v": 0,
+        "state": "FusePursuitState"
+      },
+      "minY": 1.999967098236084,
+      "maxY": 2.1351113319396973,
+      "sampleCount": 724,
+      "runtimeToasts": [],
+      "recording": "tmp/bridge-collapse-evidence/enemy-FuseHopper-gap6.mp4",
+      "screenshot": "tmp/bridge-collapse-evidence/enemy-FuseHopper-gap6.png"
+    }
+  ],
+  "rawTrajectory": "tmp/bridge-collapse-evidence/enemy-report.json"
+}

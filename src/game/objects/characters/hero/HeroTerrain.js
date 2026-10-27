@@ -104,6 +104,7 @@ export class HeroTerrain {
         }
 
         const type = this.#mapData.grid[row][col];
+        const bridgeGap = Boolean(this.#mapData.tileMeta?.[row]?.[col]?.bridgeCollapsed);
         const riverSourceCover =
           type === TileType.WATER
             ? this.#riverSourceCoverAtCell(col, row)
@@ -118,11 +119,11 @@ export class HeroTerrain {
         const isStructureSurface =
           collisionSurface !== null && STRUCTURE_SURFACE_TILES.has(type);
         if (
-          !WALKABLE_TILES.has(type) ||
+          !WALKABLE_TILES.has(type) || bridgeGap ||
           (!isStructureSurface &&
             height > state.position.y + STEP_CLEARANCE)
         ) {
-          const isEdge = type === TileType.WATER;
+          const isEdge = type === TileType.WATER || bridgeGap;
           if (isEdge && state.dodging) {
             continue;
           }
@@ -396,6 +397,9 @@ export class HeroTerrain {
   terrainSurfaceHeightAt(col, row, x, z) {
     const type = this.#mapData.grid[row][col];
     const metadata = this.#mapData.tileMeta?.[row]?.[col];
+    if (metadata?.bridgeCollapsed) {
+      return Number.isFinite(metadata.bridgeGroundHeight) ? metadata.bridgeGroundHeight : -Infinity;
+    }
     const slope = metadata?.slope;
     if (metadata?.shape === TILE_SHAPE.SLOPE && slope) {
       const gridX = x + (this.#mapData.cols - 1) / 2;
