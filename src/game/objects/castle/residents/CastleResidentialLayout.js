@@ -1,11 +1,12 @@
 import { SurfaceSpatialIndex } from "../../shared/SurfaceSpatialIndex.js";
 import { CastleFloorFinish } from "../structure/CastleFloorFinish.js";
-import { MAX_SAFE_STEP_DOWN, STEP_CLEARANCE } from "../../characters/hero/HeroSurfaceRules.js";
+import { STEP_CLEARANCE } from "../../characters/hero/HeroSurfaceRules.js";
 import { spiralStairRise } from "../../shared/SpiralStairCollision.js";
 import { createCastlePlannedFloorAreas } from "../structure/CastlePlannedFloorAreas.js";
 import { createCastleInteriorFloorAreas } from "../structure/CastleInteriorFloorAreas.js";
-import { castleStraightStairHeight } from "../stairs/CastleStraightStairs.js";
+import { CastleResidentialStairSurface } from "./CastleResidentialStairSurface.js";
 /**
+ * @typedef {{center: ResidentialPoint, radius: number, innerRadius: number, rise: number, steps: number, turns: number, yaw: number, landingProfile?: boolean, straight?: boolean}} ResidentialStair
  * @typedef {{x: number, y: number, z: number}} ResidentialPoint
  * @typedef {{minX: number, maxX: number, minZ: number, maxZ: number, floorY: number, purpose: string}} ResidentialRoom
  * @typedef {{role: string, position: ResidentialPoint, scale: ResidentialPoint, yaw: number}} ResidentialPlacement
@@ -891,44 +892,8 @@ export class CastleResidentialLayout {
       steps: 24,
       turns: 1.5,
     } : null];
-    let result = null;
-    for (const stair of stairs) {
-      if (!stair) {
-        continue;
-      }
-      if (stair.straight) {
-        const height = castleStraightStairHeight(stair, x, z, currentElevation);
-        if (height !== null && (result === null || Math.abs(height - currentElevation) < Math.abs(result - currentElevation))) {
-          result = height;
-        }
-        continue;
-      }
-      const dx = x - stair.center.x;
-      const dz = z - stair.center.z;
-      const distance = Math.hypot(dx, dz);
-      if (distance < stair.innerRadius || distance > stair.radius * 0.59 / 0.65 || !Number.isFinite(currentElevation)) {
-        continue;
-      }
-      let best = null;
-      let difference = Number.POSITIVE_INFINITY;
-      const totalAngle = stair.turns * Math.PI * 2;
-      const stepAngle = totalAngle / stair.steps;
-      const startAngle = Math.PI / 2 - stair.yaw * Math.PI / 180;
-      const wrapped = ((startAngle - Math.atan2(dz, dx)) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
-      for (let angle = wrapped; angle <= totalAngle; angle += Math.PI * 2) {
-        const step = Math.min(stair.steps, Math.max(1, Math.ceil(angle / stepAngle)));
-        const height = stair.center.y + stair.rise * spiralStairRise(step / stair.steps, stair.landingProfile);
-        const heightDifference = Math.abs(height - currentElevation);
-        if (heightDifference <= (height > currentElevation ? STEP_CLEARANCE : MAX_SAFE_STEP_DOWN) && heightDifference < difference) {
-          best = height; difference = heightDifference;
-        }
-      }
-      if (best !== null && (result === null || Math.abs(best - currentElevation) < Math.abs(result - currentElevation))) {
-        result = best;
-      }
-    }
 
-    return result;
+    return CastleResidentialStairSurface.heightAt(stairs, x, z, currentElevation);
   }
 
   /**
@@ -1347,45 +1312,3 @@ export class CastleResidentialLayout {
     });
   }
 }
-
-/**
- * Grounds each existing buttress footprint on the lowest touched terrain tile.
- * @param {import("../../../GameContracts.js").CastleBuildPlan} plan
- * @param {import("../../../GameContracts.js").GameMapData} mapData
- */
-export const createCastleButtressFootings = (plan, mapData) => {
-  const layout = new CastleResidentialLayout(plan);
-  const footings = [];
-  for (const placement of layout.exteriorButtresses) {
-    const width = 0.6 * placement.scale.x;
-    const depth = 0.6 * placement.scale.z;
-    const heights = [];
-    for (const dx of [-width / 2 + 0.001, 0, width / 2 - 0.001]) {
-      for (const dz of [-depth / 2 + 0.001, 0, depth / 2 - 0.001]) {
-        const col = Math.floor(placement.position.x + dx + mapData.cols / 2);
-        const row = Math.floor(placement.position.z + dz + mapData.rows / 2);
-        const height = mapData.heightmap?.[row]?.[col];
-        if (Number.isFinite(height)) {
-          heights.push(height);
-        }
-      }
-    }
-    if (!heights.length) {
-      continue;
-    }
-    const baseY = Math.min(...heights);
-    const topY = placement.position.y;
-    if (topY > baseY + 0.001) {
-      footings.push({
-        x: placement.position.x,
-        z: placement.position.z,
-        baseY,
-        topY,
-        width,
-        depth,
-      });
-    }
-  }
-
-  return footings;
-};

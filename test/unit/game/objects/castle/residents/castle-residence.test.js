@@ -5,7 +5,8 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { it } from "node:test";
 import { CastleGenerator } from "../../../../../../src/game/generator/castle/CastleGenerator.js";
-import { CastleResidentialLayout, createCastleButtressFootings } from "../../../../../../src/game/objects/castle/residents/CastleResidentialLayout.js";
+import { CastleResidentialLayout } from "../../../../../../src/game/objects/castle/residents/CastleResidentialLayout.js";
+import { createCastleButtressFootings } from "../../../../../../src/game/objects/castle/residents/CastleButtressFootings.js";
 
 const source = readFileSync(new URL("../../../../../../src/game/objects/castle/structure/CastleEntityBuilder.js", import.meta.url), "utf8")
   .replace(/^import[\s\S]*?from "[^"]+";\r?\n/gm, "");

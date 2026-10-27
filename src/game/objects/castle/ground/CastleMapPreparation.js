@@ -22,7 +22,8 @@ import { GRASS_SURFACE_LIFT } from "../../../config/terrain.js";
 import { CastleGroundWeathering } from "./CastleGroundWeathering.js";
 import { createCastleStairFlight } from "../stairs/CastleStairFlight.js";
 import { createCastleGroundCuts, clipCastleTerrainRecord } from "./CastleGroundCuts.js";
-import { CastleResidentialLayout, createCastleButtressFootings } from "../residents/CastleResidentialLayout.js";
+import { CastleResidentialLayout } from "../residents/CastleResidentialLayout.js";
+import { createCastleButtressFootings } from "../residents/CastleButtressFootings.js";
 
 /**
  * Shared, renderer-independent excavation used by gameplay and saved-map checks.
