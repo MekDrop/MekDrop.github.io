@@ -1,0 +1,766 @@
+{
+  "grid": [
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      1
+    ],
+    [
+      1,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  ],
+  "heightmap": [
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      2,
+      2,
+      2,
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      2,
+      2,
+      2
+    ],
+    [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      2,
+      2,
+      2,
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      2,
+      2,
+      2
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  ],
+  "tileMeta": [
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    [
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 0.5,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 0.5,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 0.5,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 0.5,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 0.5,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 0.5,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 0.5,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 0.5,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 0.5,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 0.5,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      }
+    ],
+    [
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "BRIDGE",
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "BRIDGE",
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "BRIDGE",
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "BRIDGE",
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "BRIDGE",
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "BRIDGE",
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "BRIDGE",
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "BRIDGE",
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "BRIDGE",
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "BRIDGE",
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      }
+    ],
+    [
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "BRIDGE",
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "BRIDGE",
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "BRIDGE",
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "BRIDGE",
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "BRIDGE",
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "BRIDGE",
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "BRIDGE",
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "BRIDGE",
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "BRIDGE",
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "BRIDGE",
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      }
+    ],
+    [
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 0.5,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 0.5,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 0.5,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 0.5,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 0.5,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 0.5,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 0.5,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 0.5,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 0.5,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 0.5,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      }
+    ],
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ]
+  ],
+  "cols": 16,
+  "rows": 8,
+  "numPaths": 0,
+  "pipeData": [],
+  "mergeZones": [],
+  "trunkStart": null,
+  "mapName": "test_bridge-railings",
+  "layoutSignature": "test_bridge-railings",
+  "objects": [
+    {
+      "id": "hero-spawn",
+      "object": "SpawnPoint",
+      "position": {
+        "x": -6,
+        "y": 2.14,
+        "z": 0
+      }
+    }
+  ],
+  "animationViewport": {
+    "zoom": 2.6,
+    "rotation": 0,
+    "panX": 0,
+    "panZ": 0.5
+  },
+  "testControls": {
+    "panels": [
+      {
+        "title": "Long timber bridge",
+        "buttons": [
+          {
+            "label": "Long bridge",
+            "script": "camera.setViewport({zoom:2.6,rotation:0,panX:0,panZ:0.5});"
+          },
+          {
+            "label": "Bay detail",
+            "script": "camera.setViewport({zoom:6,rotation:0,panX:0,panZ:0.5});"
+          }
+        ]
+      }
+    ]
+  }
+}

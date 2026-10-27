@@ -463,5 +463,28 @@
         "z": 0
       }
     }
-  ]
+  ],
+  "animationViewport": {
+    "zoom": 1.4,
+    "rotation": 0,
+    "panX": 2.5,
+    "panZ": 0
+  },
+  "testControls": {
+    "panels": [
+      {
+        "title": "Bridge railing joints",
+        "buttons": [
+          {
+            "label": "Front joints",
+            "script": "camera.setViewport({zoom:5.5,rotation:0,panX:2.5,panZ:0});"
+          },
+          {
+            "label": "Bridge overview",
+            "script": "camera.setViewport({zoom:1.4,rotation:0,panX:2.5,panZ:0});"
+          }
+        ]
+      }
+    ]
+  }
 }

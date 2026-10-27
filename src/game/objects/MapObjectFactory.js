@@ -89,6 +89,7 @@ import { Gateway } from "./gateway/Gateway.js";
 import { Rivers } from "./water/Rivers.js";
 import { GroundCover } from "./ground-cover/GroundCover.js";
 import { Overpass } from "./path/Overpass.js";
+import { BridgeRailing } from "./path/BridgeRailing.js";
 import { SpawnPoint } from "./shared/SpawnPoint.js";
 import { IslandConnector } from "./scenery/IslandConnector.js";
 import { MapObjectDefinitions } from "./MapObjectDefinitions.js";
@@ -102,6 +103,7 @@ const OBJECT_CLASSES = new Map([
   [Rivers.name, Rivers],
   [GroundCover.name, GroundCover],
   [Overpass.name, Overpass],
+  [BridgeRailing.name, BridgeRailing],
   [SpawnPoint.name, SpawnPoint],
   [IslandConnector.name, IslandConnector],
   [Rug.name, Rug],

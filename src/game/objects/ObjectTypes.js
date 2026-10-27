@@ -8,7 +8,9 @@
  * @property {string} id
  * @property {string|number} [firewoodSeed] Repeatable FirewoodStack layout; defaults to its id.
  * @property {string|number} [spearSeed] Repeatable SpearRack spear variation; defaults to its id.
- * @property {number} [length] SpearRack line length along local X in metres; width spans parallel lines along local Z.
+ * @property {number} [length] SpearRack line length along local X, or BridgeRailing run length, in metres.
+ * @property {number} [postSpacing] Maximum BridgeRailing bay length; posts divide the run evenly.
+ * @property {Point3} [direction] World-space BridgeRailing heading, normalized during assembly.
  * @property {string|number} [timberSeed] Repeatable SpareTimberBundle layout; defaults to its id.
  * @property {string|number} [linenSeed] Repeatable FoldedLinens bundle layout; defaults to its id.
  * @property {import("./castle-props/lantern/Lantern.js").LanternLighting|false} [lighting] Lantern-local illumination override.

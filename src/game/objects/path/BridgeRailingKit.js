@@ -22,7 +22,7 @@ import { SLOPE_DIRECTION } from "../../enum/SlopeDirection.js";
  */
 
 /**
- * Builds flat bridge rails from reusable authored modules.
+ * Assembles bridge railings from reusable authored timber modules.
  */
 export class BridgeRailingKit {
   /**
@@ -43,11 +43,6 @@ export class BridgeRailingKit {
    * @type {import("../../models/GameModelLibrary.js").GameModelLibrary}
    */
   #modelLibrary;
-  /**
-   *
-   * @type {Map<string, import("playcanvas").Material>}
-   */
-  #materials;
   /**
    *
    * @type {import("playcanvas").Entity}
@@ -75,23 +70,24 @@ export class BridgeRailingKit {
    * @type {Map<string, Array<number>>}
    */
   #postMatrices = new Map();
+  /**
+   * @type {Set<string>}
+   */
+  #postKeys = new Set();
 
   /**
    *
-   * @param {{pc: typeof import("playcanvas"), modelLibrary: import("../../models/GameModelLibrary.js").GameModelLibrary, materials: Map<string, import("playcanvas").Material>, root: import("playcanvas").Entity, mapData?: import("src/game/GameContracts.js").GameMapData}} options
+   * @param {{pc: typeof import("playcanvas"), modelLibrary: import("../../models/GameModelLibrary.js").GameModelLibrary, root: import("playcanvas").Entity, mapData?: import("src/game/GameContracts.js").GameMapData}} options
    * @param {typeof import("playcanvas")} options.pc
    * @param {import("../../models/GameModelLibrary.js").GameModelLibrary} options.modelLibrary
-   * @param {Map<string, import("playcanvas").Material>} options.materials
    * @param {import("playcanvas").Entity} options.root
    * @param {import("src/game/GameContracts.js").GameMapData} [options.mapData]
    */
-  constructor({ pc, modelLibrary, materials, root, mapData = null }) {
+  constructor({ pc, modelLibrary, root, mapData = null }) {
 
     this.#pc = pc;
 
     this.#modelLibrary = modelLibrary;
-
-    this.#materials = materials;
 
     this.#root = root;
     if (mapData?.islandConnectorData) {
@@ -126,9 +122,6 @@ export class BridgeRailingKit {
     const centerZ =
       (span.horizontal ? span.crossCenter : span.center) - (rows - 1) / 2;
     const postPositions = [span.start - 0.34, span.end + 0.34];
-    for (let position = span.start + 0.5; position < span.end; position += 1) {
-      postPositions.push(position);
-    }
     const uniquePostPositions = [...new Set(postPositions)].sort(
       BridgeRailingKit.#sortLeft,
     );
@@ -220,6 +213,36 @@ export class BridgeRailingKit {
   }
 
   /**
+   * Assemble a timber railing from its deck-level start and world-space direction.
+   * Length follows the direction, including any slope. Bays divide the run evenly.
+   *
+   * @param {{position: import("playcanvas").Vec3, length: number, direction: import("playcanvas").Vec3, postSpacing?: number, material?: string}} options
+   * @param {import("playcanvas").Vec3} options.position
+   * @param {number} options.length
+   * @param {import("playcanvas").Vec3} options.direction
+   * @param {number} [options.postSpacing]
+   * @param {string} [options.material]
+   */
+  addRailing({ position, length, direction, postSpacing = 1, material = "wood" }) {
+    const directionLength = direction.length();
+    if (!Number.isFinite(length) || length <= 0 || !Number.isFinite(postSpacing) || postSpacing <= 0 || !Number.isFinite(directionLength) || directionLength <= 0) {
+      return;
+    }
+    const step = direction.clone().mulScalar(length / directionLength);
+    const bays = Math.max(1, Math.ceil(length / postSpacing));
+    let previous;
+    for (let index = 0; index <= bays; index += 1) {
+      const base = position.clone().add(step.clone().mulScalar(index / bays));
+      this.#addPost(material, new this.#pc.Vec3(base.x, base.y + 0.17, base.z));
+      const rail = new this.#pc.Vec3(base.x, base.y + 0.34, base.z);
+      if (previous) {
+        this.#addSegment(material, previous, rail);
+      }
+      previous = rail;
+    }
+  }
+
+  /**
    * @param {number} near
    * @param {number} far
    * @param {number[]} [offsets]
@@ -252,13 +275,10 @@ export class BridgeRailingKit {
   #addSegment(material, start, end) {
     const direction = new this.#pc.Vec3().sub2(end, start);
     const fullLength = direction.length();
-    const runsAcrossX = Math.abs(direction.x) > Math.abs(direction.z);
-    const pitch = runsAcrossX
-      ? 0
-      : (-Math.atan2(direction.y, direction.z) * 180) / Math.PI;
+    const pitch = (-Math.atan2(direction.y, Math.hypot(direction.x, direction.z)) * 180) / Math.PI;
     const rotation = new this.#pc.Quat().setFromEulerAngles(
       pitch,
-      runsAcrossX ? 90 : 0,
+      (Math.atan2(direction.x, direction.z) * 180) / Math.PI,
       0,
     );
     const position = new this.#pc.Vec3().lerp(start, end, 0.5);
@@ -267,7 +287,9 @@ export class BridgeRailingKit {
       material,
       position,
       rotation,
-      new this.#pc.Vec3(1, 1, Math.max(0.01, fullLength - 0.124)),
+      // Meet over the post centerline so adjoining handrails read continuously.
+      // A tiny inset avoids coincident end faces between adjacent modules.
+      new this.#pc.Vec3(1, 1, Math.max(0.01, fullLength - 0.004)),
     );
   }
 
@@ -277,6 +299,11 @@ export class BridgeRailingKit {
    * @param {{x: number, y: number, z: number}} position
    */
   #addPost(material, position) {
+    const key = `${this.#currentGroup}|${material}|${position.x.toFixed(6)},${position.y.toFixed(6)},${position.z.toFixed(6)}`;
+    if (this.#postKeys.has(key)) {
+      return;
+    }
+    this.#postKeys.add(key);
     this.#addMatrix(
       this.#postMatrices,
       material,
@@ -338,6 +365,12 @@ export class BridgeRailingKit {
    */
   #buildModelBatches(modelUrl, batches, name) {
     const vertexBuffers = [];
+    if (!batches.size) {
+      return vertexBuffers;
+    }
+    const source = this.#modelLibrary.instantiate(modelUrl);
+    const timberMaterial = source.findComponents("render")[0].meshInstances[0].material;
+    source.destroy();
     for (const [batchKey, matrices] of batches.entries()) {
       const [group, materialName] = batchKey.split("|");
       const batch = this.#modelLibrary.instantiateMergedBatch(
@@ -345,7 +378,7 @@ export class BridgeRailingKit {
         matrices,
         {
           name: `${name} (${materialName})`,
-          material: this.#materials.get(materialName),
+          material: timberMaterial,
           dynamic: true,
         },
       );
@@ -417,33 +450,18 @@ export class BridgeRailingKit {
   ) {
     const railX = span.horizontal ? centerX : centerX + side * 0.93;
     const railZ = span.horizontal ? centerZ + side * 0.93 : centerZ;
-    for (let index = 1; index < uniquePostPositions.length; index += 1) {
-      const segmentStart = uniquePostPositions[index - 1];
-      const segmentEnd = uniquePostPositions[index];
-      this.#addSegment(
-        material,
-        new this.#pc.Vec3(
-          span.horizontal ? segmentStart - (cols - 1) / 2 : railX,
-          height + 0.34,
-          span.horizontal ? railZ : segmentStart - (rows - 1) / 2,
-        ),
-        new this.#pc.Vec3(
-          span.horizontal ? segmentEnd - (cols - 1) / 2 : railX,
-          height + 0.34,
-          span.horizontal ? railZ : segmentEnd - (rows - 1) / 2,
-        ),
-      );
-    }
-    for (const position of uniquePostPositions) {
-      this.#addPost(
-        material,
-        new this.#pc.Vec3(
-          span.horizontal ? position - (cols - 1) / 2 : railX,
-          height + 0.17,
-          span.horizontal ? railZ : position - (rows - 1) / 2,
-        ),
-      );
-    }
+    const start = uniquePostPositions[0];
+    const end = uniquePostPositions.at(-1);
+    this.addRailing({
+      position: new this.#pc.Vec3(
+        span.horizontal ? start - (cols - 1) / 2 : railX,
+        height,
+        span.horizontal ? railZ : start - (rows - 1) / 2,
+      ),
+      length: end - start,
+      direction: new this.#pc.Vec3(span.horizontal ? 1 : 0, 0, span.horizontal ? 0 : 1),
+      material,
+    });
   }
 
   /**
@@ -466,29 +484,23 @@ export class BridgeRailingKit {
     for (let index = 1; index < postPositions.length; index += 1) {
       const segmentStart = postPositions[index - 1];
       const segmentEnd = postPositions[index];
-      this.#addSegment(
-        material,
-        new this.#pc.Vec3(
-          railX,
-          this.#overpassHeightAt(overpass, segmentStart) + 0.34,
-          segmentStart - (rows - 1) / 2,
-        ),
-        new this.#pc.Vec3(
-          railX,
-          this.#overpassHeightAt(overpass, segmentEnd) + 0.34,
-          segmentEnd - (rows - 1) / 2,
-        ),
+      const start = new this.#pc.Vec3(
+        railX,
+        this.#overpassHeightAt(overpass, segmentStart),
+        segmentStart - (rows - 1) / 2,
       );
-    }
-    for (const position of postPositions) {
-      this.#addPost(
-        material,
-        new this.#pc.Vec3(
-          railX,
-          this.#overpassHeightAt(overpass, position) + 0.17,
-          position - (rows - 1) / 2,
-        ),
+      const end = new this.#pc.Vec3(
+        railX,
+        this.#overpassHeightAt(overpass, segmentEnd),
+        segmentEnd - (rows - 1) / 2,
       );
+      const direction = end.sub(start);
+      this.addRailing({
+        position: start,
+        length: direction.length(),
+        direction,
+        material,
+      });
     }
   }
 }
