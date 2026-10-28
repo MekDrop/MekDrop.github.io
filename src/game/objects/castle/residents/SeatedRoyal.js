@@ -11,6 +11,7 @@ import { RoyalGameOverRouteFollower } from "./RoyalGameOverRouteFollower.js";
 import { RoyalTears } from "./RoyalTears.js";
 import { NpcDoorAvoidance } from "../../shared/NpcDoorAvoidance.js";
 import { KingCapePhysics } from "../../characters/royal/king/KingCapePhysics.js";
+import { KingThroneIdle } from "./KingThroneIdle.js";
 
 const MODEL_URLS = Object.freeze([
   kingModelUrl,
@@ -34,6 +35,9 @@ const FALLBACK_VISUAL_SIZE = Object.freeze({
  * An imported seated royal whose local +Z axis faces the visitor.
  */
 export class SeatedRoyal {
+  #throneIdle = null;
+  #idleHandle = null;
+  #restoreIdleHandle = null;
   /**
    * @type {KingCapePhysics|null}
    */
@@ -165,6 +169,24 @@ export class SeatedRoyal {
     }
     this.sit();
     if (kind === "KING") {
+      this.#throneIdle = new KingThroneIdle(pc, this.#model);
+      this.#restoreIdleHandle = app.on("update", () => this.#throneIdle.restore());
+      this.#idleHandle = app.on("postupdate", /**
+       *
+       * @param dt
+       */
+        (dt) => {
+          const visitors = app.root.findByTag("Hero", "Servant", "Queen", "Princess");
+          const alone = !visitors.some(/**
+         *
+         * @param visitor
+         */
+            (visitor) => visitor.enabledInHierarchy &&
+          visitor.getPosition().distance(this.#entity.getPosition()) < 7);
+          this.#throneIdle.update(dt, alone && this.#model.anim.speed === 0 &&
+          this.#model.anim.baseLayer.activeState === ROYAL_ANIMATION.SIT &&
+          !this.#gameOverBehavior.active && !this.#resident?.behavior?.reacting);
+        });
       this.#capePhysics = new KingCapePhysics({
         pc,
         app,
@@ -360,6 +382,9 @@ export class SeatedRoyal {
   }
 
   destroy() {
+    this.#idleHandle?.off();
+    this.#restoreIdleHandle?.off();
+    this.#throneIdle?.restore();
     this.#capePhysics?.destroy();
     this.#capePhysics = null;
     this.#doorAvoidance?.destroy();
