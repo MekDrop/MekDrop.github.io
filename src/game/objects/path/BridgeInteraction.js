@@ -3,7 +3,7 @@
  */
 export class BridgeInteraction {
   /**
-   * @type {import("./Bridge.js").Bridge}
+   * @type {import("./Bridge.js").Bridge|import("./Overpass.js").Overpass}
    */
   #bridge;
   /**
@@ -20,7 +20,7 @@ export class BridgeInteraction {
   #onComplete;
 
   /**
-   * @param {import("./Bridge.js").Bridge} bridge
+   * @param {import("./Bridge.js").Bridge|import("./Overpass.js").Overpass} bridge
    * @param {import("../characters/hero/Hero.js").Hero} hero
    * @param {number} station
    * @param {(() => void)|undefined} onComplete

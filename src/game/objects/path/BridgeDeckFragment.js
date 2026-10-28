@@ -1,5 +1,6 @@
 import { BridgeRailingKit } from "./BridgeRailingKit.js";
-import { TerrainInstanceRenderer } from "../../rendering/terrain/TerrainInstanceRenderer.js";
+import { BridgeArtwork } from "./BridgeArtwork.js";
+import { BridgeProfile } from "./BridgeProfile.js";
 
 /**
  * @typedef {{position:import("playcanvas").Vec3, rotation:import("playcanvas").Quat, velocity:import("playcanvas").Vec3, contactPoint?:import("playcanvas").Vec3}} BridgeGroundImpact
@@ -39,9 +40,9 @@ export class BridgeDeckFragment {
    */
   #variation;
   /**
-   * @type {TerrainInstanceRenderer}
+   * @type {number}
    */
-  #deck;
+  #slope = 0;
   /**
    * @type {import("playcanvas").VertexBuffer[]}
    */
@@ -98,56 +99,78 @@ export class BridgeDeckFragment {
    * @type {boolean}
    */
   #hasImpacted = false;
+  /**
+   * @type {boolean}
+   */
+  #floating = false;
+  /**
+   * @type {number}
+   */
+  #liftElapsed = 0;
+  /**
+   * @type {boolean}
+   */
+  #liftFailed = false;
+  /**
+   * @type {import("playcanvas").Vec3|null}
+   */
+  #gravity = null;
+  /**
+   * @type {number}
+   */
+  #liftStrength = 1;
 
   /**
    * The root enters the live world before constraints are attached. Its owner
    * may reparent it beneath an identity scene root; all artwork stays local.
-   * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, modelLibrary: import("../../models/GameModelLibrary.js").GameModelLibrary, materials: import("playcanvas").Material[], definition: import("../ObjectTypes.js").MapObjectDefinition, station: number, position: import("playcanvas").Vec3}} options
+   * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, modelLibrary: import("../../models/GameModelLibrary.js").GameModelLibrary, materials: import("playcanvas").Material[], definition: import("../ObjectTypes.js").MapObjectDefinition, station: number, position: import("playcanvas").Vec3, floating?: boolean, startRise?: number, endRise?: number, anchorDirection?: number}} options
    */
-  constructor({ pc, app, modelLibrary, materials, definition, station, position }) {
+  constructor({ pc, app, modelLibrary, definition, station, position, floating = false, startRise = 0, endRise = 0, anchorDirection = 1 }) {
     this.#pc = pc;
     this.#app = app;
     this.#station = station;
+    this.#floating = floating;
+    this.#slope = endRise - startRise;
     this.#lastVelocity = new pc.Vec3();
     this.#horizontal = definition.span.horizontal;
     this.#initialHeight = position.y - 0.12;
     this.#variation = Math.sin(station * 12.9898 + definition.span.start * 7.233);
     this.entity = new pc.Entity(`Falling bridge deck ${station}`);
-    this.entity.tags.add("hero-surface-ignore");
+    this.entity.tags.add("hero-moving-support");
     this.entity.setPosition(position.x, this.#initialHeight, position.z);
     app.root.addChild(this.entity);
-    this.#deck = new TerrainInstanceRenderer({
+    const artwork = new BridgeArtwork({
       pc,
-      app,
+      modelLibrary,
       root: this.entity,
-      materials,
     });
+    artwork.addStation({
+      definition,
+      station,
+      position: new pc.Vec3(0, 0.12, 0),
+      startRise,
+      endRise,
+      floating,
+    });
+    this.#buffers = artwork.build();
     const width = this.#horizontal ? 1 : 2;
     const depth = this.#horizontal ? 2 : 1;
-    this.#deck.addBoxMatrix("path", definition.material, 0, 0, 0, 0,
-      width, 0.24, depth, "surfaceOnly", "none");
-    this.#deck.addBoxMatrix("path", definition.material, 0, 0, 0, 0,
-      width, 0.24, depth,
-      this.#horizontal ? "bridgeHorizontalSidesOnly" : "bridgeVerticalSidesOnly", definition.material);
-    // The newly exposed fracture ends close the slab once it rotates away
-    // from its neighbour. Its original long fascia and underside stay intact.
-    this.#deck.addBoxMatrix("none", definition.material, 0, 0, 0, 0,
-      width, 0.24, depth,
-      this.#horizontal ? "bridgeVerticalSidesOnly" : "bridgeHorizontalSidesOnly", "none");
-    this.#deck.build();
     const railings = new BridgeRailingKit({
       pc,
       modelLibrary,
       root: this.entity,
     });
-    const start = station === definition.span.start ? -0.34 : -0.5;
-    const end = station === definition.span.end ? 0.34 : 0.5;
+    const range = BridgeProfile.railRange(definition.span, station, floating, anchorDirection);
     this.entity.addComponent("collision", { type: "compound" });
-    this.#addCollider("Original deck slab", new pc.Vec3(), new pc.Vec3(width / 2, 0.12, depth / 2));
-    const endPost = station === definition.span.end;
-    this.#addRailing(railings, definition.material, start, end, -0.93, endPost);
-    this.#addRailing(railings, definition.material, start, end, 0.93, endPost);
-    this.#buffers = railings.build();
+    const lengthScale = Math.hypot(1, this.#slope);
+    this.#addCollider("Original deck slab", new pc.Vec3(),
+      new pc.Vec3(width / 2 * (this.#horizontal ? lengthScale : 1), 0.12,
+        depth / 2 * (this.#horizontal ? 1 : lengthScale)), true);
+    if (range) {
+      this.#addRailing(railings, definition.material, range.start, range.end, -0.93, range.endPost);
+      this.#addRailing(railings, definition.material, range.start, range.end, 0.93, range.endPost);
+    }
+    this.#buffers.push(...railings.build());
     this.entity.addComponent("rigidbody", {
       type: "dynamic",
       mass: 8 + this.#variation * 0.35,
@@ -156,7 +179,7 @@ export class BridgeDeckFragment {
       linearDamping: 0.06,
       angularDamping: 0.12,
       group: pc.BODYGROUP_USER_1,
-      mask: pc.BODYMASK_STATIC | pc.BODYGROUP_USER_1,
+      mask: pc.BODYMASK_STATIC | pc.BODYGROUP_USER_1 | pc.BODYGROUP_DYNAMIC,
     });
     // Small asymmetry breaks perfectly repeated motion without throwing the
     // stations outward. Their weight and connected hinges drive the collapse.
@@ -165,6 +188,9 @@ export class BridgeDeckFragment {
       this.#variation * 0.012,
       this.#horizontal ? this.#variation * 0.035 : -this.#variation * 0.018,
     );
+    if (floating) {
+      this.#beginLiftFailure();
+    }
     this.#contactHandle = this.entity.rigidbody.on?.("contact", this.#onContact, this) ?? null;
     this.#velocityHandle = app.on?.("update", this.#rememberVelocity, this) ?? null;
   }
@@ -174,6 +200,81 @@ export class BridgeDeckFragment {
    */
   get station() {
     return this.#station;
+  }
+
+  /**
+   * Remaining magical support, also used by the bridge's lift artwork.
+   * @returns {number}
+   */
+  get liftStrength() {
+    return this.#floating ? this.#liftStrength : 0;
+  }
+
+  #beginLiftFailure() {
+    const body = this.entity.rigidbody.body;
+    const gravity = body?.getGravity?.();
+    if (gravity) {
+      this.#gravity = new this.#pc.Vec3(gravity.x(), gravity.y(), gravity.z());
+      this.#setGravity(new this.#pc.Vec3());
+    }
+    // Detached stations drift apart while their lift sputters. This is one
+    // initial velocity; Ammo owns all subsequent motion and collisions.
+    this.entity.rigidbody.linearVelocity = new this.#pc.Vec3(
+      this.#horizontal ? this.#variation * 0.12 : 0.1,
+      0.025,
+      this.#horizontal ? 0.1 : this.#variation * 0.12,
+    );
+  }
+
+  /**
+   * Keep the released station suspended briefly, then let Ammo gravity take
+   * over. No transform animation substitutes for the dynamic body's motion.
+   * @param {number} deltaTime
+   */
+  update(deltaTime) {
+    if (this.#destroyed || !this.#floating || this.#liftFailed) {
+      return;
+    }
+    this.#liftElapsed += Math.max(0, deltaTime);
+    const progress = Math.min(1, this.#liftElapsed / 0.8);
+    const flicker = 0.55 + 0.45 * Math.abs(Math.sin(this.#liftElapsed * 31 + this.#variation));
+    this.#liftStrength = (1 - progress) * flicker;
+    if (progress >= 1) {
+      this.#liftFailed = true;
+      if (this.#gravity) {
+        this.#setGravity(this.#gravity);
+      }
+    } else {
+      // Reparenting re-adds a PlayCanvas body to Ammo's world, which assigns
+      // world gravity again. Maintain lift on the live body until it fails.
+      this.#setGravity(this.#pc.Vec3.ZERO);
+    }
+    this.#updateLiftArtwork();
+  }
+
+  /**
+   * @param {import("playcanvas").Vec3} gravity
+   */
+  #setGravity(gravity) {
+    const ammo = globalThis.Ammo;
+    const body = this.entity.rigidbody.body;
+    if (!ammo?.btVector3 || !body?.setGravity) {
+      return;
+    }
+    const value = new ammo.btVector3(gravity.x, gravity.y, gravity.z);
+    body.setGravity(value);
+    ammo.destroy(value);
+    body.activate();
+  }
+
+  #updateLiftArtwork() {
+    for (const render of this.entity.findComponents("render")) {
+      for (const instance of render.meshInstances) {
+        if (/lift|rune/i.test(`${instance.node?.name ?? ""} ${instance.material?.name ?? ""}`)) {
+          instance.setParameter("material_emissiveIntensity", this.#liftStrength);
+        }
+      }
+    }
   }
 
   #rememberVelocity() {
@@ -244,10 +345,16 @@ export class BridgeDeckFragment {
    * @param {string} name
    * @param {import("playcanvas").Vec3} position
    * @param {import("playcanvas").Vec3} halfExtents
+   * @param {boolean} supportSurface
    */
-  #addCollider(name, position, halfExtents) {
+  #addCollider(name, position, halfExtents, supportSurface = false) {
     const collider = new this.#pc.Entity(name);
+    if (supportSurface) {
+      collider.tags.add("hero-support-surface");
+    }
     collider.setLocalPosition(position);
+    const pitch = Math.atan(this.#slope) * 180 / Math.PI;
+    collider.setLocalEulerAngles(this.#horizontal ? 0 : -pitch, 0, this.#horizontal ? pitch : 0);
     collider.addComponent("collision", {
       type: "box",
       halfExtents,
@@ -266,17 +373,20 @@ export class BridgeDeckFragment {
   #addRailing(railings, material, start, end, across, endPost) {
     const pc = this.#pc;
     railings.addRailing({
-      position: new pc.Vec3(this.#horizontal ? start : across, 0.12, this.#horizontal ? across : start),
-      direction: new pc.Vec3(this.#horizontal ? 1 : 0, 0, this.#horizontal ? 0 : 1),
-      length: end - start,
+      position: new pc.Vec3(this.#horizontal ? start : across, 0.12 + this.#slope * start,
+        this.#horizontal ? across : start),
+      direction: new pc.Vec3(this.#horizontal ? 1 : 0, this.#slope, this.#horizontal ? 0 : 1),
+      length: (end - start) * Math.hypot(1, this.#slope),
       postSpacing: 1,
       material,
       endPost,
     });
     const center = (start + end) / 2;
     this.#addCollider("Attached timber railing",
-      new pc.Vec3(this.#horizontal ? center : across, 0.38, this.#horizontal ? across : center),
-      new pc.Vec3(this.#horizontal ? (end - start) / 2 : 0.06, 0.26, this.#horizontal ? 0.06 : (end - start) / 2));
+      new pc.Vec3(this.#horizontal ? center : across, 0.38 + this.#slope * center,
+        this.#horizontal ? across : center),
+      new pc.Vec3(this.#horizontal ? (end - start) * Math.hypot(1, this.#slope) / 2 : 0.06,
+        0.26, this.#horizontal ? 0.06 : (end - start) * Math.hypot(1, this.#slope) / 2));
   }
 
   /**
@@ -351,6 +461,9 @@ export class BridgeDeckFragment {
    */
   anchor(direction) {
     this.releaseSupport();
+    if (this.#floating) {
+      return false;
+    }
     const attached = this.#attachPair(null, direction);
     if (attached) {
       const velocity = this.entity.rigidbody.angularVelocity.clone();
@@ -371,7 +484,7 @@ export class BridgeDeckFragment {
    */
   connectTo(next, direction) {
     this.releaseSupport();
-    if (next === this || next.#destroyed) {
+    if (this.#floating || next.#floating || next === this || next.#destroyed) {
       return false;
     }
     const attached = this.#attachPair(next, direction);
@@ -396,8 +509,8 @@ export class BridgeDeckFragment {
     if (this.#destroyed || !ammo?.btPoint2PointConstraint || !world || !body || (next && !nextBody)) {
       return false;
     }
-    this.#addConstraint(ammo, world, body, nextBody, direction, -0.85);
-    this.#addConstraint(ammo, world, body, nextBody, direction, 0.85);
+    this.#addConstraint(ammo, world, body, next, direction, -0.85);
+    this.#addConstraint(ammo, world, body, next, direction, 0.85);
     body.activate();
     nextBody?.activate();
 
@@ -408,22 +521,34 @@ export class BridgeDeckFragment {
    * @param {typeof globalThis.Ammo} ammo
    * @param {import("sync-ammo/dist/ammo").btDiscreteDynamicsWorld} world
    * @param {import("sync-ammo/dist/ammo").btRigidBody} body
-   * @param {import("sync-ammo/dist/ammo").btRigidBody|undefined} nextBody
+   * @param {BridgeDeckFragment|null} next
    * @param {number} direction
    * @param {number} across
    */
-  #addConstraint(ammo, world, body, nextBody, direction, across) {
-    const local = this.#edgePoint(direction, across);
+  #addConstraint(ammo, world, body, next, direction, across) {
+    const transform = this.#bodyTransform(body);
+    let local = this.#edgePoint(direction, across);
+    let other;
+    if (next) {
+      const nextTransform = this.#bodyTransform(next.entity.rigidbody.body);
+      const edge = transform.transformPoint(local);
+      const nextEdge = nextTransform.transformPoint(next.#edgePoint(-direction, across));
+      // The previous section may already be tipped or displaced when the
+      // cascade releases its neighbour. Both pivots must begin at one shared
+      // world point; prescribed local edges would inject a solver correction.
+      const shared = new this.#pc.Vec3().lerp(edge, nextEdge, 0.5);
+      local = transform.clone().invert().transformPoint(shared);
+      other = nextTransform.clone().invert().transformPoint(shared);
+    }
     const pivot = new ammo.btVector3(local.x, local.y, local.z);
     let constraint;
-    if (nextBody) {
-      const other = this.#edgePoint(-direction, across);
+    if (next) {
       const nextPivot = new ammo.btVector3(other.x, other.y, other.z);
-      constraint = new ammo.btPoint2PointConstraint(body, nextBody, pivot, nextPivot);
+      constraint = new ammo.btPoint2PointConstraint(body, next.entity.rigidbody.body, pivot, nextPivot);
       ammo.destroy(nextPivot);
     } else {
       constraint = new ammo.btPoint2PointConstraint(body, pivot);
-      const position = this.entity.getWorldTransform().transformPoint(local);
+      const position = transform.transformPoint(local);
       const anchor = new ammo.btVector3(position.x, position.y, position.z);
       constraint.setPivotB(anchor);
       ammo.destroy(anchor);
@@ -438,13 +563,31 @@ export class BridgeDeckFragment {
   }
 
   /**
+   * Constraints use Ammo's evaluated body pose, which can be newer than the
+   * render entity's transform during a physics-driven cascade.
+   * @param {import("sync-ammo/dist/ammo").btRigidBody} body
+   * @returns {import("playcanvas").Mat4}
+   */
+  #bodyTransform(body) {
+    const transform = body.getCenterOfMassTransform();
+    const position = transform.getOrigin();
+    const rotation = transform.getRotation();
+
+    return new this.#pc.Mat4().setTRS(
+      new this.#pc.Vec3(position.x(), position.y(), position.z()),
+      new this.#pc.Quat(rotation.x(), rotation.y(), rotation.z(), rotation.w()),
+      this.#pc.Vec3.ONE,
+    );
+  }
+
+  /**
    * @param {number} direction
    * @param {number} across
    * @returns {import("playcanvas").Vec3}
    */
   #edgePoint(direction, across = 0) {
     return new this.#pc.Vec3(this.#horizontal ? direction * 0.5 : across,
-      -0.12, this.#horizontal ? across : direction * 0.5);
+      -0.12 + this.#slope * direction * 0.5, this.#horizontal ? across : direction * 0.5);
   }
 
   /**
@@ -455,7 +598,7 @@ export class BridgeDeckFragment {
   freeEdgeDrop(direction) {
     const edge = this.entity.getWorldTransform().transformPoint(this.#edgePoint(-direction));
 
-    return Math.max(0, this.#initialHeight - 0.12 - edge.y);
+    return Math.max(0, this.#initialHeight - 0.12 - this.#slope * direction * 0.5 - edge.y);
   }
 
   /**
@@ -490,7 +633,6 @@ export class BridgeDeckFragment {
     }
     this.releaseSupport();
     this.#releaseFadeMaterials();
-    this.#deck.destroy();
     for (const buffer of this.#buffers) {
       buffer.destroy();
     }

@@ -26,6 +26,21 @@ const standing = {
   fallingToDeath: false,
 };
 
+it("removes destroyed raised crossing support while retaining its lower path", () => {
+  const data = map();
+  data.grid[1][1] = TileType.PATH;
+  data.tileMeta[1][1].overpass = {
+    elevation: 4,
+    direction: "SOUTH",
+  };
+  const terrain = new HeroTerrain(data, null, []);
+  assert.equal(terrain.supportHeightAtPoint(0, 0, 5), 4);
+  assert.equal(terrain.surfaceAt(0, 0, 5), 4);
+  data.tileMeta[1][1].overpassCollapsed = true;
+  assert.equal(terrain.supportHeightAtPoint(0, 0, 5), 2);
+  assert.equal(terrain.surfaceAt(0, 0, 5), 2);
+});
+
 it("blocks approach to raised terrain but permits sliding and retreat from overlap", () => {
   const data = map();
   data.heightmap[1][2] = 4;

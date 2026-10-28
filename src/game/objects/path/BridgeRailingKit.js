@@ -1,4 +1,5 @@
 import { IslandCellOwnership } from "../shared/IslandCellOwnership.js";
+import { BridgePalette } from "./BridgePalette.js";
 import bridgeRailingPostModelUrl from "../../models/bridge/bridge-railing-post.glb?url";
 import bridgeRailingSegmentModelUrl from "../../models/bridge/bridge-railing-segment.glb?url";
 import { SLOPE_DIRECTION } from "../../enum/SlopeDirection.js";
@@ -51,6 +52,10 @@ export class BridgeRailingKit {
    */
   #root;
   /**
+   * @type {BridgePalette}
+   */
+  #palette;
+  /**
    * @type {Set<string>[]|null}
    */
   #islandCells = null;
@@ -92,6 +97,7 @@ export class BridgeRailingKit {
     this.#modelLibrary = modelLibrary;
 
     this.#root = root;
+    this.#palette = new BridgePalette(root);
     if (mapData?.islandConnectorData) {
       this.#islandCells = new IslandCellOwnership(mapData).groups;
       this.#islandRoots = this.#islandCells.map(/**
@@ -374,7 +380,7 @@ export class BridgeRailingKit {
       return vertexBuffers;
     }
     const source = this.#modelLibrary.instantiate(modelUrl);
-    const timberMaterial = source.findComponents("render")[0].meshInstances[0].material;
+    const timberMaterial = this.#palette.materialFor(source.findComponents("render")[0].meshInstances[0].material, "frame");
     source.destroy();
     for (const [batchKey, matrices] of batches.entries()) {
       const [group, materialName] = batchKey.split("|");

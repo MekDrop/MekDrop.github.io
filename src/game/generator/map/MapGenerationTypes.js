@@ -10,6 +10,7 @@
  * @property {string} [overpassPlateauId]
  * @property {string} [pathDipId]
  * @property {number|null} [bridgeGroundHeight]
+ * @property {{horizontal: boolean, start: number, end: number, elevation: number, floating: boolean}} [bridgeProfile] Derived bridge support shared with artwork and collision.
  * @property {boolean} [islandConnector]
  * @property {SlopeProfile} [slope]
  * @property {{elevation: number, direction: string}} [overpass]

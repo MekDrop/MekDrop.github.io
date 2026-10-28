@@ -18,7 +18,8 @@ const { BridgeRailing } = await import(`data:text/javascript;base64,${Buffer.fro
 function fixture() {
   const batches = [];
   const released = [];
-  const timber = { name: "Shared timber" };
+  const timber = new pc.StandardMaterial();
+  timber.name = "Shared timber";
   const modelLibrary = {
     instantiate: () => ({
       findComponents: () => [{ meshInstances: [{ material: timber }] }],
@@ -95,7 +96,8 @@ for (const direction of [new pc.Vec3(3, 0, 4), new pc.Vec3(-3, 1, -4), new pc.Ve
     assert.deepEqual(direction, originalDirection);
     assert.deepEqual(position, new pc.Vec3(3, 2, -4));
     for (const batch of batches) {
-      assert.equal(batch.options.material, timber);
+      assert.notEqual(batch.options.material, timber);
+      assert.equal(batch.options.material.diffuse.r, 0.72);
     }
   });
 }

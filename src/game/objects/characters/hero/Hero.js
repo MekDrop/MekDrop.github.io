@@ -53,6 +53,7 @@ import { AxeTool, HammerTool, KnifeTool, ShovelTool } from "./tools/index.js";
 import { projectFirstPersonMovement } from "./projectFirstPersonMovement.js";
 import { projectIsometricMovement } from "./projectIsometricMovement.js";
 import { HeroLadderClimb, LADDER_CLIMB_SPEED } from "./HeroLadderClimb.js";
+import { HeroHardLandingRecoveryActionState } from "./states/action/HeroHardLandingRecoveryActionState.js";
 
 /**
  * @typedef {{capacity: number, items: Array<{id: string, variant: string, quantity?: number}>}} HeroInventory
@@ -110,6 +111,7 @@ const AIRBORNE_STALL_POSITION_EPSILON = 0.0005;
 const AIRBORNE_STALL_FALL_SPEED = 0.6;
 const MAX_LIVES = 3;
 const RESPAWN_ANIMATION_DURATION = 1.55;
+const HARD_LANDING_RECOVERY_DURATION = 2.8;
 const RESPAWN_START_HEIGHT = 1;
 const MIN_AUTOMATIC_STEP_HEIGHT = 0.04;
 const MAX_AUTOMATIC_STEP_HEIGHT = 0.32;
@@ -707,6 +709,16 @@ export class Hero {
    */
   #jumpMovement = false;
   /**
+   * Kept independently of ray-grounded locomotion until the solver's landing
+   * event arrives. The ray can see the floor one frame before physical impact.
+   * @type {number|null}
+   */
+  #jumpLandingOriginHeight = null;
+  /**
+   * @type {number}
+   */
+  #jumpLandingSettledTime = 0;
+  /**
    *
    * @type {number}
    */
@@ -744,6 +756,16 @@ export class Hero {
    * @type {import("playcanvas").EventHandle|null}
    */
   #updateHandle = null;
+  /**
+   * @type {import("playcanvas").EventHandle|null}
+   */
+  #bridgeCollapseHandle = null;
+  /**
+   * Queued outside action transitions: a hammer impact can emit the event from
+   * inside the tool state's execute call.
+   * @type {boolean}
+   */
+  #bridgeCollapseReactionPending = false;
   /**
    * @type {import("playcanvas").EventHandle|null}
    */
@@ -990,6 +1012,13 @@ export class Hero {
       repelSpeed: GATEWAY_REPEL_SPEED,
       feedback: {
         actionComplete: this.#onActionComplete.bind(this),
+        landingRecovery: {
+          duration: HARD_LANDING_RECOVERY_DURATION,
+          grounded: this.#isLandingRecoverySupported.bind(this),
+          stableGrounded: this.#isLandingRecoveryStable.bind(this),
+          begin: this.#beginLandingRecovery.bind(this),
+          end: this.#endLandingRecovery.bind(this),
+        },
         tool: {
           /**
            *
@@ -1221,6 +1250,7 @@ export class Hero {
 
     this.#createModel();
     this.#updateHandle = app.on("update", this.#update);
+    this.#bridgeCollapseHandle = app.on("bridge:collapsing", this.#onBridgeCollapsing, this);
     this.#toolRenderHandle = app.on("prerender", this.#renderTools);
     this.#syncState();
     this.#presentation?.stateStore?.setMood(null);
@@ -1252,6 +1282,8 @@ export class Hero {
     this.#coyoteRemaining = previousHero.#coyoteRemaining;
     this.#jumpsUsed = previousHero.#jumpsUsed;
     this.#jumpMovement = previousHero.#jumpMovement;
+    this.#jumpLandingOriginHeight = previousHero.#jumpLandingOriginHeight;
+    this.#jumpLandingSettledTime = previousHero.#jumpLandingSettledTime;
     this.#stableGroundPosition = { ...previousHero.#stableGroundPosition };
     this.#physics.resume(this.#position, this.#velocity);
     this.#syncIslandVisualPosition();
@@ -1267,6 +1299,7 @@ export class Hero {
       return false;
     }
     const previous = this.position;
+    this.#bridgeCollapseReactionPending = false;
     this.#ladderClimb.reset();
     this.#climbMotion = null;
     this.#setHeroPartCollidersEnabled(true);
@@ -1288,6 +1321,8 @@ export class Hero {
     this.#coyoteRemaining = 0;
     this.#jumpsUsed = 0;
     this.#jumpMovement = false;
+    this.#jumpLandingOriginHeight = null;
+    this.#jumpLandingSettledTime = 0;
     this.#automaticStepVisualOffset = 0;
     this.#automaticStepVisualSupportHeight = null;
     this.#stairCameraHeight.reset();
@@ -1549,7 +1584,8 @@ export class Hero {
    * @returns {boolean}
    */
   get isReacting() {
-    return this.#actionBehavior.bellAction !== null || this.#actionBehavior.blockedDigReactionAction !== null || this.#actionsLocked;
+    return this.#actionBehavior.bellAction !== null || this.#actionBehavior.blockedDigReactionAction !== null ||
+      this.#actionBehavior.recoveringFromLanding || this.#actionsLocked;
   }
 
   /**
@@ -1583,7 +1619,7 @@ export class Hero {
    * @param {boolean} attempt
    */
   #acceptAction(attempt = true) {
-    if (this.statusRate === 0) {
+    if (this.statusRate === 0 || this.#actionBehavior.recoveringFromLanding) {
       return false;
     }
     const acceptsEmotion = attempt
@@ -1931,6 +1967,8 @@ export class Hero {
     this.#velocity.x = projected.x * speed;
     this.#velocity.y = jumpVelocity;
     this.#velocity.z = projected.z * speed;
+    this.#jumpLandingOriginHeight = this.#position.y;
+    this.#jumpLandingSettledTime = 0;
     this.#physics.velocity = this.#velocity;
     this.#grounded = false;
     this.#coyoteRemaining = 0;
@@ -2561,6 +2599,9 @@ export class Hero {
     this.#presentation?.stateStore?.$reset();
     this.#updateHandle?.off();
     this.#updateHandle = null;
+    this.#bridgeCollapseHandle?.off();
+    this.#bridgeCollapseHandle = null;
+    this.#bridgeCollapseReactionPending = false;
     this.#toolRenderHandle?.off();
     this.#toolRenderHandle = null;
     this.#actionBehavior.finish();
@@ -2676,14 +2717,21 @@ export class Hero {
     const previousX = this.#position.x;
     const previousY = this.#position.y;
     const previousZ = this.#position.z;
+    let supportVelocityY = 0;
     if (!this.#physics.scripted) {
       this.#position = this.#physics.position;
       this.#velocity = this.#physics.velocity;
       this.#physicsSupportContact = this.#physics.consumeSupportContact();
+      const support = this.#physics.groundContact(this.#position);
+      supportVelocityY = support?.velocity?.y ?? 0;
       this.#grounded =
-        this.#velocity.y <= 0.2 &&
-        (this.#physics.groundContact(this.#position) !== null ||
+        this.#velocity.y - supportVelocityY <= 0.2 &&
+        (support !== null ||
           this.#physicsSupportContact);
+      if (support?.movingSupport) {
+        this.#automaticStepGroundingRemaining = 0;
+        this.#automaticStepTargetHeight = null;
+      }
     }
     this.#automaticStepGroundingRemaining = Math.max(
       0,
@@ -2696,6 +2744,36 @@ export class Hero {
       this.#grounded = true;
     } else if (this.#automaticStepGroundingRemaining === 0) {
       this.#automaticStepTargetHeight = null;
+    }
+    const landing = this.#physics.consumeHardLanding();
+    if (this.#bridgeCollapseReactionPending) {
+      this.#bridgeCollapseReactionPending = false;
+      this.#actionBehavior.beginHardLandingRecovery({
+        speed: 0,
+        drop: 0,
+        bridgeCollapse: true,
+      });
+    }
+    if (landing && !this.#physics.scripted && this.#grounded &&
+      HeroHardLandingRecoveryActionState.shouldReactToLanding({
+        jumping: this.#jumpLandingOriginHeight !== null,
+        landingHeight: this.#position.y,
+        launchHeight: this.#jumpLandingOriginHeight ?? this.#stableGroundPosition?.y ?? this.#spawn.y,
+      })) {
+      this.#actionBehavior.beginHardLandingRecovery(landing);
+    }
+    if (landing) {
+      this.#jumpLandingOriginHeight = null;
+      this.#jumpLandingSettledTime = 0;
+    } else if (this.#jumpLandingOriginHeight !== null) {
+      this.#jumpLandingSettledTime = this.#grounded && Math.abs(this.#velocity.y - supportVelocityY) < 0.5
+        ? this.#jumpLandingSettledTime + deltaTime : 0;
+      // Small hops may not cross the hard-impact threshold. Expire their
+      // launch context only after confirmed quiet support, never a ray alone.
+      if (this.#jumpLandingSettledTime >= 0.25) {
+        this.#jumpLandingOriginHeight = null;
+        this.#jumpLandingSettledTime = 0;
+      }
     }
     const buffRevision = this.#buffs.revision;
     if (this.isIncapacitated || this.#actionBehavior.gameOver) {
@@ -2824,7 +2902,8 @@ export class Hero {
       this.#velocity.x = this.#approach(this.#velocity.x, desired.x, acceleration * deltaTime);
       this.#velocity.z = this.#approach(this.#velocity.z, desired.z, acceleration * deltaTime);
     }
-    if (this.#partCollidersSuspended && !this.#capsuleSupportOnly && !this.#actionBehavior.bellAction) {
+    if (this.#partCollidersSuspended && !this.#capsuleSupportOnly &&
+      !this.#actionBehavior.bellAction && !this.#actionBehavior.recoveringFromLanding) {
       this.#velocity.x = 0;
       this.#velocity.z = 0;
       this.#velocity.y = Math.min(
@@ -2844,6 +2923,10 @@ export class Hero {
         this.#velocity.x = desired.x;
         this.#velocity.z = desired.z;
       }
+      if (canGroundJump || this.#jumpLandingOriginHeight === null) {
+        this.#jumpLandingOriginHeight = this.#position.y;
+      }
+      this.#jumpLandingSettledTime = 0;
       this.#velocity.y = JUMP_VELOCITY;
       this.#grounded = false;
       this.#coyoteRemaining = 0;
@@ -3010,6 +3093,14 @@ export class Hero {
     ) {
       return false;
     }
+    if (this.#physics.groundContact(this.#position)?.movingSupport) {
+      // A falling deck is supported by Ammo. A remembered stair target must
+      // never pin the capsule back to a height the deck has already left.
+      this.#automaticStepGroundingRemaining = 0;
+      this.#automaticStepTargetHeight = null;
+
+      return false;
+    }
     if (
       this.#automaticStepGroundingRemaining > 0 &&
       Number.isFinite(this.#automaticStepTargetHeight)
@@ -3146,11 +3237,68 @@ export class Hero {
     }
     this.#grounded =
       (Boolean(contact) || this.#automaticStepGroundingRemaining > 0) &&
-      this.#velocity.y <= 0.2;
+      this.#velocity.y - (contact?.velocity?.y ?? 0) <= 0.2;
     if (this.#grounded) {
       this.#jumpsUsed = 0;
       this.#rememberStableGroundPosition();
     }
+  }
+  /**
+   * @returns {boolean}
+   */
+  #isLandingRecoverySupported() {
+    return this.#grounded;
+  }
+
+  /**
+   * @returns {boolean}
+   */
+  #isLandingRecoveryStable() {
+    if (!this.#grounded) {
+      return false;
+    }
+    const support = this.#physics.groundContact(this.#position);
+    const col = Math.round(this.#position.x + (this.#mapData.cols - 1) / 2);
+    const row = Math.round(this.#position.z + (this.#mapData.rows - 1) / 2);
+
+    return Boolean(support && !support.movingSupport &&
+      !this.#mapData.tileMeta?.[row]?.[col]?.bridgeCollapsing);
+  }
+
+  /**
+   * Queue the reaction only for a rider, never the hero hammering from a bank.
+   * @param {{map: import("src/game/GameContracts.js").GameMapData, cells: import("src/game/objects/ObjectTypes.js").GridPoint[], elevation: number}} event
+   */
+  #onBridgeCollapsing({ map, cells, elevation }) {
+    if (map !== this.#mapData || this.#physics.scripted || this.isIncapacitated ||
+      this.isDying || this.#actionBehavior.exclusive || this.#actionBehavior.gameOver ||
+      !HeroHardLandingRecoveryActionState.isStandingOnCollapsingBridge({
+        position: this.#position,
+        grounded: this.#grounded,
+        jumping: this.#jumpMovement || Boolean(this.#actionBehavior.dodgeAction),
+        cells,
+        elevation,
+        cols: map.cols,
+        rows: map.rows,
+      })) {
+      return;
+    }
+    this.#bridgeCollapseReactionPending = true;
+  }
+
+  #beginLandingRecovery() {
+    this.#clearActionInput();
+    this.#velocity.x = 0;
+    this.#velocity.z = 0;
+    this.#jumpBufferRemaining = 0;
+    this.#resetBoredom();
+    this.#setHeroPartCollidersEnabled(false);
+    this.#restartAnimation = true;
+  }
+
+  #endLandingRecovery() {
+    this.#setHeroPartCollidersEnabled(true);
+    this.#restartAnimation = true;
   }
   #buildRiverRouteLookup() {
     for (const river of this.#mapData.riverData ?? []) {
@@ -3441,7 +3589,7 @@ export class Hero {
    * @param {number} previousY
    */
   #updateAirborneColliderRecovery(deltaTime, previousY) {
-    if (this.#actionBehavior.bellAction) {
+    if (this.#actionBehavior.bellAction || this.#actionBehavior.recoveringFromLanding) {
       // Authored hand contacts may pass close to the frame. Keep movement on
       // the Ammo capsule, as on ladders, rather than snagging animated limbs.
       this.#setHeroPartCollidersEnabled(false);
@@ -3682,6 +3830,8 @@ export class Hero {
   }
 
   #beginRespawn() {
+    this.#jumpLandingOriginHeight = null;
+    this.#jumpLandingSettledTime = 0;
     this.#modelRoot?.setLocalScale(
       HERO_MODEL_SCALE,
       HERO_MODEL_SCALE,
@@ -3884,6 +4034,14 @@ export class Hero {
     this.#animationPlayback.play(animation, animationSpeed, this.#restartAnimation,
       this.#actionBehavior.dodgeAction?.duration ??
       ([HERO_ANIMATION.RUN_STOP_LEFT, HERO_ANIMATION.RUN_STOP_RIGHT].includes(animation) ? RUN_STOP_DURATION : null));
+    if (animation === HERO_ANIMATION.HARD_LANDING_RECOVERY) {
+      // The action owns the authored clock so a falling rider stays in the
+      // seated pose until Ammo reports stable ground for the get-up sequence.
+      this.#modelRoot.anim.speed = 0;
+      this.#modelRoot.anim.baseLayer.playing = false;
+      this.#modelRoot.anim.baseLayer.activeStateCurrentTime = this.#actionBehavior.landingRecoveryElapsed;
+      this.#modelRoot.anim.update(0);
+    }
     if ([HERO_ANIMATION.DIG, HERO_ANIMATION.DIG_OPPOSITE].includes(animation) && this.#actionBehavior.toolAction?.phase === "use") {
       // Switching the throw side at contact must retain the current stroke time.
       this.#modelRoot.anim.baseLayer.activeStateCurrentTime = this.#actionBehavior.toolAction.elapsed;

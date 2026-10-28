@@ -102,6 +102,9 @@ export class HeroAnimationPlayback {
         tracks.set(name, tracks.get(HERO_ANIMATION.IDLE));
       }
     }
+    if (!tracks.has(HERO_ANIMATION.LEVEL_HOLE)) {
+      tracks.set(HERO_ANIMATION.LEVEL_HOLE, tracks.get(HERO_ANIMATION.FILL_HOLE));
+    }
     modelRoot.addComponent("anim", { activate: true });
     this.#animation = modelRoot.anim;
     for (const [name, track] of tracks) {
@@ -171,6 +174,6 @@ export class HeroAnimationPlayback {
    */
   static #requiredAnimation(name) {
     return !RUN_STOP_ANIMATIONS.has(name) && !OPTIONAL_CHOP_ANIMATIONS.has(name) &&
-      name !== HERO_ANIMATION.DIG_OPPOSITE;
+      ![HERO_ANIMATION.DIG_OPPOSITE, HERO_ANIMATION.LEVEL_HOLE].includes(name);
   }
 }

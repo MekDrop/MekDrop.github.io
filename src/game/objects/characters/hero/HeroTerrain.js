@@ -3,6 +3,7 @@ import { OCCUPANCY } from "../../../enum/Occupancy.js";
 import { GRASS_SURFACE_LIFT } from "../../../config/terrain.js";
 import { SLOPE_DIRECTION } from "../../../enum/SlopeDirection.js";
 import { TILE_SHAPE } from "../../../enum/TileShape.js";
+import { BridgeProfile } from "../../path/BridgeProfile.js";
 import { subtractTerrainCutouts } from "../../../collision/TerrainSurfaceCutouts.js";
 import {
   STEP_CLEARANCE,
@@ -316,8 +317,8 @@ export class HeroTerrain {
           continue;
         }
         const terrainSurface = this.terrainSurfaceHeightAt(col, row, x, z);
-        const overpassSurface =
-          this.#mapData.tileMeta?.[row]?.[col]?.overpass?.elevation;
+        const metadata = this.#mapData.tileMeta?.[row]?.[col];
+        const overpassSurface = metadata?.overpassCollapsed ? undefined : metadata?.overpass?.elevation;
         for (const surfaceHeight of [terrainSurface, overpassSurface]) {
           if (
             !Number.isFinite(surfaceHeight) ||
@@ -371,8 +372,8 @@ export class HeroTerrain {
         ? collisionSurface
         : null;
     const terrainSurface = this.terrainSurfaceHeightAt(col, row, x, z);
-    const overpassSurface =
-      this.#mapData.tileMeta?.[row]?.[col]?.overpass?.elevation;
+    const metadata = this.#mapData.tileMeta?.[row]?.[col];
+    const overpassSurface = metadata?.overpassCollapsed ? undefined : metadata?.overpass?.elevation;
     for (const surfaceHeight of [terrainSurface, overpassSurface]) {
       if (
         Number.isFinite(surfaceHeight) &&
@@ -399,6 +400,10 @@ export class HeroTerrain {
     const metadata = this.#mapData.tileMeta?.[row]?.[col];
     if (metadata?.bridgeCollapsed) {
       return Number.isFinite(metadata.bridgeGroundHeight) ? metadata.bridgeGroundHeight : -Infinity;
+    }
+    if (metadata?.bridgeProfile) {
+      return BridgeProfile.heightAt(metadata.bridgeProfile,
+        x + (this.#mapData.cols - 1) / 2, z + (this.#mapData.rows - 1) / 2);
     }
     const slope = metadata?.slope;
     if (metadata?.shape === TILE_SHAPE.SLOPE && slope) {

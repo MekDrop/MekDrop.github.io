@@ -8,6 +8,11 @@ const GROUND_NORMAL_MINIMUM = 0.35;
 const SUPPORT_NORMAL_MINIMUM = 0.65;
 const SUPPORT_CONTACT_HEIGHT = 0.3;
 const HERO_SURFACE_IGNORE_TAG = "hero-surface-ignore";
+const MOVING_SUPPORT_TAG = "hero-moving-support";
+const SUPPORT_SURFACE_TAG = "hero-support-surface";
+const SUPPORT_FACE_TOLERANCE = 0.025;
+const HARD_LANDING_SPEED = 4.5;
+const HARD_LANDING_DROP = 1.1;
 const CAMERA_WALL_CLEARANCE = 0.04;
 
 /**
@@ -53,6 +58,38 @@ export class HeroPhysicsController {
    * @type {boolean}
    */
   #supportContact = false;
+  /**
+   * @type {import("playcanvas").Entity|null}
+   */
+  #contactSupport = null;
+  /**
+   * @type {boolean}
+   */
+  #inSupportContact = false;
+  /**
+   * @type {import("playcanvas").Entity|null}
+   */
+  #lastLandingSupport = null;
+  /**
+   * @type {{speed:number,drop:number}|null}
+   */
+  #hardLanding = null;
+  /**
+   * @type {{x:number,y:number,z:number}}
+   */
+  #incomingVelocity = {
+    x: 0,
+    y: 0,
+    z: 0,
+  };
+  /**
+   * @type {number}
+   */
+  #flightPeak = 0;
+  /**
+   * @type {import("playcanvas").EventHandle|null}
+   */
+  #motionHandle = null;
 
   /**
    * @type {number}
@@ -128,6 +165,10 @@ export class HeroPhysicsController {
     });
     entity.rigidbody.on?.("contact", this.#handleContact);
     this.#applyGravity();
+    this.#flightPeak = entity.getLocalPosition().y;
+    // Post-render follows the hero's movement writes and precedes the next
+    // solver step. Contact callbacks must read incoming, not resolved, speed.
+    this.#motionHandle = app.on?.("postrender", this.#sampleMotion, this) ?? null;
   }
 
   get scripted() {
@@ -271,6 +312,13 @@ export class HeroPhysicsController {
   teleport(position, velocity = this.velocity) {
     this.#entity.rigidbody.teleport(position.x, position.y, position.z);
     this.velocity = velocity;
+    this.#flightPeak = position.y;
+    this.#incomingVelocity = { ...velocity };
+    this.#hardLanding = null;
+    this.#supportContact = false;
+    this.#inSupportContact = false;
+    this.#contactSupport = null;
+    this.#lastLandingSupport = null;
   }
 
   /**
@@ -291,10 +339,12 @@ export class HeroPhysicsController {
        */
       filterCallback: this.#filterCallback2.bind(this),
     });
-    const hit = hits.find(HeroPhysicsController.#find);
+    const hit = hits.find(this.#isSupportHit.bind(this));
     if (!hit) {
       return null;
     }
+    const movingSupport = HeroPhysicsController.#movingSupportRoot(hit.entity);
+
     return {
       entity: hit.entity,
       height: hit.point.y,
@@ -304,6 +354,10 @@ export class HeroPhysicsController {
       point:
         hit.point.clone?.() ??
         new this.#pc.Vec3(hit.point.x, hit.point.y, hit.point.z),
+      ...(movingSupport ? {
+        movingSupport: true,
+        velocity: this.#supportVelocity(movingSupport, hit.point),
+      } : {}),
     };
   }
 
@@ -339,14 +393,46 @@ export class HeroPhysicsController {
   }
 
   consumeSupportContact() {
-    const supported = this.#supportContact;
+    let supported = this.#supportContact;
+    const moving = this.#contactSupport && HeroPhysicsController.#movingSupportRoot(this.#contactSupport);
+    if (moving && (moving.enabled === false || moving.rigidbody?.enabled === false || !moving.rigidbody?.body)) {
+      supported = false;
+    }
     this.#supportContact = false;
+    if (!supported) {
+      this.#inSupportContact = false;
+      this.#contactSupport = null;
+      this.#lastLandingSupport = null;
+    }
 
     return supported;
   }
 
+  /**
+   * Consume one genuine impact, measured against the support's own motion.
+   * @returns {{speed:number,drop:number}|null}
+   */
+  consumeHardLanding() {
+    const landing = this.#hardLanding;
+    this.#hardLanding = null;
+
+    return landing;
+  }
+
+  #sampleMotion() {
+    if (!this.#entity || this.#scripted) {
+      return;
+    }
+    this.#incomingVelocity = this.velocity;
+    const height = this.position.y;
+    this.#flightPeak = this.#inSupportContact ? height : Math.max(this.#flightPeak, height);
+  }
+
   destroy() {
     this.#entity?.rigidbody?.off?.("contact", this.#handleContact);
+    this.#motionHandle?.off();
+    this.#motionHandle = null;
+    this.#hardLanding = null;
     const ammo = globalThis.Ammo;
     if (this.#gravityVector && ammo?.destroy) {
       ammo.destroy(this.#gravityVector);
@@ -363,18 +449,51 @@ export class HeroPhysicsController {
    */
   #handleContact = (result) => {
     const position = this.#entity?.getLocalPosition?.();
-    if (!position) {
+    if (!position || this.#scripted) {
       return;
     }
-    this.#supportContact ||= result.contacts?.some(
-      /**
-       *
-       * @param {number} contact
-       */
-      (contact) =>
-        contact.normal?.y >= SUPPORT_NORMAL_MINIMUM &&
-        contact.point?.y <= position.y + SUPPORT_CONTACT_HEIGHT,
-    );
+    if (result.other && !this.#filterCallback2(result.other)) {
+      return;
+    }
+    const contact = result.contacts?.find(/**
+     * @param {import("playcanvas").ContactPoint} candidate
+     */
+      (candidate) => {
+        const point = candidate.pointOther ?? candidate.point;
+        if (!(Math.abs(candidate.normal?.y) >= SUPPORT_NORMAL_MINIMUM) || !Number.isFinite(point?.y) ||
+          point.y > position.y + SUPPORT_CONTACT_HEIGHT) {
+          return false;
+        }
+        return !result.other || this.#isSupportHit({
+          entity: result.other,
+          normal: HeroPhysicsController.#upwardContactNormal(candidate.normal),
+          point,
+        });
+      });
+    if (!contact) {
+      return;
+    }
+    this.#supportContact = true;
+    const point = contact.pointOther ?? contact.point;
+    const moving = result.other && HeroPhysicsController.#movingSupportRoot(result.other);
+    const supportVelocity = moving ? this.#supportVelocity(moving, point) : new this.#pc.Vec3();
+    const incoming = this.#incomingVelocity;
+    const normal = HeroPhysicsController.#upwardContactNormal(contact.normal);
+    const speed = Math.max(0, (supportVelocity.x - incoming.x) * normal.x +
+      (supportVelocity.y - incoming.y) * normal.y +
+      (supportVelocity.z - incoming.z) * normal.z);
+    const drop = Math.max(0, this.#flightPeak - point.y);
+    const changedSupport = result.other !== this.#contactSupport;
+    if (this.#localTimeScale > 0 && (!this.#inSupportContact || changedSupport) && result.other !== this.#lastLandingSupport &&
+      (speed >= HARD_LANDING_SPEED || (drop >= HARD_LANDING_DROP && speed >= 2))) {
+      this.#hardLanding = {
+        speed,
+        drop,
+      };
+      this.#lastLandingSupport = result.other;
+    }
+    this.#contactSupport = result.other ?? null;
+    this.#inSupportContact = true;
   };
 
   #applyGravity() {
@@ -388,6 +507,22 @@ export class HeroPhysicsController {
     this.#gravityVector.setValue(0, this.#gravity * this.#localTimeScale ** 2, 0);
     body.setGravity(this.#gravityVector);
     this.#entity.rigidbody.activate();
+  }
+
+  /**
+   * PlayCanvas preserves the manifold normal's sign in reverse contact events.
+   * Low foot contacts establish the supporting side, independently of body order.
+   * @param {import("playcanvas").Vec3} normal
+   * @returns {{x:number,y:number,z:number}}
+   */
+  static #upwardContactNormal(normal) {
+    const sign = normal.y < 0 ? -1 : 1;
+
+    return {
+      x: normal.x * sign,
+      y: normal.y * sign,
+      z: normal.z * sign,
+    };
   }
 
   /**
@@ -408,17 +543,82 @@ export class HeroPhysicsController {
    * @param {import("playcanvas").Entity} entity
    */
   #filterCallback2(entity) {
-    return (
-      entity !== this.#entity && !entity.tags?.has(HERO_SURFACE_IGNORE_TAG)
-    );
+    for (let node = entity; node; node = node.parent) {
+      if (node === this.#entity || node.tags?.has(HERO_SURFACE_IGNORE_TAG)) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   /**
    *
-   * @param {{normal: {x: number, y: number, z: number}}} options
-   * @param {{x: number, y: number, z: number}} options.normal
+   * Moving compound bodies expose only their declared deck's upward face as
+   * support. Rail tops and the slab's underside must never become landing pads.
+   * @param {{entity: import("playcanvas").Entity, normal: import("playcanvas").Vec3, point: import("playcanvas").Vec3}} hit
    */
-  static #find({ normal }) {
-    return normal?.y >= GROUND_NORMAL_MINIMUM;
+  #isSupportHit(hit) {
+    const moving = HeroPhysicsController.#movingSupportRoot(hit.entity);
+    if (!moving) {
+      return hit.normal?.y >= GROUND_NORMAL_MINIMUM;
+    }
+    if (hit.normal?.y < SUPPORT_NORMAL_MINIMUM) {
+      return false;
+    }
+    const surfaces = moving.findByTag(SUPPORT_SURFACE_TAG);
+
+    return surfaces.some(/**
+     * @param {import("playcanvas").Entity} surface
+     */
+      (surface) => {
+        const half = surface.collision?.halfExtents;
+        if (!half) {
+          return false;
+        }
+        const local = surface.getWorldTransform().clone().invert().transformPoint(hit.point);
+
+        return Math.abs(local.y - half.y) <= SUPPORT_FACE_TOLERANCE &&
+          Math.abs(local.x) <= half.x + SUPPORT_FACE_TOLERANCE &&
+          Math.abs(local.z) <= half.z + SUPPORT_FACE_TOLERANCE;
+      });
+  }
+
+  /**
+   * @param {import("playcanvas").Entity} entity
+   * @returns {import("playcanvas").Entity|null}
+   */
+  static #movingSupportRoot(entity) {
+    for (let node = entity; node; node = node.parent) {
+      if (node.tags?.has(MOVING_SUPPORT_TAG)) {
+        return node;
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Read the contact-point velocity of an actual dynamic body. The hero's
+   * movement state can compare relative motion without teleporting the rider.
+   * @param {import("playcanvas").Entity} support
+   * @param {import("playcanvas").Vec3} point
+   * @returns {import("playcanvas").Vec3}
+   */
+  #supportVelocity(support, point) {
+    if (this.#localTimeScale <= 0) {
+      return new this.#pc.Vec3();
+    }
+    const linear = support.rigidbody?.linearVelocity;
+    const angular = support.rigidbody?.angularVelocity;
+    const center = support.getPosition();
+    const dx = point.x - center.x, dy = point.y - center.y, dz = point.z - center.z;
+    const logicalScale = 1 / this.#localTimeScale;
+
+    return new this.#pc.Vec3(
+      ((linear?.x ?? 0) + (angular?.y ?? 0) * dz - (angular?.z ?? 0) * dy) * logicalScale,
+      ((linear?.y ?? 0) + (angular?.z ?? 0) * dx - (angular?.x ?? 0) * dz) * logicalScale,
+      ((linear?.z ?? 0) + (angular?.x ?? 0) * dy - (angular?.y ?? 0) * dx) * logicalScale,
+    );
   }
 }

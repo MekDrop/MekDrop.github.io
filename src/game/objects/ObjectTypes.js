@@ -36,6 +36,8 @@
  * @property {Array<import("../generator/map/MapGenerationTypes.js").RiverData>} [rivers]
  * @property {import("../generator/map/MapGenerationTypes.js").GroundCoverData} [placements]
  * @property {PathOverpass} [layout]
+ * @property {RenderCommand[]} [deckCommands] Raised Overpass crossing artwork owned outside shared terrain batches.
+ * @property {string} [railingMaterial] Original Overpass railing material.
  * @property {import("../GameContracts.js").GameMapData["islandConnectorData"]} [topology]
  * @property {import("../GameContracts.js").CastleLayout} [navigation]
  * @property {Point3} [position]
@@ -165,6 +167,8 @@
  * @property {(item: import("./ground-cover/GroundCoverCollectible.js").GroundCoverCollectible) => boolean} [collectInventoryItem]
  * @property {(interaction: InteractionLike|null) => void} [setInteraction]
  * @typedef {object} HeroActionPayload
+ * @property {boolean} [bridgeCollapse] Seated reaction started by a failing bridge.
+ * @property {boolean} [gettingUp] Stable support has released the seated hold.
  * @property {() => void} [onScoop]
  * @property {(action: HeroActionPayload) => boolean} [onCycle]
  * @property {(action: HeroActionPayload, previous: import("playcanvas").Vec3[], current: import("playcanvas").Vec3[]) => void} [onContact]
@@ -224,8 +228,10 @@
  * @property {Array<{col: number, row: number, riseDirection: string, lowHeight: number, highHeight: number}>} slopeCells
  * @property {Array<GridPoint>} approachCells
  * @property {Array<GridPoint>} crossingCells
- * @property {{col: number, row: number, width: number}} crossing
+ * @property {{col: number, row: number, width: number, depth?: number}} crossing
  * @property {number} deckElevation
+ * @property {number} [deckThickness]
+ * @property {boolean} [collapsed] The raised crossing is gone; stairs and the lower route remain.
  * @typedef {object} CastleDoorDefinition
  * @property {"rounded"|"pointed"} [style]
  * @property {string} side

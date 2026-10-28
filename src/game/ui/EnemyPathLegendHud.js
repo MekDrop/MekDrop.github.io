@@ -24,11 +24,11 @@ export class EnemyPathLegendHud extends GamePanelHud {
     context.font = gameUiTheme.font(700, 12);
     context.textBaseline = "middle";
     context.fillStyle = "#ffa626";
-    context.fillText("WALK: wait / reroute", 14, 18);
+    context.fillText("WALK: reroute / drop / wait", 14, 18);
     context.fillStyle = "#1ae6ff";
     context.fillText("FLY: cross", 262, 18);
     context.fillStyle = "#d966ff";
-    context.fillText("JUMP: cross one missing tile; wait at wider gaps", 14, 43);
+    context.fillText("JUMP: small gaps; drop from broken raised crossings", 14, 43);
     record.texture.setSource(record.canvas);
     const panel = this.createPanel({
       name: "Enemy routes",

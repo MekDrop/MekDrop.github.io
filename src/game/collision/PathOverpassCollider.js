@@ -1,5 +1,13 @@
 export class PathOverpassCollider {
   /**
+   * @type {import("../objects/ObjectTypes.js").PathOverpass}
+   */
+  #layout;
+  /**
+   * @type {boolean}
+   */
+  #enabled = true;
+  /**
    *
    * @type {number}
    */
@@ -32,12 +40,13 @@ export class PathOverpassCollider {
 
   /**
    *
-   * @param {{overpass: Array, cols: number[], rows: number[]}} options
-   * @param {Array} options.overpass
-   * @param {number[]} options.cols
-   * @param {number[]} options.rows
+   * @param {{overpass: import("../objects/ObjectTypes.js").PathOverpass, cols: number, rows: number}} options
+   * @param {import("../objects/ObjectTypes.js").PathOverpass} options.overpass
+   * @param {number} options.cols
+   * @param {number} options.rows
    */
   constructor({ overpass, cols, rows }) {
+    this.#layout = overpass;
     const { col, row, width, depth } = overpass.crossing;
     /**
      *
@@ -80,6 +89,7 @@ export class PathOverpassCollider {
    */
   intersectsGroundFootprint(x, z, radius = 0) {
     return (
+      this.#enabled && !this.#layout.collapsed &&
       Math.abs(x - this.#centerX) <= this.#halfWidth + radius &&
       Math.abs(z - this.#centerZ) <= this.#halfDepth + radius
     );
@@ -139,5 +149,9 @@ export class PathOverpassCollider {
       this.intersectsGroundFootprint(x, z, radius) &&
       elevation < this.#undersideElevation
     );
+  }
+
+  destroy() {
+    this.#enabled = false;
   }
 }

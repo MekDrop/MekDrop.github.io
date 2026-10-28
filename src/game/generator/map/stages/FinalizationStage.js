@@ -166,8 +166,8 @@ export class FinalizationStage extends AbstractMapGenerationStage {
       layoutSignature: layout.signature,
       mapName: context.input.mapName,
     };
-    WalkingPaths.rebuild(mapData);
     TerrainBlockDefinitions.populate(mapData);
+    WalkingPaths.rebuild(mapData);
     context.output.mapData = mapData;
   }
 

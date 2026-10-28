@@ -1,5 +1,6 @@
 export const HERO_ACTION = Object.freeze({
   EXPLORING: "exploring",
+  HARD_LANDING_RECOVERY: "hardLandingRecovery",
   BOOSTING_COUNTRY_FINANCES: "boostingCountryFinances",
   USING_TOOL: "usingTool",
   RINGING_BELL: "ringingBell",

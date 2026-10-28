@@ -5,7 +5,7 @@ import { BridgeImpactResources } from "./BridgeImpactResources.js";
  */
 
 /**
- * Small original paving and timber pieces released only after a section lands.
+ * Small deck planks and railing splinters released after a section lands.
  * Ammo owns their bounce; a short material fade retires the bounded scatter.
  */
 export class BridgeImpactDebris {
@@ -103,12 +103,12 @@ export class BridgeImpactDebris {
     // A tilted landed section may have local pieces below its root. Keep their
     // initial convex bodies above the real contact plane before adding bounce.
     position.y = Math.max(position.y, floor + extent + 0.025);
-    const root = new pc.Entity(wood ? "Broken bridge timber" : "Broken bridge paving");
+    const root = new pc.Entity(wood ? "Broken bridge railing" : "Broken bridge plank");
     root.tags.add("hero-surface-ignore", "bridge-impact-piece");
     this.entity.addChild(root);
     root.setPosition(position);
     root.setRotation(rotation);
-    const instances = wood ? this.#resources.createTimber(root, size) : this.#resources.createPaving(root, size);
+    const instances = this.#resources.createTimber(root, size);
     root.addComponent("collision", {
       type: "box",
       halfExtents: half,

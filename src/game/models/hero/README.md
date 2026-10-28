@@ -1,5 +1,24 @@
 # Hero animation
 
+## Hard landing recovery
+
+`HardLandingRecovery` is a finite 2.80-second clip in both playable hero sources
+and exports. The hero lands on his backside with legs forward, pauses seated,
+then pushes himself up with one planted hand, rubs his sore backside twice,
+and returns to the exact idle pose.
+The seated pose is constant from
+0.23 through 0.60 seconds; the default hero's complete tall boots remain rigid.
+
+Ammo contact speed relative to the supporting surface triggers the reaction;
+descending bridge motion alone does not. A bridge collapse starts the reaction
+immediately for its grounded rider. The animation holds at 0.35 seconds while
+support is moving or absent, then resumes at 0.60 on stable ground.
+The action blocks movement and tools
+while keeping live capsule physics, and loses priority to falling, water, death,
+or respawn. Ordinary jump landings at the launch height skip the reaction.
+`/map/test_bridge-rider` provides occupied-section collapse, a middle hammer
+strike, and a direct hard-landing check.
+
 ## Bridge breaker hammer
 
 `SummonHammer` and `DismissHammer` last 0.57 seconds. `SmashBridge` is a

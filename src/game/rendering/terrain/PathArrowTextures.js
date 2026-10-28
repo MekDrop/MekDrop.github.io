@@ -165,7 +165,8 @@ export class PathArrowTextures {
     for (const component of root.findComponents("render")) {
       for (const mesh of component.meshInstances) {
         const original = mesh.material;
-        if (!/^path(?:-\d+)?$/.test(original.name)) {
+        const pathMaterial = /^path(?:-\d+)?$/.test(original.name);
+        if (!pathMaterial && !component.entity.tags.has("path-debug-surface")) {
           continue;
         }
         let material = this.#materials.get(original);
@@ -173,10 +174,13 @@ export class PathArrowTextures {
           material = original.clone();
           material.shaderChunksVersion = this.#pc.version.split(".").slice(0, 2).join(".");
           const chunks = material.getShaderChunks(this.#pc.SHADERLANGUAGE_GLSL);
-          chunks.set("diffusePS", shader);
+          const surfaceShader = this.#pc.ShaderChunks.get(this.#app.graphicsDevice, this.#pc.SHADERLANGUAGE_GLSL).get("diffusePS");
+          chunks.set("diffusePS", pathMaterial ? shader : `#define ROUTE_LAYER_COUNT ${layers}\n${routeShader}\n${surfaceShader.replace("void getAlbedo()", "void getSurfaceAlbedo()")}\nvoid getAlbedo() { getSurfaceAlbedo(); dAlbedo *= 1.0 - routePaint().a; }`);
           chunks.set("emissivePS", "void getEmission() { dEmission = routePaint().rgb; }");
           const wgslChunks = material.getShaderChunks(this.#pc.SHADERLANGUAGE_WGSL);
-          wgslChunks.set("diffusePS", routeWgslShader);
+          const surfaceWgsl = this.#pc.ShaderChunks.get(this.#app.graphicsDevice, this.#pc.SHADERLANGUAGE_WGSL).get("diffusePS");
+          const routeWgsl = routeWgslShader.split("uniform material_diffuse:")[0] + routeWgslShader.slice(routeWgslShader.indexOf("fn routePaint()"), routeWgslShader.indexOf("fn getAlbedo()"));
+          wgslChunks.set("diffusePS", pathMaterial ? routeWgslShader : `${routeWgsl}\n${surfaceWgsl.replace("fn getAlbedo()", "fn getSurfaceAlbedo()")}\nfn getAlbedo() { getSurfaceAlbedo(); dAlbedo *= 1.0 - routePaint().a; }`);
           wgslChunks.set("emissivePS", "fn getEmission() { dEmission = routePaint().rgb; }");
           material.setParameter("uRouteMask", maskTexture);
           material.setParameter("uRouteHeight", heightTexture);

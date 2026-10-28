@@ -3,6 +3,7 @@ import { TileType } from "../generator/map/MapGenerator.js";
 import { GRASS_SURFACE_LIFT } from "../config/terrain.js";
 import { SLOPE_DIRECTION } from "../enum/SlopeDirection.js";
 import { TILE_SHAPE } from "../enum/TileShape.js";
+import { BridgeProfile } from "../objects/path/BridgeProfile.js";
 
 const COLLISION_BASE_HEIGHT = -16;
 const SUPPLEMENTAL_SAMPLE_SIZE = 0.25;
@@ -285,6 +286,16 @@ export class TerrainPhysicsSurface {
       return [sourceCover, sourceCover, sourceCover, sourceCover];
     }
     const metadata = this.#mapData.tileMeta?.[row]?.[col];
+    if (metadata?.bridgeProfile) {
+      const profile = metadata.bridgeProfile;
+
+      return [
+        BridgeProfile.heightAt(profile, col - 0.5, row - 0.5),
+        BridgeProfile.heightAt(profile, col + 0.5, row - 0.5),
+        BridgeProfile.heightAt(profile, col + 0.5, row + 0.5),
+        BridgeProfile.heightAt(profile, col - 0.5, row + 0.5),
+      ];
+    }
     const slope = metadata?.slope;
     if (metadata?.shape === TILE_SHAPE.SLOPE && slope) {
       const northHeight =
@@ -510,7 +521,7 @@ export class TerrainPhysicsSurface {
    */
   #addOverpassDeck(positions, indices) {
     const overpass = this.#mapData.overpassData;
-    if (!overpass?.crossing) {
+    if (!overpass?.crossing || overpass.collapsed) {
       return;
     }
     const { col, row, width, depth } = overpass.crossing;

@@ -14,8 +14,8 @@ export class GameMapLoader {
    */
   static load(generatedMap, random = Math.random, options = {}) {
     const mapData = structuredClone(generatedMap);
-    WalkingPaths.rebuild(mapData);
     TerrainBlockDefinitions.populate(mapData);
+    WalkingPaths.rebuild(mapData);
     BuriedTreasurePlacement.populate(mapData, random);
     CompiledMapCache.prepare(mapData, options.compiledMapCache ?? true);
 

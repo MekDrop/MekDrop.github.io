@@ -3,6 +3,34 @@ import { it } from "node:test";
 import { HERO_ANIMATION } from "../../../../../../src/game/enum/HeroAnimation.js";
 import { HeroAnimationPlayback } from "../../../../../../src/game/objects/characters/hero/HeroAnimationPlayback.js";
 
+it("requires the finite landing clip while allowing the alternate model's existing shovel fallback", () => {
+  const tracks = new Map(Object.values(HERO_ANIMATION).filter((name) => name !== HERO_ANIMATION.LEVEL_HOLE)
+    .map((name) => [name, { duration: 1.35 }]));
+  const registered = new Map();
+  let required;
+  const animation = {
+    addAnimationState: (name, track, speed, loop) => registered.set(name, {
+      track,
+      loop,
+    }),
+    baseLayer: { play: () => {} },
+  };
+  new HeroAnimationPlayback().initialize({
+    anim: animation,
+    addComponent: () => {},
+  }, {
+    getAnimationTracks: (url, names) => {
+      required = names;
+
+      return tracks;
+    },
+  }, "alternate-hero.glb");
+  assert.equal(required.includes(HERO_ANIMATION.HARD_LANDING_RECOVERY), true);
+  assert.equal(required.includes(HERO_ANIMATION.LEVEL_HOLE), false);
+  assert.equal(registered.get(HERO_ANIMATION.HARD_LANDING_RECOVERY).loop, false);
+  assert.equal(registered.get(HERO_ANIMATION.LEVEL_HOLE).track, tracks.get(HERO_ANIMATION.FILL_HOLE));
+});
+
 it("blends cutting level and approach changes even when the next clip restarts", () => {
   const transitions = [];
   const animation = {

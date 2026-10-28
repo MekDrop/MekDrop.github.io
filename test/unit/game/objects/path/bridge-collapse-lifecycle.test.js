@@ -16,12 +16,14 @@ const source = readFileSync(sourceUrl, "utf8")
       build() { return []; }
     }
   `)
-  .replace('import { TerrainInstanceRenderer } from "../../rendering/terrain/TerrainInstanceRenderer.js";', `
-    class TerrainInstanceRenderer {
+  .replace('import { BridgeArtwork } from "./BridgeArtwork.js";', `
+    class BridgeArtwork {
+      static modelUrls = [];
       boxes = [];
       constructor({root}) { root.testDeck = this; }
-      addBoxMatrix(...args) { this.boxes.push(args); }
-      build() {}
+      addStation(args) { this.boxes.push(args); }
+      addIslandSupport(args) { this.support = args; }
+      build() { return []; }
       destroy() { this.disposed = true; }
     }
   `)
@@ -43,6 +45,7 @@ const source = readFileSync(sourceUrl, "utf8")
         this.entity.testFragment = this;
         this.entity.setPosition(position);
       }
+      update(deltaTime) { this.lastDelta = deltaTime; }
       anchor(direction) {
         this.anchors.push(direction);
         this.hasSupport = true;
@@ -175,11 +178,12 @@ function fixture(length, horizontal, prepare) {
   MapObjectDefinitions.prepare(map);
   prepare?.(map, target);
   const events = [];
+  const signals = [];
   const options = {
     pc: playcanvas,
     app: {
       fragmentEvents: [],
-      fire: (name, payload) => events.push({
+      fire: (name, payload) => (name === "bridge:collapsing" ? signals : events).push({
         name,
         ...payload,
       }),
@@ -207,8 +211,34 @@ function fixture(length, horizontal, prepare) {
     target,
     other,
     events,
+    signals,
   };
 }
+
+it("signals the whole bridge failure synchronously before releasing its first section", () => {
+  const context = fixture(6, true);
+  const { bridge, target, signals, map } = context;
+  const first = target.span.start + 2;
+  const fire = context.options.app.fire;
+  context.options.app.fire = (name, payload) => {
+    if (name === "bridge:collapsing") {
+      assert.ok(target.span.cells.every((cell) => map.tileMeta[cell.row][cell.col].bridgeCollapsing));
+      assert.ok(target.span.cells.every((cell) => !map.tileMeta[cell.row][cell.col].bridgeCollapsed));
+    }
+    fire(name, payload);
+  };
+  assert.equal(bridge.collapseStation(-1), false);
+  assert.equal(signals.length, 0);
+  assert.equal(bridge.collapseStation(first), true);
+  assert.equal(signals.length, 1);
+  assert.equal(signals[0].map, map);
+  assert.equal(signals[0].cells, target.span.cells);
+  assert.equal(signals[0].elevation, target.elevation);
+  assert.equal(bridge.collapseStation(first), false);
+  assert.equal(signals.length, 1);
+  bridge.destroy();
+  context.otherBridge.destroy();
+});
 
 /**
  * @param {ReturnType<typeof fixture>} context
@@ -243,6 +273,66 @@ function groundImpact() {
     rotation: new playcanvas.Quat().setFromEulerAngles(15, 5, 35),
     velocity: new playcanvas.Vec3(0.2, -3, 0.1),
   };
+}
+
+for (const horizontal of [true, false]) {
+  for (const fromEnd of [true, false]) {
+    it(`anchors floating brackets to the owning ${fromEnd ? "end" : "start"} bank on ${horizontal ? "X" : "Z"}`, () => {
+      const context = fixture(3, horizontal, (map, target) => {
+        const { span } = target;
+        const bank = fromEnd ? span.end + 1 : span.start - 1;
+        const across = Math.floor(span.crossCenter);
+        map.islandConnectorData = {
+          cells: span.cells,
+          nearIsland: [...span.cells.map(({ col, row }) => `${col},${row}`),
+            horizontal ? `${bank},${across}` : `${across},${bank}`],
+          farIsland: [],
+        };
+      });
+      const visual = context.bridge.entity.findByName("Intact bridge deck and railings");
+      const support = visual.testDeck.support;
+      assert.equal(support.direction, fromEnd ? -1 : 1);
+      const bankEdge = fromEnd ? context.target.span.end + 0.5 : context.target.span.start - 0.5;
+      assert.equal(horizontal ? support.position.x : support.position.z, bankEdge - 5.5);
+      assert.equal(support.position.y, context.target.elevation);
+      assert.ok(Math.abs(support.length - 2.34) < 0.000001);
+      context.bridge.collapseStation(fromEnd ? context.target.span.end : context.target.span.start);
+      assert.equal(context.bridge.entity.findByName("Intact bridge deck and railings").testDeck.support, undefined,
+        "a severed bank connection must not leave an intact bracket under a missing station");
+      context.bridge.destroy();
+      context.otherBridge.destroy();
+    });
+  }
+  it(`spreads floating lift failure without bank hinges (${horizontal ? "horizontal" : "vertical"})`, () => {
+    const context = fixture(6, horizontal, (map, target) => {
+      map.islandConnectorData = {
+        cells: target.span.cells,
+        nearIsland: target.span.cells.map(({ col, row }) => `${col},${row}`),
+        farIsland: [],
+      };
+    });
+    const { bridge, target, events } = context;
+    const strike = target.span.start + 2;
+    bridge.collapseStation(strike);
+    const first = fragments(bridge.entity)[0];
+    bridge.onFrame(0.1);
+    assert.equal(events.length, 1, "lift takes time to fail even when no bank supports exist");
+    bridge.onFrame(0.07);
+    assert.equal(events.length, 3, "failure travels in both directions from the hammer strike");
+    for (let frame = 0; frame < 6; frame++) {
+      bridge.onFrame(0.17);
+    }
+    const released = fragments(bridge.entity);
+    assert.equal(released.length, 6);
+    assert.ok(released.every((fragment) => fragment.anchors.length === 0 && fragment.connections.length === 0));
+    assert.equal(first.poseReads, 0, "floating failure never waits for a structural edge to fall");
+    assert.equal(first.lastDelta, 0.17, "hover dynamics advance through the fragment's own lifecycle");
+    assert.ok(metadata(context).every((meta) => meta.bridgeCollapsed && !meta.bridgeCollapsing));
+    bridge.onFrame(8);
+    assert.equal(fragments(bridge.entity).length, 0);
+    bridge.destroy();
+    context.otherBridge.destroy();
+  });
 }
 
 for (const horizontal of [true, false]) {

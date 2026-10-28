@@ -1,6 +1,7 @@
 import { BridgeRailingKit } from "./BridgeRailingKit.js";
 import { BridgeInteraction } from "./BridgeInteraction.js";
-import { TerrainInstanceRenderer } from "../../rendering/terrain/TerrainInstanceRenderer.js";
+import { BridgeArtwork } from "./BridgeArtwork.js";
+import { BridgeProfile } from "./BridgeProfile.js";
 import { WalkingPaths } from "../../navigation/WalkingPaths.js";
 import { IslandCellOwnership } from "../shared/IslandCellOwnership.js";
 import { BridgeDeckFragment } from "./BridgeDeckFragment.js";
@@ -32,7 +33,7 @@ export class Bridge {
    */
   #visual = null;
   /**
-   * @type {TerrainInstanceRenderer|null}
+   * @type {BridgeArtwork|null}
    */
   #deck = null;
   /**
@@ -47,6 +48,14 @@ export class Bridge {
    * @type {number}
    */
   #islandOffset = 0;
+  /**
+   * @type {boolean}
+   */
+  #floating = false;
+  /**
+   * @type {number}
+   */
+  #anchorDirection = 1;
   /**
    * Stations whose support has failed but whose deck has not yet tipped free.
    * @type {Set<number>}
@@ -81,7 +90,7 @@ export class Bridge {
    * @returns {string[]}
    */
   static get modelUrls() {
-    return BridgeRailingKit.modelUrls;
+    return [...BridgeRailingKit.modelUrls, ...BridgeArtwork.modelUrls];
   }
 
   /**
@@ -93,6 +102,10 @@ export class Bridge {
     this.#models = modelLibrary;
     this.#runtime = runtime;
     this.definition = definition;
+    this.#floating = BridgeProfile.isFloating(definition, runtime.mapData);
+    if (this.#floating) {
+      this.#anchorDirection = BridgeProfile.anchorDirection(definition, runtime.mapData);
+    }
     this.entity = new pc.Entity(definition.id);
     this.#rebuild();
     // Resume an in-flight collapse after the normal object hot-reload lifecycle.
@@ -185,7 +198,7 @@ export class Bridge {
 
     return new this.#pc.Vec3(
       (span.horizontal ? station : span.crossCenter) - (cols - 1) / 2,
-      elevation + this.#islandOffset,
+      elevation + this.#rise(station) + this.#islandOffset,
       (span.horizontal ? span.crossCenter : station) - (rows - 1) / 2,
     );
   }
@@ -201,7 +214,8 @@ export class Bridge {
     const { span, elevation } = this.definition;
     const { cols, rows, tileMeta, grid } = this.#runtime.mapData;
     const position = hero.position;
-    if (Math.abs(position.y - elevation - this.#islandOffset) > 0.3) {
+    const along = (span.horizontal ? position.x : position.z) + ((span.horizontal ? cols : rows) - 1) / 2;
+    if (Math.abs(position.y - elevation - this.#rise(along) - this.#islandOffset) > 0.3) {
       return null;
     }
     const col = position.x + (cols - 1) / 2;
@@ -249,12 +263,25 @@ export class Bridge {
       const metadata = this.#runtime.mapData.tileMeta[cell.row][cell.col];
       metadata.bridgeCollapsing = !metadata.bridgeCollapsed;
     }
+    this.#app.fire("bridge:collapsing", {
+      map: this.#runtime.mapData,
+      cells: span.cells,
+      elevation: this.definition.elevation,
+    });
     for (let candidate = span.start; candidate <= span.end; candidate++) {
       if (candidate !== station && this.isIntact(candidate)) {
         this.#collapsePending.add(candidate);
       }
     }
     const fragment = this.#releaseStation(station);
+    if (this.#floating) {
+      // Lift failure travels along the platform. No bank hinge can pull down
+      // a self-supported deck, and a dropping edge is not the release signal.
+      this.#addFloatingFront(fragment, station, -1);
+      this.#addFloatingFront(fragment, station, 1);
+
+      return true;
+    }
     const before = this.#collapsePending.has(station - 1);
     const after = this.#collapsePending.has(station + 1);
     if (before && after) {
@@ -283,6 +310,30 @@ export class Bridge {
     }
 
     return true;
+  }
+
+  /**
+   * @param {BridgeDeckFragment} fragment
+   * @param {number} station
+   * @param {number} direction
+   */
+  #addFloatingFront(fragment, station, direction) {
+    if (this.#collapsePending.has(station + direction)) {
+      this.#collapseFronts.push({
+        fragment,
+        station,
+        direction,
+        connectPrevious: false,
+      });
+    }
+  }
+
+  /**
+   * @param {number} along
+   * @returns {number}
+   */
+  #rise(along) {
+    return this.#floating ? 0 : BridgeProfile.rise(this.definition.span, along);
   }
 
   /**
@@ -340,6 +391,7 @@ export class Bridge {
     const impacts = new Map();
     for (const debris of this.#debris) {
       debris.age += deltaTime;
+      debris.update(deltaTime);
       const impact = debris.consumeGroundImpact();
       if (impact) {
         impacts.set(debris, impact);
@@ -353,6 +405,16 @@ export class Bridge {
     for (const front of fronts) {
       const nextStation = front.station + front.direction;
       const hasNext = this.#collapsePending.has(nextStation);
+      if (this.#floating) {
+        if (hasNext && front.fragment.age >= 0.16) {
+          const next = this.#releaseStation(nextStation);
+          this.#collapsePending.delete(nextStation);
+          this.#addFloatingFront(next, nextStation, front.direction);
+        } else if (hasNext) {
+          this.#collapseFronts.push(front);
+        }
+        continue;
+      }
       const drop = front.fragment.freeEdgeDrop(front.direction);
       // Read the live Ammo pose: the hanging end must pull down before its
       // neighbour loses support. The timeout only releases jammed constraints.
@@ -510,54 +572,63 @@ export class Bridge {
   #rebuild() {
     this.#clearVisual();
     const pc = this.#pc;
-    const { span, elevation, material } = this.definition;
-    const map = this.#runtime.mapData;
+    const { span } = this.definition;
     this.#visual = new pc.Entity("Intact bridge deck and railings");
     this.#visual.setLocalPosition(0, this.#islandOffset, 0);
     this.entity.addChild(this.#visual);
-    this.#deck = new TerrainInstanceRenderer({
+    this.#deck = new BridgeArtwork({
       pc,
-      app: this.#app,
+      modelLibrary: this.#models,
       root: this.#visual,
-      materials: this.#runtime.materials,
     });
     const railings = new BridgeRailingKit({
       pc,
       modelLibrary: this.#models,
       root: this.#visual,
     });
-    let start = span.start;
-    while (start <= span.end) {
-      if (!this.isIntact(start)) {
-        start++;
+    for (let station = span.start; station <= span.end; station++) {
+      if (!this.isIntact(station)) {
         continue;
       }
-      let end = start;
-      while (this.isIntact(end + 1)) {
-        end++;
-      }
-      const run = {
-        ...span,
-        start,
-        end,
-        center: (start + end) / 2,
-        length: end - start + 1,
-      };
-      for (let station = start; station <= end; station++) {
-        const position = this.stationPosition(station);
-        this.#deck.addBoxMatrix("path", material, position.x, elevation - 0.12, position.z,
-          0, span.horizontal ? 1 : 2, 0.24, span.horizontal ? 2 : 1, "surfaceOnly", "none");
-        this.#addStationRails(railings, station);
-      }
-      const x = (span.horizontal ? run.center : span.crossCenter) - (map.cols - 1) / 2;
-      const z = (span.horizontal ? span.crossCenter : run.center) - (map.rows - 1) / 2;
-      this.#deck.addBoxMatrix("path", material, x, elevation - 0.12, z,
-        0, span.horizontal ? run.length : 2, 0.24, span.horizontal ? 2 : run.length,
-        span.horizontal ? "bridgeHorizontalSidesOnly" : "bridgeVerticalSidesOnly", material);
-      start = end + 1;
+      const position = this.stationPosition(station);
+      position.y -= this.#islandOffset;
+      this.#deck.addStation({
+        definition: this.definition,
+        station,
+        position,
+        startRise: this.#rise(station - 0.5) - this.#rise(station),
+        endRise: this.#rise(station + 0.5) - this.#rise(station),
+        floating: this.#floating,
+      });
+      this.#addStationRails(railings, station);
     }
-    this.#deck.build();
-    this.#buffers = railings.build();
+    if (this.#floating) {
+      this.#addIslandSupport();
+    }
+    this.#buffers = [...this.#deck.build(), ...railings.build()];
+  }
+
+  #addIslandSupport() {
+    const { span } = this.definition;
+    const direction = this.#anchorDirection;
+    const station = direction > 0 ? span.start : span.end;
+    let count = 0;
+    while (this.isIntact(station + count * direction)) {
+      count++;
+    }
+    if (count === 0) {
+      return;
+    }
+    const position = this.stationPosition(station);
+    position.y -= this.#islandOffset;
+    position.x -= span.horizontal ? direction * 0.5 : 0;
+    position.z -= span.horizontal ? 0 : direction * 0.5;
+    this.#deck.addIslandSupport({
+      position,
+      horizontal: span.horizontal,
+      direction,
+      length: Math.min(4.6, count * 0.78),
+    });
   }
 
   /**
@@ -570,11 +641,16 @@ export class Bridge {
     const { span, material } = this.definition;
     const position = this.stationPosition(station);
     position.y -= this.#islandOffset;
-    const start = station === span.start ? -0.34 : -0.5;
-    const end = station === span.end ? 0.34 : 0.5;
-    const direction = new this.#pc.Vec3(span.horizontal ? 1 : 0, 0, span.horizontal ? 0 : 1);
-    this.#addStationRailSide(railings, position, direction, start, end, material, -1, station === span.end);
-    this.#addStationRailSide(railings, position, direction, start, end, material, 1, station === span.end);
+    const range = BridgeProfile.railRange(span, station, this.#floating, this.#anchorDirection);
+    if (!range) {
+      return;
+    }
+    const { start, end, endPost } = range;
+    position.y += this.#rise(station + start) - this.#rise(station);
+    const direction = new this.#pc.Vec3(span.horizontal ? 1 : 0,
+      (this.#rise(station + end) - this.#rise(station + start)) / (end - start), span.horizontal ? 0 : 1);
+    this.#addStationRailSide(railings, position, direction, start, end, material, -1, endPost);
+    this.#addStationRailSide(railings, position, direction, start, end, material, 1, endPost);
   }
 
   /**
@@ -588,13 +664,15 @@ export class Bridge {
    * @param {boolean} endPost
    */
   #addStationRailSide(railings, center, direction, start, end, material, side, endPost) {
-    const position = center.clone().add(direction.clone().mulScalar(start));
+    const position = center.clone();
+    position.x += direction.x * start;
+    position.z += direction.z * start;
     position.x += direction.z * side * 0.93;
     position.z += direction.x * side * 0.93;
     railings.addRailing({
       position,
       direction,
-      length: end - start,
+      length: (end - start) * direction.length(),
       material,
       endPost,
     });
@@ -614,8 +692,15 @@ export class Bridge {
       definition: this.definition,
       station,
       position: this.stationPosition(station),
+      floating: this.#floating,
+      anchorDirection: this.#anchorDirection,
+      startRise: this.#rise(station - 0.5) - this.#rise(station),
+      endRise: this.#rise(station + 0.5) - this.#rise(station),
     });
     this.entity.addChild(fragment.entity);
+    // Reparenting re-enables the Ammo body, which restores world gravity.
+    // Reapply the fragment's temporary lift after it enters its final parent.
+    fragment.update(0);
     this.#debris.push(fragment);
     this.#collapseStations([station]);
 
@@ -623,7 +708,6 @@ export class Bridge {
   }
 
   #clearVisual() {
-    this.#deck?.destroy();
     this.#deck = null;
     this.#visual?.destroy();
     this.#visual = null;

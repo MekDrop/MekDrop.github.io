@@ -3,6 +3,7 @@ import { MAP_TILE_TYPE } from "../enum/MapTileType.js";
 import { RouteDataBuilder } from "../generator/map/RouteDataBuilder.js";
 import { MapObjectDefinitions } from "../objects/MapObjectDefinitions.js";
 import { EnemyPaths } from "./EnemyPaths.js";
+import { BridgeProfile } from "../objects/path/BridgeProfile.js";
 
 /**
  * @typedef {{col: number, row: number, elevation: number}} WalkingPoint
@@ -34,8 +35,25 @@ export class WalkingPaths {
         return null;
       }
       const meta = map.tileMeta?.[row]?.[col] ?? {};
+      if (!upper && meta.bridgeProfile && meta.bridgeGroundPath && Number.isFinite(meta.bridgeGroundHeight)) {
+        return { height: meta.bridgeGroundHeight };
+      }
       if (upper && meta.overpass) {
         return { height: meta.overpass.elevation };
+      }
+      if (meta.bridgeProfile) {
+        const profile = meta.bridgeProfile;
+        const start = BridgeProfile.heightAt(profile, col - (profile.horizontal ? 0.5 : 0), row - (profile.horizontal ? 0 : 0.5));
+        const end = BridgeProfile.heightAt(profile, col + (profile.horizontal ? 0.5 : 0), row + (profile.horizontal ? 0 : 0.5));
+
+        return {
+          height: (start + end) / 2,
+          slope: {
+            lowHeight: start,
+            highHeight: end,
+            riseDirection: profile.horizontal ? "EAST" : "SOUTH",
+          },
+        };
       }
       return {
         height: map.heightmap[row][col],
@@ -130,11 +148,20 @@ export class WalkingPaths {
       ([, point]) =>
         point.col === door.centerCol && point.row === door.centerRow)?.[0] : null;
     graph = EnemyPaths.rebuild(map, graph, points);
+    const predecessors = new Map();
+    for (const key of graph.keys()) {
+      predecessors.set(key, new Set());
+    }
+    for (const [key, neighbors] of graph) {
+      for (const neighbor of neighbors) {
+        predecessors.get(neighbor).add(key);
+      }
+    }
     const distances = new Map(target ? [[target, 0]] : []);
     const queue = target ? [target] : [];
     for (let index = 0; index < queue.length; index++) {
       const key = queue[index];
-      for (const neighbor of graph.get(key)) {
+      for (const neighbor of predecessors.get(key)) {
         if (!distances.has(neighbor)) {
           distances.set(neighbor, distances.get(key) + 1);
           queue.push(neighbor);

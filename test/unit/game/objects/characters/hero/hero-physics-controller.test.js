@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
+import { Entity, EventHandler, Vec3 } from "playcanvas";
 import { HeroPhysicsController } from "../../../../../../src/game/objects/characters/hero/HeroPhysicsController.js";
 
 const previousAmmo = globalThis.Ammo;
@@ -125,7 +126,13 @@ function createFixture({ maxSubSteps = 4, fixedTimeStep } = {}) {
       return [];
     },
   };
-  const app = { systems: { rigidbody } };
+  const events = new EventHandler();
+  const app = {
+    systems: { rigidbody },
+    on: events.on.bind(events),
+    fire: events.fire.bind(events),
+    hasEvent: events.hasEvent.bind(events),
+  };
   const entity = new FakeEntity();
   const controller = new HeroPhysicsController({
     pc: {
@@ -149,7 +156,265 @@ function createFixture({ maxSubSteps = 4, fixedTimeStep } = {}) {
   };
 }
 
+/**
+ * @returns {{deck:Entity, slab:Entity, point:Vec3, normal:Vec3}}
+ */
+function movingDeck() {
+  const deck = new Entity("Falling bridge deck");
+  // This transform fixture has no live application root to enable its graph.
+  Object.defineProperty(deck, "enabled", { get: () => true });
+  deck.tags.add("hero-moving-support");
+  deck.setPosition(2, 2.88, 4);
+  deck.rigidbody = {
+    body: {},
+    type: "dynamic",
+    linearVelocity: new Vec3(0, -3, 0),
+    angularVelocity: new Vec3(),
+  };
+  const slab = new Entity("Deck collision surface");
+  slab.tags.add("hero-support-surface");
+  slab.collision = { halfExtents: new Vec3(1, 0.12, 0.5) };
+  deck.addChild(slab);
+
+  return {
+    deck,
+    slab,
+    point: new Vec3(2, 3, 4),
+    normal: new Vec3(0, 1, 0),
+  };
+}
+
 describe("HeroPhysicsController", () => {
+  it("returns the falling deck's current top and contact-point velocity while rejecting rails and underside", () => {
+    const { app, controller } = createFixture();
+    const { deck, slab, point, normal } = movingDeck();
+    deck.rigidbody.angularVelocity.z = 2;
+    const hit = {
+      entity: deck,
+      point,
+      normal,
+    };
+    app.systems.rigidbody.raycastAll = () => [hit];
+    const surface = controller.surfaceAt(2, 4, 4, 2);
+    assert.equal(surface.movingSupport, true);
+    assert.equal(surface.entity, deck);
+    assert.equal(surface.height, 3);
+    assert.ok(Math.abs(surface.velocity.x + 0.24) < 0.000001);
+    assert.equal(surface.velocity.y, -3);
+    point.y = 3.6;
+    assert.equal(controller.surfaceAt(2, 4, 4, 2), null, "railing is not a deck surface");
+    point.y = 2.76;
+    normal.y = -1;
+    assert.equal(controller.surfaceAt(2, 4, 4, 2), null, "underside is not support");
+    slab.setLocalEulerAngles(0, 0, 60);
+    hit.point = slab.getWorldTransform().transformPoint(new Vec3(0, 0.12, 0));
+    hit.normal = slab.getWorldTransform().transformVector(new Vec3(0, 1, 0));
+    assert.equal(controller.surfaceAt(2, 4, 4, 2), null, "steep decks cannot ground the hero");
+    controller.destroy();
+    deck.destroy();
+  });
+
+  it("filters descendant debris and hero colliders through their owning root tags", () => {
+    const { controller, raycasts, entity } = createFixture();
+    controller.surfaceAt(2, 4, 4, 2);
+    const filter = raycasts[0].options.filterCallback;
+    assert.equal(filter({ parent: entity }), false);
+    assert.equal(filter({
+      parent: {
+        tags: { has: (tag) => tag === "hero-surface-ignore" },
+      },
+    }), false);
+    const { deck } = movingDeck();
+    assert.equal(filter(deck), true);
+    controller.destroy();
+    deck.destroy();
+  });
+
+  it("ignores moving railing contacts and does not retain support after the deck body is removed", () => {
+    const { controller, entity } = createFixture();
+    const { deck, point, normal } = movingDeck();
+    entity.rigidbody.fire("contact", {
+      other: deck,
+      contacts: [{
+        point: new Vec3(2, 3.2, 4),
+        normal,
+      }],
+    });
+    assert.equal(controller.consumeSupportContact(), false);
+    entity.rigidbody.fire("contact", {
+      other: deck,
+      contacts: [{
+        point,
+        normal,
+      }],
+    });
+    assert.equal(controller.consumeSupportContact(), true);
+    entity.rigidbody.fire("contact", {
+      other: deck,
+      contacts: [{
+        point,
+        normal,
+      }],
+    });
+    deck.rigidbody.body = null;
+    assert.equal(controller.consumeSupportContact(), false);
+    controller.destroy();
+    deck.destroy();
+  });
+
+  it("queues an incoming hard landing once, using pre-solver speed rather than resolved contact speed", () => {
+    const { app, controller, entity } = createFixture();
+    const floor = new Entity("Static floor");
+    const contact = {
+      other: floor,
+      contacts: [{
+        point: new Vec3(2, 3, 4),
+        normal: new Vec3(0, 1, 0),
+      }],
+    };
+    entity.rigidbody.linearVelocity = new FakeVec3(0, -7, 0);
+    app.fire("postrender");
+    entity.rigidbody.linearVelocity = new FakeVec3();
+    entity.rigidbody.fire("contact", contact);
+    assert.deepEqual(controller.consumeHardLanding(), {
+      speed: 7,
+      drop: 0,
+    });
+    assert.equal(controller.consumeHardLanding(), null);
+    assert.equal(controller.consumeSupportContact(), true);
+    entity.rigidbody.fire("contact", contact);
+    assert.equal(controller.consumeHardLanding(), null);
+    assert.equal(app.hasEvent("postrender"), true);
+    controller.destroy();
+    assert.equal(app.hasEvent("postrender"), false);
+    floor.destroy();
+  });
+
+  it("does not report a hard landing while riding a fast falling deck but detects its eventual floor impact", () => {
+    const { app, controller, entity } = createFixture();
+    const { deck, point, normal } = movingDeck();
+    deck.rigidbody.linearVelocity.y = -7;
+    entity.rigidbody.linearVelocity = new FakeVec3(0, -7, 0);
+    app.fire("postrender");
+    entity.rigidbody.fire("contact", {
+      other: deck,
+      contacts: [{
+        point,
+        normal,
+      }],
+    });
+    assert.equal(controller.consumeHardLanding(), null);
+    assert.equal(controller.consumeSupportContact(), true);
+    const floor = new Entity("Static floor");
+    entity.rigidbody.fire("contact", {
+      other: floor,
+      contacts: [{
+        point,
+        normal,
+      }],
+    });
+    assert.equal(controller.consumeHardLanding()?.speed, 7);
+    controller.destroy();
+    deck.destroy();
+    floor.destroy();
+  });
+
+  it("compares slowed rider and support motion in logical units and suppresses impacts while frozen", () => {
+    const { app, controller, entity } = createFixture();
+    const { deck, point, normal } = movingDeck();
+    controller.velocity = {
+      x: 0,
+      y: -7,
+      z: 0,
+    };
+    controller.localTimeScale = 0.5;
+    deck.rigidbody.linearVelocity.y = -3.5;
+    deck.rigidbody.angularVelocity.z = 2;
+    app.systems.rigidbody.raycastAll = () => [{
+      entity: deck,
+      point,
+      normal,
+    }];
+    const support = controller.groundContact();
+    assert.equal(controller.velocity.y, -7);
+    assert.equal(support.velocity.y, -7);
+    assert.ok(Math.abs(support.velocity.x + 0.48) < 0.000001);
+    app.fire("postrender");
+    entity.rigidbody.fire("contact", {
+      other: deck,
+      contacts: [{
+        point,
+        normal,
+      }],
+    });
+    assert.equal(controller.consumeHardLanding(), null);
+    controller.consumeSupportContact();
+    controller.localTimeScale = 0;
+    assert.deepEqual(controller.groundContact().velocity, new FakeVec3());
+    app.fire("postrender");
+    const floor = new Entity("Static floor during freeze");
+    entity.rigidbody.fire("contact", {
+      other: floor,
+      contacts: [{
+        point,
+        normal,
+      }],
+    });
+    assert.equal(controller.consumeHardLanding(), null);
+    controller.destroy();
+    deck.destroy();
+    floor.destroy();
+  });
+
+  it("accepts either manifold-normal sign for a genuine deck-top landing, independent of Ammo body order", () => {
+    for (const sign of [-1, 1]) {
+      const { app, controller, entity } = createFixture();
+      const { deck, point } = movingDeck();
+      deck.rigidbody.linearVelocity.y = 0;
+      entity.rigidbody.linearVelocity = new FakeVec3(0, -7, 0);
+      app.fire("postrender");
+      entity.rigidbody.fire("contact", {
+        other: deck,
+        contacts: [{
+          point,
+          normal: new Vec3(0, sign, 0),
+        }],
+      });
+      assert.equal(controller.consumeSupportContact(), true);
+      assert.equal(controller.consumeHardLanding()?.speed, 7);
+      controller.destroy();
+      deck.destroy();
+    }
+  });
+
+  it("uses meaningful drop evidence for a slower landing and clears it on teleport", () => {
+    const { app, controller, entity } = createFixture();
+    const floor = new Entity("Static floor");
+    entity.setLocalPosition(2, 5, 4);
+    app.fire("postrender");
+    entity.setLocalPosition(2, 3, 4);
+    entity.rigidbody.linearVelocity = new FakeVec3(0, -2.1, 0);
+    app.fire("postrender");
+    entity.rigidbody.fire("contact", {
+      other: floor,
+      contacts: [{
+        point: new Vec3(2, 3, 4),
+        normal: new Vec3(0, 1, 0),
+      }],
+    });
+    assert.deepEqual(controller.consumeHardLanding(), {
+      speed: 2.1,
+      drop: 2,
+    });
+    controller.teleport({
+      x: 2,
+      y: 3,
+      z: 4,
+    });
+    assert.equal(controller.consumeHardLanding(), null);
+    controller.destroy();
+    floor.destroy();
+  });
   it("scales body velocity and gravity while preserving logical velocity through suspension", () => {
     const { controller, entity } = createFixture();
     controller.velocity = {

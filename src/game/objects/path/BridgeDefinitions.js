@@ -1,7 +1,8 @@
 import { Mat4, Quat, Vec3 } from "playcanvas";
+import { BridgeProfile } from "./BridgeProfile.js";
 
 /**
- * @typedef {{elevation:number, height:number, metadata:{bridgeGroundHeight?:number}}} BridgeGroundTarget
+ * @typedef {{elevation:number, height:number, path?:boolean, metadata:{bridgeGroundHeight?:number, bridgeGroundPath?:boolean}}} BridgeGroundTarget
  */
 /**
  * Transfers static bridge commands to map objects so each span owns destruction.
@@ -62,6 +63,7 @@ export class BridgeDefinitions {
           });
       });
     BridgeDefinitions.#deriveGroundHeights(map);
+    BridgeProfile.prepare(map);
   }
 
   /**
@@ -77,7 +79,7 @@ export class BridgeDefinitions {
       }
       for (const cell of definition.span.cells) {
         const metadata = map.tileMeta?.[cell.row]?.[cell.col];
-        if (!metadata || metadata.bridgeGroundHeight !== undefined) {
+        if (!metadata || (metadata.bridgeGroundHeight !== undefined && metadata.bridgeGroundPath !== undefined)) {
           continue;
         }
         targets.set(`${cell.col},${cell.row}`, {
@@ -100,7 +102,8 @@ export class BridgeDefinitions {
     }
     for (const target of targets.values()) {
       if (Number.isFinite(target.height)) {
-        target.metadata.bridgeGroundHeight = target.height;
+        target.metadata.bridgeGroundHeight ??= target.height;
+        target.metadata.bridgeGroundPath = Math.abs(target.metadata.bridgeGroundHeight - target.height) < 0.001 && target.path;
       }
     }
   }
@@ -122,7 +125,7 @@ export class BridgeDefinitions {
       }
       const col = Math.round(x + (map.cols - 1) / 2);
       const row = Math.round(z + (map.rows - 1) / 2);
-      BridgeDefinitions.#retainGround(targets.get(`${col},${row}`), y + 0.5 + (args[7] ?? 0));
+      BridgeDefinitions.#retainGround(targets.get(`${col},${row}`), y + 0.5 + (args[7] ?? 0), args[0]);
     } else if (command.method === "addBoxMatrix" && !(args[9] ?? "full").endsWith("SidesOnly")) {
       BridgeDefinitions.#indexGroundBox(map, targets, args);
     }
@@ -170,7 +173,7 @@ export class BridgeDefinitions {
         const worldY = top.y - (normal.x * (worldX - top.x) + normal.z * (worldZ - top.z)) / normal.y;
         const local = inverse.transformPoint(new Vec3(worldX, worldY, worldZ));
         if (Math.abs(local.x) <= 0.500001 && Math.abs(local.z) <= 0.500001) {
-          BridgeDefinitions.#retainGround(target, worldY);
+          BridgeDefinitions.#retainGround(target, worldY, args[0]);
         }
       }
     }
@@ -179,10 +182,12 @@ export class BridgeDefinitions {
   /**
    * @param {BridgeGroundTarget|undefined} target
    * @param {number} height
+   * @param {string} material
    */
-  static #retainGround(target, height) {
+  static #retainGround(target, height, material) {
     if (target && Number.isFinite(height) && height < target.elevation - 0.24 && height > target.height) {
       target.height = height;
+      target.path = /^path(?:-\d+)?$/.test(material);
     }
   }
 

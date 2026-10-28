@@ -19,6 +19,7 @@ import { HeroFallingToDeathActionState } from "../../states/action/HeroFallingTo
 import { HeroGameOverActionState } from "../../states/action/HeroGameOverActionState.js";
 import { HeroRepelledActionState } from "../../states/action/HeroRepelledActionState.js";
 import { HeroBlockedDigReactionActionState } from "../../states/action/HeroBlockedDigReactionActionState.js";
+import { HeroHardLandingRecoveryActionState } from "../../states/action/HeroHardLandingRecoveryActionState.js";
 import {
   HeroEdgeRefusalActionState,
   HeroHoleRefusalActionState,
@@ -178,6 +179,7 @@ export class HeroActionBehavior {
       new HeroInventoryFullActionState(),
       new HeroDodgeActionState(),
       new HeroRepelledActionState(this.#context.repelDuration),
+      new HeroHardLandingRecoveryActionState(),
       new HeroEdgeRefusalActionState(this.#context.edgeRefusalDuration),
       new HeroHoleRefusalActionState(this.#context.holeRefusalDuration),
       new HeroBlockedDigReactionActionState(
@@ -580,6 +582,41 @@ export class HeroActionBehavior {
    */
   get fallingToDeath() {
     return this.#stateMachine.in(HERO_ACTION.FALLING_TO_DEATH);
+  }
+
+  /**
+   * @returns {boolean}
+   */
+  get recoveringFromLanding() {
+    return this.#stateMachine.in(HERO_ACTION.HARD_LANDING_RECOVERY);
+  }
+
+  /**
+   * @returns {number|null}
+   */
+  get landingRecoveryElapsed() {
+    return this.recoveringFromLanding ? this.payload.elapsed : null;
+  }
+
+  /**
+   * A landing may interrupt a tool stroke, but never a death, river sequence,
+   * or respawn. State exit handles the interrupted action's normal cleanup.
+   * @param {{speed: number, drop: number, bridgeCollapse?: boolean}} impact
+   * @returns {boolean}
+   */
+  beginHardLandingRecovery(impact) {
+    if (this.exclusive || this.incapacitated || this.dying || this.gameOver ||
+      this.recoveringFromLanding || (!impact.bridgeCollapse && !this.#context.feedback.landingRecovery.grounded())) {
+      return false;
+    }
+    this.#transition(HERO_ACTION.HARD_LANDING_RECOVERY, {
+      speed: impact.speed,
+      drop: impact.drop,
+      bridgeCollapse: impact.bridgeCollapse === true,
+      elapsed: 0,
+    });
+
+    return true;
   }
 
   set fallingToDeath(falling) {

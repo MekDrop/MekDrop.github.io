@@ -4,6 +4,7 @@ export const HERO_ANIMATION = Object.freeze({
   DISMISS_HAMMER: "DismissHammer",
   RING_BELL: "RingBell",
   IDLE: "Idle",
+  HARD_LANDING_RECOVERY: "HardLandingRecovery",
   PAT_ANNOYED: "PatAnnoyed",
   WALK: "Walk",
   CLIMB: "Climb",

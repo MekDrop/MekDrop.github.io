@@ -14,12 +14,25 @@ export class EnemyBridgeNavigation {
    * @type {{destination:import("playcanvas").Vec3, until:number, speed:number}|null}
    */
   #jump = null;
+  /**
+   * A chosen lower path node. Horizontal steering walks off the lip while
+   * Ammo keeps sole ownership of the downward motion and eventual contact.
+   * @type {import("playcanvas").Vec3|null}
+   */
+  #drop = null;
 
   /**
    * @param {import("../objects/enemies/shared/Enemy.js").Enemy} owner
    */
   constructor(owner) {
     this.#owner = owner;
+  }
+
+  /**
+   * @returns {boolean}
+   */
+  get dropping() {
+    return this.#drop !== null;
   }
 
   /**
@@ -31,6 +44,15 @@ export class EnemyBridgeNavigation {
     const owner = this.#owner;
     const map = owner.runtime.mapData;
     const navigation = map?.enemyNavigation;
+    if (this.#drop) {
+      if (owner.position.y > this.#drop.y + 0.25 || !owner.grounded) {
+        return {
+          point: this.#drop,
+          speed,
+        };
+      }
+      this.#drop = null;
+    }
     if (!navigation?.gaps.length) {
       return {
         point: goal,
@@ -54,13 +76,13 @@ export class EnemyBridgeNavigation {
     }
     const approach = EnemyPaths.crossing(navigation, owner.position, owner.position,
       owner.radius + 0.1, map.cols, map.rows);
-    if (capability === ENEMY_TRAVERSAL.JUMPING && approach && !owner.grounded) {
+    if (capability === ENEMY_TRAVERSAL.JUMPING && !gap.overpass && approach && !owner.grounded) {
       return {
         point: null,
         speed,
       };
     }
-    if (capability === ENEMY_TRAVERSAL.JUMPING && EnemyPaths.gapLength(navigation.gaps, gap) === 1 && approach &&
+    if (capability === ENEMY_TRAVERSAL.JUMPING && !gap.overpass && EnemyPaths.gapLength(navigation.gaps, gap) === 1 && approach &&
       owner.entity.rigidbody && owner.grounded) {
       const col = owner.position.x + (map.cols - 1) / 2;
       const row = owner.position.z + (map.rows - 1) / 2;
@@ -94,16 +116,18 @@ export class EnemyBridgeNavigation {
     let startDistance = Infinity;
     let endDistance = Infinity;
     for (const [key, point] of points) {
-      if (!graph.get(key)?.size || Math.abs(point.elevation - owner.position.y) > 0.9) {
+      if (!graph.get(key)?.size) {
         continue;
       }
       const world = new owner.pc.Vec3(point.col - (map.cols - 1) / 2, point.elevation, point.row - (map.rows - 1) / 2);
       const distance = Math.hypot(world.x - owner.position.x, world.z - owner.position.z);
-      if (distance < startDistance && !EnemyPaths.crossing(navigation, owner.position, world, 0, map.cols, map.rows)) {
+      const crossing = EnemyPaths.crossing(navigation, owner.position, world, 0, map.cols, map.rows);
+      if (Math.abs(point.elevation - owner.position.y) <= 0.9 && distance < startDistance &&
+        (!crossing || crossing.overpass)) {
         start = key;
         startDistance = distance;
       }
-      const remaining = Math.hypot(world.x - goal.x, world.z - goal.z);
+      const remaining = Math.hypot(world.x - goal.x, world.y - goal.y, world.z - goal.z);
       if (remaining < endDistance) {
         end = key;
         endDistance = remaining;
@@ -122,7 +146,8 @@ export class EnemyBridgeNavigation {
     for (let index = 0; index < pending.length; index++) {
       const key = pending[index];
       const point = points.get(key);
-      const distance = Math.hypot(point.col - (map.cols - 1) / 2 - goal.x, point.row - (map.rows - 1) / 2 - goal.z);
+      const distance = Math.hypot(point.col - (map.cols - 1) / 2 - goal.x,
+        point.elevation - goal.y, point.row - (map.rows - 1) / 2 - goal.z);
       if (distance < closestDistance) {
         closest = key;
         closestDistance = distance;
@@ -144,9 +169,23 @@ export class EnemyBridgeNavigation {
     }
     // Stand one body radius behind the exposed lip rather than balancing the
     // root on the last graph node, which lies exactly on the tile boundary.
-    for (const key of route) {
+    for (let index = 0; index < route.length; index++) {
+      const key = route[index];
       const point = points.get(key);
       const world = new owner.pc.Vec3(point.col - (map.cols - 1) / 2, point.elevation, point.row - (map.rows - 1) / 2);
+      const next = route[index + 1];
+      if (navigation.drops?.get(key)?.has(next) &&
+        Math.hypot(world.x - owner.position.x, world.z - owner.position.z) <= owner.radius + 0.4) {
+        const destination = points.get(next);
+        this.#drop = new owner.pc.Vec3(destination.col - (map.cols - 1) / 2,
+          destination.elevation, destination.row - (map.rows - 1) / 2);
+        owner.grounded = false;
+
+        return {
+          point: this.#drop,
+          speed,
+        };
+      }
       if (Math.hypot(world.x - owner.position.x, world.z - owner.position.z) < 0.3) {
         continue;
       }

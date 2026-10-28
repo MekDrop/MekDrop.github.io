@@ -36,5 +36,13 @@ separate boot-surface adjustment meshes, physical hair locks or individually
 articulated gloves. Advanced tool and climbing contacts have not been calibrated
 for these different proportions.
 
+`HardLandingRecovery` is authored on this native skeleton as a finite
+2.80-second seated backside landing, hand-assisted stand-up, and two brief
+backside rubs.
+Thirteen fingertip vertices that were
+incorrectly assigned to leg joints now follow their existing hand joints; this
+removes the spikes exposed by the seated pose without changing the mesh shape, UVs,
+materials, or existing animation curves.
+
 Regenerate the adjacent GLB with `npm run blender:export`. Provider details and
 source hashes are in `provenance.json`.

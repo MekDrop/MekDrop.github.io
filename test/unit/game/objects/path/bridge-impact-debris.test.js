@@ -111,8 +111,8 @@ it("releases ten small original-material pieces with bounded engine velocities a
     const context = fixture(3, horizontal);
     const pieces = context.debris.entity.children;
     assert.equal(pieces.length, 10);
-    assert.equal(pieces.filter((piece) => piece.testPaving).length, 6);
-    assert.equal(pieces.filter((piece) => !piece.testPaving).length, 4);
+    assert.equal(pieces.filter((piece) => piece.testPaving).length, 0);
+    assert.equal(pieces.filter((piece) => !piece.testPaving).length, 10);
     for (const piece of pieces) {
       assert.equal(piece.rigidbody.type, "dynamic");
       assert.equal(piece.rigidbody.mask, pc.BODYMASK_STATIC);
@@ -126,13 +126,7 @@ it("releases ten small original-material pieces with bounded engine velocities a
         Math.abs(rotation.transformVector(new pc.Vec3(0, half.y, 0)).y) +
         Math.abs(rotation.transformVector(new pc.Vec3(0, 0, half.z)).y);
       assert.ok(piece.getPosition().y - extent >= 0.02499);
-      if (piece.testPaving) {
-        const instances = piece.findComponents("render")[0].meshInstances;
-        assert.equal(instances[0].material.sourceMaterial, context.path);
-        assert.equal(instances[1].material.sourceMaterial, context.timber);
-      } else {
-        assert.equal(piece.findComponents("render")[0].meshInstances[0].material.sourceMaterial, context.railing);
-      }
+      assert.equal(piece.findComponents("render")[0].meshInstances[0].material.sourceMaterial, context.railing);
     }
     context.dispose();
   }

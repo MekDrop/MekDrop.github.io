@@ -1,3 +1,5 @@
+import { EnemyPaths } from "../../../navigation/EnemyPaths.js";
+
 /**
  * Bounded ground navigation; Ammo remains responsible for movement/contact.
  */
@@ -17,6 +19,18 @@ export class DivecapRoute {
    */
   next(target) {
     const owner = this.owner;
+    const map = owner.runtime.mapData;
+    const navigation = map?.enemyNavigation;
+    const crossing = navigation?.gaps.length
+      ? EnemyPaths.crossing(navigation, owner.position, target, owner.radius, map.cols, map.rows) : null;
+    if (owner.bridgeDropActive || crossing?.overpass) {
+      // The shared capability planner handles this directed floor change.
+      // Same-height obstacle A* resumes after Ammo lands on the lower route.
+      this.path = [];
+      this.refreshAt = owner.elapsed;
+
+      return target.clone();
+    }
     if (owner.elapsed >= this.refreshAt) {
       this.refreshAt = owner.elapsed + 0.7;
       this.path = this.#find(target);

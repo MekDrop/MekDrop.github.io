@@ -58,7 +58,7 @@ export class EnemyPathDebug {
         }
         const from = this.#world(first, gap, capability);
         for (const neighbor of neighbors) {
-          if (neighbor < key) {
+          if (neighbor < key && graph.get(neighbor)?.has(key)) {
             continue;
           }
           const second = navigation.points.get(neighbor);
@@ -78,14 +78,14 @@ export class EnemyPathDebug {
 
   /**
    * @param {import("../navigation/WalkingPaths.js").WalkingPoint} point
-   * @param {{col:number,row:number,horizontal:boolean}} gap
+   * @param {{col:number,row:number,horizontal:boolean,overpass?:boolean}} gap
    * @param {string} capability
    */
   #world(point, gap, capability) {
     const lane = capability === ENEMY_TRAVERSAL.WALKING ? -0.45 : capability === ENEMY_TRAVERSAL.FLYING ? 0 : 0.45;
     const distance = Math.abs(gap.horizontal ? point.col - gap.col : point.row - gap.row);
     const lift = capability === ENEMY_TRAVERSAL.FLYING ? 0.8 :
-      capability === ENEMY_TRAVERSAL.JUMPING ? 0.18 + Math.max(0, 1 - distance) * 0.65 : 0.15;
+      capability === ENEMY_TRAVERSAL.JUMPING ? 0.18 + (gap.overpass ? 0 : Math.max(0, 1 - distance) * 0.65) : 0.15;
 
     return new this.#pc.Vec3(
       point.col - (this.mapData.cols - 1) / 2 + (gap.horizontal ? 0 : lane),

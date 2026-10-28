@@ -43,8 +43,8 @@ export class MapFileLoader {
     }
     mapData.pipeData = new Map(mapData.pipeData ?? []);
     mapData.mapName = mapName;
-    WalkingPaths.rebuild(mapData);
     TerrainBlockDefinitions.populate(mapData);
+    WalkingPaths.rebuild(mapData);
 
     return mapData;
   }

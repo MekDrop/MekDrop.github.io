@@ -1,0 +1,2086 @@
+{
+  "cols": 13,
+  "rows": 17,
+  "grid": [
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      2,
+      2,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      2,
+      2,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      2,
+      2,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      2,
+      2,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      2,
+      2,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      2,
+      2,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      2,
+      2,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      2,
+      2,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      2,
+      2,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      2,
+      2,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      2,
+      2,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      2,
+      2,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      2,
+      2,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  ],
+  "heightmap": [
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2.25,
+      2.25,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2.75,
+      2.75,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      3.25,
+      3.25,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      3.75,
+      3.75,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      4,
+      4,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      4,
+      4,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      3.75,
+      3.75,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      3.25,
+      3.25,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2.75,
+      2.75,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2.25,
+      2.25,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  ],
+  "tileMeta": [
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH",
+        "direction": "SOUTH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH",
+        "direction": "SOUTH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2.25,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "shape": "SLOPE",
+        "slope": {
+          "lowHeight": 2,
+          "highHeight": 2.5,
+          "riseDirection": "SOUTH"
+        },
+        "overpassId": "collapse-test-overpass"
+      },
+      {
+        "baseHeight": 2.25,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "shape": "SLOPE",
+        "slope": {
+          "lowHeight": 2,
+          "highHeight": 2.5,
+          "riseDirection": "SOUTH"
+        },
+        "overpassId": "collapse-test-overpass"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2.75,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "shape": "SLOPE",
+        "slope": {
+          "lowHeight": 2.5,
+          "highHeight": 3,
+          "riseDirection": "SOUTH"
+        },
+        "overpassId": "collapse-test-overpass"
+      },
+      {
+        "baseHeight": 2.75,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "shape": "SLOPE",
+        "slope": {
+          "lowHeight": 2.5,
+          "highHeight": 3,
+          "riseDirection": "SOUTH"
+        },
+        "overpassId": "collapse-test-overpass"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 3.25,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "shape": "SLOPE",
+        "slope": {
+          "lowHeight": 3,
+          "highHeight": 3.5,
+          "riseDirection": "SOUTH"
+        },
+        "overpassId": "collapse-test-overpass"
+      },
+      {
+        "baseHeight": 3.25,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "shape": "SLOPE",
+        "slope": {
+          "lowHeight": 3,
+          "highHeight": 3.5,
+          "riseDirection": "SOUTH"
+        },
+        "overpassId": "collapse-test-overpass"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 3.75,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "shape": "SLOPE",
+        "slope": {
+          "lowHeight": 3.5,
+          "highHeight": 4,
+          "riseDirection": "SOUTH"
+        },
+        "overpassId": "collapse-test-overpass"
+      },
+      {
+        "baseHeight": 3.75,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "shape": "SLOPE",
+        "slope": {
+          "lowHeight": 3.5,
+          "highHeight": 4,
+          "riseDirection": "SOUTH"
+        },
+        "overpassId": "collapse-test-overpass"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 4,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "shape": "FLAT",
+        "overpassId": "collapse-test-overpass"
+      },
+      {
+        "baseHeight": 4,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "shape": "FLAT",
+        "overpassId": "collapse-test-overpass"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH",
+        "direction": "SOUTH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH",
+        "direction": "SOUTH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH",
+        "direction": "SOUTH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH",
+        "direction": "SOUTH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH",
+        "direction": "SOUTH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH",
+        "direction": "EAST",
+        "overpass": {
+          "direction": "SOUTH",
+          "elevation": 4
+        },
+        "overpassId": "collapse-test-overpass"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH",
+        "direction": "EAST",
+        "overpass": {
+          "direction": "SOUTH",
+          "elevation": 4
+        },
+        "overpassId": "collapse-test-overpass"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH",
+        "direction": "SOUTH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH",
+        "direction": "SOUTH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH",
+        "direction": "SOUTH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH",
+        "direction": "SOUTH"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH",
+        "direction": "SOUTH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH",
+        "direction": "SOUTH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH",
+        "direction": "SOUTH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH",
+        "direction": "SOUTH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH",
+        "direction": "SOUTH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH",
+        "direction": "EAST",
+        "overpass": {
+          "direction": "SOUTH",
+          "elevation": 4
+        },
+        "overpassId": "collapse-test-overpass"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH",
+        "direction": "EAST",
+        "overpass": {
+          "direction": "SOUTH",
+          "elevation": 4
+        },
+        "overpassId": "collapse-test-overpass"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH",
+        "direction": "SOUTH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH",
+        "direction": "SOUTH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH",
+        "direction": "SOUTH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH",
+        "direction": "SOUTH"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 4,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "shape": "FLAT",
+        "overpassId": "collapse-test-overpass"
+      },
+      {
+        "baseHeight": 4,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "shape": "FLAT",
+        "overpassId": "collapse-test-overpass"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 3.75,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "shape": "SLOPE",
+        "slope": {
+          "lowHeight": 3.5,
+          "highHeight": 4,
+          "riseDirection": "NORTH"
+        },
+        "overpassId": "collapse-test-overpass"
+      },
+      {
+        "baseHeight": 3.75,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "shape": "SLOPE",
+        "slope": {
+          "lowHeight": 3.5,
+          "highHeight": 4,
+          "riseDirection": "NORTH"
+        },
+        "overpassId": "collapse-test-overpass"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 3.25,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "shape": "SLOPE",
+        "slope": {
+          "lowHeight": 3,
+          "highHeight": 3.5,
+          "riseDirection": "NORTH"
+        },
+        "overpassId": "collapse-test-overpass"
+      },
+      {
+        "baseHeight": 3.25,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "shape": "SLOPE",
+        "slope": {
+          "lowHeight": 3,
+          "highHeight": 3.5,
+          "riseDirection": "NORTH"
+        },
+        "overpassId": "collapse-test-overpass"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2.75,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "shape": "SLOPE",
+        "slope": {
+          "lowHeight": 2.5,
+          "highHeight": 3,
+          "riseDirection": "NORTH"
+        },
+        "overpassId": "collapse-test-overpass"
+      },
+      {
+        "baseHeight": 2.75,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "shape": "SLOPE",
+        "slope": {
+          "lowHeight": 2.5,
+          "highHeight": 3,
+          "riseDirection": "NORTH"
+        },
+        "overpassId": "collapse-test-overpass"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2.25,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "shape": "SLOPE",
+        "slope": {
+          "lowHeight": 2,
+          "highHeight": 2.5,
+          "riseDirection": "NORTH"
+        },
+        "overpassId": "collapse-test-overpass"
+      },
+      {
+        "baseHeight": 2.25,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "shape": "SLOPE",
+        "slope": {
+          "lowHeight": 2,
+          "highHeight": 2.5,
+          "riseDirection": "NORTH"
+        },
+        "overpassId": "collapse-test-overpass"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH",
+        "direction": "SOUTH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH",
+        "direction": "SOUTH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH",
+        "direction": "SOUTH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "PATH",
+        "direction": "SOUTH"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ]
+  ],
+  "numPaths": 0,
+  "pipeData": [],
+  "mergeZones": [],
+  "trunkStart": null,
+  "mapName": "test_overpass-collapse",
+  "layoutSignature": "test_overpass-collapse",
+  "overpassData": {
+    "id": "collapse-test-overpass",
+    "upperPathIdx": 0,
+    "lowerPathIdx": 1,
+    "upperDirection": "SOUTH",
+    "lowerDirection": "EAST",
+    "baseElevation": 2,
+    "deckElevation": 4,
+    "deckThickness": 0.24,
+    "clearance": 1.76,
+    "stairApproach": true,
+    "raisedEntryApproach": false,
+    "crossing": {
+      "col": 6,
+      "row": 7,
+      "width": 2,
+      "depth": 2
+    },
+    "crossingCells": [
+      {
+        "col": 6,
+        "row": 7
+      },
+      {
+        "col": 6,
+        "row": 8
+      },
+      {
+        "col": 7,
+        "row": 7
+      },
+      {
+        "col": 7,
+        "row": 8
+      }
+    ],
+    "approachCells": [
+      {
+        "col": 6,
+        "row": 6
+      },
+      {
+        "col": 6,
+        "row": 9
+      },
+      {
+        "col": 7,
+        "row": 6
+      },
+      {
+        "col": 7,
+        "row": 9
+      }
+    ],
+    "slopeCells": [
+      {
+        "col": 6,
+        "row": 2,
+        "lowHeight": 2,
+        "highHeight": 2.5,
+        "riseDirection": "SOUTH"
+      },
+      {
+        "col": 6,
+        "row": 10,
+        "lowHeight": 3.5,
+        "highHeight": 4,
+        "riseDirection": "NORTH"
+      },
+      {
+        "col": 6,
+        "row": 3,
+        "lowHeight": 2.5,
+        "highHeight": 3,
+        "riseDirection": "SOUTH"
+      },
+      {
+        "col": 6,
+        "row": 11,
+        "lowHeight": 3,
+        "highHeight": 3.5,
+        "riseDirection": "NORTH"
+      },
+      {
+        "col": 6,
+        "row": 4,
+        "lowHeight": 3,
+        "highHeight": 3.5,
+        "riseDirection": "SOUTH"
+      },
+      {
+        "col": 6,
+        "row": 12,
+        "lowHeight": 2.5,
+        "highHeight": 3,
+        "riseDirection": "NORTH"
+      },
+      {
+        "col": 6,
+        "row": 5,
+        "lowHeight": 3.5,
+        "highHeight": 4,
+        "riseDirection": "SOUTH"
+      },
+      {
+        "col": 6,
+        "row": 13,
+        "lowHeight": 2,
+        "highHeight": 2.5,
+        "riseDirection": "NORTH"
+      },
+      {
+        "col": 7,
+        "row": 2,
+        "lowHeight": 2,
+        "highHeight": 2.5,
+        "riseDirection": "SOUTH"
+      },
+      {
+        "col": 7,
+        "row": 10,
+        "lowHeight": 3.5,
+        "highHeight": 4,
+        "riseDirection": "NORTH"
+      },
+      {
+        "col": 7,
+        "row": 3,
+        "lowHeight": 2.5,
+        "highHeight": 3,
+        "riseDirection": "SOUTH"
+      },
+      {
+        "col": 7,
+        "row": 11,
+        "lowHeight": 3,
+        "highHeight": 3.5,
+        "riseDirection": "NORTH"
+      },
+      {
+        "col": 7,
+        "row": 4,
+        "lowHeight": 3,
+        "highHeight": 3.5,
+        "riseDirection": "SOUTH"
+      },
+      {
+        "col": 7,
+        "row": 12,
+        "lowHeight": 2.5,
+        "highHeight": 3,
+        "riseDirection": "NORTH"
+      },
+      {
+        "col": 7,
+        "row": 5,
+        "lowHeight": 3.5,
+        "highHeight": 4,
+        "riseDirection": "SOUTH"
+      },
+      {
+        "col": 7,
+        "row": 13,
+        "lowHeight": 2,
+        "highHeight": 2.5,
+        "riseDirection": "NORTH"
+      }
+    ],
+    "raisedApproachCells": [],
+    "raisedTerrainCells": []
+  },
+  "objects": [
+    {
+      "id": "overpass",
+      "object": "Overpass",
+      "layout": {
+        "id": "collapse-test-overpass",
+        "upperPathIdx": 0,
+        "lowerPathIdx": 1,
+        "upperDirection": "SOUTH",
+        "lowerDirection": "EAST",
+        "baseElevation": 2,
+        "deckElevation": 4,
+        "deckThickness": 0.24,
+        "clearance": 1.76,
+        "stairApproach": true,
+        "raisedEntryApproach": false,
+        "crossing": {
+          "col": 6,
+          "row": 7,
+          "width": 2,
+          "depth": 2
+        },
+        "crossingCells": [
+          {
+            "col": 6,
+            "row": 7
+          },
+          {
+            "col": 6,
+            "row": 8
+          },
+          {
+            "col": 7,
+            "row": 7
+          },
+          {
+            "col": 7,
+            "row": 8
+          }
+        ],
+        "approachCells": [
+          {
+            "col": 6,
+            "row": 6
+          },
+          {
+            "col": 6,
+            "row": 9
+          },
+          {
+            "col": 7,
+            "row": 6
+          },
+          {
+            "col": 7,
+            "row": 9
+          }
+        ],
+        "slopeCells": [
+          {
+            "col": 6,
+            "row": 2,
+            "lowHeight": 2,
+            "highHeight": 2.5,
+            "riseDirection": "SOUTH"
+          },
+          {
+            "col": 6,
+            "row": 10,
+            "lowHeight": 3.5,
+            "highHeight": 4,
+            "riseDirection": "NORTH"
+          },
+          {
+            "col": 6,
+            "row": 3,
+            "lowHeight": 2.5,
+            "highHeight": 3,
+            "riseDirection": "SOUTH"
+          },
+          {
+            "col": 6,
+            "row": 11,
+            "lowHeight": 3,
+            "highHeight": 3.5,
+            "riseDirection": "NORTH"
+          },
+          {
+            "col": 6,
+            "row": 4,
+            "lowHeight": 3,
+            "highHeight": 3.5,
+            "riseDirection": "SOUTH"
+          },
+          {
+            "col": 6,
+            "row": 12,
+            "lowHeight": 2.5,
+            "highHeight": 3,
+            "riseDirection": "NORTH"
+          },
+          {
+            "col": 6,
+            "row": 5,
+            "lowHeight": 3.5,
+            "highHeight": 4,
+            "riseDirection": "SOUTH"
+          },
+          {
+            "col": 6,
+            "row": 13,
+            "lowHeight": 2,
+            "highHeight": 2.5,
+            "riseDirection": "NORTH"
+          },
+          {
+            "col": 7,
+            "row": 2,
+            "lowHeight": 2,
+            "highHeight": 2.5,
+            "riseDirection": "SOUTH"
+          },
+          {
+            "col": 7,
+            "row": 10,
+            "lowHeight": 3.5,
+            "highHeight": 4,
+            "riseDirection": "NORTH"
+          },
+          {
+            "col": 7,
+            "row": 3,
+            "lowHeight": 2.5,
+            "highHeight": 3,
+            "riseDirection": "SOUTH"
+          },
+          {
+            "col": 7,
+            "row": 11,
+            "lowHeight": 3,
+            "highHeight": 3.5,
+            "riseDirection": "NORTH"
+          },
+          {
+            "col": 7,
+            "row": 4,
+            "lowHeight": 3,
+            "highHeight": 3.5,
+            "riseDirection": "SOUTH"
+          },
+          {
+            "col": 7,
+            "row": 12,
+            "lowHeight": 2.5,
+            "highHeight": 3,
+            "riseDirection": "NORTH"
+          },
+          {
+            "col": 7,
+            "row": 5,
+            "lowHeight": 3.5,
+            "highHeight": 4,
+            "riseDirection": "SOUTH"
+          },
+          {
+            "col": 7,
+            "row": 13,
+            "lowHeight": 2,
+            "highHeight": 2.5,
+            "riseDirection": "NORTH"
+          }
+        ],
+        "raisedApproachCells": [],
+        "raisedTerrainCells": []
+      }
+    },
+    {
+      "id": "hero-spawn",
+      "object": "SpawnPoint",
+      "position": {
+        "x": -3,
+        "y": 2.02,
+        "z": -0.5
+      }
+    },
+    {
+      "id": "collapse-walker",
+      "object": "Divecap",
+      "position": {
+        "x": -4,
+        "y": 2.02,
+        "z": 6
+      }
+    },
+    {
+      "id": "collapse-jumper",
+      "object": "FuseHopper",
+      "position": {
+        "x": -2,
+        "y": 2.02,
+        "z": 6
+      }
+    },
+    {
+      "id": "collapse-flyer",
+      "object": "FrostPuff",
+      "position": {
+        "x": 0,
+        "y": 2.02,
+        "z": 6
+      }
+    }
+  ],
+  "animationViewport": {
+    "zoom": 8,
+    "rotation": 0,
+    "panX": 0.5,
+    "panZ": -0.5
+  },
+  "testControls": {
+    "panels": [
+      {
+        "title": "Two-sided stairs",
+        "statusTargetId": "overpass",
+        "buttons": [
+          {
+            "label": "Overview",
+            "script": "camera.setViewport({zoom:8,rotation:0,panX:.5,panZ:-.5});"
+          },
+          {
+            "label": "Deck view",
+            "script": "camera.setViewport({zoom:4,rotation:0,panX:.5,panZ:-.5});"
+          },
+          {
+            "label": "Hero on deck",
+            "script": "objects.getOne('hero').teleport({x:.5,y:4.05,z:-.5});camera.setViewport({zoom:4,rotation:0,panX:.5,panZ:-.5});"
+          },
+          {
+            "label": "Smash crossing",
+            "script": "const crossing=[...objects].find(o=>o.definition?.id==='overpass');const hero=objects.getOne('hero');hero.teleport({x:.5,y:4.05,z:-1.5});camera.setViewport({zoom:4,rotation:0,panX:.5,panZ:-.5});window.setTimeout(()=>hero.smashBridge({targetX:.5,targetZ:-.5,onImpact:()=>crossing.collapseStation(7)}),400);"
+          },
+          {
+            "label": "Destroy crossing",
+            "script": "const crossing=[...objects].find(o=>o.definition?.id==='overpass');crossing.collapseStation(7);"
+          },
+          {
+            "label": "Underpass view",
+            "script": "objects.getOne('hero').teleport({x:-2,y:2.02,z:-.5});camera.setViewport({zoom:4,rotation:1,panX:.5,panZ:-.5});"
+          }
+        ]
+      },
+      {
+        "title": "Enemy drop",
+        "buttons": [
+          {
+            "label": "Place walker",
+            "script": "const actor=[...objects].find(o=>o.definition?.id==='collapse-walker');actor.entity.rigidbody.teleport(.5,4.05,-.5);actor.entity.rigidbody.linearVelocity=new actor.pc.Vec3();actor.applyStatus('stun',{duration:6});objects.getOne('hero').teleport({x:-3,y:2.02,z:-.5});camera.setViewport({zoom:4,rotation:0,panX:.5,panZ:-.5});"
+          },
+          {
+            "label": "Place jumper",
+            "script": "const actor=[...objects].find(o=>o.definition?.id==='collapse-jumper');actor.entity.rigidbody.teleport(.5,4.05,-.5);actor.entity.rigidbody.linearVelocity=new actor.pc.Vec3();actor.applyStatus('stun',{duration:6});objects.getOne('hero').teleport({x:-3,y:2.02,z:-.5});camera.setViewport({zoom:4,rotation:0,panX:.5,panZ:-.5});"
+          },
+          {
+            "label": "Place flyer",
+            "script": "const actor=[...objects].find(o=>o.definition?.id==='collapse-flyer');actor.entity.rigidbody.teleport(.5,4.05,-.5);actor.entity.rigidbody.linearVelocity=new actor.pc.Vec3();objects.getOne('hero').teleport({x:-3,y:2.02,z:-.5});camera.setViewport({zoom:4,rotation:0,panX:.5,panZ:-.5});"
+          },
+          {
+            "label": "Drop occupied crossing",
+            "script": "const crossing=[...objects].find(o=>o.definition?.id==='overpass');crossing.collapseStation(7);"
+          },
+          {
+            "label": "Pursuit walker",
+            "script": "const crossing=[...objects].find(o=>o.definition?.id==='overpass');crossing.collapseStation(7);for(const actor of objects){if(!actor.definition?.id?.startsWith('collapse-'))continue;const selected=actor.definition.id==='collapse-walker';actor.entity.rigidbody.teleport(selected ? 0.5 : -4,selected?4.05:2.02,selected?-1.5:6);actor.entity.rigidbody.linearVelocity=new actor.pc.Vec3();actor.entity.setEulerAngles(0,0,0);if(selected){actor.statuses.delete('stun');}else{actor.applyStatus('stun',{duration:120});}}const goal=objects.getOne('hero');goal.isRoyal=true;goal.teleport({x:3,y:2.02,z:.5});camera.setViewport({zoom:4,rotation:0,panX:.5,panZ:-.5});window.overpassActors=[...objects];window.overpassMap=map;"
+          },
+          {
+            "label": "Pursuit jumper",
+            "script": "const crossing=[...objects].find(o=>o.definition?.id==='overpass');crossing.collapseStation(7);for(const actor of objects){if(!actor.definition?.id?.startsWith('collapse-'))continue;const selected=actor.definition.id==='collapse-jumper';actor.entity.rigidbody.teleport(selected ? 0.5 : -4,selected?4.05:2.02,selected?-1.5:6);actor.entity.rigidbody.linearVelocity=new actor.pc.Vec3();actor.entity.setEulerAngles(0,0,0);if(selected){actor.statuses.delete('stun');}else{actor.applyStatus('stun',{duration:120});}}const goal=objects.getOne('hero');goal.isRoyal=true;goal.teleport({x:3,y:2.02,z:.5});camera.setViewport({zoom:4,rotation:0,panX:.5,panZ:-.5});window.overpassActors=[...objects];window.overpassMap=map;"
+          },
+          {
+            "label": "Pursuit flyer",
+            "script": "const crossing=[...objects].find(o=>o.definition?.id==='overpass');crossing.collapseStation(7);for(const actor of objects){if(!actor.definition?.id?.startsWith('collapse-'))continue;const selected=actor.definition.id==='collapse-flyer';actor.entity.rigidbody.teleport(selected ? 0.5 : -4,selected?4.05:2.02,selected?-1.5:6);actor.entity.rigidbody.linearVelocity=new actor.pc.Vec3();actor.entity.setEulerAngles(0,0,0);if(selected){actor.statuses.delete('stun');}else{actor.applyStatus('stun',{duration:120});}}const goal=objects.getOne('hero');goal.isRoyal=true;goal.teleport({x:3,y:2.02,z:.5});camera.setViewport({zoom:4,rotation:0,panX:.5,panZ:-.5});window.overpassActors=[...objects];window.overpassMap=map;"
+          }
+        ]
+      }
+    ]
+  }
+}
