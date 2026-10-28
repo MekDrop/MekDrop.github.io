@@ -4,6 +4,7 @@ import { HeroTool } from "./HeroTool.js";
 import { Vec3 } from "playcanvas";
 import { AxeSupportGrip } from "./AxeSupportGrip.js";
 import { AxeCuttingEdge } from "./AxeCuttingEdge.js";
+import { DetachedShaderWarmup } from "../../../../rendering/DetachedShaderWarmup.js";
 
 const CUT_ANIMATIONS = [
   HERO_ANIMATION.CHOP_LOW,
@@ -16,6 +17,18 @@ const CUT_ANIMATIONS = [
 ];
 
 export class AxeTool extends HeroTool {
+  /**
+   * @type {import("../../../../models/GameModelLibrary.js").GameModelLibrary}
+   */
+  #models;
+  /**
+   * @type {import("playcanvas").Entity|null}
+   */
+  #shaderTemplate = null;
+  /**
+   * @type {DetachedShaderWarmup|null}
+   */
+  #shaderWarmup = null;
   /**
    * @type {AxeSupportGrip}
    */
@@ -63,6 +76,27 @@ export class AxeTool extends HeroTool {
       modelUrl: AxeTool.modelUrl,
       name: "axe",
     });
+
+    this.#models = modelLibrary;
+  }
+
+  /**
+   * @param {typeof import("playcanvas")} pc
+   * @param {import("playcanvas").Application} app
+   */
+  prepareShaders(pc, app) {
+    if (!this.#shaderWarmup) {
+      this.#shaderTemplate = this.#models.instantiate(AxeTool.modelUrl);
+      this.#shaderWarmup = new DetachedShaderWarmup(pc, app, this.#shaderTemplate);
+    }
+  }
+
+  destroy() {
+    this.#shaderWarmup?.destroy();
+    this.#shaderTemplate?.destroy();
+    this.#shaderWarmup = null;
+    this.#shaderTemplate = null;
+    super.destroy();
   }
 
   /**

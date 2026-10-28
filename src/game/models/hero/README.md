@@ -99,6 +99,16 @@ Different axe stances blend for 0.32 seconds, including transitions through
 approach walking and drawing/stowing. Restarting a different level's clip resets
 its clock without snapping its pose; a repeated stroke retains its authored seam.
 
+Cutting shaft orientations use continuous sampled curves around the original
+axe-head trajectory. Both arms are baked against separate palm contacts, with
+consistent elbow bend directions; the fifth row guides the right elbow away
+from the shaft to protect its cuff. The lowest stance uses more knee flexion
+and less waist lean while keeping both complete boots planted. Regression checks
+also cover adjacent-frame arm continuity after the runtime support-grip correction.
+The waist's lateral travel is limited to 10% of the original motion, keeping its
+side-to-side drift around 1.5–2 cm across a stroke. Shoulder and arm poses retain
+their grip and clearance; the single-column top crown uses a compact sweep.
+
 Use `/map/test_vegetation-cutting?camera-test` to inspect all six variants.
 The scene disables `forceAnimationSampling` to preserve the authored 240 Hz
 keys. Regression checks sample the full axe mesh at 120 Hz against body meshes,

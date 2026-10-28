@@ -10,6 +10,7 @@ import {
 } from "./trees/index.js";
 import { VegetationInteraction } from "./VegetationInteraction.js";
 import { VegetationDirtPatch } from "./VegetationDirtPatch.js";
+import { DetachedShaderWarmup } from "../../rendering/DetachedShaderWarmup.js";
 
 const VEGETATION_TYPES = Object.freeze({
   oak: OakTree,
@@ -22,6 +23,14 @@ const VEGETATION_TYPES = Object.freeze({
 const MINIMUM_FACING_DOT = Math.cos((50 * Math.PI) / 180);
 
 export class VoxelVegetation {
+  /**
+   * @type {VegetationDirtPatch|null}
+   */
+  #shaderTemplate = null;
+  /**
+   * @type {DetachedShaderWarmup|null}
+   */
+  #shaderWarmup = null;
   /**
    *
    * @returns {Array<string>}
@@ -173,6 +182,23 @@ export class VoxelVegetation {
       this.#pc.BUFFER_STATIC,
       this.#dynamicBatches,
     );
+    if (this.#items.length && !this.#shaderWarmup) {
+      this.#shaderTemplate = new VegetationDirtPatch({
+        pc: this.#pc,
+        app: this.#app,
+        id: "shader-template",
+        footprint: [{
+          x: 0,
+          z: 0,
+          width: 0.25,
+          depth: 0.25,
+        }],
+        x: 0,
+        y: 0,
+        z: 0,
+      });
+      this.#shaderWarmup = new DetachedShaderWarmup(this.#pc, this.#app, this.#shaderTemplate.entity);
+    }
   }
 
   /**
@@ -209,6 +235,7 @@ export class VoxelVegetation {
 
   set tool(tool) {
     this.#tool = tool;
+    tool?.prepareShaders?.(this.#pc, this.#app);
   }
 
   /**
@@ -454,6 +481,10 @@ export class VoxelVegetation {
   }
 
   destroy() {
+    this.#shaderWarmup?.destroy();
+    this.#shaderTemplate?.destroy();
+    this.#shaderWarmup = null;
+    this.#shaderTemplate = null;
     this.#renderBatch?.destroy();
     this.#renderBatch = null;
     for (const patch of this.#dirtPatches) {

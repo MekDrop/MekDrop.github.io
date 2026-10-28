@@ -312,7 +312,9 @@ it("chops accelerate into a left-to-right strike with the cutting edge leading",
     const withdrawn = cuttingPose(name, 1.08).head;
     const strikeSpeed = contact.head.distance(windup) / 0.12;
     const withdrawSpeed = withdrawn.distance(follow) / 0.34;
-    assert.ok(windup.x < -0.16 && follow.x > (name === "ChopRow7" ? 0.18 : 0.26),
+    // The narrow top crown needs a compact stroke, without dragging the waist
+    // sideways to extend the blade beyond its single column.
+    assert.ok(windup.x < -0.16 && follow.x > (name === "ChopRow7" ? 0.10 : 0.26),
       name + " crosses left to right within its two-handed reach");
     assert.ok(contact.edge.x > 0.5, name + " cuts with the bit rather than the poll");
     assert.ok(strikeSpeed > withdrawSpeed * 1.6, name + " has a distinct fast strike");
@@ -770,6 +772,35 @@ it("moves the held axe continuously between adjacent animation frames", () => {
         rotation,
         position,
       };
+    }
+  }
+});
+
+it("keeps both elbow chains continuous through the cutting stroke", () => {
+  for (const name of CHOPS) {
+    let previous = null;
+    for (let frame = 0; frame <= 180; frame++) {
+      const { rig } = cuttingPose(name, frame / 120, pose(name, frame / 120), true);
+      const rotations = ["Right arm", "Right elbow", "Left arm", "Left elbow"]
+        .map(joint => rig.get(joint).getRotation().clone());
+      if (previous) {
+        for (const [index, rotation] of rotations.entries()) {
+          const angle = 2 * Math.acos(Math.min(1, Math.abs(rotation.dot(previous[index])))) * 180 / Math.PI;
+          assert.ok(angle < 22, `${name} flips an elbow chain at ${frame / 120}: ${angle} degrees`);
+        }
+      }
+      previous = rotations;
+    }
+  }
+});
+
+it("keeps the waist centered over the planted stance instead of swaying sideways", () => {
+  for (const name of CHOPS) {
+    const initial = pose(name, 0).get("Upper body").getLocalPosition().clone();
+    for (let frame = 0; frame <= 180; frame++) {
+      const waist = pose(name, frame / 120).get("Upper body");
+      assert.ok(Math.abs(waist.getLocalPosition().x - initial.x) < 0.05,
+        `${name} shifts the waist sideways at ${frame / 120}`);
     }
   }
 });
