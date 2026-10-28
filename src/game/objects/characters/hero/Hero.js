@@ -1,3 +1,4 @@
+import { HeroAudio } from "./HeroAudio.js";
 import { HeroLadderGrip } from "./HeroLadderGrip.js";
 import { ActorStatusEffects } from "../../shared/ActorStatusEffects.js";
 import { HeroStairCameraHeight } from "./HeroStairCameraHeight.js";
@@ -155,6 +156,20 @@ const PAT_HAIR_CONTACT_HEIGHT = 0.78;
 const HAIR_ENTITY_NAME = /(?:hair|nape lock|swept fringe|layered lock)/i;
 
 export class Hero {
+  /**
+   * @type {HeroAudio|undefined}
+   */
+  #audio;
+  /**
+   * @returns {string[]}
+   */
+  static get audioUrls() {
+    return Object.values(HeroAudio.clips).map(/**
+     *
+     * @param {{wavUrl:string,oggUrl:string}} source
+     */
+      (source) => source.wavUrl);
+  }
   /**
    * @type {ActorStatusEffects}
    */
@@ -925,6 +940,7 @@ export class Hero {
    * @param {{heroModel?: string}|null} [options.graphicsSettingsStore]
    * @param {HeroPresentation} options.presentation
    * @param {import("src/game/collision/GroundCollisionWorld.js").GroundCollisionWorld} options.collisionWorld
+   * @param {import("../../../audio/GameAudioLibrary.js").GameAudioLibrary} [options.audioLibrary]
    * @param {import("src/game/models/GameModelLibrary.js").GameModelLibrary} options.modelLibrary
    */
   constructor({
@@ -945,6 +961,7 @@ export class Hero {
     presentation,
     collisionWorld,
     modelLibrary,
+    audioLibrary,
   }) {
     this.#pc = pc;
     this.#app = app;
@@ -984,6 +1001,9 @@ export class Hero {
       islandOffsetAt: this.#islandVisualOffsetAt.bind(this),
     }));
     this.#entity = new pc.Entity("Hero");
+    if (audioLibrary) {
+      this.#audio = new HeroAudio(this.#entity, app, audioLibrary, mapData);
+    }
     const spawn = new HeroSpawn(mapData, collisionWorld, spawnCenter);
     this.#spawn = spawn.position;
     this.#position = { ...this.#spawn };
@@ -1337,6 +1357,7 @@ export class Hero {
     this.#physics.resume(this.#position, this.#velocity);
     this.#teleportEffect ??= new HeroTeleportEffect(this.#pc, this.#app);
     this.#teleportEffect.play(previous, this.#position);
+    this.#audio?.play("teleport");
     this.#onPositionChange?.(this.#position);
     this.#restartAnimation = true;
     this.#resetBoredom();
@@ -1408,6 +1429,14 @@ export class Hero {
 
   get tool() {
     return this.#tool;
+  }
+
+  /**
+   * @param {string} tool
+   * @param {boolean} [destroyed]
+   */
+  playToolContact(tool, destroyed = false) {
+    this.#audio?.impact(destroyed ? "break" : tool);
   }
 
   get tools() {
@@ -2072,7 +2101,15 @@ export class Hero {
       stopAfterCycle: false,
       positioning: positioning?.travel < 0.002 ? null : positioning,
       positioningElapsed: 0,
-      onImpact,
+      /**
+       * @param {import("../../ObjectTypes.js").HeroActionPayload} action
+       */
+      onImpact: (action) => {
+        if (!onContact) {
+          this.#audio?.impact(tool.name);
+        }
+        return onImpact?.(action);
+      },
       onContact,
       onCycle,
       onScoop,
@@ -2674,6 +2711,7 @@ export class Hero {
     this.#syncLocalAnimationRates();
     this.#syncMood();
     this.#statusEffects.advance(deltaTime);
+    this.#audio?.update(deltaTime, this.#position, this.#grounded, Boolean(this.#climbMotion), this.actionState.action);
   };
 
   /**
@@ -2927,6 +2965,7 @@ export class Hero {
         this.#jumpLandingOriginHeight = this.#position.y;
       }
       this.#jumpLandingSettledTime = 0;
+      this.#audio?.play("jump");
       this.#velocity.y = JUMP_VELOCITY;
       this.#grounded = false;
       this.#coyoteRemaining = 0;
@@ -4532,6 +4571,7 @@ export class Hero {
    * @param {string} action
    */
   #beginToolAction(action) {
+    this.#audio?.play("summon");
     action.tool.mount(this.#toolAttachmentEntity);
     action.tool.visible = (action.tool.summonVisibilityTime ?? 0) === 0;
     this.#tool = action.tool;
@@ -4631,6 +4671,9 @@ export class Hero {
    * @param {string} action
    */
   #endCollection(action) {
+    if (action.completed) {
+      this.#audio?.play("pickup");
+    }
     if (action.tool) {
       action.tool.visible = false;
     }

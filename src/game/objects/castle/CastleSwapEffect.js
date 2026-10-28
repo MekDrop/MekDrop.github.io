@@ -1,7 +1,14 @@
+import { CastleAudio } from "../../audio/castle/CastleAudio.js";
+import { GameObjectAudio } from "../../audio/GameObjectAudio.js";
+
 /**
  * Castle-owned mist and sparks, kept outside the replaced map hierarchy.
  */
 export class CastleSwapEffect {
+  /**
+   * @type {GameObjectAudio|undefined}
+   */
+  #audio;
   /**
    * @type {import("playcanvas").Entity}
    */
@@ -40,8 +47,9 @@ export class CastleSwapEffect {
    * @param {import("playcanvas").Application} app
    * @param {{x:number,z:number,width:number,depth:number,elevation?:number}} footprint
    * @param {import("playcanvas").Entity|null} castle
+   * @param {import("../../audio/GameAudioLibrary.js").GameAudioLibrary} [audioLibrary]
    */
-  constructor(pc, app, footprint, castle = null) {
+  constructor(pc, app, footprint, castle = null, audioLibrary) {
     let bounds = null;
     for (const render of castle?.findComponents("render") ?? []) {
       for (const mesh of render.meshInstances) {
@@ -59,6 +67,17 @@ export class CastleSwapEffect {
     };
     this.#root = new pc.Entity("Castle transformation");
     app.root.addChild(this.#root);
+    if (audioLibrary) {
+      this.#audio = new GameObjectAudio(this.#root, app, audioLibrary, {
+        mist: CastleAudio.transition,
+        reveal: CastleAudio.transitionRelease,
+      }, 0.5);
+      const mist = this.#root.sound.slot("mist");
+      mist.loop = true;
+      mist.volume = 0;
+      this.#audio.resume();
+      this.#audio.play("mist");
+    }
     if (bounds) {
       this.#root.setPosition(bounds.center);
     } else {
@@ -91,6 +110,7 @@ export class CastleSwapEffect {
    */
   finish() {
     if (this.#fadeElapsed === null) {
+      this.#audio?.play("reveal");
       this.#fadeStart = this.#opacity;
       this.#fadeElapsed = 0;
     }
@@ -119,6 +139,12 @@ export class CastleSwapEffect {
     }
     const logarithmic = Math.log1p(9 * progress) / Math.log(10);
     this.#opacity = this.#fadeElapsed === null ? logarithmic : this.#fadeStart * (1 - logarithmic);
+    if (this.#audio) {
+      this.#root.sound.slot("mist").volume = 0.38 * this.#opacity;
+      if (this.#fadeElapsed !== null && this.#fadeElapsed >= 1.4) {
+        this.#root.sound.stop("mist");
+      }
+    }
     const pixels = this.#texture.lock();
     for (let index = 0; index < this.#alphas.length; index += 1) {
       pixels[index * 4 + 3] = Math.round(this.#alphas[index] * this.#opacity);

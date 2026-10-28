@@ -2086,6 +2086,7 @@ export class PlayCanvasRenderer {
      */
     const getHud = this.#getHud.bind(this);
     const hero = new Hero({
+      audioLibrary: this.#audioLibrary,
       pc: this.#pc,
       app: this.#app,
       mapData: this.#mapData,

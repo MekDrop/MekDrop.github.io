@@ -316,7 +316,7 @@ export class MapObjectFactory {
    * @returns {string[]}
    */
   static audioUrlsFor(definitions) {
-    const urls = new Set();
+    const urls = new Set(Hero.audioUrls);
     for (const ObjectClass of MapObjectFactory.#assetClassesFor(definitions)) {
       for (const url of ObjectClass?.audioUrls ?? []) {
         urls.add(url);

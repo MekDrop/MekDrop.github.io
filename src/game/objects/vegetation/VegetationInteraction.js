@@ -158,6 +158,7 @@ export class VegetationInteraction {
     if (!result) {
       return;
     }
+    this.#hero.playToolContact?.("axe", Boolean(result.destroyed));
     if (result?.destroyed) {
       action.stopAfterCycle = true;
       action.impactIndex = Math.max(1, action.impactIndex ?? 0);

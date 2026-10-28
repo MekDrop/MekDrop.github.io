@@ -3,6 +3,78 @@ import { test } from "node:test";
 import * as engine from "playcanvas";
 import { CastleSwapEffect } from "../../../../../src/game/objects/castle/CastleSwapEffect.js";
 
+test("switch audio sustains through long generation and fades with the mist", () => {
+  const played = [];
+  const stopped = [];
+  class Entity extends engine.Entity {
+    addComponent(type, config) {
+      if (type === "sound") {
+        const slots = {};
+        this.sound = {
+          enabled: true,
+          addSlot: (name, options) => {
+            slots[name] = options;
+          },
+          slot: (name) => slots[name],
+          play: (name) => played.push(name),
+          stop: (name) => stopped.push(name),
+        };
+      } else {
+        this.particlesystem = {
+          ...config,
+          stop: () => {},
+        };
+      }
+    }
+  }
+  class Texture {
+    pixels = new Uint8Array(32 * 32 * 4);
+    lock() {
+      return this.pixels;
+    }
+    unlock() {}
+    destroy() {}
+  }
+  const root = new engine.Entity();
+  root._enabledInHierarchy = true;
+  const app = Object.assign(new engine.EventHandler(), {
+    root,
+    graphicsDevice: {},
+    soundManager: { resume: () => {} },
+  });
+  const effect = new CastleSwapEffect({
+    ...engine,
+    Entity,
+    Texture,
+  }, app, {
+    x: 0,
+    z: 0,
+    width: 10,
+    depth: 10,
+  }, null, { get: () => ({ id: 1 }) });
+  const sound = root.children[0].sound;
+  assert.equal(sound.slot("mist").loop, true);
+  assert.equal(sound.slot("mist").volume, 0);
+  assert.deepEqual(played, ["mist"]);
+  for (let frame = 0; frame < 450; frame++) {
+    app.fire("update", 0.1);
+  }
+  assert.equal(sound.slot("mist").volume, 0.38);
+  assert.deepEqual(stopped, [], "no fixed timeout can silence a slow generation");
+  effect.finish();
+  effect.finish();
+  assert.deepEqual(played, ["mist", "reveal"]);
+  app.fire("update", 0.1);
+  assert.ok(sound.slot("mist").volume > 0 && sound.slot("mist").volume < 0.38);
+  for (let frame = 0; frame < 14; frame++) {
+    app.fire("update", 0.1);
+  }
+  assert.equal(sound.slot("mist").volume, 0);
+  assert.ok(stopped.includes("mist"));
+  effect.destroy();
+  assert.equal(app.hasEvent("update"), false);
+});
+
 test("transformation covers its footprint and releases emitters and texture", () => {
   let textureDestroyed = false;
   const textures = [];

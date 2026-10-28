@@ -1,3 +1,4 @@
+import { FireAudio } from "../../../audio/castle/FireAudio.js";
 import bowlUrl from "../../../models/castle/residential/brazier.glb?url";
 import towerUrl from "../../../models/castle/props/tower-brazier.glb?url";
 import { AbstractCastleProp } from "../../shared/AbstractCastleProp.js";
@@ -8,6 +9,12 @@ import { FireEffect } from "../../fire/FireEffect.js";
  * Bowl proportions and effects retain the original castle fire calibration.
  */
 export class Brazier extends AbstractCastleProp {
+  /**
+   * @returns {string[]}
+   */
+  static get audioUrls() {
+    return FireAudio.audioUrls;
+  }
   /**
    * @type {FireEffect|null}
    */
@@ -52,6 +59,11 @@ export class Brazier extends AbstractCastleProp {
    */
   constructor(options) {
     super(options);
+
+    if ((options.definition.intensity ?? 1) > 0 && options.definition.flame !== false &&
+      !(options.definition.variant === "tower" && !options.definition.flame)) {
+      new FireAudio(this.visualRoots[0], options.app ?? options.pc.Application.getApplication(), options.runtime, 0.12);
+    }
 
     const { pc, definition } = options;
     const tower = definition.variant === "tower";

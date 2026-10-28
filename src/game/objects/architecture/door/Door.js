@@ -14,6 +14,18 @@ const CLICK_OPEN_SECONDS = 1;
  */
 export class Door {
   /**
+   * @type {import("../../../audio/GameObjectAudio.js").GameObjectAudio|undefined}
+   */
+  audio;
+  /**
+   * @type {number}
+   */
+  #soundDirection = 0;
+  /**
+   * @type {number}
+   */
+  #soundCooldown = 0;
+  /**
    * @type {number}
    */
   #health = 48;
@@ -61,6 +73,7 @@ export class Door {
     }
     const applied = Math.min(amount, this.#health);
     this.#health -= applied;
+    this.audio?.play(this.#health === 0 ? "break" : "hit");
     if (this.#health === 0) {
       this.#broken = true;
       this.clearGlue?.();
@@ -521,6 +534,7 @@ export class Door {
    * @param {number} [speed] Opening speed override.
    */
   update(deltaTime, open, speed = this.#openSpeed) {
+    this.#soundCooldown = Math.max(0, this.#soundCooldown - deltaTime);
     if (this.#broken) {
       this.#collision.syncFrameBodies?.();
 
@@ -543,11 +557,15 @@ export class Door {
       ? Math.min(target, this.#openAmount + amount)
       : Math.max(target, this.#openAmount - amount);
     if (destination === this.#openAmount) {
+      this.#soundDirection = 0;
+
       return;
     }
     if (!this.#collision.swing) {
+      const previous = this.#openAmount;
       this.#openAmount = destination;
       this.#syncAnimation();
+      this.#playMovement(previous);
 
       return;
     }
@@ -555,6 +573,7 @@ export class Door {
     this.#collision.syncFrameBodies();
     const initialContacts = this.#collision.swing.contacts();
     const direction = Math.sign(destination - this.#openAmount);
+    const initialAmount = this.#openAmount;
     // Sample the entire arc, including when a delayed frame spans both sides of a wall.
     while (Math.abs(destination - this.#openAmount) > 0.000001) {
       const previous = this.#openAmount;
@@ -579,6 +598,23 @@ export class Door {
     }
     this.#syncAnimation();
     this.#collision.swing.syncBodies();
+    this.#playMovement(initialAmount);
+  }
+
+  /**
+   * Sound only actual leaf movement, with a cooldown for obstructed doors.
+   * @param {number} previous
+   */
+  #playMovement(previous) {
+    const direction = Math.sign(this.#openAmount - previous);
+    if (direction && direction !== this.#soundDirection && this.#soundCooldown === 0) {
+      this.audio?.play(direction > 0 ? "open" : "creak");
+      this.#soundCooldown = 0.6;
+    }
+    if (previous > 0.001 && this.#openAmount <= 0.001) {
+      this.audio?.play("close");
+    }
+    this.#soundDirection = direction;
   }
 
   /**

@@ -9,10 +9,24 @@ import { CastleEntityBuilder } from "./structure/CastleEntityBuilder.js";
 import { FireplaceChimneySightline } from "../castle-props/fireplace/FireplaceChimneySightline.js";
 import { IslandCellOwnership } from "../shared/IslandCellOwnership.js";
 import { SCENE_OBJECT_TYPE } from "../../enum/SceneObjectType.js";
+import { CastleAudio } from "../../audio/castle/CastleAudio.js";
+import { GameObjectAudio } from "../../audio/GameObjectAudio.js";
 
 export { isCastleUpperFloorRoomVoid } from "../../generator/castle/CastleGeometry.js";
 
 export class Castle extends CastleEntityBuilder {
+  /**
+   * @returns {string[]}
+   */
+  static get audioUrls() {
+    return [CastleAudio.transition, CastleAudio.transitionRelease, CastleAudio.doorOpen,
+      CastleAudio.doorClose, CastleAudio.creak, CastleAudio.chop,
+      CastleAudio.woodBreak].map(/**
+       *
+       * @param {{wavUrl:string,oggUrl:string}} source
+       */
+      (source) => source.wavUrl);
+  }
   /**
    * Smooth the fine masonry pattern as the first-person camera moves.
    * @param {typeof import("playcanvas")} pc
@@ -126,6 +140,16 @@ export class Castle extends CastleEntityBuilder {
     );
     this.entity.tags.add("map-object", definition.id, this.constructor.name);
     FireplaceChimneySightline.add(pc, app, this.entity, definition.buildPlan);
+    for (const door of this.destructibleDoors) {
+      door.audio = new GameObjectAudio(door.entity, app, runtime.audioLibrary, {
+        open: CastleAudio.doorOpen,
+        close: CastleAudio.doorClose,
+        creak: CastleAudio.creak,
+        hit: CastleAudio.chop,
+        break: CastleAudio.woodBreak,
+      }, 0.45);
+      door.audio.follow(() => runtime.objects.getOne("hero")?.position ?? null);
+    }
   }
 
   /**
@@ -161,7 +185,7 @@ export class Castle extends CastleEntityBuilder {
     this.#regenerating = true;
     let effect;
     try {
-      effect = new CastleSwapEffect(this.#pc, this.#effectApp, this.#definition.buildPlan.input.position, this.entity);
+      effect = new CastleSwapEffect(this.#pc, this.#effectApp, this.#definition.buildPlan.input.position, this.entity, this.#runtime.audioLibrary);
       // Build during the mist fade-in instead of adding its duration to generation.
       const [buildPlan] = await Promise.all([
         CastleGenerator.generate({

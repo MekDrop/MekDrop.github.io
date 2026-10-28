@@ -10465,6 +10465,50 @@
             "script": "objects.getAll('castle').find(castle => castle.definition.id === 'seed-castle')?.regenerateRandomSeed();"
           }
         ]
+      },
+      {
+        "title": "Sound checks",
+        "x": 16,
+        "y": 140,
+        "statusTargetId": "seed-castle",
+        "buttons": [
+          {
+            "label": "Entrance view",
+            "script": "const c=objects.getAll('castle')[0]; const d=c.destructibleDoors.find(d=>d.exteriorEntrance); if(d){const p=d.entity.getPosition();objects.getOne('hero').teleport({x:p.x,y:p.y+0.014,z:p.z-1.3});camera.setFirstPerson(false);camera.setViewport({zoom:4,rotation:2,panX:p.x,panZ:p.z});}"
+          },
+          {
+            "label": "Open entrance",
+            "script": "objects.getAll('castle')[0].testEntranceOpenAmount=1;"
+          },
+          {
+            "label": "Close entrance",
+            "script": "objects.getAll('castle')[0].testEntranceOpenAmount=0;"
+          },
+          {
+            "label": "Automatic doors",
+            "script": "objects.getAll('castle')[0].testEntranceOpenAmount=null;"
+          },
+          {
+            "label": "Hammer door",
+            "script": "const h=objects.getOne('hero');const d=objects.getAll('castle')[0].destructibleDoors.find(d=>d.exteriorEntrance&&!d.broken);const t=[...h.tools.values()].find(t=>t.name==='hammer');if(d&&t){h.useTool(t,{targetPosition:d.entity.getPosition(),onImpact:()=>{d.receiveDamage(16);return true;}});}"
+          },
+          {
+            "label": "Visit fireplace",
+            "script": "const f=[...objects].find(o=>o.definition?.object==='Fireplace');if(f){const root=f.visualRoots[0];const p=root.getPosition();const q=p.clone().add(root.forward.clone().mulScalar(-1.8));q.y=p.y+0.014;const hero=objects.getOne('hero');camera.setFirstPerson(false);hero.teleport(q);hero.firstPersonCameraEnabled=true;hero.firstPersonFacingYaw=Math.atan2(p.x-q.x,p.z-q.z)*180/Math.PI;camera.setFirstPerson(true);}"
+          },
+          {
+            "label": "Visit roof hatch",
+            "script": "const hatch=[...objects].find(o=>o.definition?.object==='Hatch');const ladder=[...objects].find(o=>o.definition?.object==='Ladder'&&o.definition.hatchId===hatch?.definition.id);if(hatch&&ladder){const p=ladder.visualRoots[0].getPosition();const q=ladder.landing('bottom');const hero=objects.getOne('hero');camera.setFirstPerson(false);hero.teleport({...q,y:q.y+0.014});hero.firstPersonCameraEnabled=true;hero.firstPersonFacingYaw=Math.atan2(p.x-q.x,p.z-q.z)*180/Math.PI;camera.setFirstPerson(true);}"
+          },
+          {
+            "label": "Toggle hatch lock",
+            "script": "const h=[...objects].find(o=>o.definition?.object==='Hatch');if(h){h.locked=!h.locked;}"
+          },
+          {
+            "label": "Open hatch",
+            "script": "const h=[...objects].find(o=>o.definition?.object==='Hatch');h?.open();"
+          }
+        ]
       }
     ]
   }

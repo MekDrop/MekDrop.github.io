@@ -1,0 +1,67 @@
+Castle and interaction sound copyrights / provenance
+Verified: 2026-10-28
+
+All NEW clips in this directory are CC0 1.0 Universal (SPDX: CC0-1.0).
+Commercial use, modification and redistribution are permitted; attribution is
+not required. Voluntary credits: "Sounds by Kenney, AntumDeluge and CogFireStudios (CC0)".
+License: https://creativecommons.org/publicdomain/zero/1.0/
+Full legal text: CC0-1.0.txt (in this directory).
+This does not change the licenses of existing sounds elsewhere in audio/.
+
+Kenney Vleugels (Kenney.nl) — RPG Audio
+Official source and license: https://kenney.nl/assets/rpg-audio
+Original notice preserved in kenney-rpg-license.txt.
+Local basename      Original pack file (Audio/)
+doorOpen            doorOpen_1.ogg
+doorClose           doorClose_1.ogg
+chop                chop.ogg
+swing               knifeSlice.ogg
+pickup              handleCoins.ogg
+latch               metalClick.ogg
+creak               creak1.ogg
+cloth               cloth1.ogg
+mist                knifeSlice.ogg (slowed, echo, fade)
+reveal              handleCoins.ogg (slowed, echo)
+
+Kenney Vleugels (Kenney.nl) — Impact Sounds
+Official source and license: https://kenney.nl/assets/impact-sounds
+Original notice preserved in kenney-impact-license.txt.
+Local basename      Original pack file (Audio/)
+grassStep1          footstep_grass_000.ogg
+grassStep2          footstep_grass_001.ogg
+stoneStep1          footstep_concrete_000.ogg
+stoneStep2          footstep_concrete_001.ogg
+woodBreak           impactWood_heavy_000.ogg
+hammer              impactMetal_medium_000.ogg
+land                impactSoft_heavy_000.ogg
+
+The official Kenney archive host returned HTTP 403 during download. These
+unmodified source Ogg files were retrieved from this mirror, with the original
+pack license notices, after confirming CC0 on the official pages above:
+https://github.com/GeorgeQLe/assets-sfx-combat
+https://raw.githubusercontent.com/GeorgeQLe/assets-sfx-combat/main/assets/kenney/<pack>/Audio/<original filename>
+
+AntumDeluge — Fire Crackling
+Source / CC0 declaration: https://opengameart.org/content/fire-crackling
+Permanent source: https://opengameart.org/node/16327
+Original file: https://opengameart.org/sites/default/files/fire-1.wav
+Local basename: fire. Original recording with 80 ms endpoint fades for looping.
+
+Processing: mono PCM WAV masters at 48 kHz, Ogg Vorbis copies at nominal 192 kbps.
+WAV conversions of lossy sources do not restore lost recording information.
+All local *.wav and corresponding *.ogg files share the provenance above.
+Volume and small pitch variations are applied during playback.
+
+CogFireStudios — Big Scary Portal Open
+Local basenames: transition, transitionRelease (each with WAV and Ogg copies)
+Source and CC0 declaration: https://freesound.org/people/CogFireStudios/sounds/617761/
+Downloaded public HQ preview: https://cdn.freesound.org/previews/617/617761_7614679-hq.mp3
+Original title: Big Scary Portal Open. Original publication: 2022-02-06.
+Retrieved: 2026-10-28. CC0 1.0 Universal; attribution is not required.
+The public MP3 preview was used; the original WAV was not downloaded.
+Adaptation: lowered pitch/sample rate to 75%, resampled to 48 kHz.
+transition: slowed fourfold, trimmed to 20 seconds, 35 Hz high-pass / 1800 Hz
+low-pass, then a two-second crossfade to form an eighteen-second energy loop.
+transitionRelease: first 1.6 seconds reversed, filtered at 35–2500 Hz and faded.
+Both clips have gain adjustment and are mono PCM WAV / nominal 192 kbps Vorbis.
+Playback loops for the actual effect duration; volume follows the mist's fades.

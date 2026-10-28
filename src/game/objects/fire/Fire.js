@@ -1,3 +1,4 @@
+import { FireAudio } from "../../audio/castle/FireAudio.js";
 import { arePositiveFiniteNumbers } from "../../helpers/types.js";
 import particleUrl from "src/assets/game/effects/castle-fire-particle.png?url";
 import { IslandObjectRoots } from "../shared/IslandObjectRoots.js";
@@ -7,6 +8,12 @@ import { IslandObjectRoots } from "../shared/IslandObjectRoots.js";
  * One box emitter fills the footprint, with flame height and density derived from it.
  */
 export class Fire {
+  /**
+   * @returns {string[]}
+   */
+  static get audioUrls() {
+    return FireAudio.audioUrls;
+  }
   /**
    * @type {import("playcanvas").Entity}
    */
@@ -109,6 +116,9 @@ export class Fire {
       startAngle2: 8,
     });
     root.addChild(emitter);
+    if (intensity > 0) {
+      new FireAudio(root, app, runtime, 0.12);
+    }
   }
 
   get entity() {

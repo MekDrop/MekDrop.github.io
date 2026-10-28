@@ -1,3 +1,5 @@
+import { CastleAudio } from "../../../audio/castle/CastleAudio.js";
+import { GameObjectAudio } from "../../../audio/GameObjectAudio.js";
 import { HatchInteraction } from "./HatchInteraction.js";
 import lockUrl from "../../../models/architecture/hatch/rim-lock.glb?url";
 import keeperUrl from "../../../models/architecture/hatch/rim-lock-keeper.glb?url";
@@ -9,6 +11,16 @@ import { AbstractCastleProp } from "../../shared/AbstractCastleProp.js";
  * Independent framed timber hatch, optionally paired with a ladder by id.
  */
 export class Hatch extends AbstractCastleProp {
+  /**
+   * @type {GameObjectAudio|undefined}
+   */
+  #audio;
+  /**
+   * @returns {string[]}
+   */
+  static get audioUrls() {
+    return [CastleAudio.doorOpen.wavUrl, CastleAudio.doorClose.wavUrl, CastleAudio.latch.wavUrl];
+  }
   /**
    * @type {import("playcanvas").Entity}
    */
@@ -50,6 +62,14 @@ export class Hatch extends AbstractCastleProp {
     super(options);
 
     const { pc, modelLibrary, definition } = options;
+    if (options.runtime?.audioLibrary) {
+      this.#audio = new GameObjectAudio(this.visualRoots[0], options.app ?? pc.Application.getApplication(), options.runtime.audioLibrary, {
+        open: CastleAudio.doorOpen,
+        close: CastleAudio.doorClose,
+        latch: CastleAudio.latch,
+      }, 0.35);
+      this.#audio.follow(() => options.runtime.objects.getOne("hero")?.position ?? null);
+    }
     const hatch = {
       width: 1,
       depth: 1,
@@ -146,6 +166,9 @@ export class Hatch extends AbstractCastleProp {
    * @param {boolean} value
    */
   set locked(value) {
+    if (this.locked !== value) {
+      this.#audio?.play("latch");
+    }
     this.definition.locked = value;
     // The retracted bolt is concealed inside the opaque lock case.
     this.#lockBolt.enabled = value;
@@ -158,7 +181,14 @@ export class Hatch extends AbstractCastleProp {
    */
   open() {
     if (this.locked) {
+      this.#audio?.resume();
+      this.#audio?.play("latch");
+
       return false;
+    }
+    this.#audio?.resume();
+    if (this.#hatchCollider.enabled) {
+      this.#audio?.play("open");
     }
     clearTimeout(this.#closeTimer);
     this.#hatchCollider.enabled = false;
@@ -181,6 +211,9 @@ export class Hatch extends AbstractCastleProp {
     clearTimeout(this.#closeTimer); super.destroy();
   }
   #setTimeout() {
+    if (!this.#hatchCollider.enabled) {
+      this.#audio?.play("close");
+    }
     this.#hatch.setLocalEulerAngles(0, 0, 0);
     this.#hatchCollider.enabled = true;
   }

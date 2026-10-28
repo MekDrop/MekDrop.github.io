@@ -13,6 +13,7 @@ const positioningMethod = source.slice(positioningStart, source.indexOf("\n  /**
 const repositioningStart = source.indexOf("  repositionTool(");
 const repositioningMethod = source.slice(repositioningStart, source.indexOf("\n  /**", repositioningStart));
 const HeroDriver = new Function("HERO_ACTION", "treasureToolBackstep", "Vec2", "MOVEMENT_COLLISION_RADIUS", `return class Hero {
+  #audio = null;
   static #compareToolPositions(a, b) { return a.travel - b.travel; }
   #position = { x: 0, z: 0 };
   #facingYaw = 15;

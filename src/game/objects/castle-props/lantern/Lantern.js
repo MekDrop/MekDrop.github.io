@@ -1,3 +1,4 @@
+import { FireAudio } from "../../../audio/castle/FireAudio.js";
 import modelUrl from "../../../models/castle/props/entrance-lantern.glb?url";
 import wallModelUrl from "../../../models/castle/props/wall-lantern.glb?url";
 import tableModelUrl from "../../../models/castle/props/table-lantern.glb?url";
@@ -12,6 +13,12 @@ import { FireEffect } from "../../fire/FireEffect.js";
  */
 export class Lantern extends AbstractCastleProp {
   /**
+   * @returns {string[]}
+   */
+  static get audioUrls() {
+    return FireAudio.audioUrls;
+  }
+  /**
    * @returns {Record<string,string>}
    */
   static get textureUrls() {
@@ -23,6 +30,11 @@ export class Lantern extends AbstractCastleProp {
    */
   constructor(options) {
     super(options);
+
+    if ((options.definition.intensity ?? 1) > 0 && options.definition.flame !== false &&
+      !(options.definition.variant === "tower" && !options.definition.flame)) {
+      new FireAudio(this.visualRoots[0], options.app ?? options.pc.Application.getApplication(), options.runtime, 0.025);
+    }
 
     const { pc, definition } = options;
     const root = this.visualRoots[0];
