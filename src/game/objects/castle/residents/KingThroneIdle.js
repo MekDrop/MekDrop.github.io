@@ -3,36 +3,22 @@
  */
 export class KingThroneIdle {
   /**
-   *
+   * @type {import("playcanvas").Entity}
    */
   #head;
   /**
-   *
+   * @type {import("playcanvas").Quat|null}
    */
   #base;
   /**
-   *
+   * @type {import("playcanvas").Quat}
    */
   #rotation;
-  /**
-   *
-   */
-  #elapsed = 0;
-  /**
-   *
-   */
-  #delay = 8;
-  /**
-   *
-   */
-  #state = "waiting";
-  /**
-   *
-   */
-  #previous = -1;
+
 
   /**
-   *
+   * @param {typeof import("playcanvas")} pc
+   * @param {import("playcanvas").Entity} model
    */
   constructor(pc, model) {
     this.#head = model.findByName("Royal head rig");
@@ -47,38 +33,20 @@ export class KingThroneIdle {
   }
 
   /**
-   *
+   * @param {string} state
+   * @param {number} time
+   * @param {boolean} available
    */
-  update(deltaTime, available) {
+  update(state, time, available) {
     this.restore();
     if (!available || !this.#head) {
-      this.#state = "waiting";
-      this.#elapsed = 0;
-
       return;
     }
-    this.#elapsed += deltaTime;
-    if (this.#state === "waiting") {
-      if (this.#elapsed < this.#delay) {
-        return;
-      }
-      const choice = (this.#previous + 1 + Math.floor(Math.random() * 2)) % 3;
-      this.#previous = choice;
-      this.#state = ["dozing", "looking", "bored"][choice];
-      this.#elapsed = 0;
-    }
-    const t = this.#elapsed;
-    const duration = this.#state === "dozing" ? 14 : 7;
-    if (t >= duration) {
-      this.#state = "waiting";
-      this.#elapsed = 0;
-      this.#delay = 10 + Math.random() * 18;
-
-      return;
-    }
+    const t = time;
+    const duration = state === "dozing" ? 9.1 : state === "waking" ? 4.9 : 7;
     /**
-     *
-     */
+   * @param {number} value
+   */
     const smooth = (value) => {
       const x = Math.max(0, Math.min(1, value));
 
@@ -88,14 +56,13 @@ export class KingThroneIdle {
     let pitch = 0;
     let yaw = 0;
     let roll = 0;
-    if (this.#state === "dozing") {
+    if (state === "dozing") {
       pitch = -32 * smooth(t / 3) * (1 - smooth((t - 8.8) / 0.3));
-      if (t > 9.1) {
-        const awake = t - 9.1;
-        yaw = 38 * Math.sin(awake * 3) * smooth(awake / 0.25);
-        pitch = 7 * Math.exp(-awake * 3);
-      }
-    } else if (this.#state === "looking") {
+    } else if (state === "waking") {
+      const awake = t;
+      yaw = 38 * Math.sin(awake * 3) * smooth(awake / 0.25);
+      pitch = 7 * Math.exp(-awake * 3);
+    } else if (state === "looking") {
       yaw = 32 * Math.sin(t * 1.2);
       pitch = 5 * Math.sin(t * 0.8);
     } else {

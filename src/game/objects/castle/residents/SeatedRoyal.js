@@ -35,8 +35,17 @@ const FALLBACK_VISUAL_SIZE = Object.freeze({
  * An imported seated royal whose local +Z axis faces the visitor.
  */
 export class SeatedRoyal {
+  /**
+   * @type {KingThroneIdle|null}
+   */
   #throneIdle = null;
+  /**
+   * @type {import("playcanvas").EventHandle|null}
+   */
   #idleHandle = null;
+  /**
+   * @type {import("playcanvas").EventHandle|null}
+   */
   #restoreIdleHandle = null;
   /**
    * @type {KingCapePhysics|null}
@@ -173,17 +182,22 @@ export class SeatedRoyal {
       this.#restoreIdleHandle = app.on("update", () => this.#throneIdle.restore());
       this.#idleHandle = app.on("postupdate", /**
        *
-       * @param dt
+       * @param {number} dt
        */
         (dt) => {
           const visitors = app.root.findByTag("Hero", "Servant", "Queen", "Princess");
           const alone = !visitors.some(/**
          *
-         * @param visitor
+         * @param {import("playcanvas").Entity} visitor
          */
             (visitor) => visitor.enabledInHierarchy &&
           visitor.getPosition().distance(this.#entity.getPosition()) < 7);
-          this.#throneIdle.update(dt, alone && this.#model.anim.speed === 0 &&
+          const behavior = this.#resident?.behavior;
+          if (behavior) {
+            behavior.throneIdleAvailable = alone;
+          }
+          this.#throneIdle.update(behavior?.action, behavior?.elapsed ?? 0, alone &&
+          ["dozing", "waking", "looking", "bored"].includes(behavior?.action) && this.#model.anim.speed === 0 &&
           this.#model.anim.baseLayer.activeState === ROYAL_ANIMATION.SIT &&
           !this.#gameOverBehavior.active && !this.#resident?.behavior?.reacting);
         });
