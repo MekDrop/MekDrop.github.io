@@ -99,6 +99,7 @@ export class TerrainStage extends AbstractMapGenerationStage {
         context.input.mapName,
         this.#random,
         riverData,
+        layout.pathDipPlans,
       );
     CastleApproachRamp.apply(heightmap, tileMeta, layout, grid);
     this.#terrain.applyHeightsToMetadata(

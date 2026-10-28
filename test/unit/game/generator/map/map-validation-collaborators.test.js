@@ -126,6 +126,14 @@ describe("map validation collaborators", () => {
   });
 
   describe("generated elevation profiles", () => {
+    it("keeps dip landings valid after island connectors are generated", async () => {
+      const map = await MapGenerator.generate({ mapName: "75" });
+      assert.ok(map.islandConnectorData);
+      assert.doesNotThrow(() => new PathSurfaceValidator().validatePathDips(
+        map.grid, map.heightmap, map.tileMeta, map.pathDipData, map.riverData,
+      ));
+    });
+
     let original;
     before(async () => {
       original = await MapGenerator.generate({

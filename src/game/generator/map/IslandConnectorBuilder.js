@@ -19,13 +19,20 @@ export class IslandConnectorBuilder {
    * @param {string} mapName
    * @param {import("./GenerationRandom.js").GenerationRandom} random
    * @param {import("./MapGenerationTypes.js").RiverData[]} riverData
+   * @param {import("./MapGenerationTypes.js").PathDipPlan[]} pathDipPlans
    */
-  build(grid, heightmap, tileMeta, islandMask, mapName, random, riverData) {
+  build(grid, heightmap, tileMeta, islandMask, mapName, random, riverData, pathDipPlans = []) {
     if (!random.deterministicChance(mapName, "split-island", CONNECTOR_CHANCE)) {
       return null;
     }
     const connectors = [];
     const connectorCells = new Set();
+    const dipLandings = new Set();
+    for (const plan of pathDipPlans) {
+      for (const cell of plan.landingCells) {
+        dipLandings.add(IslandConnectorBuilder.#map(cell));
+      }
+    }
     while (true) {
       let best = null;
       const riverCells = riverData.flatMap(
@@ -97,6 +104,13 @@ export class IslandConnectorBuilder {
             }
             first = last;
             if (!valid || pathCells.length !== 2 || grassCells.length === 0) {
+              continue;
+            }
+            /**
+             * @param {{col: number, row: number}} cell
+             */
+            const isDipLanding = (cell) => dipLandings.has(IslandConnectorBuilder.#map(cell));
+            if (pathCells.some(isDipLanding)) {
               continue;
             }
             /**
