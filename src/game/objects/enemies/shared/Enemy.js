@@ -4,6 +4,7 @@
 import { NpcStateMachine } from "../../shared/NpcStateMachine.js";
 import { EnemyBridgeNavigation } from "../../../navigation/EnemyBridgeNavigation.js";
 import { ENEMY_TRAVERSAL } from "../../../enum/EnemyTraversal.js";
+import { EnemyGatewayArrival } from "./EnemyGatewayArrival.js";
 
 /**
  * Map-owned enemy foundation. Subclasses own their Yuka states and artwork.
@@ -62,6 +63,7 @@ export class Enemy {
     this.radius = definition.radius ?? 0.3;
     this.height = definition.height ?? 1;
     this.#bridgeNavigation = new EnemyBridgeNavigation(this);
+    this.gatewayArrival = new EnemyGatewayArrival(this);
   }
 
   /**
@@ -178,6 +180,15 @@ export class Enemy {
     return point ? this.position.distance(point) : Infinity;
   }
 
+  /**
+   * Trusted combat outcome hook; ownership is assigned by the spawning director.
+   * @param {EnemyActor} target
+   * @param {"kill"|"break"} kind
+   */
+  onTargetDefeated(target, kind) {
+    this.commander?.recordOutcome(this, target, kind);
+  }
+
   onSceneReady() {
     if (this.#updateHandle || this.#destroyed) {
       return;
@@ -223,7 +234,32 @@ export class Enemy {
      *
      * @param {number} dt
      */
-      (dt) => this.update(dt));
+      (dt) => {
+        if (this.gatewayArrival.active) {
+          this.gatewayArrival.update(dt);
+        } else {
+          this.update(dt);
+        }
+      });
+    const gateways = this.actors.filter(/**
+     *
+     * @param {import("../../gateway/Gateway.js").Gateway} actor
+     */
+      (actor) => typeof actor.entrancePath === "function");
+    const gateway = this.definition.gatewayId
+      ? gateways.find(/**
+       *
+       * @param {import("../../gateway/Gateway.js").Gateway} actor
+       */
+        (actor) => actor.definition?.id === this.definition.gatewayId)
+      : gateways.find(/**
+       *
+       * @param {import("../../gateway/Gateway.js").Gateway} actor
+       */
+        (actor) => this.position.distance(actor.entity.getPosition()) < 1.5);
+    if (gateway) {
+      this.gatewayArrival.start(gateway);
+    }
   }
 
   /**
@@ -236,6 +272,11 @@ export class Enemy {
     }
     this.deltaTime = dt;
     this.elapsed += dt;
+    if (this.gatewayArrival.active) {
+      this.gatewayArrival.update(dt);
+
+      return;
+    }
     for (const [name, status] of this.statuses) {
       status.remaining -= dt;
       if (status.remaining <= 0) {
@@ -320,6 +361,7 @@ export class Enemy {
       this.statuses.clear();
       this.carrier = null;
       this.stop();
+      source?.onTargetDefeated?.(this, "kill");
       this.onDeath?.({
         source,
         kind,
@@ -458,6 +500,7 @@ export class Enemy {
     if (this.#destroyed) {
       return;
     }
+    this.gatewayArrival.finish();
     this.#destroyed = true;
     this.#updateHandle?.off();
     this.#contactHandle?.off();

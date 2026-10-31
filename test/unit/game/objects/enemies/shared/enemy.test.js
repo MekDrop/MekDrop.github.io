@@ -139,3 +139,23 @@ test('map coordinates and authored rotation place the semantic root before physi
   assert.deepEqual(enemy.position.toArray(),[2,3,-4]);
   assert.ok(enemy.entity.forward.distance(new Vec3(-1,0,0))<0.00001);
 });
+test('a real lethal hit attributes exactly one kill to its attacker', () => {
+  const source = createEnemy();
+  const target = createEnemy();
+  const records = [];
+  source.commander = {
+    recordOutcome: (attacker, victim, kind) => records.push({
+      attacker,
+      victim,
+      kind,
+    }),
+  };
+  target.receiveDamage(99, source);
+  assert.equal(records.length, 0);
+  target.receiveDamage(10, source);
+  target.receiveDamage(10, source);
+  assert.equal(records.length, 1);
+  assert.equal(records[0].attacker, source);
+  assert.equal(records[0].victim, target);
+  assert.equal(records[0].kind, 'kill');
+});

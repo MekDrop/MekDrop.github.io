@@ -4,6 +4,15 @@ import { HERO_STAT } from "../enum/HeroStat.js";
 
 export const HERO_BUFF_DEFINITIONS = [
   {
+    id: HERO_BUFF.SLIME_AFFECTION,
+    kind: BUFF_KIND.BUFF,
+    labelKey: "game.buffs.slime_affection",
+    icon: "♥",
+    duration: 2,
+    maxStacks: 1,
+    modifiers: { [HERO_STAT.MOVEMENT_SPEED]: { percent: 0.05 } },
+  },
+  {
     id: HERO_BUFF.AFFECTION,
     kind: BUFF_KIND.BUFF,
     labelKey: "game.buffs.affection",

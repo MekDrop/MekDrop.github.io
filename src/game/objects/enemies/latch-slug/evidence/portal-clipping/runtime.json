@@ -1,0 +1,41 @@
+{
+  "front": {
+    "position": "[16.455612182617188, 2.0299999713897705, -15]",
+    "plane": [
+      -1,
+      0,
+      -1.2246468525851679e-16,
+      16.5
+    ],
+    "materials": [
+      {
+        "name": "Golden living gel - living jelly",
+        "view": [
+          12.5,
+          4.380000114440918,
+          -17.200000762939453
+        ],
+        "chunk": "uniform vec4 uGateClipPlane;\nuniform vec3 uGateViewPosition;\n#ifndef LATCH_JELLY_FIELD\n#define LATCH_JELLY_FIELD\nuniform mat4 uWorldToJelly;\nuniform vec3 uJellyView;\nuniform vec3 uJellyCenter;\nuniform vec3 uJellyRadius;\nuniform vec4 uJellyMotion;\nuniform vec3 uJellyLag;\nuniform vec3 uJellyCloudColor;\nfloat latchJellyDensity() {\n    vec3 point = (uWorldToJelly * vec4(vPositionW, 1.0)).xyz;\n    vec3 direction = normalize((uWorldToJelly * vec4(normalize(vPositionW - uJellyView), 0.0)).xyz);\n    float density = 0.0;\n    float phase = uJellyMotion.x;\n    for (int i = 0; i < 5; ++i) {\n        vec3 q = (point + direction * (0.035 + float(i) * 0.065) - uJellyCenter - uJellyLag) / uJellyRadius;\n        q.y -= uJellyMotion.y * 0.16;\n        float boundary = 1.0 - smoothstep(0.72, 1.03, length(q));\n        vec3 flow = q + 0.18 * sin(q.yzx * 2.2 + vec3(phase * 0.8, phase * 0.65 + 2.0, -phase * 0.6));\n        float cloud = sin(flow.x * 3.1 + phase * 0.6) + sin(flow.y * 3.7 - phase * 0.48) + sin(flow.z * 3.3 + phase * 0.52);\n        cloud += 0.55 * sin(dot(flow, vec3(2.3, -3.0, 2.7)) - phase * 0.9);\n        density += smoothstep(0.25, 1.7, cloud) * boundary * 0.32;\n    }\n    return clamp(density, 0.0, 1.0);\n}\n#endif\r\n\n\nuniform float material_opacity;\nuniform float material_alphaDitherScale;\nvoid getSkinOpacity() {\n\tdAlpha = material_opacity;\n\t#ifdef STD_OPACITY_TEXTURE\n\tdAlpha *= texture2DBias({STD_OPACITY_TEXTURE_NAME}, {STD_OPACITY_TEXTURE_UV}, textureBias).{STD_OPACITY_TEXTURE_CHANNEL};\n\t#endif\n\t#ifdef STD_OPACITY_VERTEX\n\tdAlpha *= clamp(vVertexColor.{STD_OPACITY_VERTEX_CHANNEL}, 0.0, 1.0);\n\t#endif\n}\n\nvoid getGateSkinOpacity() { getSkinOpacity(); dAlpha = min(0.97, dAlpha * (1.0 + 0.18 * latchJellyDensity())); }\nvoid getOpacity() {\n        if (dot(vec4(vPositionW, 1.0), uGateClipPlane) < 0.0 ||\n            dot(vec4(uGateViewPosition, 1.0), uGateClipPlane) <= 0.0) { discard; }\n        getGateSkinOpacity();\n      }"
+      },
+      {
+        "name": "Opaque dark sensory tips",
+        "view": [
+          12.5,
+          4.380000114440918,
+          -17.200000762939453
+        ],
+        "chunk": "uniform vec4 uGateClipPlane;\nuniform vec3 uGateViewPosition;\n\nuniform float material_opacity;\nuniform float material_alphaDitherScale;\nvoid getGateSkinOpacity() {\n\tdAlpha = material_opacity;\n\t#ifdef STD_OPACITY_TEXTURE\n\tdAlpha *= texture2DBias({STD_OPACITY_TEXTURE_NAME}, {STD_OPACITY_TEXTURE_UV}, textureBias).{STD_OPACITY_TEXTURE_CHANNEL};\n\t#endif\n\t#ifdef STD_OPACITY_VERTEX\n\tdAlpha *= clamp(vVertexColor.{STD_OPACITY_VERTEX_CHANNEL}, 0.0, 1.0);\n\t#endif\n}\n\nvoid getOpacity() {\n        if (dot(vec4(vPositionW, 1.0), uGateClipPlane) < 0.0 ||\n            dot(vec4(uGateViewPosition, 1.0), uGateClipPlane) <= 0.0) { discard; }\n        getGateSkinOpacity();\n      }"
+      },
+      {
+        "name": "Opaque eye catchlights",
+        "view": [
+          12.5,
+          4.380000114440918,
+          -17.200000762939453
+        ],
+        "chunk": "uniform vec4 uGateClipPlane;\nuniform vec3 uGateViewPosition;\n\nuniform float material_opacity;\nuniform float material_alphaDitherScale;\nvoid getGateSkinOpacity() {\n\tdAlpha = material_opacity;\n\t#ifdef STD_OPACITY_TEXTURE\n\tdAlpha *= texture2DBias({STD_OPACITY_TEXTURE_NAME}, {STD_OPACITY_TEXTURE_UV}, textureBias).{STD_OPACITY_TEXTURE_CHANNEL};\n\t#endif\n\t#ifdef STD_OPACITY_VERTEX\n\tdAlpha *= clamp(vVertexColor.{STD_OPACITY_VERTEX_CHANNEL}, 0.0, 1.0);\n\t#endif\n}\n\nvoid getOpacity() {\n        if (dot(vec4(vPositionW, 1.0), uGateClipPlane) < 0.0 ||\n            dot(vec4(uGateViewPosition, 1.0), uGateClipPlane) <= 0.0) { discard; }\n        getGateSkinOpacity();\n      }"
+      }
+    ]
+  },
+  "errors": []
+}

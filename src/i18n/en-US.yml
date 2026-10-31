@@ -64,6 +64,7 @@ game:
     unsupported: MP4 recording is not supported by this browser. Please try another browser.
     failed: Could not record the game. Please try again.
   buffs:
+    slime_affection: Slime affection
     affection: Affection
     overstimulated: Overstimulated
   patting:
@@ -89,6 +90,7 @@ game:
   graphics:
     webgl_fallback: WebGPU is unavailable. Using WebGL 2 compatibility rendering.
   interaction:
+    pat_slime: Pat slime
     ring_bell: Ring bell
     smash_bridge: Smash bridge
     collect_flower: Collect flowers

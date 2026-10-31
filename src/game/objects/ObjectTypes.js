@@ -41,6 +41,10 @@
  * @property {import("../GameContracts.js").GameMapData["islandConnectorData"]} [topology]
  * @property {import("../GameContracts.js").CastleLayout} [navigation]
  * @property {Point3} [position]
+ * @property {string} [directorId] Commander owning a spawned creature.
+ * @property {Partial<import("../waves/wave-config.js").WAVE_CONFIG>} [waveConfig] Enemy economy and wave pacing overrides.
+ * @property {boolean} [autoplay] Enable automatic wave purchases, default true.
+ * @property {string} [gatewayId] Enemy enters through this authored Gateway before normal behavior.
  * @property {number} [level] Block bottom elevation when position is omitted.
  * @property {boolean} [generated]
  * @property {RenderCommand} [geometry]
@@ -119,6 +123,7 @@
  * @property {{horizontal: boolean, station: number, cells: Array<{col: number, row: number}>, removedCells: Array<{col: number, row: number}>, nearIsland: string[], farIsland: string[], islands?: string[][]}} [islandConnectorData]
  * @property {{position: {col: number, row: number, width: number, depth: number}}} [castle]
  * @typedef {object} MapObjectRuntime
+ * @property {(definition: MapObjectDefinition) => MapObjectLike|null} [spawnObject] Registers, initializes and owns a runtime-authored object.
  * @property {import("../audio/GameAudioLibrary.js").GameAudioLibrary} [audioLibrary]
  * @property {(definition: MapObjectDefinition) => MapObjectLike} [createObject] Creates a registered child object owned by its container.
  * @property {Array<import("playcanvas").Material>} [materials]

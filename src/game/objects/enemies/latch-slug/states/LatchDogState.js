@@ -1,13 +1,24 @@
 import { LATCH_SLUG_ANIMATION as ANIMATION } from "../LatchSlugAnimation.js";
 import { State } from "yuka";
 import { LatchPressState } from "./LatchPressState.js";
+import { LatchSeekState } from "./LatchSeekState.js";
 
 export class LatchDogState extends State {
+  /**
+   * @type {string}
+   */
+  #phase = ANIMATION.SIT_DOWN;
+  /**
+   * @type {number}
+   */
+  #age = 0;
   /**
    * @param {import("../LatchSlug.js").LatchSlug} owner
    */
   enter(owner) {
     owner.stateAge = 0;
+    this.#phase = ANIMATION.SIT_DOWN;
+    this.#age = 0;
     owner.playClip(ANIMATION.SIT_DOWN);
     owner.stop();
   }
@@ -16,22 +27,66 @@ export class LatchDogState extends State {
    * @param {import("../LatchSlug.js").LatchSlug} owner
    */
   execute(owner) {
+    this.#age += owner.deltaTime;
     const door = owner.nearbyDoor;
-    if (door && door.openAmount <= 0.001 && !door.jammed) {
+    if (door && door.openAmount <= 0.001) {
+      if (owner.approachDoor(door)) {
+        owner.playClip(ANIMATION.WADDLE_WALK);
+
+        return;
+      }
       owner.doorTarget = door;
       owner.behavior.changeTo(LatchPressState.name);
 
       return;
     }
-    const royal = owner.resolveRoyalTarget();
-    if (royal && owner.distanceTo(royal) > 1.1) {
-      owner.playClip(ANIMATION.FOLLOW);
-      owner.moveToward(royal, 0.9);
-    } else {
-      owner.stop();
-      owner.playClip(owner.stateAge < 0.6 ? ANIMATION.SIT_DOWN : ANIMATION.SIT_LOOP);
-      // Restriction only: never invokes a royal's damage or game-over API.
-      owner.limitNearbyMovement(0.65);
+    const companion = owner.resolvePackTarget();
+    if (!companion) {
+      owner.behavior.changeTo(LatchSeekState.name);
+
+      return;
     }
+    if (owner.affection.patRemaining > 0) {
+      owner.stop();
+      owner.faceTarget(owner.runtime.getHero?.() ?? companion);
+      owner.playClip(ANIMATION.ANTENNA_WAG);
+
+      return;
+    }
+    const distance = owner.distanceTo(companion);
+    if (this.#phase === ANIMATION.FOLLOW) {
+      if (distance > 0.95) {
+        owner.followTarget(companion, distance > 3 ? 1.35 : 0.9);
+        owner.playClip(distance > 3 ? ANIMATION.WADDLE_RUN : ANIMATION.FOLLOW);
+
+        return;
+      }
+      this.#setPhase(owner, ANIMATION.SIT_DOWN);
+    } else if (distance > 1.6 && this.#phase !== ANIMATION.STAND_UP) {
+      this.#setPhase(owner, ANIMATION.STAND_UP);
+    }
+    owner.stop();
+    owner.faceTarget(companion);
+    if (this.#phase === ANIMATION.STAND_UP && this.#age >= 0.6) {
+      this.#setPhase(owner, ANIMATION.FOLLOW);
+    } else if (this.#phase === ANIMATION.SIT_DOWN && this.#age >= 0.6) {
+      this.#setPhase(owner, owner.elapsed < owner.pack.greetingUntil ? ANIMATION.ANTENNA_WAG : ANIMATION.SIT_LOOP);
+    } else if (this.#phase === ANIMATION.SIT_LOOP && this.#age >= 2.4) {
+      this.#setPhase(owner, ANIMATION.ANTENNA_WAG);
+    } else if (this.#phase === ANIMATION.ANTENNA_WAG && this.#age >= 1.2) {
+      this.#setPhase(owner, ANIMATION.PANT);
+    } else if (this.#phase === ANIMATION.PANT && this.#age >= 2) {
+      this.#setPhase(owner, ANIMATION.SIT_LOOP);
+    }
+  }
+
+  /**
+   * @param {import("../LatchSlug.js").LatchSlug} owner
+   * @param {string} phase
+   */
+  #setPhase(owner, phase) {
+    this.#phase = phase;
+    this.#age = 0;
+    owner.playClip(phase);
   }
 }

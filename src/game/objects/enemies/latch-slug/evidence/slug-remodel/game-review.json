@@ -1,0 +1,14 @@
+{
+  "behavior": {
+    "alive": true,
+    "distance": 0.9360228776320756,
+    "state": "LatchDogState",
+    "royalRate": 0.65
+  },
+  "splat": {
+    "alive": false,
+    "jammed": true,
+    "state": "LatchDeadState"
+  },
+  "errors": []
+}

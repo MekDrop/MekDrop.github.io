@@ -1,0 +1,72 @@
+{
+  "status": "passed",
+  "date": "2026-10-31",
+  "rangeTiles": 3,
+  "lineOfSight": "Native Ammo raycast excludes the hero and slug hierarchies; other colliders block attention.",
+  "visual": "Front and three-quarter recordings inspected; eye stalks turn toward both hero positions and relax at distance.",
+  "tests": 35,
+  "scopedEslint": "passed",
+  "runtime": {
+    "results": [
+      {
+        "view": 0,
+        "label": "right",
+        "tracking": true,
+        "reason": "watching hero",
+        "yaw": -64.99998216615909,
+        "weight": 0.9999999584928443
+      },
+      {
+        "view": 0,
+        "label": "left",
+        "tracking": true,
+        "reason": "watching hero",
+        "yaw": 64.99989059626787,
+        "weight": 0.9999999999999999
+      },
+      {
+        "view": 0,
+        "label": "far",
+        "tracking": false,
+        "reason": "out of range",
+        "yaw": 64.9999978943062,
+        "weight": 0.0001493825638362205
+      },
+      {
+        "view": 1,
+        "label": "right",
+        "tracking": true,
+        "reason": "watching hero",
+        "yaw": -64.99990163894017,
+        "weight": 0.9999998700616433
+      },
+      {
+        "view": 1,
+        "label": "left",
+        "tracking": true,
+        "reason": "watching hero",
+        "yaw": 64.99992049300577,
+        "weight": 0.9999999999999998
+      },
+      {
+        "view": 1,
+        "label": "far",
+        "tracking": false,
+        "reason": "out of range",
+        "yaw": 64.9999976541566,
+        "weight": 0.00013970185686301706
+      },
+      {
+        "label": "wall",
+        "tracking": false,
+        "reason": "blocked"
+      },
+      {
+        "label": "wall removed",
+        "tracking": true,
+        "reason": "watching hero"
+      }
+    ],
+    "errors": []
+  }
+}

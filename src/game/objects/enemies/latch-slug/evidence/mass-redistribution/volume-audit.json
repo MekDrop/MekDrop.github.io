@@ -1,0 +1,248 @@
+[
+  {
+    "node": "Slug adhesive variant 0",
+    "samples": [
+      {
+        "frame": 8,
+        "volume": 0.04105825936104319,
+        "referenceVolume": 0.04105825936104319,
+        "thicknessRatio": 1
+      },
+      {
+        "frame": 61,
+        "volume": 0.04105825915089903,
+        "referenceVolume": 0.04105825936104319,
+        "thicknessRatio": 0.9835755862295628
+      },
+      {
+        "frame": 121,
+        "volume": 0.041058261251382046,
+        "referenceVolume": 0.04105825936104319,
+        "thicknessRatio": 0.9518250189721584
+      },
+      {
+        "frame": 241,
+        "volume": 0.04105825782441538,
+        "referenceVolume": 0.04105825936104319,
+        "thicknessRatio": 0.8672679513692856
+      },
+      {
+        "frame": 421,
+        "volume": 0.041058260598141924,
+        "referenceVolume": 0.04105825936104319,
+        "thicknessRatio": 0.7515437602996826
+      },
+      {
+        "frame": 601,
+        "volume": 0.04105826091073171,
+        "referenceVolume": 0.04105825936104319,
+        "thicknessRatio": 0.6779009103775024
+      }
+    ]
+  },
+  {
+    "node": "Slug adhesive variant 1",
+    "samples": [
+      {
+        "frame": 8,
+        "volume": 0.03485994074839484,
+        "referenceVolume": 0.03485994074839484,
+        "thicknessRatio": 1
+      },
+      {
+        "frame": 61,
+        "volume": 0.03485994052796349,
+        "referenceVolume": 0.03485994074839484,
+        "thicknessRatio": 0.9946573795750737
+      },
+      {
+        "frame": 121,
+        "volume": 0.03485993988769537,
+        "referenceVolume": 0.03485994074839484,
+        "thicknessRatio": 0.9799991957843304
+      },
+      {
+        "frame": 241,
+        "volume": 0.03485994068127096,
+        "referenceVolume": 0.03485994074839484,
+        "thicknessRatio": 0.9247976168990135
+      },
+      {
+        "frame": 421,
+        "volume": 0.034859940233290164,
+        "referenceVolume": 0.03485994074839484,
+        "thicknessRatio": 0.8345940262079239
+      },
+      {
+        "frame": 601,
+        "volume": 0.03485994143978325,
+        "referenceVolume": 0.03485994074839484,
+        "thicknessRatio": 0.7746037244796753
+      }
+    ]
+  },
+  {
+    "node": "Slug adhesive variant 2",
+    "samples": [
+      {
+        "frame": 8,
+        "volume": 0.024373022000181776,
+        "referenceVolume": 0.024373022000181776,
+        "thicknessRatio": 1
+      },
+      {
+        "frame": 61,
+        "volume": 0.024373022583110308,
+        "referenceVolume": 0.024373022000181776,
+        "thicknessRatio": 0.9890685174614191
+      },
+      {
+        "frame": 121,
+        "volume": 0.02437302161457063,
+        "referenceVolume": 0.024373022000181776,
+        "thicknessRatio": 0.9652783796191216
+      },
+      {
+        "frame": 241,
+        "volume": 0.024373021839055917,
+        "referenceVolume": 0.024373022000181776,
+        "thicknessRatio": 0.8926672115921974
+      },
+      {
+        "frame": 421,
+        "volume": 0.024373022421372542,
+        "referenceVolume": 0.024373022000181776,
+        "thicknessRatio": 0.786378338932991
+      },
+      {
+        "frame": 601,
+        "volume": 0.024373021452700653,
+        "referenceVolume": 0.024373022000181776,
+        "thicknessRatio": 0.718389481306076
+      }
+    ]
+  },
+  {
+    "node": "Slug adhesive variant 3",
+    "samples": [
+      {
+        "frame": 8,
+        "volume": 0.02670693047940627,
+        "referenceVolume": 0.02670693047940627,
+        "thicknessRatio": 1
+      },
+      {
+        "frame": 61,
+        "volume": 0.026706930409517413,
+        "referenceVolume": 0.02670693047940627,
+        "thicknessRatio": 0.9874399993568659
+      },
+      {
+        "frame": 121,
+        "volume": 0.026706930422923342,
+        "referenceVolume": 0.02670693047940627,
+        "thicknessRatio": 0.9642214067280293
+      },
+      {
+        "frame": 241,
+        "volume": 0.026706931061741965,
+        "referenceVolume": 0.02670693047940627,
+        "thicknessRatio": 0.9048816412687302
+      },
+      {
+        "frame": 421,
+        "volume": 0.02670693011877266,
+        "referenceVolume": 0.02670693047940627,
+        "thicknessRatio": 0.8213348388671875
+      },
+      {
+        "frame": 601,
+        "volume": 0.02670693084965459,
+        "referenceVolume": 0.02670693047940627,
+        "thicknessRatio": 0.7646234035491943
+      }
+    ]
+  },
+  {
+    "node": "Slug adhesive variant 4",
+    "samples": [
+      {
+        "frame": 8,
+        "volume": 0.03160831292849079,
+        "referenceVolume": 0.03160831292849079,
+        "thicknessRatio": 1
+      },
+      {
+        "frame": 61,
+        "volume": 0.03160831265376676,
+        "referenceVolume": 0.03160831292849079,
+        "thicknessRatio": 0.9765096306800842
+      },
+      {
+        "frame": 121,
+        "volume": 0.03160831351056074,
+        "referenceVolume": 0.03160831292849079,
+        "thicknessRatio": 0.9340260997414589
+      },
+      {
+        "frame": 241,
+        "volume": 0.03160831226889785,
+        "referenceVolume": 0.03160831292849079,
+        "thicknessRatio": 0.8314783722162247
+      },
+      {
+        "frame": 421,
+        "volume": 0.03160831089315682,
+        "referenceVolume": 0.03160831292849079,
+        "thicknessRatio": 0.7018365263938904
+      },
+      {
+        "frame": 601,
+        "volume": 0.03160831318752514,
+        "referenceVolume": 0.03160831292849079,
+        "thicknessRatio": 0.6224739253520966
+      }
+    ]
+  },
+  {
+    "node": "Slug adhesive variant 5",
+    "samples": [
+      {
+        "frame": 8,
+        "volume": 0.027173700591217678,
+        "referenceVolume": 0.027173700591217678,
+        "thicknessRatio": 1
+      },
+      {
+        "frame": 61,
+        "volume": 0.027173700210662205,
+        "referenceVolume": 0.027173700591217678,
+        "thicknessRatio": 0.9935127156786621
+      },
+      {
+        "frame": 121,
+        "volume": 0.027173699998261188,
+        "referenceVolume": 0.027173700591217678,
+        "thicknessRatio": 0.9742725659161806
+      },
+      {
+        "frame": 241,
+        "volume": 0.02717370098203814,
+        "referenceVolume": 0.027173700591217678,
+        "thicknessRatio": 0.8998849838972092
+      },
+      {
+        "frame": 421,
+        "volume": 0.027173699329493112,
+        "referenceVolume": 0.027173700591217678,
+        "thicknessRatio": 0.7832775115966797
+      },
+      {
+        "frame": 601,
+        "volume": 0.02717370094369145,
+        "referenceVolume": 0.027173700591217678,
+        "thicknessRatio": 0.7100991010665894
+      }
+    ]
+  }
+]

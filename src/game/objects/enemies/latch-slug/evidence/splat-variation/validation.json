@@ -1,0 +1,153 @@
+{
+  "date": "2026-10-30",
+  "status": "verified",
+  "route": "http://127.0.0.1:9005/map/test_enemy-latch-slug",
+  "change": "Six authored asymmetric shapes with two to five differently placed beads and connected strands. A shuffled set avoids repeats across cycle boundaries; each impact also gets continuous width, height, thickness and flow-speed variation.",
+  "comparison": "Six consecutive production impacts at the same sampled leaf point, camera and elapsed age (8 s), leaving the splash randomization unmodified. Only the chosen authored node is enabled.",
+  "trials": [
+    {
+      "impact": 1,
+      "shape": "Tall pear",
+      "id": 1,
+      "drips": 3,
+      "width": 1.1108716333275264,
+      "height": 0.9253711942243448,
+      "thickness": 1.091143737641233,
+      "speed": 1.096380080917152,
+      "stopTime": 20,
+      "clip": "adhesive_ooze_1",
+      "visibleNodes": [
+        "Slug adhesive variant 1"
+      ],
+      "shaderGrowth": 0,
+      "effectInstances": 1,
+      "passed": true
+    },
+    {
+      "impact": 2,
+      "shape": "Double lobe",
+      "id": 3,
+      "drips": 2,
+      "width": 0.8942628730176096,
+      "height": 0.8647484580548773,
+      "thickness": 1.10138451251656,
+      "speed": 1.0847245592000594,
+      "stopTime": 20,
+      "clip": "adhesive_ooze_3",
+      "visibleNodes": [
+        "Slug adhesive variant 3"
+      ],
+      "shaderGrowth": 0,
+      "effectInstances": 1,
+      "passed": true
+    },
+    {
+      "impact": 3,
+      "shape": "Broad left-heavy",
+      "id": 0,
+      "drips": 2,
+      "width": 0.8903463817634659,
+      "height": 1.0774107959876942,
+      "thickness": 0.8303561207104725,
+      "speed": 1.2094143116743687,
+      "stopTime": 16,
+      "clip": "adhesive_ooze_0",
+      "visibleNodes": [
+        "Slug adhesive variant 0"
+      ],
+      "shaderGrowth": 0,
+      "effectInstances": 1,
+      "passed": true
+    },
+    {
+      "impact": 4,
+      "shape": "Low spreading smear",
+      "id": 4,
+      "drips": 3,
+      "width": 1.0200781806256038,
+      "height": 1.0601625324932655,
+      "thickness": 1.3046058454946423,
+      "speed": 0.8935401798658337,
+      "stopTime": 16,
+      "clip": "adhesive_ooze_4",
+      "visibleNodes": [
+        "Slug adhesive variant 4"
+      ],
+      "shaderGrowth": 0,
+      "effectInstances": 1,
+      "passed": true
+    },
+    {
+      "impact": 5,
+      "shape": "Uneven fan",
+      "id": 2,
+      "drips": 4,
+      "width": 0.8494303257002421,
+      "height": 0.8734770496448088,
+      "thickness": 0.7953662101329436,
+      "speed": 1.0900757782460908,
+      "stopTime": 20,
+      "clip": "adhesive_ooze_2",
+      "visibleNodes": [
+        "Slug adhesive variant 2"
+      ],
+      "shaderGrowth": 0,
+      "effectInstances": 1,
+      "passed": true
+    },
+    {
+      "impact": 6,
+      "shape": "Narrow ragged",
+      "id": 5,
+      "drips": 5,
+      "width": 1.079718581231024,
+      "height": 1.0395926667387432,
+      "thickness": 1.0600308233233027,
+      "speed": 0.9008353276532295,
+      "stopTime": 20,
+      "clip": "adhesive_ooze_5",
+      "visibleNodes": [
+        "Slug adhesive variant 5"
+      ],
+      "shaderGrowth": 0,
+      "effectInstances": 1,
+      "passed": true
+    }
+  ],
+  "sideView": {
+    "shape": "Broad left-heavy",
+    "clearing": {
+      "hit": true,
+      "cleared": true,
+      "jammed": false,
+      "active": false
+    },
+    "remainingEffectInstances": 0,
+    "video": "grazing.mp4"
+  },
+  "checks": {
+    "focusedUnitTests": {
+      "passed": 37,
+      "failed": 0
+    },
+    "eslint": "passed",
+    "freshImport": "Six nodes and matching clips, sampled at 1/8/16 seconds with finite geometry.",
+    "runtimeErrors": [],
+    "floorSafety": "Each shape uses bounds sampled from its own authored clip, scaled for that impact, with 8 cm clearance."
+  },
+  "preview": {
+    "mode": "RGBA",
+    "visiblePixels": 32876,
+    "transparentPixels": 229268,
+    "translucentPixels": 11246,
+    "margin": 94
+  },
+  "hashes": {
+    "blend": "75336f9af131a518936316695ee792efbf3f9d227e24b403179f1aab73b574df",
+    "glb": "66abb8e53bdc3664ed384200ef05dd4f20aed82956bf7c0804e4fb87e6144ed7",
+    "profiles": "e39000496dc6746f1be06abb13f7accc8a7661b3c7fd96e0b7379939d58188d3"
+  },
+  "comparisonImage": "in-game-comparison.png",
+  "video": "comparison.mp4",
+  "videoEdit": "18-second comparison: the last 3 seconds from each of six full recordings, with timestamps rebased for concatenation. Full original views and alternate-angle recording retained."
+}

@@ -1,0 +1,65 @@
+{
+  "status": "passed",
+  "date": "2026-10-30",
+  "route": "/map/test_enemy-latch-slug",
+  "behavior": [
+    "Localized translucent buildup follows approaching enemy",
+    "Body fades in while physically crossing the portal",
+    "Crossing ripple and pooled spray settle afterward",
+    "Normal enemy behavior resumes after arrival"
+  ],
+  "integration": "Shared enemy lifecycle; authored gatewayId or nearby gateway discovery; native Ammo velocity drives travel.",
+  "trials": [
+    {
+      "view": "head-on",
+      "entitiesBefore": 28051,
+      "entitiesAfter": 28051,
+      "shadersBefore": 115,
+      "shadersAfter": 115,
+      "restoredMaterials": true,
+      "restoredPhysics": true,
+      "arrivalSeconds": 2.5760000000000014,
+      "visibleApproach": true
+    },
+    {
+      "view": "oblique",
+      "entitiesBefore": 28051,
+      "entitiesAfter": 28051,
+      "shadersBefore": 115,
+      "shadersAfter": 115,
+      "restoredMaterials": true,
+      "restoredPhysics": true,
+      "arrivalSeconds": 2.5758999999999994,
+      "visibleApproach": true
+    }
+  ],
+  "runtimeErrors": [],
+  "focusedTests": {
+    "passed": 42,
+    "failed": 0
+  },
+  "scopedEslint": "passed",
+  "hud": {
+    "replay": "passed after initial arrival completed",
+    "cameraFraming": "visually verified at gate",
+    "followRoyal": "passed",
+    "evidence": "hud-replay.png"
+  },
+  "preview": {
+    "visiblePixels": 72123,
+    "transparentPixels": 190021,
+    "margin": 75,
+    "format": "RGBA PNG, straight alpha, actual production rendering, isolated complete gate"
+  },
+  "video": {
+    "file": "comparison.mp4",
+    "durationSeconds": 7.033008,
+    "views": [
+      "head-on",
+      "oblique"
+    ],
+    "playback": "native speed; two complete fixed-camera arrivals",
+    "runtimeMaterialsRestored": true,
+    "physicsRestored": true
+  }
+}

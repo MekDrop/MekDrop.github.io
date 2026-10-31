@@ -1,13 +1,14 @@
 {
   "enemy": "LatchSlug",
   "slug": "latch-slug",
-  "status": "incomplete-scene-initialization-stalled",
-  "date": "2026-10-22",
-  "reference": "info.png",
+  "status": "denser-jelly-and-grass-occlusion-verified",
+  "date": "2026-10-31",
+  "reference": "src/game/models/enemies/latch-slug/provenance/approved-faceted-jelly-concept.png",
   "referenceReview": {
     "viewed": true,
-    "subject": "Main left portrait: squat faceted resin-green dog-slug, amber shell and head, four paws, curled antennae and tail, square cream-rimmed black eyes, pink tongue",
-    "actualModelComparison": "Inspected original and locally refined front, side, rear and three-quarter renders. Identity, faceted amber head/antennae/tail, eyes/tongue/paws and green resin panels match closely; body is opaque textured green rather than volumetrically translucent. Local axes, rig and materials refined; no replacement generation."
+    "subject": "A native slug in the angular game world. Dog is a behavioral nickname, not hybrid anatomy.",
+    "actualModelComparison": "New Tripo skin from the user-selected first faceted jelly concept. Round translucent yellow body with current sensory head, an authored 17-bone skeleton, 30 embedded clips and drifting cloud density.",
+    "originalConceptSubject": "Main left portrait: squat faceted resin-green dog-slug, amber shell and head, four paws, curled antennae and tail, square cream-rimmed black eyes, pink tongue"
   },
   "provider": {
     "name": "Tripo3D",
@@ -34,7 +35,7 @@
     "originalProviderOutput": "src/game/models/enemies/latch-slug/provenance/provider-original.glb",
     "blend": "src/game/models/enemies/latch-slug/latch-slug.blend",
     "glb": "src/game/models/enemies/latch-slug/latch-slug.glb",
-    "preview": null
+    "preview": "src/game/objects/enemies/latch-slug/preview.png"
   },
   "yukaStates": [
     "LatchSeekState",
@@ -42,34 +43,14 @@
     "LatchPressState",
     "LatchReactionState",
     "LatchDeadState",
-    "LatchClipState"
+    "LatchClipState",
+    "LatchLeapState"
   ],
   "checks": {
     "focusedUnitTests": {
-      "passed": 12,
+      "passed": 53,
       "failed": 0,
-      "command": "node --test --test-isolation=none test/unit/game/objects/enemies/latch-slug/latch-slug.test.js test/unit/game/objects/architecture/door/door-jam.test.js",
-      "coverage": [
-        "real Yuka states and actual royal target resolution",
-        "zero outgoing door/royal damage",
-        "open door survival and movement restriction",
-        "door transitions during press and inflation",
-        "premature splat on closed-door bell; open-door bell survival",
-        "bell deduplication and secondary event rejection",
-        "pickup/stun interrupts windup",
-        "source-owned glue expiry and early clearing",
-        "death prevents healing/carry/jamming/status",
-        "slow capability produces reduced shared Enemy horizontal velocity",
-        "throw velocity handed to body without runtime trajectory integration",
-        "fatal splat disables root rigidbody and nested collisions",
-        "jam preserves existing door pose under opening APIs; clear restores movement"
-      ]
-    },
-    "doorRegression": {
-      "passed": 19,
-      "failed": 1,
-      "failure": "holds a swinging door until a visible NPC clears its leaf: idle !== wait",
-      "baseline": "Same failure reproduced using git HEAD Door.js with current surrounding checkout files; no original test or DoorPlacement changes made."
+      "command": "node --test --test-isolation=none test/unit/game/objects/enemies/latch-slug/latch-door-surface.test.js test/unit/game/objects/enemies/latch-slug/latch-splash-volume.test.js test/unit/game/objects/enemies/latch-slug/latch-splash-variations.test.js test/unit/game/objects/enemies/latch-slug/latch-slug.test.js test/unit/game/objects/enemies/latch-slug/latch-slug-facing.test.js test/unit/game/objects/architecture/door/door-jam.test.js test/unit/game/objects/architecture/door/door-collision-filter.test.js test/unit/game/objects/architecture/door/door-damage-collision.test.js test/unit/game/audio/game-audio-library.test.js test/unit/game/audio/game-object-audio.test.js"
     },
     "artReview": "Opened refined front, rear, right, hero views and top-view clip contact sheet; further contact/deformation close-up review required.",
     "freshGlbClipSampling": {
@@ -86,41 +67,311 @@
       "evidence": "evidence/clip-samples.json",
       "note": "Changing sampled geometry and matching clip names are not complete visual or playback acceptance."
     },
-    "actualGamePlayback": "Retry: original dynamic-module error resolved; scene remains at Raising the terrain with no logged browser errors. Per-clip production check added but not run.",
-    "actualGamePhysics": "not-verified",
-    "transparentPreview": "Still not captured because the production scene does not finish initialization."
+    "actualGamePlayback": "Behavior recordings reviewed from front, side and rear; no full 27-clip art audit claimed.",
+    "actualGamePhysics": "Repeated closed-leaf contact splats with persistent forward heading; open-flight cancellation lands, recovers and resumes pursuit.",
+    "transparentPreview": {
+      "mode": "RGBA",
+      "visiblePixels": 33513,
+      "transparentPixels": 228631,
+      "translucentPixels": 32756,
+      "margin": 93
+    },
+    "behaviorVerification": "evidence/behavior-verification.json",
+    "latestDoorLeap": "evidence/topology-flow/validation.json",
+    "audio": {
+      "passed": true,
+      "evidence": "evidence/audio-sourced/validation.json",
+      "video": "evidence/audio-sourced/in-game.mp4",
+      "source": "https://opengameart.org/content/40-cc0-water-splash-slime-sfx",
+      "author": "rubberduck",
+      "license": "CC0-1.0",
+      "synthesized": false
+    },
+    "bodyAndTrail": {
+      "status": "passed",
+      "evidence": "evidence/body-trail/validation.json"
+    },
+    "tripoJelly": {
+      "status": "passed",
+      "date": "2026-10-31",
+      "route": "/map/test_enemy-latch-slug",
+      "approvedReference": "src/game/models/enemies/latch-slug/provenance/approved-faceted-jelly-concept.png",
+      "provider": {
+        "name": "Tripo3D Studio",
+        "job": "abd845a0-95d7-41d8-9fe5-eaf5e6e6862e",
+        "browser": "Opera",
+        "creditsAuthorized": 55,
+        "creditsUsed": 55
+      },
+      "asset": {
+        "status": "passed",
+        "vertices": 19500,
+        "triangles": 6500,
+        "skinJoints": [
+          "root",
+          "body",
+          "belly_front",
+          "belly_L",
+          "belly_R",
+          "belly_rear",
+          "head",
+          "antenna_L",
+          "antenna_R",
+          "feeler_L",
+          "feeler_R",
+          "tongue",
+          "paw_front_L",
+          "paw_front_R",
+          "paw_rear_L",
+          "paw_rear_R",
+          "tail"
+        ],
+        "clips": [
+          "airborne",
+          "antenna_wag",
+          "carried_ready",
+          "death",
+          "door_press",
+          "follow",
+          "hit",
+          "idle_dog",
+          "inflate_loop",
+          "inflate_start",
+          "knockback",
+          "land",
+          "land_recover",
+          "leap_apex",
+          "leap_fall",
+          "leap_rise",
+          "nudge",
+          "pant",
+          "recover",
+          "scoot",
+          "sit_down",
+          "sit_loop",
+          "sniff",
+          "stand_up",
+          "startled",
+          "stun",
+          "terminal_splat",
+          "turn",
+          "waddle_run",
+          "waddle_walk"
+        ],
+        "maximumWeightSumError": 1.3224780559539795e-7,
+        "sourceBytesMatch": true,
+        "sourceSha256": "3eef5d97be275ed7f76b3e13d941093c7566c3143950f3426b0eba4ed787fe6e",
+        "glbSha256": "74a830a7b87654757d524b9cd4c95eb3460ffb219e06474f3a1752e1a4c26b57"
+      },
+      "skeleton": {
+        "bones": 17,
+        "deforming": 11,
+        "maximumInfluences": 4,
+        "editableSource": "src/game/models/enemies/latch-slug/latch-slug.blend",
+        "diagnostic": "skeleton.png"
+      },
+      "motion": {
+        "authoredClips": 30,
+        "nativeAmmoTrajectory": true,
+        "riseApexFallFromVerticalVelocity": true,
+        "landingDurationSeconds": 0.67,
+        "ascendingContactRegression": "passed",
+        "secondaryBellyDeformation": true
+      },
+      "cloud": {
+        "visiblePixels": 39930,
+        "changedPixels": 16940,
+        "changedFraction": 0.42424242424242425,
+        "meanAlphaChange": 6.287678437265214,
+        "bodyPose": "Frozen across two captures with identical visible pixel masks",
+        "method": "Five depth samples of a slowly advected 3D density field; density changes opacity and colour, with bounded motion lag and landing response.",
+        "shaders": [
+          "GLSL",
+          "WGSL"
+        ],
+        "testedBackend": "WebGL2",
+        "webgpuRuntime": "not run"
+      },
+      "runtime": {
+        "trials": [
+          {
+            "view": "three-quarter",
+            "entitiesBefore": 28098,
+            "entitiesAfter": 28098,
+            "shadersBefore": 117,
+            "shadersAfter": 117,
+            "clips": [
+              "idle_dog",
+              "inflate_start",
+              "leap_rise",
+              "leap_fall",
+              "land",
+              "land_recover",
+              "waddle_walk"
+            ],
+            "ascendingLanding": false
+          },
+          {
+            "view": "side",
+            "entitiesBefore": 28098,
+            "entitiesAfter": 28098,
+            "shadersBefore": 117,
+            "shadersAfter": 117,
+            "clips": [
+              "idle_dog",
+              "inflate_start",
+              "airborne",
+              "leap_rise",
+              "leap_apex",
+              "leap_fall",
+              "land",
+              "land_recover",
+              "waddle_walk"
+            ],
+            "ascendingLanding": false
+          }
+        ],
+        "gates": [
+          {
+            "view": 0,
+            "entitiesStable": true,
+            "shadersStable": true,
+            "materialsRestored": true,
+            "physicsFactor": "[1, 1, 1]"
+          },
+          {
+            "view": 1,
+            "entitiesStable": true,
+            "shadersStable": true,
+            "materialsRestored": true,
+            "physicsFactor": "[1, 1, 1]"
+          }
+        ],
+        "errors": []
+      },
+      "door": {
+        "result": {
+          "alive": false,
+          "jammed": true,
+          "bodyDisabled": true,
+          "clip": "leap_fall"
+        },
+        "errors": []
+      },
+      "preview": {
+        "visiblePixels": 39930,
+        "transparentPixels": 222214,
+        "margin": 110,
+        "file": "../../preview.png",
+        "encoding": "straight-alpha RGBA, full actual production object, no scenery or HUD"
+      },
+      "checks": {
+        "focusedTestsPassed": 43,
+        "focusedTestsFailed": 0,
+        "scopedEslint": "passed",
+        "diffWhitespace": "passed",
+        "freshGlbImport": "passed",
+        "jointAndWeightValidation": "passed",
+        "visualReview": "Native-speed recordings inspected from three-quarter and side cameras; full object stays in frame; compressed takeoff, airborne stretch and landing recovery visible."
+      },
+      "recordings": {
+        "main": "motion-and-clouds.mp4",
+        "door": "door-splat.mp4",
+        "views": [
+          "view-0.mp4",
+          "view-1.mp4"
+        ]
+      }
+    },
+    "jellyOpacity": {
+      "status": "passed",
+      "evidence": "evidence/opacity-floor/validation.json"
+    },
+    "heroGaze": {
+      "status": "passed",
+      "evidence": "evidence/hero-gaze/validation.json"
+    },
+    "friendlyPack": {
+      "status": "passed",
+      "evidence": "evidence/friendly-pack/validation.json"
+    },
+    "affectionAndEyeReach": {
+      "status": "passed",
+      "evidence": "evidence/affection-and-eye-reach/validation.json"
+    },
+    "cuteEyes": {
+      "status": "passed",
+      "evidence": "evidence/cute-eyes/validation.json"
+    }
+  },
+  "raisedDoorStairs": {
+    "status": "passed",
+    "evidence": "evidence/raised-door-stairs/validation.json"
+  },
+  "slimeStairCrawl": {
+    "status": "passed",
+    "evidence": "evidence/slime-stairs/validation.json"
+  },
+  "threePhaseStairTransfer": {
+    "status": "passed",
+    "evidence": "evidence/three-phase-stairs/validation.json"
+  },
+  "surfaceContactStairs": {
+    "status": "passed",
+    "evidence": "evidence/surface-contact-stairs/validation.json"
+  },
+  "consistentStairTransfer": {
+    "status": "passed",
+    "evidence": "evidence/consistent-stair-transfer/validation.json"
+  },
+  "continuousStairClimb": {
+    "status": "passed",
+    "evidence": "evidence/continuous-stair-climb/validation.json"
+  },
+  "portalClipping": {
+    "status": "passed",
+    "evidence": "evidence/portal-clipping/validation.json"
+  },
+  "portalPressure": {
+    "status": "passed",
+    "evidence": "../../gateway/evidence/arrival-pressure/validation.json"
+  },
+  "mergedMassAndGroundTrail": {
+    "status": "passed",
+    "evidence": "evidence/merged-mass-trail/validation.json"
   },
   "registration": true,
   "testMap": "src/game/maps/tests/enemy-latch-slug.json",
   "intendedTestMapUrl": "/map/test_enemy-latch-slug",
-  "remaining": [
-    "Resolve scene initialization stall and run Verify all clips through the saved test-map HUD",
-    "Verify contacts, loop seams, blends, foot sliding, time scaling and interruption transitions; sampled geometry alone does not complete this",
-    "Capture actual production-renderer transparent preview.png",
-    "Verify actual-map spawn coordinates, Ammo movement/contact/throw and royal approach",
-    "Finish authored residue visuals and player-facing clearing interaction; current clear API/HUD is programmatic",
-    "Verify slow effect with actual hero/royal recipients and implement missing capability integration if needed",
-    "Improve navigation around castle obstacles beyond direct royal pursuit"
-  ],
+  "remaining": [],
   "retry": {
-    "date": "2026-10-22",
-    "otherEnemyChatsInactive": true,
-    "originalModuleErrorResolved": true,
-    "route": "http://localhost:9000/map/test_enemy-latch-slug",
-    "observedStage": "Raising the terrain… Building the map scene…",
-    "browsers": [
-      "Opera",
-      "visible in-app browser"
-    ],
+    "date": "2026-10-30",
+    "route": "http://127.0.0.1:9006/map/test_enemy-latch-slug",
+    "observedStage": "Continuous posed-body impact, conserved volume, topology-reactive downward flow; entrance, opposing angle and interior reviewed",
     "loggedErrors": [],
-    "alternateServer": "Previously observed 127.0.0.1:9024 is now connection refused",
-    "newControls": [
-      "Verify all clips: samples actual model joints, finite animation time and exported track duration, then downloads JSON",
-      "Beside entrance: collision-body teleport and camera framing"
-    ],
-    "royal": "Added actual King through objects[] with castleIndex 0 and seed 1",
-    "playbackExecuted": false,
-    "previewCaptured": false,
-    "note": "No model generation or provider spend during this retry. Scene initialization prevents the HUD controls from being exercised. Foreground/user inspection of the live test page is needed before further runtime acceptance."
+    "previewCaptured": true
+  },
+  "historicalDoorRegression": {
+    "date": "2026-10-22",
+    "passed": 19,
+    "failed": 1,
+    "failure": "holds a swinging door until a visible NPC clears its leaf: idle !== wait",
+    "baseline": "Same failure reproduced using git HEAD Door.js with current surrounding checkout files; no original test or DoorPlacement changes made."
+  },
+  "outsideBehaviorScope": [
+    "Full visual audit of all 27 animation clips, including deformation, foot sliding and loop seams."
+  ],
+  "historicalConceptReference": "info.png",
+  "modelRevision": {
+    "date": "2026-10-30",
+    "authorship": "Local Blender mesh rebuild and pose grounding; original provider output retained as provenance only.",
+    "evidence": "evidence/slug-remodel/validation.json",
+    "video": "evidence/topology-flow/comparison.mp4",
+    "latestPaletteAndLeap": "evidence/yellow-door-leap/validation.json",
+    "latestPresentation": "evidence/topology-flow/validation.json"
+  },
+  "localCoalescence": {
+    "status": "passed",
+    "evidence": "evidence/local-coalescence/validation.json"
   }
 }

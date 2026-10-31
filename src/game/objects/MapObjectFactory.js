@@ -94,9 +94,11 @@ import { Bridge } from "./path/Bridge.js";
 import { SpawnPoint } from "./shared/SpawnPoint.js";
 import { IslandConnector } from "./scenery/IslandConnector.js";
 import { MapObjectDefinitions } from "./MapObjectDefinitions.js";
+import { EnemyWaveDirector } from "./wave-director/EnemyWaveDirector.js";
 import { Enemy } from "./enemies/shared/Enemy.js";
 
 const OBJECT_CLASSES = new Map([
+  [EnemyWaveDirector.name, EnemyWaveDirector],
   [Table.name, Table],
   [WarMapDrawing.name, WarMapDrawing],
   [StraightStaircase.name, StraightStaircase],
@@ -232,7 +234,7 @@ export class MapObjectFactory {
     // runtime. Cloning it per object rebuilds the whole canopy for every tile.
     const runtime = options.runtime ?? {};
     runtime.createObject ??= /**
-     * @param {import("./ObjectTypes.js").MapObjectDefinition} definition
+   * @param {import("./ObjectTypes.js").MapObjectDefinition} definition
      */ (definition) => MapObjectFactory.create({
         ...options,
         definition,
@@ -264,7 +266,7 @@ export class MapObjectFactory {
   static surfaceLiftForTile(type) {
     return Math.max(0, ...[...new Set(OBJECT_CLASSES.values())].map(
       /**
-       * @param {MapObjectConstructor} ObjectClass
+   * @param {MapObjectConstructor} ObjectClass
        */
       (ObjectClass) => ObjectClass.surfaceLiftForTile?.(type) ?? 0));
   }
@@ -297,7 +299,6 @@ export class MapObjectFactory {
   }
 
   /**
-   *
    * @returns {Array<string>}
    */
   static get modelUrls() {
@@ -360,7 +361,6 @@ export class MapObjectFactory {
   }
 
   /**
-   *
    * @param {{pc: typeof import("playcanvas"), app: import("playcanvas").Application, modelLibrary: import("src/game/models/GameModelLibrary.js").GameModelLibrary, definitions: Array<{id: string, object: string, position?: {x: number, y: number, z: number}}>, runtime: import("src/game/objects/ObjectTypes.js").MapObjectRuntime, onCreate: (mapObject: import("src/game/objects/ObjectTypes.js").MapObjectLike) => void}} options
    * @param {typeof import("playcanvas")} options.pc
    * @param {import("playcanvas").Application} options.app
@@ -386,6 +386,50 @@ export class MapObjectFactory {
     onCreate = () => {},
   }) {
     const objects = [];
+    /**
+     * @param {import("./ObjectTypes.js").MapObjectDefinition} definition
+     */
+    runtime.spawnObject = (definition) => {
+      const map = runtime.mapData;
+      const duplicate = map?.objects.some(/**
+   * @param {import("./ObjectTypes.js").MapObjectDefinition} item
+       */
+        item => item.id === definition.id);
+      if (!map || duplicate) {
+        return null;
+      }
+      map.objects.push(definition);
+      let spawned;
+      try {
+        spawned = MapObjectFactory.create({
+          pc,
+          app,
+          modelLibrary,
+          definition,
+          runtime,
+        });
+        runtime.root.addChild(spawned.entity);
+        spawned.onSceneReady?.();
+        onCreate(spawned);
+        spawned.entity.once("destroy", () => {
+          runtime.objects.remove?.(spawned);
+          map.objects = map.objects.filter(/**
+   * @param {import("./ObjectTypes.js").MapObjectDefinition} item
+           */
+            item => item !== definition);
+          runtime.onObjectRemoved?.(spawned);
+        });
+
+        return spawned;
+      } catch (error) {
+        spawned?.destroy();
+        map.objects = map.objects.filter(/**
+   * @param {import("./ObjectTypes.js").MapObjectDefinition} item
+         */
+          item => item !== definition);
+        throw error;
+      }
+    };
     for (const ObjectClass of new Set(OBJECT_CLASSES.values())) {
       if (Object.hasOwn(ObjectClass, "prepareRuntime")) {
         ObjectClass.prepareRuntime(runtime);
@@ -448,7 +492,6 @@ export class MapObjectFactory {
   }
 
   /**
-   *
    * @param {MapObjectConstructor} ObjectClass
    */
   static #flatMapObjectClass(ObjectClass) {
@@ -459,7 +502,6 @@ export class MapObjectFactory {
   }
 
   /**
-   *
    * @param {{definition: import("src/game/objects/ObjectTypes.js").MapObjectDefinition}} options
    * @param {import("src/game/objects/ObjectTypes.js").MapObjectDefinition} options.definition
    */

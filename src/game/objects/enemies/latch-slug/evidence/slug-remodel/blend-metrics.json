@@ -1,0 +1,430 @@
+{
+  "actions": [
+    {
+      "frame_end": 31.0,
+      "frame_start": 1.0,
+      "name": "airborne",
+      "users": 1
+    },
+    {
+      "frame_end": 37.0,
+      "frame_start": 1.0,
+      "name": "antenna_wag",
+      "users": 1
+    },
+    {
+      "frame_end": 37.0,
+      "frame_start": 1.0,
+      "name": "carried_ready",
+      "users": 1
+    },
+    {
+      "frame_end": 34.0,
+      "frame_start": 1.0,
+      "name": "death",
+      "users": 1
+    },
+    {
+      "frame_end": 19.0,
+      "frame_start": 1.0,
+      "name": "door_press",
+      "users": 1
+    },
+    {
+      "frame_end": 28.0,
+      "frame_start": 1.0,
+      "name": "follow",
+      "users": 1
+    },
+    {
+      "frame_end": 13.0,
+      "frame_start": 1.0,
+      "name": "hit",
+      "users": 1
+    },
+    {
+      "frame_end": 61.0,
+      "frame_start": 1.0,
+      "name": "idle_dog",
+      "users": 1
+    },
+    {
+      "frame_end": 37.0,
+      "frame_start": 1.0,
+      "name": "inflate_loop",
+      "users": 1
+    },
+    {
+      "frame_end": 19.0,
+      "frame_start": 1.0,
+      "name": "inflate_start",
+      "users": 1
+    },
+    {
+      "frame_end": 19.0,
+      "frame_start": 1.0,
+      "name": "knockback",
+      "users": 1
+    },
+    {
+      "frame_end": 10.0,
+      "frame_start": 1.0,
+      "name": "land",
+      "users": 1
+    },
+    {
+      "frame_end": 13.0,
+      "frame_start": 1.0,
+      "name": "land_recover",
+      "users": 1
+    },
+    {
+      "frame_end": 22.0,
+      "frame_start": 1.0,
+      "name": "nudge",
+      "users": 1
+    },
+    {
+      "frame_end": 31.0,
+      "frame_start": 1.0,
+      "name": "pant",
+      "users": 1
+    },
+    {
+      "frame_end": 21.0,
+      "frame_start": 1.0,
+      "name": "recover",
+      "users": 1
+    },
+    {
+      "frame_end": 22.0,
+      "frame_start": 1.0,
+      "name": "scoot",
+      "users": 1
+    },
+    {
+      "frame_end": 19.0,
+      "frame_start": 1.0,
+      "name": "sit_down",
+      "users": 1
+    },
+    {
+      "frame_end": 61.0,
+      "frame_start": 1.0,
+      "name": "sit_loop",
+      "users": 1
+    },
+    {
+      "frame_end": 37.0,
+      "frame_start": 1.0,
+      "name": "sniff",
+      "users": 1
+    },
+    {
+      "frame_end": 19.0,
+      "frame_start": 1.0,
+      "name": "stand_up",
+      "users": 1
+    },
+    {
+      "frame_end": 21.0,
+      "frame_start": 1.0,
+      "name": "startled",
+      "users": 1
+    },
+    {
+      "frame_end": 37.0,
+      "frame_start": 1.0,
+      "name": "stun",
+      "users": 1
+    },
+    {
+      "frame_end": 22.0,
+      "frame_start": 1.0,
+      "name": "terminal_splat",
+      "users": 1
+    },
+    {
+      "frame_end": 22.0,
+      "frame_start": 1.0,
+      "name": "turn",
+      "users": 1
+    },
+    {
+      "frame_end": 21.0,
+      "frame_start": 1.0,
+      "name": "waddle_run",
+      "users": 1
+    },
+    {
+      "frame_end": 31.0,
+      "frame_start": 1.0,
+      "name": "waddle_walk",
+      "users": 1
+    }
+  ],
+  "blender": {
+    "background": true,
+    "build_hash": "9e2066aef7ef",
+    "version": "5.2.1 LTS",
+    "version_tuple": [
+      5,
+      2,
+      1
+    ]
+  },
+  "hard_gate_pass": true,
+  "input": "C:\\Users\\mekdr\\Documents\\Projects\\MekDrop.github.io\\src\\game\\models\\enemies\\latch-slug\\latch-slug.blend",
+  "issues": [],
+  "material_details": [
+    {
+      "image_texture_nodes": 0,
+      "images": [],
+      "name": "Continuous crawling foot",
+      "node_count": 2,
+      "use_nodes": true
+    },
+    {
+      "image_texture_nodes": 0,
+      "images": [],
+      "name": "Resin flecks",
+      "node_count": 2,
+      "use_nodes": true
+    },
+    {
+      "image_texture_nodes": 0,
+      "images": [],
+      "name": "Slug mantle - olive",
+      "node_count": 2,
+      "use_nodes": true
+    },
+    {
+      "image_texture_nodes": 0,
+      "images": [],
+      "name": "Slug skin - moss resin",
+      "node_count": 2,
+      "use_nodes": true
+    },
+    {
+      "image_texture_nodes": 0,
+      "images": [],
+      "name": "Slug skin - shaded folds",
+      "node_count": 2,
+      "use_nodes": true
+    },
+    {
+      "image_texture_nodes": 0,
+      "images": [],
+      "name": "Slug skin - sunlit jade",
+      "node_count": 2,
+      "use_nodes": true
+    },
+    {
+      "image_texture_nodes": 0,
+      "images": [],
+      "name": "Tentacle eye tips",
+      "node_count": 2,
+      "use_nodes": true
+    },
+    {
+      "image_texture_nodes": 3,
+      "images": [
+        "latch-slug-tripo-original_basecolor.jpg",
+        "latch-slug-tripo-original_normal.png",
+        "latch-slug-tripo-original_rm.jpg"
+      ],
+      "name": "tripo_material_75d4835f-ef4e-42c8-ba1d-3f5ec0730f3f",
+      "node_count": 7,
+      "use_nodes": true
+    }
+  ],
+  "materials": [
+    "Continuous crawling foot",
+    "Resin flecks",
+    "Slug mantle - olive",
+    "Slug skin - moss resin",
+    "Slug skin - shaded folds",
+    "Slug skin - sunlit jade",
+    "Tentacle eye tips",
+    "tripo_material_75d4835f-ef4e-42c8-ba1d-3f5ec0730f3f"
+  ],
+  "meshes": [
+    {
+      "boundary_edges": 0,
+      "connected_components": 14,
+      "data_name": "Slug continuous body mesh",
+      "degenerate_faces": 0,
+      "edges": 1582,
+      "flat_polygons": 996,
+      "invalid_vertices": 0,
+      "isolated_vertices": 0,
+      "material_slots": [
+        "Slug skin - moss resin",
+        "Slug skin - sunlit jade",
+        "Slug skin - shaded folds",
+        "Slug mantle - olive",
+        "Continuous crawling foot",
+        "Tentacle eye tips",
+        "Resin flecks"
+      ],
+      "missing_material_faces": 0,
+      "modifiers": [
+        {
+          "name": "Existing gameplay rig",
+          "type": "ARMATURE"
+        }
+      ],
+      "name": "LatchSlug - continuous foot and mantle",
+      "non_manifold_edges": 0,
+      "polygons": 996,
+      "refinement_modifiers": [],
+      "shape_keys": 0,
+      "smooth_polygon_ratio": 0.0,
+      "smooth_polygons": 0,
+      "source_polygons": 996,
+      "source_vertices": 614,
+      "triangles": 1172,
+      "uv_layers": 0,
+      "vertex_groups": 11,
+      "vertices": 614,
+      "weighted_vertices": 614,
+      "wire_edges": 0,
+      "world_bounds": [
+        [
+          -0.328,
+          -0.69,
+          0.025
+        ],
+        [
+          0.328,
+          0.491091,
+          0.634
+        ]
+      ],
+      "zero_length_edges": 0
+    }
+  ],
+  "objects": [
+    {
+      "action": null,
+      "collections": [
+        "Scene Collection"
+      ],
+      "dimensions": [
+        0.656,
+        1.181091,
+        0.609
+      ],
+      "hidden_render": false,
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "name": "LatchSlug - continuous foot and mantle",
+      "parent": "LatchSlugRig",
+      "rotation_euler": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "transform_is_finite": true,
+      "type": "MESH"
+    },
+    {
+      "action": null,
+      "collections": [
+        "Scene Collection"
+      ],
+      "dimensions": [
+        0.54,
+        0.71,
+        0.72
+      ],
+      "hidden_render": false,
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "name": "LatchSlugRig",
+      "parent": null,
+      "rotation_euler": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "transform_is_finite": true,
+      "type": "ARMATURE"
+    }
+  ],
+  "scene": {
+    "bounds": {
+      "dimensions": [
+        0.656,
+        1.181091,
+        0.609
+      ],
+      "max": [
+        0.328,
+        0.491091,
+        0.634
+      ],
+      "min": [
+        -0.328,
+        -0.69,
+        0.025
+      ]
+    },
+    "fps": 30.0,
+    "frame_end": 61,
+    "frame_start": 1,
+    "name": "Scene"
+  },
+  "schema_version": 3,
+  "totals": {
+    "actions": 27,
+    "armatures": 1,
+    "bones": 11,
+    "boundary_edges": 0,
+    "cameras": 0,
+    "constraints": 0,
+    "degenerate_faces": 0,
+    "edges": 1582,
+    "flat_polygons": 996,
+    "geometry_nodes_modifiers": 0,
+    "images": 3,
+    "invalid_vertices": 0,
+    "isolated_vertices": 0,
+    "lights": 0,
+    "materials": 8,
+    "mesh_objects": 1,
+    "missing_material_faces": 0,
+    "node_materials": 8,
+    "non_manifold_edges": 0,
+    "objects": 2,
+    "polygons": 996,
+    "refinement_modifiers": 0,
+    "rigid_body_objects": 0,
+    "shape_keys": 0,
+    "simulation_modifiers": 0,
+    "smooth_polygons": 0,
+    "textured_materials": 1,
+    "triangles": 1172,
+    "uv_mapped_meshes": 0,
+    "vertices": 614,
+    "weighted_meshes": 1,
+    "wire_edges": 0,
+    "zero_length_edges": 0
+  }
+}

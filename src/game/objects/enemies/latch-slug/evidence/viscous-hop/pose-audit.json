@@ -1,0 +1,212 @@
+[
+  {
+    "clip": "airborne",
+    "finite": true,
+    "distinctPoses": 5,
+    "minZ": -0.14287956058979034,
+    "maxZ": 0.6121131181716919
+  },
+  {
+    "clip": "antenna_wag",
+    "finite": true,
+    "distinctPoses": 3,
+    "minZ": 0.022197864949703217,
+    "maxZ": 0.6567072868347168
+  },
+  {
+    "clip": "carried_ready",
+    "finite": true,
+    "distinctPoses": 3,
+    "minZ": -0.060014501214027405,
+    "maxZ": 0.5799843072891235
+  },
+  {
+    "clip": "death",
+    "finite": true,
+    "distinctPoses": 5,
+    "minZ": 0.014965549111366272,
+    "maxZ": 0.7987838983535767
+  },
+  {
+    "clip": "door_press",
+    "finite": true,
+    "distinctPoses": 5,
+    "minZ": 0.00942077673971653,
+    "maxZ": 0.7582043409347534
+  },
+  {
+    "clip": "follow",
+    "finite": true,
+    "distinctPoses": 4,
+    "minZ": 0.02500000037252903,
+    "maxZ": 0.67667156457901
+  },
+  {
+    "clip": "hit",
+    "finite": true,
+    "distinctPoses": 4,
+    "minZ": 0.014999998733401299,
+    "maxZ": 0.6359246969223022
+  },
+  {
+    "clip": "idle_dog",
+    "finite": true,
+    "distinctPoses": 3,
+    "minZ": 0.022197864949703217,
+    "maxZ": 0.6592810153961182
+  },
+  {
+    "clip": "inflate_loop",
+    "finite": true,
+    "distinctPoses": 3,
+    "minZ": 0.015000013634562492,
+    "maxZ": 0.7731416821479797
+  },
+  {
+    "clip": "inflate_start",
+    "finite": true,
+    "distinctPoses": 5,
+    "minZ": 0.00942077673971653,
+    "maxZ": 0.7582043409347534
+  },
+  {
+    "clip": "knockback",
+    "finite": true,
+    "distinctPoses": 4,
+    "minZ": 0.014967426657676697,
+    "maxZ": 0.635674238204956
+  },
+  {
+    "clip": "land",
+    "finite": true,
+    "distinctPoses": 5,
+    "minZ": 0.011999977752566338,
+    "maxZ": 0.6141893267631531
+  },
+  {
+    "clip": "land_recover",
+    "finite": true,
+    "distinctPoses": 5,
+    "minZ": 0.011999976821243763,
+    "maxZ": 0.6089016199111938
+  },
+  {
+    "clip": "leap_apex",
+    "finite": true,
+    "distinctPoses": 5,
+    "minZ": -0.03112628497183323,
+    "maxZ": 0.6627119183540344
+  },
+  {
+    "clip": "leap_fall",
+    "finite": true,
+    "distinctPoses": 5,
+    "minZ": -0.15317489206790924,
+    "maxZ": 0.6771852970123291
+  },
+  {
+    "clip": "leap_rise",
+    "finite": true,
+    "distinctPoses": 5,
+    "minZ": -0.21735182404518127,
+    "maxZ": 0.9549278616905212
+  },
+  {
+    "clip": "nudge",
+    "finite": true,
+    "distinctPoses": 4,
+    "minZ": 0.014996392652392387,
+    "maxZ": 0.6396863460540771
+  },
+  {
+    "clip": "pant",
+    "finite": true,
+    "distinctPoses": 3,
+    "minZ": 0.02221246063709259,
+    "maxZ": 0.6591477990150452
+  },
+  {
+    "clip": "recover",
+    "finite": true,
+    "distinctPoses": 5,
+    "minZ": 0.02492513880133629,
+    "maxZ": 0.6726037859916687
+  },
+  {
+    "clip": "scoot",
+    "finite": true,
+    "distinctPoses": 4,
+    "minZ": 0.024999985471367836,
+    "maxZ": 0.6493940353393555
+  },
+  {
+    "clip": "sit_down",
+    "finite": true,
+    "distinctPoses": 5,
+    "minZ": 0.014999673701822758,
+    "maxZ": 0.6434663534164429
+  },
+  {
+    "clip": "sit_loop",
+    "finite": true,
+    "distinctPoses": 3,
+    "minZ": 0.01499997265636921,
+    "maxZ": 0.6623930335044861
+  },
+  {
+    "clip": "sniff",
+    "finite": true,
+    "distinctPoses": 4,
+    "minZ": 0.02500000037252903,
+    "maxZ": 0.6714283227920532
+  },
+  {
+    "clip": "stand_up",
+    "finite": true,
+    "distinctPoses": 5,
+    "minZ": 0.014999695122241974,
+    "maxZ": 0.650975227355957
+  },
+  {
+    "clip": "startled",
+    "finite": true,
+    "distinctPoses": 4,
+    "minZ": 0.014999998733401299,
+    "maxZ": 0.6359246969223022
+  },
+  {
+    "clip": "stun",
+    "finite": true,
+    "distinctPoses": 3,
+    "minZ": 0.02041603811085224,
+    "maxZ": 0.6394568681716919
+  },
+  {
+    "clip": "terminal_splat",
+    "finite": true,
+    "distinctPoses": 5,
+    "minZ": 0.014999985694885254,
+    "maxZ": 0.7640700340270996
+  },
+  {
+    "clip": "turn",
+    "finite": true,
+    "distinctPoses": 4,
+    "minZ": 0.02500000037252903,
+    "maxZ": 0.6493940353393555
+  },
+  {
+    "clip": "waddle_run",
+    "finite": true,
+    "distinctPoses": 3,
+    "minZ": 0.02500000037252903,
+    "maxZ": 0.6890280246734619
+  },
+  {
+    "clip": "waddle_walk",
+    "finite": true,
+    "distinctPoses": 3,
+    "minZ": 0.02500000037252903,
+    "maxZ": 0.6766417026519775
+  }
+]

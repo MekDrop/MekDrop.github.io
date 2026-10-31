@@ -3117,7 +3117,7 @@ export class PlayCanvasRenderer {
       return;
     }
     let target = null;
-    for (const provider of this.#interactionProviders) {
+    for (const provider of this.#sceneObjects.getWithMethod("findInteraction")) {
       const candidate = provider.findInteraction({
         hero,
         onChange: this.#refreshInteractionTarget,

@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-31",
+  "status": "passed",
+  "map": "/map/test_enemy-wave-director",
+  "checks": [
+    {
+      "view": "front",
+      "status": "passed",
+      "completedTreads": 3,
+      "doorSplat": true
+    },
+    {
+      "view": "opposite",
+      "status": "passed",
+      "completedTreads": 3,
+      "doorSplat": true
+    }
+  ],
+  "tests": {
+    "passed": 69,
+    "failed": 0
+  },
+  "preview": {
+    "visiblePixels": 41480,
+    "transparentPixels": 220664,
+    "margin": 102
+  },
+  "behavior": [
+    "Front reaches and anchors while the capsule waits on the lower tread.",
+    "During native capsule transfer, front remains on the upper tread, rear remains below, and middle controls adhere to the sampled riser.",
+    "Rear pulls beyond the riser onto the upper tread, then the body gathers before starting the next reach."
+  ],
+  "timing": {
+    "reach": 0.5,
+    "transfer": "ends at native capsule upper-tread height",
+    "rearPull": 0.55,
+    "settle": 0.22
+  },
+  "notes": "World anchors deform the authored rig only; Ammo moves the capsule. Closed door verified after three completed tread cycles. Rejected an extra settle-position gate that could stall against the closed leaf."
+}

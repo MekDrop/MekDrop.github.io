@@ -1,5 +1,9 @@
 uniform float uTime;
 uniform vec3 uColor;
+uniform float uArrivalStrength;
+uniform float uArrivalAge;
+uniform vec2 uArrivalCenter;
+uniform vec2 uArrivalRadius;
 
 varying vec2 vUv;
 varying float vSurfaceWave;
@@ -56,5 +60,13 @@ void main(void) {
       0.32 + broadFlow * 0.08 + rippleCrest * 0.1 + pulse * 0.16 +
       edgeGlow * 0.12;
 
-  gl_FragColor = vec4(color, min(alpha, 0.72));
+  vec2 arrivalOffset = (vUv - uArrivalCenter) / uArrivalRadius;
+  float arrivalDistance = length(arrivalOffset);
+  float approach = exp(-arrivalDistance * arrivalDistance * 0.7) * uArrivalStrength;
+  float crossingRadius = uArrivalAge * 4.0;
+  float crossing = (1.0 - smoothstep(0.0, 0.17, abs(arrivalDistance - crossingRadius))) *
+      max(0.0, 1.0 - uArrivalAge / 1.2) * step(0.0, uArrivalAge);
+  color = mix(color, mix(uColor, vec3(0.85, 0.96, 1.0), 0.65), approach * 0.45 + crossing * 0.7);
+  alpha += approach * (0.08 + fineFlow * 0.09) + crossing * 0.26;
+  gl_FragColor = vec4(color, min(alpha, 0.78));
 }

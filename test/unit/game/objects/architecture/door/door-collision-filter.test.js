@@ -23,12 +23,19 @@ test("moving doors skip static manifolds while retaining picking, swing queries 
   const material = new pc.StandardMaterial();
   const mesh = pc.Mesh.fromGeometry(device, new pc.BoxGeometry({ halfExtents: new pc.Vec3(0.5, 1, 0.05) }));
   const door = new pc.Entity("door");
+  const hinge = new pc.Entity("moving door hinge");
+  door.addChild(hinge);
   const plank = new pc.Entity("door plank");
-  door.addChild(plank);
+  hinge.addChild(plank);
   app.root.addChild(door);
   plank.setLocalPosition(0, 1, 0);
   plank.addComponent("render", { meshInstances: [new pc.MeshInstance(mesh, material, plank)] });
+  const iron = new pc.Entity("iron brace");
+  hinge.addChild(iron);
+  iron.addComponent("render", { meshInstances: [new pc.MeshInstance(mesh, material, iron)] });
+  iron.render.enabled = false; // Original geometry remains after batching.
   const collision = createDoorCollision(pc, door);
+  assert.deepEqual(collision.getSurfaceMeshes(), [plank.render.meshInstances[0], iron.render.meshInstances[0]]);
   const leaf = plank.children[0];
   const wall = new pc.Entity("masonry");
   app.root.addChild(wall);

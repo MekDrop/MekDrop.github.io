@@ -1,0 +1,156 @@
+{
+  "date": "2026-10-31",
+  "status": "passed",
+  "checks": [
+    {
+      "side": "front",
+      "steps": [
+        {
+          "index": 1,
+          "rise": 0.2500002384185791,
+          "frontReach": 0.3500000000000001,
+          "rearReach": 0.3500000000000001,
+          "runs": [
+            0.8,
+            0.6499999999999999
+          ],
+          "span": [
+            -0.3500000000000001,
+            0.6000002384185792,
+            -0.3499998093381479,
+            0.35000000003676035
+          ],
+          "bindSpan": [
+            0.4901767373085022,
+            -0.4901522099971771
+          ]
+        },
+        {
+          "index": 2,
+          "rise": 0.25,
+          "frontReach": 0.3499999999999997,
+          "rearReach": 0.3499999999999997,
+          "runs": [
+            0.5,
+            0.6499999999999999
+          ],
+          "span": [
+            -0.3499999999999997,
+            0.5999999999999996,
+            -0.3499998095079207,
+            0.3500004769685628
+          ],
+          "bindSpan": [
+            0.4901767373085022,
+            -0.4901522099971771
+          ]
+        },
+        {
+          "index": 3,
+          "rise": 0.2499997615814209,
+          "frontReach": 0.35000000000000026,
+          "rearReach": 0.35000000000000026,
+          "runs": [
+            0.5,
+            0.6499999999999999
+          ],
+          "span": [
+            -0.35000000000000026,
+            0.5999997615814212,
+            -0.3500002864865088,
+            0.3500000002004609
+          ],
+          "bindSpan": [
+            0.4901767373085022,
+            -0.4901522099971771
+          ]
+        }
+      ],
+      "status": "passed"
+    },
+    {
+      "side": "opposite",
+      "steps": [
+        {
+          "index": 1,
+          "rise": 0.25,
+          "frontReach": 0.3499999999999998,
+          "rearReach": 0.3499999999999998,
+          "runs": [
+            0.8,
+            0.6499999999999999
+          ],
+          "span": [
+            -0.3499999999999998,
+            0.5999999999999999,
+            -0.350000286151608,
+            0.35000000003659665
+          ],
+          "bindSpan": [
+            0.4901767373085022,
+            -0.4901522099971771
+          ]
+        },
+        {
+          "index": 2,
+          "rise": 0.25,
+          "frontReach": 0.35000000000000037,
+          "rearReach": 0.35000000000000037,
+          "runs": [
+            0.5,
+            0.6499999999999999
+          ],
+          "span": [
+            -0.35000000000000037,
+            0.6000000000000003,
+            -0.35000028621369816,
+            0.34999952322830274
+          ],
+          "bindSpan": [
+            0.4901767373085022,
+            -0.4901522099971771
+          ]
+        },
+        {
+          "index": 3,
+          "rise": 0.25,
+          "frontReach": 0.34999999999999903,
+          "rearReach": 0.3499999999999999,
+          "runs": [
+            0.5,
+            0.6499999999999999
+          ],
+          "span": [
+            -0.3499999999999999,
+            0.599999999999999,
+            -0.34999980955713283,
+            0.35000000016410354
+          ],
+          "bindSpan": [
+            0.4901767373085022,
+            -0.4901522099971771
+          ]
+        }
+      ],
+      "status": "passed"
+    }
+  ],
+  "tests": {
+    "passed": 70,
+    "failed": 0
+  },
+  "runtimeErrors": [],
+  "preview": {
+    "visiblePixels": 41481,
+    "transparentPixels": 220663,
+    "margin": 102
+  },
+  "findings": [
+    "Zero-speed reach was deriving a heading from a zero vector and rotating the creature; the reach now stops horizontal movement without changing heading, and the existing native facing API aligns Ammo once at contact setup.",
+    "Animated bone spacing and double deformation varied the surface mapping; the contact skin now uses stable authored body coordinates.",
+    "Surface-normal direction changed abruptly at the corners; the contact offset now rotates smoothly.",
+    "A legacy whole-body squash was reapplied between transfers; its handoff is suppressed.",
+    "The lower height and contact offsets now come from actual treads and fixed equal-tread reaches, rather than drifting capsule height or variable look-ahead samples."
+  ],
+  "visualReview": "Rejected the intermediate strip-collapse recording. Dense final frames and both camera videos reviewed; three cycles complete and the closed-door splat still follows."
+}

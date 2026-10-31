@@ -1,0 +1,311 @@
+{
+  "status": "passed",
+  "date": "2026-10-31",
+  "configuration": {
+    "initialCoins": 5000,
+    "creature": "LatchSlug",
+    "cost": 15,
+    "preparationSeconds": 3,
+    "waveSize": 3,
+    "waveIntervalSeconds": 20,
+    "maxActive": 12,
+    "maxQueued": 12,
+    "killReward": 50,
+    "breakReward": 10
+  },
+  "runtime": {
+    "initial": {
+      "coins": 5000,
+      "clock": 1.688099999999999,
+      "wave": 0,
+      "earned": 0,
+      "spent": 0,
+      "controllerId": "ai",
+      "nextSequence": 1,
+      "gates": [
+        "gateway-0",
+        "gateway-1"
+      ],
+      "offers": [
+        {
+          "creature": "LatchSlug",
+          "cost": 15,
+          "spawnSeconds": 3
+        }
+      ],
+      "queue": [],
+      "active": 0,
+      "maxActive": 12,
+      "maxQueued": 12
+    },
+    "views": [
+      {
+        "view": 0,
+        "queued": {
+          "coins": 4955,
+          "clock": 5.077699999999999,
+          "wave": 1,
+          "earned": 0,
+          "spent": 45,
+          "controllerId": "ai",
+          "nextSequence": 4,
+          "gates": [
+            "gateway-0",
+            "gateway-1"
+          ],
+          "offers": [
+            {
+              "creature": "LatchSlug",
+              "cost": 15,
+              "spawnSeconds": 3
+            }
+          ],
+          "queue": [
+            {
+              "orderId": "ai:1",
+              "creature": "LatchSlug",
+              "gateId": "gateway-0",
+              "cost": 15,
+              "readyAt": 8.0243
+            },
+            {
+              "orderId": "ai:2",
+              "creature": "LatchSlug",
+              "gateId": "gateway-1",
+              "cost": 15,
+              "readyAt": 8.0243
+            },
+            {
+              "orderId": "ai:3",
+              "creature": "LatchSlug",
+              "gateId": "gateway-0",
+              "cost": 15,
+              "readyAt": 11.0243
+            }
+          ],
+          "active": 0,
+          "maxActive": 12,
+          "maxQueued": 12
+        },
+        "after": {
+          "snapshot": {
+            "coins": 4955,
+            "clock": 16.422299999999964,
+            "wave": 1,
+            "earned": 0,
+            "spent": 45,
+            "controllerId": "ai",
+            "nextSequence": 4,
+            "gates": [
+              "gateway-0",
+              "gateway-1"
+            ],
+            "offers": [
+              {
+                "creature": "LatchSlug",
+                "cost": 15,
+                "spawnSeconds": 3
+              }
+            ],
+            "queue": [],
+            "active": 3,
+            "maxActive": 12,
+            "maxQueued": 12
+          },
+          "units": [
+            {
+              "id": "enemy-wave-director-ai:1",
+              "gate": "gateway-0",
+              "arrival": false,
+              "state": "LatchSeekState",
+              "p": [
+                10.459859848022461,
+                1.998717188835144,
+                -14.98981761932373
+              ],
+              "from": [
+                15.33,
+                2.03,
+                -15
+              ]
+            },
+            {
+              "id": "enemy-wave-director-ai:2",
+              "gate": "gateway-1",
+              "arrival": false,
+              "state": "LatchSeekState",
+              "p": [
+                -10.488924980163574,
+                1.9999912977218628,
+                -0.9999932646751404
+              ],
+              "from": [
+                -15.33,
+                2.025609641075134,
+                -1
+              ]
+            },
+            {
+              "id": "enemy-wave-director-ai:3",
+              "gate": "gateway-0",
+              "arrival": false,
+              "state": "LatchSeekState",
+              "p": [
+                12.981834411621094,
+                1.9997689723968506,
+                -14.991722106933594
+              ],
+              "from": [
+                15.33,
+                2.03,
+                -15
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "view": 1,
+        "queued": {
+          "coins": 4940,
+          "clock": 17.183199999999957,
+          "wave": 2,
+          "earned": 0,
+          "spent": 60,
+          "controllerId": "player-1",
+          "nextSequence": 2,
+          "gates": [
+            "gateway-0",
+            "gateway-1"
+          ],
+          "offers": [
+            {
+              "creature": "LatchSlug",
+              "cost": 15,
+              "spawnSeconds": 3
+            }
+          ],
+          "queue": [
+            {
+              "orderId": "player-1:1",
+              "creature": "LatchSlug",
+              "gateId": "gateway-1",
+              "cost": 15,
+              "readyAt": 20.02289999999996
+            }
+          ],
+          "active": 3,
+          "maxActive": 12,
+          "maxQueued": 12
+        },
+        "after": {
+          "snapshot": {
+            "coins": 4940,
+            "clock": 24.523699999999945,
+            "wave": 2,
+            "earned": 0,
+            "spent": 60,
+            "controllerId": "player-1",
+            "nextSequence": 2,
+            "gates": [
+              "gateway-0",
+              "gateway-1"
+            ],
+            "offers": [
+              {
+                "creature": "LatchSlug",
+                "cost": 15,
+                "spawnSeconds": 3
+              }
+            ],
+            "queue": [],
+            "active": 4,
+            "maxActive": 12,
+            "maxQueued": 12
+          },
+          "units": [
+            {
+              "id": "enemy-wave-director-ai:1",
+              "gate": "gateway-0",
+              "arrival": false,
+              "state": "LatchSeekState",
+              "p": [
+                3.5822248458862305,
+                1.9996174573898315,
+                -14.982685089111328
+              ],
+              "from": [
+                15.33,
+                2.03,
+                -15
+              ]
+            },
+            {
+              "id": "enemy-wave-director-ai:2",
+              "gate": "gateway-1",
+              "arrival": false,
+              "state": "LatchSeekState",
+              "p": [
+                -3.6026761531829834,
+                2,
+                -0.999999463558197
+              ],
+              "from": [
+                -15.33,
+                2.1178553390502928,
+                -1
+              ]
+            },
+            {
+              "id": "enemy-wave-director-ai:3",
+              "gate": "gateway-0",
+              "arrival": false,
+              "state": "LatchSeekState",
+              "p": [
+                6.09928560256958,
+                1.9990854263305664,
+                -14.979516983032227
+              ],
+              "from": [
+                15.33,
+                2.03,
+                -15
+              ]
+            },
+            {
+              "id": "enemy-wave-director-player-1:1",
+              "gate": "gateway-1",
+              "arrival": false,
+              "state": "LatchSeekState",
+              "p": [
+                -13.713555335998535,
+                1.9999805688858032,
+                -0.9999756813049316
+              ],
+              "from": [
+                -15.33,
+                2.1178553390502928,
+                -1
+              ]
+            }
+          ]
+        }
+      }
+    ],
+    "rewards": {
+      "before": 4940,
+      "nonlethal": 4940,
+      "broken": 4950,
+      "duplicate": 4950
+    },
+    "errors": []
+  },
+  "verification": {
+    "focusedTests": 76,
+    "scopedEslint": "passed",
+    "visual": "Both generated gate orientations recorded: preparation, membrane approach, real Ammo emergence, and continued grounded route movement. AI-to-player command handoff uses the same wallet and validation.",
+    "income": "Native door terminal damage test credited 10 once; nonlethal and repeated hits paid zero. Owned kill, forged ownership, self/team farming and duplicate credit covered by focused integration tests.",
+    "note": "The initial missing-terrain fixture and reversed gate-entry runs were rejected, fixed and replaced."
+  },
+  "networking": "Serializable authority plus interchangeable AI and player command inbox; transport/authentication intentionally remains a later integration."
+}

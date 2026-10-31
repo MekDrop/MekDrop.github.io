@@ -1,0 +1,26 @@
+{
+  "date": "2026-10-31",
+  "status": "passed",
+  "map": "/map/test_enemy-wave-director",
+  "pixelComparison": {
+    "front": {
+      "changedPixels": 27670,
+      "maxChannelDifference": 200
+    },
+    "back": {
+      "changedPixels": 0,
+      "maxChannelDifference": 0
+    }
+  },
+  "tests": {
+    "passed": 68,
+    "failed": 0
+  },
+  "runtimeErrors": [],
+  "preview": {
+    "visiblePixels": 44397,
+    "transparentPixels": 217747,
+    "margin": 100
+  },
+  "implementation": "Temporary arrival material clones wrap the original opacity chunks in both GLSL and WGSL. A world-space gate-plane discard removes the portion behind the membrane. A per-camera rear-side discard hides all emerging meshes, including opaque eyes and catchlights. Original materials, shadows and culling are restored at the end of entry. The portal membrane itself retains its existing presentation."
+}

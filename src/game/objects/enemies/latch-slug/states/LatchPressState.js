@@ -10,7 +10,8 @@ export class LatchPressState extends State {
   enter(owner) {
     owner.stateAge = 0;
     owner.stop();
-    owner.playClip(ANIMATION.DOOR_PRESS);
+    owner.faceTarget(owner.doorTarget);
+    owner.playClip(ANIMATION.INFLATE_START);
   }
 
   /**
@@ -18,7 +19,7 @@ export class LatchPressState extends State {
    */
   execute(owner) {
     const door = owner.doorTarget;
-    if (!door || door.jammed || owner.distanceTo(door) > 1.4) {
+    if (!door || door.broken || owner.distanceTo(door) > 5) {
       owner.doorTarget = null;
       owner.behavior.changeTo(LatchSeekState.name);
 
@@ -32,10 +33,12 @@ export class LatchPressState extends State {
       return;
     }
     owner.stop();
-    if (owner.stateAge >= 2.4) {
-      owner.splat();
+    if (owner.stateAge >= 0.35) {
+      if (!owner.beginDoorLeap()) {
+        owner.behavior.changeTo(LatchSeekState.name);
+      }
     } else {
-      owner.playClip(owner.stateAge < 0.6 ? ANIMATION.DOOR_PRESS : owner.stateAge < 1.2 ? ANIMATION.INFLATE_START : ANIMATION.INFLATE_LOOP);
+      owner.playClip(ANIMATION.INFLATE_START);
     }
   }
 }

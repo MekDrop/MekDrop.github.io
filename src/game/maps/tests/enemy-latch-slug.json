@@ -3705,8 +3705,8 @@
   "pipeData": [],
   "mergeZones": [],
   "trunkStart": null,
-  "mapName": "test_castle-entrance",
-  "layoutSignature": "test_castle-entrance",
+  "mapName": "test_enemy-latch-slug",
+  "layoutSignature": "test_enemy-latch-slug",
   "objects": [
     {
       "id": "entrance-castle",
@@ -3751,6 +3751,41 @@
       "object": "King",
       "castleIndex": 0,
       "seed": 1
+    },
+    {
+      "id": "slug-arrival-gate",
+      "object": "Gateway",
+      "entry": {
+        "col": 7,
+        "rows": [
+          9,
+          10
+        ],
+        "side": "RIGHT",
+        "color": 3857394
+      },
+      "symbol": "*"
+    },
+    {
+      "id": "slug-arrival-preview",
+      "object": "LatchSlug",
+      "gatewayId": "slug-arrival-gate",
+      "position": {
+        "x": -13.5,
+        "y": 2.04,
+        "z": -11
+      },
+      "testClip": "idle_dog"
+    },
+    {
+      "id": "friendly-servant",
+      "object": "Servant",
+      "animation": "idle",
+      "position": {
+        "x": 0,
+        "y": 2.04,
+        "z": -2.5
+      }
     }
   ],
   "animationViewport": {
@@ -3761,6 +3796,106 @@
   },
   "testControls": {
     "panels": [
+      {
+        "title": "Friendly pack",
+        "x": 16,
+        "y": 140,
+        "statusTargetId": "latch-slug",
+        "buttons": [
+          {
+            "label": "Meet in castle",
+            "script": "const servant=[...objects].find(o=>o.definition?.id==='friendly-servant');servant.entity.setPosition(-7,2.04,-12);const s=[...objects].find(o=>o.definition?.id==='latch-slug');for(const c of objects.getAll('castle'))for(const d of c.destructibleDoors)d.testOpenAmount=1;s.entity.rigidbody.teleport(0,2.04,-5);s.runtime.getHero().entity.rigidbody.teleport(0,2.04,-2.5);s.pack.leader=null;s.resumeBehavior();camera.setViewport({zoom:5,rotation:2,panX:0,panZ:-3.6});map.friendlyView?.off();const view=s.app.on('prerender',()=>{const c=s.runtime.camera;c.component.orthoHeight=1.65;c.entity.setPosition(-.45,3.35,-5.7);c.entity.lookAt(0,2.7,-3.6);s.patPresentation.hud.update();});s.entity.once('destroy',()=>view.off());map.friendlyView=view;"
+          },
+          {
+            "label": "Leader moves",
+            "script": "const s=[...objects].find(o=>o.definition?.id==='latch-slug');s.runtime.getHero().entity.rigidbody.teleport(.5,2.04,-5);"
+          },
+          {
+            "label": "Pat slime",
+            "script": "const s=[...objects].find(o=>o.definition?.id==='latch-slug');s.pat();"
+          },
+          {
+            "label": "Leader leaves grass",
+            "script": "const s=[...objects].find(o=>o.definition?.id==='latch-slug');s.runtime.getHero().entity.rigidbody.teleport(-7,2.04,-12);"
+          },
+          {
+            "label": "Meet servant",
+            "script": "const s=[...objects].find(o=>o.definition?.id==='latch-slug');s.runtime.getHero().entity.rigidbody.teleport(-7,2.04,-12);const servant=[...objects].find(o=>o.definition?.id==='friendly-servant');servant.entity.setPosition(0,2.04,-2.5);s.pack.leader=null;s.resumeBehavior();"
+          },
+          {
+            "label": "Release camera",
+            "script": "map.friendlyView?.off();camera.setViewport({zoom:5,rotation:2,panX:0,panZ:-3.6});"
+          }
+        ]
+      },
+      {
+        "title": "Hero attention",
+        "x": 16,
+        "y": 140,
+        "statusTargetId": "latch-slug",
+        "buttons": [
+          {
+            "label": "Hero left",
+            "script": "const s=[...objects].find(o=>o.definition?.id==='latch-slug');s.entity.rigidbody.teleport(0,2.04,-12);s.entity.setEulerAngles(0,0,0);s.testPlayClip('idle_dog');s.runtime.getHero().entity.rigidbody.teleport(-2,2.04,-12);camera.setViewport({zoom:7,rotation:2,panX:0,panZ:-12});"
+          },
+          {
+            "label": "Hero right",
+            "script": "const s=[...objects].find(o=>o.definition?.id==='latch-slug');s.entity.rigidbody.teleport(0,2.04,-12);s.entity.setEulerAngles(0,0,0);s.testPlayClip('idle_dog');s.runtime.getHero().entity.rigidbody.teleport(2,2.04,-12);camera.setViewport({zoom:7,rotation:2,panX:0,panZ:-12});"
+          },
+          {
+            "label": "Hero far",
+            "script": "const s=[...objects].find(o=>o.definition?.id==='latch-slug');s.entity.rigidbody.teleport(0,2.04,-12);s.entity.setEulerAngles(0,0,0);s.testPlayClip('idle_dog');s.runtime.getHero().entity.rigidbody.teleport(4.5,2.04,-12);camera.setViewport({zoom:7,rotation:2,panX:0,panZ:-12});"
+          },
+          {
+            "label": "Short stalks",
+            "script": "const s=[...objects].find(o=>o.definition?.id==='latch-slug');map.friendlyView?.off();s.entity.rigidbody.teleport(new s.pc.Vec3(0,2.04,-12),new s.pc.Vec3(0,0,0));s.testPlayClip('idle_dog');s.runtime.getHero().entity.rigidbody.teleport(1,2.04,-12);camera.setViewport({zoom:7,rotation:2,panX:0,panZ:-12});"
+          },
+          {
+            "label": "Long stalks",
+            "script": "const s=[...objects].find(o=>o.definition?.id==='latch-slug');map.friendlyView?.off();s.entity.rigidbody.teleport(new s.pc.Vec3(0,2.04,-12),new s.pc.Vec3(0,0,0));s.testPlayClip('idle_dog');s.runtime.getHero().entity.rigidbody.teleport(2.95,2.04,-12);camera.setViewport({zoom:7,rotation:2,panX:0,panZ:-12});"
+          }
+        ]
+      },
+      {
+        "title": "Jelly body",
+        "x": 16,
+        "y": 140,
+        "statusTargetId": "latch-slug",
+        "buttons": [
+          {
+            "label": "Watch jelly",
+            "script": "const s=[...objects].find(o=>o.definition?.id==='latch-slug');s.entity.rigidbody.teleport(0,2.04,-12);s.testPlayClip('idle_dog');const hero=s.runtime.getHero();hero.entity.rigidbody.teleport(-7,2.04,-12);camera.setViewport({zoom:7,rotation:2,panX:0,panZ:-12});"
+          },
+          {
+            "label": "Slime hop",
+            "script": "const s=[...objects].find(o=>o.definition?.id==='latch-slug');s.entity.rigidbody.teleport(0,2.04,-12);s.testPlayClip('inflate_start');const hero=s.runtime.getHero();hero.entity.rigidbody.teleport(-7,2.04,-12);camera.setViewport({zoom:7,rotation:2,panX:0,panZ:-12});map.jellyHop?.off();let age=0;let launched=false;const handle=s.app.on('update',dt=>{age+=dt;if(!launched&&age>=.35){s.launch({velocity:{x:.4,y:6.4,z:0}});s.audio?.play('jump');launched=true;}if(age>=2.65){s.testPlayClip('idle_dog');handle.off();}});s.entity.once('destroy',()=>handle.off());map.jellyHop=handle;"
+          },
+          {
+            "label": "Side view",
+            "script": "const s=[...objects].find(o=>o.definition?.id==='latch-slug');camera.setViewport({zoom:7,rotation:3,panX:s.position.x,panZ:s.position.z});"
+          }
+        ]
+      },
+      {
+        "title": "Gate arrival",
+        "x": 16,
+        "y": 140,
+        "statusTargetId": "slug-arrival-preview",
+        "buttons": [
+          {
+            "label": "Replay emergence",
+            "script": "const slugView=[...objects].find(o=>o.definition?.id==='slug-arrival-preview');const hero=slugView.runtime.getHero();hero.entity.rigidbody.teleport(-11,2.04,-9);camera.setViewport({zoom:5,rotation:2,panX:-13.5,panZ:-11});const all=[...objects];const slug=all.find(o=>o.definition?.id==='slug-arrival-preview');const gate=all.find(o=>o.definition?.id==='slug-arrival-gate');slug.gatewayArrival.start(gate);"
+          },
+          {
+            "label": "Gate view",
+            "script": "const slugView=[...objects].find(o=>o.definition?.id==='slug-arrival-preview');const hero=slugView.runtime.getHero();hero.entity.rigidbody.teleport(-11,2.04,-9);camera.setViewport({zoom:5,rotation:2,panX:-13.5,panZ:-11});"
+          },
+          {
+            "label": "Follow royal",
+            "script": "[...objects].find(o=>o.definition?.id==='slug-arrival-preview').resumeBehavior();"
+          }
+        ]
+      },
       {
         "title": "Latch Slug behavior",
         "x": 16,
@@ -3773,11 +3908,11 @@
           },
           {
             "label": "Closed doors",
-            "script": "for(const c of objects.getAll('castle')) c.testEntranceOpenAmount = 0;"
+            "script": "for(const c of objects.getAll('castle')) for(const d of c.destructibleDoors) d.testOpenAmount=0;"
           },
           {
             "label": "Open doors",
-            "script": "for(const c of objects.getAll('castle')) c.testEntranceOpenAmount = 1;"
+            "script": "for(const c of objects.getAll('castle')) for(const d of c.destructibleDoors) d.testOpenAmount=1;"
           },
           {
             "label": "Bell",
@@ -3943,6 +4078,38 @@
           {
             "label": "death",
             "script": "const slug = [...objects].find(o => o.definition?.id === 'latch-slug'); slug.testPlayClip(\"death\");"
+          }
+        ]
+      },
+      {
+        "title": "Views and following",
+        "x": 16,
+        "y": 140,
+        "statusTargetId": "latch-slug",
+        "buttons": [
+          {
+            "label": "Front view",
+            "script": "const s=[...objects].find(o=>o.definition?.id==='latch-slug');const p=s.position;camera.setViewport({zoom:9,rotation:2,panX:p.x,panZ:p.z});"
+          },
+          {
+            "label": "Side view",
+            "script": "const s=[...objects].find(o=>o.definition?.id==='latch-slug');const p=s.position;camera.setViewport({zoom:9,rotation:3,panX:p.x,panZ:p.z});"
+          },
+          {
+            "label": "Rear view",
+            "script": "const s=[...objects].find(o=>o.definition?.id==='latch-slug');const p=s.position;camera.setViewport({zoom:9,rotation:0,panX:p.x,panZ:p.z});"
+          },
+          {
+            "label": "Royal on lawn",
+            "script": "const s=[...objects].find(o=>o.definition?.id==='latch-slug');const r=s.resolveRoyalTarget();const p=s.targetPosition(r);map.latchRoyalHome??=r.entity.getPosition().clone();r.entity.setPosition(r.entity.getPosition().x-p.x,r.entity.getPosition().y+2.1-p.y,r.entity.getPosition().z-10-p.z);s.resumeBehavior();camera.setViewport({zoom:7,rotation:2,panX:0,panZ:-10});"
+          },
+          {
+            "label": "Royal walks aside",
+            "script": "const s=[...objects].find(o=>o.definition?.id==='latch-slug');const r=s.resolveRoyalTarget();r.entity.translate(3,0,0);"
+          },
+          {
+            "label": "Restore royal",
+            "script": "const s=[...objects].find(o=>o.definition?.id==='latch-slug');if(map.latchRoyalHome)s.resolveRoyalTarget().entity.setPosition(map.latchRoyalHome);"
           }
         ]
       }

@@ -1,17 +1,45 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
+import { registerHooks } from "node:module";
+import { readFileSync } from "node:fs";
 import * as pc from "playcanvas";
 import { State } from "yuka";
-import { LatchSlug } from "../../../../../../src/game/objects/enemies/latch-slug/LatchSlug.js";
 import { LatchGlue } from "../../../../../../src/game/objects/enemies/latch-slug/LatchGlue.js";
 import { DoorJam } from "../../../../../../src/game/objects/architecture/door/DoorJam.js";
 import { Enemy } from "../../../../../../src/game/objects/enemies/shared/Enemy.js";
+
+const shaderHooks = registerHooks({
+  load: (url, context, nextLoad) => {
+    if (url.endsWith("?url")) {
+      return {
+        format: "module",
+        source: `export default ${JSON.stringify(url)}`,
+        shortCircuit: true,
+      };
+    }
+    if (url.endsWith("?raw")) {
+      return {
+        format: "module",
+        source: `export default ${JSON.stringify(readFileSync(new URL(url.slice(0, -4)), "utf8"))}`,
+        shortCircuit: true,
+      };
+    }
+    return nextLoad(url, context);
+  },
+});
+const { LatchSlug } = await import("../../../../../../src/game/objects/enemies/latch-slug/LatchSlug.js");
+shaderHooks.deregister();
 
 function fixture(openAmount = 0) {
   const jam = new DoorJam();
   const door = {
     entity: new pc.Entity(),
     openAmount,
+    clearWidth: 2,
+    clearHeight: 2.4,
+    isLeafCollider: (entity) => entity === door.entity,
+    getHit: () => ({ distance: 0.5 }),
+    blocksCameraAt: (x, y, z, radius) => Math.abs(z - door.entity.getPosition().z) <= radius && y >= 0 && y <= 2.4,
     get jammed() {
       return jam.active;
     },
@@ -44,6 +72,10 @@ function fixture(openAmount = 0) {
     runtime: { objects },
   });
   objects.push(slug);
+  slug.entity.rigidbody = {
+    enabled: true,
+    linearVelocity: new pc.Vec3(),
+  };
 
   return {
     slug,
@@ -52,12 +84,83 @@ function fixture(openAmount = 0) {
   };
 }
 
+function impactDoor(slug) {
+  if (slug.stateName === "LatchPressState") {
+    slug.update(0.4);
+  }
+  assert.equal(slug.stateName, "LatchLeapState");
+  assert.equal(slug.alive, true);
+  const point = slug.leapTarget;
+  assert.ok(point);
+
+  return slug.onDoorContact({
+    other: slug.doorTarget.entity,
+    contacts: [{
+      pointOther: point,
+      normal: new pc.Vec3(0, 0, -1),
+    }],
+  });
+}
+
+it("plays its jump only at committed takeoff and its wet splash once at leaf contact", () => {
+  const { slug } = fixture();
+  const sounds = [];
+  slug.audio = {
+    play: (name, pitch) => sounds.push({
+      name,
+      pitch,
+    }),
+  };
+  slug.update(0.1);
+  assert.deepEqual(sounds, []);
+  slug.update(0.4);
+  assert.deepEqual(sounds.map((sound) => sound.name), ["jump"]);
+  const door = slug.doorTarget, point = slug.leapTarget.clone();
+  impactDoor(slug);
+  slug.onDoorContact({
+    other: door.entity,
+    contacts: [{
+      pointOther: point,
+      normal: new pc.Vec3(0, 0, -1),
+    }],
+  });
+  assert.deepEqual(sounds.map((sound) => sound.name), ["jump", "splash"]);
+  assert.ok(sounds.every((sound) => sound.pitch >= 0.96 && sound.pitch <= 1.04));
+});
+
+it("a rejected jump and an opened door never play a false wet impact", () => {
+  const open = fixture(1);
+  const rejected = [];
+  open.slug.audio = { play: (name) => rejected.push(name) };
+  open.slug.doorTarget = open.door;
+  assert.equal(open.slug.beginDoorLeap(), false);
+  assert.deepEqual(rejected, []);
+  const { slug, door } = fixture();
+  const sounds = [];
+  slug.audio = { play: (name) => sounds.push(name) };
+  slug.update(0.1);
+  slug.update(0.4);
+  door.openAmount = 1;
+  slug.onDoorContact({
+    other: door.entity,
+    contacts: [{
+      pointOther: new pc.Vec3(),
+      normal: new pc.Vec3(0, 0, -1),
+    }],
+  });
+  assert.deepEqual(sounds, ["jump"]);
+  assert.equal(slug.alive, true);
+});
+
 it("uses real Yuka states and sacrifices into a bounded, damage-free closed-door jam", () => {
   const { slug, door } = fixture();
   slug.update(0.1);
   assert.equal(slug.stateName, "LatchPressState");
   assert.ok(slug.behavior.currentState instanceof State);
   slug.update(2.5);
+  assert.equal(slug.alive, true);
+  assert.equal(door.jammed, false);
+  impactDoor(slug);
   assert.equal(slug.alive, false);
   assert.equal(door.jammed, true);
   assert.equal(slug.stateName, "LatchDeadState");
@@ -79,14 +182,20 @@ it("survives an open door and only limits movement on arrival at the actual roya
   assert.equal(royal.slows[0].factor, 0.65);
 });
 
-it("rechecks open/closed transitions during press and inflation", () => {
+it("opening during windup or flight cancels the splat", () => {
   for (const delay of [0.2, 0.9, 1.8]) {
     const { slug, door } = fixture();
     slug.update(0.1);
     slug.update(delay);
     door.openAmount = 0.2;
     slug.update(0.1);
-    slug.update(4);
+    if (slug.airborne) {
+      slug.entity.rigidbody.linearVelocity.y = -1;
+      slug.onLanding();
+    }
+    slug.update(0.7);
+    slug.update(0.8);
+    slug.update(0.1);
     assert.equal(slug.alive, true);
     assert.equal(door.jammed, false);
     assert.equal(slug.stateName, "LatchDogState");
@@ -96,10 +205,13 @@ it("rechecks open/closed transitions during press and inflation", () => {
   }
 });
 
-it("a bell during closed-door windup splats early; open-door bells only startle", () => {
+it("a bell during closed-door windup launches early; open-door bells only startle", () => {
   const closed = fixture();
   closed.slug.update(0.1);
   assert.equal(closed.slug.onBellRung({ eventId: "one" }), true);
+  assert.equal(closed.slug.alive, true);
+  assert.equal(closed.door.jammed, false);
+  impactDoor(closed.slug);
   assert.equal(closed.slug.alive, false);
   assert.equal(closed.door.jammed, true);
   const open = fixture(1);
@@ -208,8 +320,11 @@ it("throwing delegates velocity and gravity to the body; airborne enemies cannot
   slug.update(3);
   assert.deepEqual(slug.entity.rigidbody.linearVelocity, new pc.Vec3(1, 4, 0));
   assert.equal(teleports, 1);
-  assert.equal(slug.requestedClip, "airborne");
+  assert.equal(slug.requestedClip, "leap_rise");
   assert.equal(door.jammed, false);
+  assert.equal(slug.onLanding(), false);
+  assert.equal(slug.airborne, true);
+  slug.entity.rigidbody.linearVelocity.y = -1;
   assert.equal(slug.onLanding(), true);
   assert.equal(slug.airborne, false);
   assert.equal(slug.requestedClip, "land");
@@ -225,7 +340,547 @@ it("fatal splat disables root body and every nested collision shape", () => {
   slug.entity.findComponents = () => shapes;
   slug.update(0.1);
   slug.update(3);
+  impactDoor(slug);
   assert.equal(slug.entity.rigidbody.enabled, false);
   assert.ok(shapes.every((shape) => !shape.enabled));
   assert.equal(slug.canBeCarriedBy({ entity: new pc.Entity() }), false);
+});
+
+it("stands before following a departing royal, sits on arrival, and idles without damage", () => {
+  const { slug, royal } = fixture(1);
+  slug.entity.rigidbody = { linearVelocity: new pc.Vec3() };
+  slug.update(0.1);
+  slug.update(0.7);
+  if (slug.requestedClip === "antenna_wag") {
+    slug.update(1.3);
+    slug.update(2.1);
+  }
+  assert.equal(slug.requestedClip, "sit_loop");
+  royal.entity.setPosition(0, 0, -4);
+  slug.update(0.1);
+  assert.equal(slug.requestedClip, "stand_up");
+  assert.equal(slug.entity.rigidbody.linearVelocity.length(), 0);
+  slug.update(0.7);
+  slug.update(0.1);
+  assert.equal(slug.requestedClip, "waddle_run");
+  assert.ok(slug.entity.rigidbody.linearVelocity.z < 0);
+  royal.entity.setPosition(0, 0, -0.5);
+  slug.update(0.1);
+  assert.equal(slug.requestedClip, "sit_down");
+  slug.update(0.7);
+  if (slug.requestedClip === "antenna_wag") {
+    slug.update(1.3);
+    slug.update(2.1);
+  }
+  assert.equal(slug.requestedClip, "sit_loop");
+  slug.update(2.5);
+  assert.equal(slug.requestedClip, "antenna_wag");
+  slug.update(1.3);
+  assert.equal(slug.requestedClip, "pant");
+  assert.equal(slug.alive, true);
+});
+
+it("plays landing and recovery before resuming pursuit", () => {
+  const { slug } = fixture(1);
+  slug.airborne = true;
+  slug.onLanding();
+  slug.update(0.1);
+  assert.equal(slug.requestedClip, "land");
+  slug.update(0.25);
+  assert.equal(slug.requestedClip, "land");
+  slug.update(0.35);
+  assert.equal(slug.requestedClip, "land_recover");
+  slug.update(0.7);
+  assert.equal(slug.stateName, "LatchSeekState");
+});
+
+it("follows native vertical speed through rise, apex and fall poses", () => {
+  const { slug } = fixture(1);
+  slug.airborne = true;
+  slug.onLaunched();
+  slug.entity.rigidbody.linearVelocity.y = 4;
+  slug.update(0.1);
+  assert.equal(slug.requestedClip, "leap_rise");
+  slug.entity.rigidbody.linearVelocity.y = 0.2;
+  slug.update(0.1);
+  assert.equal(slug.requestedClip, "leap_apex");
+  slug.entity.rigidbody.linearVelocity.y = -3;
+  slug.update(0.1);
+  assert.equal(slug.requestedClip, "leap_fall");
+});
+
+it("finishes stun with a full recovery instead of skipping straight into pursuit", () => {
+  const { slug } = fixture(1);
+  slug.applyStatus("stun", { duration: 2 });
+  slug.update(1.9);
+  assert.equal(slug.requestedClip, "stun");
+  slug.update(0.2);
+  assert.equal(slug.requestedClip, "recover");
+  slug.update(0.3);
+  assert.equal(slug.stateName, "LatchReactionState");
+  slug.update(0.4);
+  assert.equal(slug.stateName, "LatchSeekState");
+});
+
+it("ignores broken doors and leaves dog behavior when the royal disappears", () => {
+  const { slug, door, royal } = fixture(1);
+  slug.update(0.1);
+  door.broken = true;
+  door.openAmount = 0;
+  royal.alive = false;
+  slug.update(0.1);
+  assert.equal(slug.nearbyDoor, null);
+  assert.equal(slug.stateName, "LatchSeekState");
+  slug.update(0.1);
+  assert.equal(slug.requestedClip, "sniff");
+});
+
+it("click clearing releases glue without opening or damaging the door", () => {
+  const { slug, door } = fixture();
+  slug.update(0.1);
+  slug.update(2.5);
+  impactDoor(slug);
+  assert.equal(slug.handlePointerDown(), true);
+  assert.equal(door.jammed, false);
+  assert.equal(door.openAmount, 0);
+  assert.equal(slug.handlePointerDown(), false);
+});
+
+it("splats at an interior closed door even with an open entrance closer by", () => {
+  const { slug, door } = fixture(0);
+  const entrance = {
+    entity: new pc.Entity(),
+    openAmount: 1,
+  };
+  entrance.entity.setPosition(0, 0, 0.1);
+  door.entity.setPosition(0, 0, -0.8);
+  slug.runtime.objects[0] = {
+    entranceDoors: [entrance],
+    destructibleDoors: [entrance, door],
+  };
+  slug.update(0.1);
+  assert.equal(slug.doorTarget, door);
+  slug.update(2.5);
+  impactDoor(slug);
+  assert.equal(slug.alive, false);
+  assert.equal(door.jammed, true);
+  assert.equal(entrance.openAmount, 1);
+});
+
+it("a nearby closed door triggers a splat without a living royal", () => {
+  const { slug, royal, door } = fixture();
+  royal.alive = false;
+  slug.update(0.1);
+  slug.update(2.5);
+  impactDoor(slug);
+  assert.equal(door.jammed, true);
+  assert.equal(slug.alive, false);
+});
+
+it("the sitting distance still puts the royal under the movement restriction", () => {
+  const { slug, royal } = fixture(1);
+  royal.entity.setPosition(0, 0, -0.94);
+  slug.update(0.1);
+  slug.update(0.7);
+  if (slug.requestedClip === "antenna_wag") {
+    slug.update(1.3);
+    slug.update(2.1);
+  }
+  assert.equal(slug.requestedClip, "sit_loop");
+  assert.equal(royal.slows.at(-1).factor, 0.65);
+});
+
+it("gets underfoot during pursuit and suspends its ground restriction while carried", () => {
+  const { slug, royal, door } = fixture(1);
+  door.entity.setPosition(20, 0, 0);
+  royal.entity.setPosition(0, 0, -5);
+  const walker = new Enemy({
+    pc,
+    definition: { id: "nearby-walker" },
+  });
+  walker.entity.setPosition(0.8, 0, 0);
+  slug.runtime.objects.push(walker);
+  slug.update(0.1);
+  assert.equal(slug.stateName, "LatchSeekState");
+  assert.equal(walker.statuses.get("slow").factor, 0.65);
+  walker.statuses.clear();
+  slug.beginCarry(royal);
+  slug.update(0.1);
+  assert.equal(walker.statuses.has("slow"), false);
+});
+
+it("initial pursuit reaches the same sitting distance as later follow behavior", () => {
+  const { slug, royal, door } = fixture(1);
+  door.entity.setPosition(20, 0, 0);
+  royal.entity.setPosition(0, 0, -1.18);
+  slug.update(0.1);
+  assert.equal(slug.stateName, "LatchSeekState");
+  royal.entity.setPosition(0, 0, -0.94);
+  slug.update(0.1);
+  assert.equal(slug.stateName, "LatchDogState");
+  assert.equal(royal.slows.at(-1).factor, 0.65);
+});
+
+it("sees a closed door from leap distance and selects different leaf heights and offsets", () => {
+  const original = Math.random;
+  try {
+    const first = fixture();
+    first.door.entity.setPosition(0, 0, -3.5);
+    Math.random = () => 0.1;
+    first.slug.update(0.1);
+    assert.equal(first.slug.stateName, "LatchPressState");
+    first.slug.update(0.4);
+    const low = first.slug.leapTarget;
+    assert.equal(first.slug.airborne, true);
+    assert.ok(first.slug.entity.rigidbody.linearVelocity.y > 0);
+    assert.ok(first.slug.entity.rigidbody.linearVelocity.z < 0);
+    const second = fixture();
+    second.door.entity.setPosition(0, 0, -3.5);
+    Math.random = () => 0.9;
+    second.slug.update(0.1);
+    second.slug.update(0.4);
+    const high = second.slug.leapTarget;
+    assert.ok(high.y > low.y);
+    assert.ok(high.x > low.x);
+    assert.ok(low.y >= 0.7 && high.y <= 1.85);
+    assert.ok(Math.abs(low.x) < 0.7 && Math.abs(high.x) < 0.7);
+    assert.equal(first.door.jammed, false);
+  } finally {
+    Math.random = original;
+  }
+});
+
+it("time passing, floor contacts and unrelated wall contacts cannot trigger a splat", () => {
+  const { slug, door } = fixture();
+  slug.update(0.1);
+  slug.update(0.4);
+  assert.equal(slug.splat(), false);
+  assert.equal(slug.onDoorContact({
+    other: door.entity,
+    contacts: [{
+      pointOther: slug.leapTarget,
+      normal: new pc.Vec3(0, 1, 0),
+    }],
+  }), false);
+  assert.equal(slug.onDoorContact({
+    other: door.entity,
+    contacts: [{
+      pointOther: new pc.Vec3(0, 1, 5),
+      normal: new pc.Vec3(0, 0, -1),
+    }],
+  }), false);
+  assert.equal(slug.onDoorContact({
+    other: new pc.Entity("Unrelated body touching the door"),
+    contacts: [{
+      pointOther: slug.leapTarget,
+      normal: new pc.Vec3(0, 0, -1),
+    }],
+  }), false);
+  slug.update(3);
+  assert.equal(slug.alive, true);
+  assert.equal(door.jammed, false);
+  assert.equal(slug.leapTarget, null);
+});
+
+it("a takeoff floor contact does not cancel a rising leap; stun disarms its impact", () => {
+  const { slug, door } = fixture();
+  slug.update(0.1);
+  slug.update(0.4);
+  const point = slug.leapTarget;
+  assert.equal(slug.onLanding(), false);
+  assert.equal(slug.airborne, true);
+  slug.applyStatus("stun", { duration: 2 });
+  assert.equal(slug.leapTarget, null);
+  assert.equal(slug.onDoorContact({
+    contacts: [{
+      pointOther: point,
+      normal: new pc.Vec3(0, 0, -1),
+    }],
+  }), false);
+  assert.equal(slug.alive, true);
+  assert.equal(door.jammed, false);
+});
+
+it("a wall occluding the leaf prevents seeing it, and a broken leaf is never targeted", () => {
+  const { slug, door } = fixture();
+  slug.app = {
+    systems: {
+      rigidbody: {
+        raycastFirst: () => ({ point: new pc.Vec3(0, 0.7, 4) }),
+      },
+    },
+  };
+  assert.equal(slug.nearbyDoor, null);
+  door.entity.setPosition(0, 0, -3);
+  assert.equal(slug.nearbyDoor, null);
+  door.broken = true;
+  assert.equal(slug.nearbyDoor, null);
+});
+
+it("lands on compound-floor contact with either manifold normal direction", () => {
+  for (const normalY of [-1, 1]) {
+    const { slug, door } = fixture();
+    slug.update(0.1);
+    slug.update(0.4);
+    slug.entity.rigidbody.linearVelocity.set(0, -0.2, 0);
+    slug.onDoorContact({
+      other: new pc.Entity("Compound floor"),
+      contacts: [{
+        pointOther: slug.position.clone(),
+        normal: new pc.Vec3(0, normalY, 0),
+      }],
+    });
+    assert.equal(slug.airborne, false);
+    assert.equal(slug.grounded, true);
+    assert.equal(slug.requestedClip, "land");
+    assert.equal(slug.alive, true);
+    assert.equal(door.jammed, false);
+    slug.update(0.7);
+    slug.update(0.7);
+    assert.notEqual(slug.stateName, "LatchReactionState");
+  }
+});
+
+it("an overhead contact cannot masquerade as landing support", () => {
+  const { slug } = fixture();
+  slug.update(0.1);
+  slug.update(0.4);
+  slug.entity.rigidbody.linearVelocity.set(0, -0.2, 0);
+  slug.onDoorContact({
+    other: new pc.Entity("Ceiling"),
+    contacts: [{
+      pointOther: slug.position.clone().add(new pc.Vec3(0, slug.height, 0)),
+      normal: new pc.Vec3(0, 1, 0),
+    }],
+  });
+  assert.equal(slug.airborne, true);
+  assert.equal(slug.stateName, "LatchLeapState");
+});
+
+it("clearing glue retains the prepared effect until the slug owner is destroyed", () => {
+  const { slug, door } = fixture();
+  let destroyed = 0;
+  slug.splash = { destroy: () => destroyed++ };
+  slug.residue = new LatchGlue(door);
+  assert.equal(slug.handlePointerDown(), true);
+  assert.equal(door.jammed, false);
+  assert.equal(destroyed, 0);
+  slug.destroy();
+  slug.destroy();
+  assert.equal(destroyed, 1);
+});
+
+it("changes the door-jump pose from rising to compact apex to falling", () => {
+  const { slug } = fixture();
+  slug.update(0.1);
+  slug.update(0.4);
+  assert.equal(slug.requestedClip, "leap_rise");
+  slug.entity.rigidbody.linearVelocity.y = 0;
+  slug.update(0.05);
+  assert.equal(slug.requestedClip, "leap_apex");
+  slug.entity.rigidbody.linearVelocity.y = -2;
+  slug.update(0.05);
+  assert.equal(slug.requestedClip, "leap_fall");
+});
+
+it("befriends the hero and servants, keeps a companion, and releases unsafe or dead leaders", () => {
+  const { slug, royal, door } = fixture(1);
+  royal.alive = false;
+  door.openAmount = 1;
+
+  const hero = {
+    entity: new pc.Entity(),
+    alive: true,
+  };
+  hero.entity.setPosition(2, 0, 0);
+  slug.runtime.getHero = () => hero;
+
+  assert.equal(slug.resolvePackTarget(), hero);
+  slug.update(.1);
+  assert.equal(slug.requestedClip, "sit_down");
+  slug.update(.7);
+  assert.equal(slug.requestedClip, "stand_up");
+  slug.update(.7);
+  slug.update(.1);
+  assert.ok(slug.entity.rigidbody.linearVelocity.x > 0);
+
+  class Servant {
+    constructor() {
+      this.entity = new pc.Entity();
+
+    }
+  }
+  const servant = new Servant();
+  servant.entity.tags.add("Servant");
+  servant.entity.setPosition(.5, 0, 0);
+  slug.runtime.objects.push(servant);
+  assert.equal(slug.resolvePackTarget(), hero);
+
+  hero.alive = false;
+  assert.equal(slug.resolvePackTarget(), servant);
+  servant.entity.setPosition(20, 0, 0);
+  assert.equal(slug.resolvePackTarget(), null);
+
+});
+
+
+it("only adopts people on a path or castle floor and rejects an occluded first meeting", () => {
+  const { slug, royal } = fixture(1);
+  royal.alive = false;
+  const hero = {entity: new pc.Entity()};
+  hero.entity.setPosition(1, 0, 0);
+  slug.runtime.getHero = () => hero;
+  slug.runtime.mapData = {
+    cols: 5,
+    rows: 5,
+    grid: Array.from({length: 5}, () => Array(5).fill(1)),
+  };
+  assert.equal(slug.resolvePackTarget(), null);
+  slug.runtime.mapData.grid[2][3] = 2;
+  slug.app = {systems: {rigidbody: {raycastFirst: () => ({})}}};
+  assert.equal(slug.resolvePackTarget(), null);
+  slug.app.systems.rigidbody.raycastFirst = () => null;
+  assert.equal(slug.resolvePackTarget(), hero);
+  slug.runtime.mapData.grid[2][3] = 1;
+  assert.equal(slug.resolvePackTarget(), null);
+
+  slug.runtime.objects.push({
+    residence: {
+      layout: {
+        toLocal: (x, z)=>({
+          x,
+          z,
+        }),
+        walkableAreas: [{
+          minX: 0,
+          maxX: 2,
+          minZ: -1,
+          maxZ: 1,
+          floorY: 0,
+        }],
+      },
+    },
+  });
+  assert.equal(slug.resolvePackTarget(), hero);
+
+});
+
+
+it("advances affection through the real slug update and routes live clicks to patting", () => {
+  const { slug, royal } = fixture(1);
+  const buffs = [];
+  royal.applyBuff = (id) => {
+    buffs.push(id);
+
+    return true;
+  };
+  slug.update(0.1);
+  slug.update(2.8);
+  assert.equal(buffs.length, 0);
+  slug.update(0.21);
+  assert.ok(buffs.includes("slime-affection"));
+  assert.ok(slug.statuses.has("affection"));
+  let pats = 0;
+  slug.patPresentation = {
+    pat: () => {
+      pats += 1;
+
+      return true;
+    },
+  };
+  assert.equal(slug.handlePointerDown(), true);
+  assert.equal(pats, 1);
+});
+it("a dispatched slug follows its gate route and rejoins nearby after a companion detour", () => {
+  const entry = {
+    col:7,
+    rows:[6,7],
+  };
+  const route = Array.from({length:9}, (_,i) => ({
+    col:7+i,
+    row:6.5,
+    elevation:0,
+  }));
+  const app = {systems:{rigidbody:{raycastFirst:()=>null}}};
+  const slug = new LatchSlug({
+    pc,
+    app,
+    definition:{
+      id:"routed",
+      gatewayId:"gate",
+    },
+    runtime:{
+      objects:[],
+      mapData:{
+        cols:21,
+        rows:15,
+        objects:[{
+          id:"gate",
+          entry,
+        }],
+        paths:[{
+          entry,
+          route,
+        }],
+      },
+    },
+  });
+  slug.entity.rigidbody = {linearVelocity:new pc.Vec3()};
+  slug.entity.setPosition(-3,0,-.5);
+  assert.equal(slug.advanceToPack(),true);
+  assert.ok(slug.entity.rigidbody.linearVelocity.x>0);
+  slug.entity.setPosition(3,0,-.5);
+  assert.equal(slug.advanceToPack(),true);
+  assert.ok(slug.entity.rigidbody.linearVelocity.x>0,"rejoin ahead instead of walking back to the old gate waypoint");
+});
+it("notices a raised entrance but climbs its available treads before winding up the leap", () => {
+  const {slug,door,royal}=fixture();
+  royal.alive=false;
+  door.entity.setPosition(0,1,-2);
+  slug.entity.setPosition(0,0,0);
+  const approaches=[];
+  slug.approachDoor=target=>{
+    approaches.push(target);
+
+    return slug.position.y<.7;
+  };
+  slug.update(.1);
+  assert.equal(slug.stateName,"LatchSeekState");
+  assert.equal(slug.requestedClip,"waddle_walk");
+  assert.deepEqual(approaches,[door]);
+  slug.entity.setPosition(0,.75,-1.2);
+  slug.update(.1);
+  assert.equal(slug.stateName,"LatchPressState");
+  slug.update(.4);
+  assert.equal(slug.stateName,"LatchLeapState");
+  assert.ok(slug.entity.rigidbody.linearVelocity.y>0);
+});
+
+it("does not treat a door on a different storey as a reachable raised entrance", () => {
+  const {slug,door,royal}=fixture();royal.alive=false;
+  door.entity.setPosition(0,3,-2);
+  assert.equal(slug.nearbyDoor,null);
+  slug.update(.1);
+  assert.equal(slug.stateName,"LatchSeekState");
+});
+
+it("a second slug commits and splats even when the first impact has jammed the leaf", () => {
+  const first = fixture();
+  first.slug.update(0.1);
+  first.slug.update(0.4);
+  const second = fixture();
+  second.slug.runtime.objects.splice(0, second.slug.runtime.objects.length, ...first.slug.runtime.objects, second.slug);
+  second.slug.update(0.1);
+  assert.equal(second.slug.stateName, "LatchPressState");
+  impactDoor(first.slug);
+  assert.equal(first.door.jammed, true);
+  second.slug.update(0.4);
+  assert.equal(second.slug.stateName, "LatchLeapState");
+  impactDoor(second.slug);
+  assert.equal(second.slug.alive, false);
+  assert.equal(first.door.jammed, true);
+  first.slug.clearGlue();
+  assert.equal(first.door.jammed, true);
+  second.slug.clearGlue();
+  assert.equal(first.door.jammed, false);
 });

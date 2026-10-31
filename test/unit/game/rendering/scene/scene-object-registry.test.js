@@ -73,3 +73,15 @@ it("refreshes class lookups after creation, replacement, destruction, and cleari
   assert.equal(registry.getFirstByClass(Service.name), null);
   assert.deepEqual(registry.getWithMethod("onFrame"), []);
 });
+it("removing a spawned object invalidates interaction and class caches without reusing its key", () => {
+  const registry = new SceneObjectRegistry();
+  const first = { findInteraction: () => null };
+  const second = { findInteraction: () => null };
+  const firstKey = registry.add("mapObject", first);
+  assert.deepEqual(registry.getWithMethod("findInteraction"), [first]);
+  registry.remove(first);
+  assert.deepEqual(registry.getWithMethod("findInteraction"), []);
+  assert.equal(registry.getAll("mapObject").length, 0);
+  assert.notEqual(registry.add("mapObject", second), firstKey);
+  assert.deepEqual(registry.getWithMethod("findInteraction"), [second]);
+});

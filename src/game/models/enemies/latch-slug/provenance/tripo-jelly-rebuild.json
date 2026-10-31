@@ -1,0 +1,20 @@
+{
+  "status": "downloaded-rigged-and-verified",
+  "date": "2026-10-31",
+  "provider": "Tripo3D Studio",
+  "browser": "Opera",
+  "projectId": "abd845a0-95d7-41d8-9fe5-eaf5e6e6862e",
+  "url": "https://studio.tripo3d.ai/workspace/generate/abd845a0-95d7-41d8-9fe5-eaf5e6e6862e",
+  "input": "approved-faceted-jelly-concept.png",
+  "authorizedCreditCeiling": 55,
+  "chargedCredits": 55,
+  "request": "Image-to-3D, Best Quality, Clean Topology; single faceted yellow jelly slug concept. Add a local deforming skeleton and authored manga squash/stretch after download. Cloudy density migration is runtime shading, not baked texture.",
+  "negativePrompt": "No extra generation, paid rigging, retopology, or texture tasks beyond the approved 55 credits.",
+  "rawSource": "C:/Users/mekdr/Downloads/yellow slug 3d model.glb",
+  "rawSha256": "3eef5d97be275ed7f76b3e13d941093c7566c3143950f3426b0eba4ed787fe6e",
+  "gameGlbSha256": "74a830a7b87654757d524b9cd4c95eb3460ffb219e06474f3a1752e1a4c26b57",
+  "triangles": 6500,
+  "skeletonBones": 17,
+  "animationClips": 30,
+  "validation": "src/game/objects/enemies/latch-slug/evidence/tripo-jelly/validation.json"
+}

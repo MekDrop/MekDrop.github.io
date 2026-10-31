@@ -1,0 +1,156 @@
+{
+  "date": "2026-10-30",
+  "status": "verified",
+  "route": "http://127.0.0.1:9006/map/test_enemy-latch-slug",
+  "change": "Conserve settled gel volume during sag: the upper footprint narrows and an embedded fourth thickness morph compensates for stretching at every authored frame. All six shapes remain connected, with native animation and varied proportions.",
+  "comparison": "Six consecutive production impacts at the same sampled leaf point, camera and elapsed age (16 s), leaving the splash randomization unmodified. Only the chosen authored node is enabled.",
+  "trials": [
+    {
+      "impact": 1,
+      "shape": "Low spreading smear",
+      "id": 4,
+      "drips": 3,
+      "width": 0.924201412702412,
+      "height": 1.0086503885316969,
+      "thickness": 0.7935400114589062,
+      "speed": 1.0078948386325484,
+      "stopTime": 20,
+      "clip": "adhesive_ooze_4",
+      "visibleNodes": [
+        "Slug adhesive variant 4"
+      ],
+      "shaderGrowth": 17,
+      "effectInstances": 1,
+      "passed": true
+    },
+    {
+      "impact": 2,
+      "shape": "Narrow ragged",
+      "id": 5,
+      "drips": 5,
+      "width": 0.8635572838227701,
+      "height": 0.848101899651389,
+      "thickness": 0.7021572003824668,
+      "speed": 0.7990870862022211,
+      "stopTime": 20,
+      "clip": "adhesive_ooze_5",
+      "visibleNodes": [
+        "Slug adhesive variant 5"
+      ],
+      "shaderGrowth": 0,
+      "effectInstances": 1,
+      "passed": true
+    },
+    {
+      "impact": 3,
+      "shape": "Double lobe",
+      "id": 3,
+      "drips": 2,
+      "width": 0.8455801942678964,
+      "height": 0.8644858880182696,
+      "thickness": 1.1138926238538187,
+      "speed": 0.9891857587754145,
+      "stopTime": 20,
+      "clip": "adhesive_ooze_3",
+      "visibleNodes": [
+        "Slug adhesive variant 3"
+      ],
+      "shaderGrowth": 0,
+      "effectInstances": 1,
+      "passed": true
+    },
+    {
+      "impact": 4,
+      "shape": "Uneven fan",
+      "id": 2,
+      "drips": 4,
+      "width": 1.1445491389982794,
+      "height": 1.01418294943827,
+      "thickness": 1.0709197369405608,
+      "speed": 0.8330949633471377,
+      "stopTime": 20,
+      "clip": "adhesive_ooze_2",
+      "visibleNodes": [
+        "Slug adhesive variant 2"
+      ],
+      "shaderGrowth": 0,
+      "effectInstances": 1,
+      "passed": true
+    },
+    {
+      "impact": 5,
+      "shape": "Broad left-heavy",
+      "id": 0,
+      "drips": 2,
+      "width": 1.1057912407475436,
+      "height": 0.8611569023665017,
+      "thickness": 1.088486623972412,
+      "speed": 1.1592192977413478,
+      "stopTime": 20,
+      "clip": "adhesive_ooze_0",
+      "visibleNodes": [
+        "Slug adhesive variant 0"
+      ],
+      "shaderGrowth": 0,
+      "effectInstances": 1,
+      "passed": true
+    },
+    {
+      "impact": 6,
+      "shape": "Tall pear",
+      "id": 1,
+      "drips": 3,
+      "width": 1.076119295109657,
+      "height": 0.9665028784782047,
+      "thickness": 1.3231216273635729,
+      "speed": 1.0019282181829419,
+      "stopTime": 20,
+      "clip": "adhesive_ooze_1",
+      "visibleNodes": [
+        "Slug adhesive variant 1"
+      ],
+      "shaderGrowth": 0,
+      "effectInstances": 1,
+      "passed": true
+    }
+  ],
+  "sideView": {
+    "shape": "Uneven fan",
+    "clearing": {
+      "hit": true,
+      "cleared": true,
+      "jammed": false,
+      "active": false
+    },
+    "remainingEffectInstances": 0,
+    "video": "grazing.mp4"
+  },
+  "checks": {
+    "focusedUnitTests": {
+      "passed": 39,
+      "failed": 0
+    },
+    "eslint": "passed",
+    "freshImport": "Six nodes and matching clips, sampled at 1/8/16 seconds with finite geometry.",
+    "runtimeErrors": [],
+    "floorSafety": "Each shape uses bounds sampled from its own authored clip, scaled for that impact, with 8 cm clearance.",
+    "connectedSurface": "All six exported mesh variants have one connected closed surface after welding export normal splits; matching front and back grids prevent concave fan overlaps.",
+    "volumeConservation": "Independent exported GLB geometry evaluation at 0.3, 1.05, 2.5, 4, 8, 12, 16, 19.5 and 20 seconds: each variant remains within 1% of settled volume, becomes narrower and at least 15% thinner. Initial impact compression is excluded.",
+    "shaderCompilation": "First capture may compile initial scene shaders; see each trial. Subsequent captures are stable."
+  },
+  "preview": {
+    "visiblePixels": 33513,
+    "transparentPixels": 228631,
+    "translucentPixels": 32756,
+    "margin": 93
+  },
+  "hashes": {
+    "blend": "2633f511c8e3a71d81cd617e7ca1dbfb2f5e256b4c65399144699fa8c9b558a9",
+    "glb": "68f2e086f20179ba0004f08e551a8c4dd0b72d7ec6bd592186a79a806e35a0ab",
+    "profiles": "4637c6cc75fe50f5632f283d791255d1f9ff9341996f85f2244c984710af07b1"
+  },
+  "comparisonImage": "in-game-comparison.png",
+  "video": "comparison.mp4",
+  "videoEditing": "28-second comparison contains last 14 seconds from front and grazing recordings at native speed with fixed object crops. Full recordings alongside.",
+  "retry": "A first 16-second capture exposed concave back-face fan shading. Replaced with matching front/back grids, avoided degenerate thickness target, enabled back-face culling, then repeated recordings."
+}

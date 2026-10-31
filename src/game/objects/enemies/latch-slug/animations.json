@@ -1,10 +1,10 @@
 {
-  "status": "fresh-glb-sampled-runtime-playback-not-verified",
+  "status": "tripo-jelly-skeleton-and-manga-motion-verified",
   "model": "src/game/models/enemies/latch-slug/latch-slug.glb",
   "clips": [
     {
       "name": "idle_dog",
-      "durationSeconds": 2,
+      "durationSeconds": 1.9999999999999998,
       "loop": true,
       "events": [],
       "supportedStates": [
@@ -20,7 +20,7 @@
     },
     {
       "name": "waddle_walk",
-      "durationSeconds": 1,
+      "durationSeconds": 0.8,
       "loop": true,
       "events": [],
       "supportedStates": [
@@ -37,7 +37,7 @@
     },
     {
       "name": "waddle_run",
-      "durationSeconds": 0.6666666666666666,
+      "durationSeconds": 0.5333333333333333,
       "loop": true,
       "events": [],
       "supportedStates": [
@@ -119,7 +119,7 @@
     },
     {
       "name": "sit_loop",
-      "durationSeconds": 2,
+      "durationSeconds": 1.9999999999999998,
       "loop": true,
       "events": [],
       "supportedStates": [
@@ -152,7 +152,7 @@
     },
     {
       "name": "follow",
-      "durationSeconds": 0.9,
+      "durationSeconds": 0.8,
       "loop": true,
       "events": [],
       "supportedStates": [
@@ -322,7 +322,8 @@
       "events": [],
       "supportedStates": [
         "LatchClipState",
-        "LatchReactionState"
+        "LatchReactionState",
+        "LatchLeapState"
       ],
       "freshImportSamples": [
         0,
@@ -334,7 +335,7 @@
     },
     {
       "name": "land",
-      "durationSeconds": 0.3,
+      "durationSeconds": 0.6333333333333333,
       "loop": false,
       "events": [
         {
@@ -356,9 +357,31 @@
     },
     {
       "name": "land_recover",
-      "durationSeconds": 0.4,
+      "durationSeconds": 0.5666666666666667,
       "loop": false,
       "events": [],
+      "supportedStates": [
+        "LatchClipState",
+        "LatchReactionState"
+      ],
+      "freshImportSamples": [
+        0,
+        0.25,
+        0.5,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "door_press",
+      "durationSeconds": 0.3666666666666667,
+      "loop": false,
+      "events": [
+        {
+          "name": "press_contact",
+          "time": 0.55
+        }
+      ],
       "supportedStates": [
         "LatchClipState"
       ],
@@ -371,30 +394,8 @@
       ]
     },
     {
-      "name": "door_press",
-      "durationSeconds": 0.6,
-      "loop": false,
-      "events": [
-        {
-          "name": "press_contact",
-          "time": 0.55
-        }
-      ],
-      "supportedStates": [
-        "LatchClipState",
-        "LatchPressState"
-      ],
-      "freshImportSamples": [
-        0,
-        0.25,
-        0.5,
-        0.75,
-        1
-      ]
-    },
-    {
       "name": "inflate_start",
-      "durationSeconds": 0.6,
+      "durationSeconds": 0.3666666666666667,
       "loop": false,
       "events": [],
       "supportedStates": [
@@ -450,7 +451,7 @@
     },
     {
       "name": "death",
-      "durationSeconds": 1.1,
+      "durationSeconds": 1.0999999999999999,
       "loop": false,
       "events": [],
       "supportedStates": [
@@ -464,9 +465,67 @@
         0.75,
         1
       ]
+    },
+    {
+      "name": "leap_rise",
+      "durationSeconds": 0.2,
+      "loop": false,
+      "events": [],
+      "supportedStates": [
+        "LatchLeapState",
+        "LatchClipState",
+        "LatchReactionState"
+      ],
+      "freshImportSamples": [
+        0,
+        0.25,
+        0.5,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "leap_apex",
+      "durationSeconds": 0.2,
+      "loop": false,
+      "events": [],
+      "supportedStates": [
+        "LatchLeapState",
+        "LatchClipState",
+        "LatchReactionState"
+      ],
+      "freshImportSamples": [
+        0,
+        0.25,
+        0.5,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "leap_fall",
+      "durationSeconds": 0.2,
+      "loop": false,
+      "events": [],
+      "supportedStates": [
+        "LatchLeapState",
+        "LatchClipState",
+        "LatchReactionState"
+      ],
+      "freshImportSamples": [
+        0,
+        0.25,
+        0.5,
+        0.75,
+        1
+      ]
     }
   ],
-  "verifiedClips": [],
+  "verifiedClips": [
+    "leap_rise",
+    "leap_apex",
+    "leap_fall"
+  ],
   "sampledClips": [
     "idle_dog",
     "waddle_walk",
@@ -494,7 +553,39 @@
     "inflate_start",
     "inflate_loop",
     "terminal_splat",
-    "death"
+    "death",
+    "leap_rise",
+    "leap_apex",
+    "leap_fall"
   ],
-  "evidence": "evidence/clip-samples.json"
+  "evidence": "evidence/viscous-hop/validation.json",
+  "modelRevisionDate": "2026-10-30",
+  "poseAudit": "evidence/viscous-hop/pose-audit.json",
+  "splat": {
+    "variants": 6,
+    "clips": [
+      "adhesive_ooze_0",
+      "adhesive_ooze_1",
+      "adhesive_ooze_2",
+      "adhesive_ooze_3",
+      "adhesive_ooze_4",
+      "adhesive_ooze_5"
+    ],
+    "evidence": "evidence/topology-flow/validation.json",
+    "impact": "0.38-second continuous deformation resampled from the actual current skinned body pose",
+    "surface": "Authored native flow remapped onto the door's real leaf and hardware geometry, with volume-preserving thickness",
+    "morphTargets": [
+      "Impact compression",
+      "Slow gravitational sag",
+      "Heavy connected strands",
+      "Conserved gel thickness"
+    ]
+  },
+  "jellyRig": {
+    "bones": 17,
+    "deformingBones": 11,
+    "maximumVertexInfluences": 4,
+    "clips": 30,
+    "evidence": "evidence/tripo-jelly/validation.json"
+  }
 }

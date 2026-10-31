@@ -1,0 +1,662 @@
+[
+  {
+    "index": 0,
+    "variation": {
+      "profile": {
+        "id": 5,
+        "name": "Narrow ragged",
+        "node": "Slug adhesive variant 5",
+        "clip": "adhesive_ooze_5",
+        "drips": 5,
+        "depthBySecond": [
+          [
+            0.3,
+            0.39344
+          ],
+          [
+            2,
+            0.40214
+          ],
+          [
+            4,
+            0.43034
+          ],
+          [
+            6,
+            0.48535
+          ],
+          [
+            8,
+            0.55893
+          ],
+          [
+            10,
+            0.64239
+          ],
+          [
+            12,
+            0.73064
+          ],
+          [
+            14,
+            0.82543
+          ],
+          [
+            16,
+            0.9281
+          ],
+          [
+            18,
+            1.01771
+          ],
+          [
+            20,
+            1.05616
+          ]
+        ]
+      },
+      "width": 0.9024379854977271,
+      "height": 1.0064016973576206,
+      "thickness": 1.172815348361023,
+      "speed": 0.8463037532431992,
+      "stopTime": 20
+    },
+    "visible": [
+      "Slug adhesive variant 5"
+    ],
+    "preparedShaders": 100,
+    "shaders": 105,
+    "effects": 1,
+    "alive": false,
+    "jammed": true,
+    "last": {
+      "t": 41559.5,
+      "pos": [
+        0.41785016655921936,
+        2.8492519855499268,
+        -7.028788089752197
+      ],
+      "v": [
+        0,
+        -4.276206016540527,
+        0
+      ],
+      "state": "LatchDeadState",
+      "airborne": false,
+      "grounded": false,
+      "clip": "leap_fall",
+      "alive": false,
+      "target": null,
+      "door": 0,
+      "jammed": true,
+      "oozeTime": 13.848152944693814,
+      "maxOozeTime": 20,
+      "weights": [
+        0,
+        0.6776959887806399,
+        0.6270560025933487,
+        0.2640835516723435
+      ]
+    },
+    "surface": {
+      "triangles": 3024,
+      "bodyTriangles": 1172,
+      "preparationMs": 16.900000005960464,
+      "sourceVolume": 0.03363525600444398,
+      "maxRelativeVolumeError": 3.034063467133308e-8,
+      "frames": 564,
+      "transition": 1,
+      "volume": 0.03363525622237867
+    }
+  },
+  {
+    "index": 1,
+    "variation": {
+      "profile": {
+        "id": 3,
+        "name": "Double lobe",
+        "node": "Slug adhesive variant 3",
+        "clip": "adhesive_ooze_3",
+        "drips": 2,
+        "depthBySecond": [
+          [
+            0.3,
+            0.50026
+          ],
+          [
+            2,
+            0.51548
+          ],
+          [
+            4,
+            0.55047
+          ],
+          [
+            6,
+            0.6047
+          ],
+          [
+            8,
+            0.67127
+          ],
+          [
+            10,
+            0.74363
+          ],
+          [
+            12,
+            0.8199
+          ],
+          [
+            14,
+            0.90326
+          ],
+          [
+            16,
+            0.9947
+          ],
+          [
+            18,
+            1.07395
+          ],
+          [
+            20,
+            1.10784
+          ]
+        ]
+      },
+      "width": 0.8439296563470076,
+      "height": 1.055510065051506,
+      "thickness": 0.7753155623483893,
+      "speed": 1.2136213601534966,
+      "stopTime": 18
+    },
+    "visible": [
+      "Slug adhesive variant 3"
+    ],
+    "preparedShaders": 105,
+    "shaders": 105,
+    "effects": 1,
+    "alive": false,
+    "jammed": true,
+    "last": {
+      "t": 61237.5,
+      "pos": [
+        0.4093652665615082,
+        2.8631649017333984,
+        -7.043922424316406
+      ],
+      "v": [
+        0,
+        -4.277186393737793,
+        0
+      ],
+      "state": "LatchDeadState",
+      "airborne": false,
+      "grounded": false,
+      "clip": "leap_fall",
+      "alive": false,
+      "target": null,
+      "door": 0,
+      "jammed": true,
+      "oozeTime": 18.028466667216147,
+      "maxOozeTime": 18,
+      "weights": [
+        0,
+        0.949216667508394,
+        0.9396465866353105,
+        0.2852212128996369
+      ]
+    },
+    "surface": {
+      "triangles": 3024,
+      "bodyTriangles": 1172,
+      "preparationMs": 8.900000005960464,
+      "sourceVolume": 0.03500493552197516,
+      "maxRelativeVolumeError": 3.0114602256325895e-8,
+      "frames": 613,
+      "transition": 1,
+      "volume": 0.03500493601578261
+    }
+  },
+  {
+    "index": 2,
+    "variation": {
+      "profile": {
+        "id": 4,
+        "name": "Low spreading smear",
+        "node": "Slug adhesive variant 4",
+        "clip": "adhesive_ooze_4",
+        "drips": 3,
+        "depthBySecond": [
+          [
+            0.3,
+            0.33298
+          ],
+          [
+            2,
+            0.34983
+          ],
+          [
+            4,
+            0.37923
+          ],
+          [
+            6,
+            0.43195
+          ],
+          [
+            8,
+            0.5205
+          ],
+          [
+            10,
+            0.61822
+          ],
+          [
+            12,
+            0.72303
+          ],
+          [
+            14,
+            0.837
+          ],
+          [
+            16,
+            0.96129
+          ],
+          [
+            18,
+            1.06925
+          ],
+          [
+            20,
+            1.11547
+          ]
+        ]
+      },
+      "width": 1.0562152299318495,
+      "height": 1.0164748535834547,
+      "thickness": 0.9462091141976064,
+      "speed": 1.19409341358441,
+      "stopTime": 20
+    },
+    "visible": [
+      "Slug adhesive variant 4"
+    ],
+    "preparedShaders": 105,
+    "shaders": 105,
+    "effects": 1,
+    "alive": false,
+    "jammed": true,
+    "last": {
+      "t": 81005.19999998808,
+      "pos": [
+        0.3615724742412567,
+        2.9367194175720215,
+        -7.129128456115723
+      ],
+      "v": [
+        0,
+        -4.2771897315979,
+        0
+      ],
+      "state": "LatchDeadState",
+      "airborne": false,
+      "grounded": false,
+      "clip": "leap_fall",
+      "alive": false,
+      "target": null,
+      "door": 0,
+      "jammed": true,
+      "oozeTime": 19.507187641680446,
+      "maxOozeTime": 20,
+      "weights": [
+        0,
+        0.9960878456658943,
+        0.9953191394212862,
+        0.4719018801656661
+      ]
+    },
+    "surface": {
+      "triangles": 3024,
+      "bodyTriangles": 1172,
+      "preparationMs": 12.200000002980232,
+      "sourceVolume": 0.025336415690019317,
+      "maxRelativeVolumeError": 5.280505044336081e-8,
+      "frames": 539,
+      "transition": 1,
+      "volume": 0.02533641555387707
+    }
+  },
+  {
+    "index": 3,
+    "variation": {
+      "profile": {
+        "id": 2,
+        "name": "Uneven fan",
+        "node": "Slug adhesive variant 2",
+        "clip": "adhesive_ooze_2",
+        "drips": 4,
+        "depthBySecond": [
+          [
+            0.3,
+            0.39019
+          ],
+          [
+            2,
+            0.40212
+          ],
+          [
+            4,
+            0.43082
+          ],
+          [
+            6,
+            0.47855
+          ],
+          [
+            8,
+            0.53848
+          ],
+          [
+            10,
+            0.60637
+          ],
+          [
+            12,
+            0.69033
+          ],
+          [
+            14,
+            0.78105
+          ],
+          [
+            16,
+            0.87956
+          ],
+          [
+            18,
+            0.96526
+          ],
+          [
+            20,
+            1.002
+          ]
+        ]
+      },
+      "width": 1.0656553042415218,
+      "height": 0.8826130758368521,
+      "thickness": 1.3213400700766376,
+      "speed": 1.116246540412349,
+      "stopTime": 20
+    },
+    "visible": [
+      "Slug adhesive variant 2"
+    ],
+    "preparedShaders": 105,
+    "shaders": 105,
+    "effects": 1,
+    "alive": false,
+    "jammed": true,
+    "last": {
+      "t": 100633.59999999404,
+      "pos": [
+        0.43249791860580444,
+        2.825244188308716,
+        -7.002681255340576
+      ],
+      "v": [
+        0,
+        -4.277185916900635,
+        0
+      ],
+      "state": "LatchDeadState",
+      "airborne": false,
+      "grounded": false,
+      "clip": "leap_fall",
+      "alive": false,
+      "target": null,
+      "door": 0,
+      "jammed": true,
+      "oozeTime": 18.20575782481726,
+      "maxOozeTime": 20,
+      "weights": [
+        0,
+        0.9572043028635574,
+        0.9490939127999912,
+        0.3344476549284538
+      ]
+    },
+    "surface": {
+      "triangles": 3024,
+      "bodyTriangles": 1172,
+      "preparationMs": 10.899999991059303,
+      "sourceVolume": 0.028352362041246925,
+      "maxRelativeVolumeError": 2.8628359682869586e-8,
+      "frames": 600,
+      "transition": 1,
+      "volume": 0.028352361878079366
+    }
+  },
+  {
+    "index": 4,
+    "variation": {
+      "profile": {
+        "id": 1,
+        "name": "Tall pear",
+        "node": "Slug adhesive variant 1",
+        "clip": "adhesive_ooze_1",
+        "drips": 3,
+        "depthBySecond": [
+          [
+            0.3,
+            0.47074
+          ],
+          [
+            2,
+            0.4801
+          ],
+          [
+            4,
+            0.50522
+          ],
+          [
+            6,
+            0.55494
+          ],
+          [
+            8,
+            0.62782
+          ],
+          [
+            10,
+            0.71318
+          ],
+          [
+            12,
+            0.80576
+          ],
+          [
+            14,
+            0.90517
+          ],
+          [
+            16,
+            1.01254
+          ],
+          [
+            18,
+            1.10614
+          ],
+          [
+            20,
+            1.14631
+          ]
+        ]
+      },
+      "width": 1.0184153541056304,
+      "height": 0.8664081945569992,
+      "thickness": 0.8866459328665328,
+      "speed": 0.9181876113848428,
+      "stopTime": 20
+    },
+    "visible": [
+      "Slug adhesive variant 1"
+    ],
+    "preparedShaders": 105,
+    "shaders": 105,
+    "effects": 1,
+    "alive": false,
+    "jammed": true,
+    "last": {
+      "t": 120315.5,
+      "pos": [
+        0.4159547984600067,
+        2.852362632751465,
+        -7.032174110412598
+      ],
+      "v": [
+        0,
+        -4.277186393737793,
+        0
+      ],
+      "state": "LatchDeadState",
+      "airborne": false,
+      "grounded": false,
+      "clip": "leap_fall",
+      "alive": false,
+      "target": null,
+      "door": 0,
+      "jammed": true,
+      "oozeTime": 15.012183808619858,
+      "maxOozeTime": 20,
+      "weights": [
+        0,
+        0.7580471469358925,
+        0.718305831500226,
+        0.22355839894492033
+      ]
+    },
+    "surface": {
+      "triangles": 3024,
+      "bodyTriangles": 1172,
+      "preparationMs": 8.5,
+      "sourceVolume": 0.03122264790770786,
+      "maxRelativeVolumeError": 2.5714280482702634e-8,
+      "frames": 595,
+      "transition": 1,
+      "volume": 0.031222647875141573
+    }
+  },
+  {
+    "index": 5,
+    "variation": {
+      "profile": {
+        "id": 0,
+        "name": "Broad left-heavy",
+        "node": "Slug adhesive variant 0",
+        "clip": "adhesive_ooze_0",
+        "drips": 2,
+        "depthBySecond": [
+          [
+            0.3,
+            0.35161
+          ],
+          [
+            2,
+            0.3661
+          ],
+          [
+            4,
+            0.3989
+          ],
+          [
+            6,
+            0.45683
+          ],
+          [
+            8,
+            0.52981
+          ],
+          [
+            10,
+            0.61005
+          ],
+          [
+            12,
+            0.69471
+          ],
+          [
+            14,
+            0.7906
+          ],
+          [
+            16,
+            0.90186
+          ],
+          [
+            18,
+            0.9986
+          ],
+          [
+            20,
+            1.04006
+          ]
+        ]
+      },
+      "width": 0.8902465414397638,
+      "height": 1.0214468307950728,
+      "thickness": 0.8173510283448973,
+      "speed": 0.8408974973259491,
+      "stopTime": 20
+    },
+    "visible": [
+      "Slug adhesive variant 0"
+    ],
+    "preparedShaders": 105,
+    "shaders": 105,
+    "effects": 1,
+    "alive": false,
+    "jammed": true,
+    "last": {
+      "t": 140080.19999998808,
+      "pos": [
+        0.4153154790401459,
+        2.8534111976623535,
+        -7.0333147048950195
+      ],
+      "v": [
+        0,
+        -4.277186393737793,
+        0
+      ],
+      "state": "LatchDeadState",
+      "airborne": false,
+      "grounded": false,
+      "clip": "leap_fall",
+      "alive": false,
+      "target": null,
+      "door": 0,
+      "jammed": true,
+      "oozeTime": 13.905669644030013,
+      "maxOozeTime": 20,
+      "weights": [
+        0,
+        0.6814925796373535,
+        0.6314758377601721,
+        0.3070030983861787
+      ]
+    },
+    "surface": {
+      "triangles": 3024,
+      "bodyTriangles": 1172,
+      "preparationMs": 10.5,
+      "sourceVolume": 0.04781843338901765,
+      "maxRelativeVolumeError": 3.193803999046452e-8,
+      "frames": 575,
+      "transition": 1,
+      "volume": 0.04781843295641819
+    }
+  }
+]

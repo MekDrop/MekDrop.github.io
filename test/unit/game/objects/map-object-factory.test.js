@@ -1,3 +1,4 @@
+import { SceneObjectRegistry } from "../../../../src/game/rendering/scene/SceneObjectRegistry.js";
 import assert from "node:assert/strict";
 import { registerHooks } from "node:module";
 import { readFileSync, readdirSync } from "node:fs";
@@ -106,10 +107,11 @@ test("asset discovery excludes absent objects and deduplicates shared models", (
 });
 
 test("audio dependencies include only present objects and deduplicate repeated bells", () => {
+  const baseline = MapObjectFactory.audioUrlsFor([]);
   assert.deepEqual(MapObjectFactory.audioUrlsFor([{
     id: "chair",
     object: "Chair",
-  }]), []);
+  }]), baseline);
   const urls = MapObjectFactory.audioUrlsFor([
     {
       id: "bell-1",
@@ -124,8 +126,8 @@ test("audio dependencies include only present objects and deduplicate repeated b
       object: "Chair",
     },
   ]);
-  assert.equal(urls.length, 1);
-  assert.match(urls[0], /signal-bell\.wav/);
+  assert.equal(urls.length, baseline.length + 1);
+  assert.match(urls.find(url => url.includes("signal-bell")), /signal-bell\.wav/);
 });
 
 test("castle-generated lanterns publish canonical names and explicit model types", async () => {
@@ -175,4 +177,49 @@ test("map objects retain one mutable shared runtime and one contained-object fac
   assert.equal(runtime.createObject, createObject, "per-object setup must preserve runtime identity");
   first.destroy();
   second.destroy();
+});
+
+test("wave catalog preloads its only creature through generic asset discovery", () => {
+  const definitions=[{
+    id:"director",
+    object:"EnemyWaveDirector",
+  }];
+  const assets=MapObjectFactory.assetsFor(definitions);
+  assert.ok(assets.modelUrls.some(url=>url.includes("latch-slug.glb")));
+  assert.ok(assets.modelUrls.some(url=>url.includes("patting-hand.glb")));
+  assert.ok(MapObjectFactory.audioUrlsFor(definitions).some(url=>url.includes("latch-slug")));
+});
+
+test("runtime spawning authors, registers and cleans up objects without losing map context", () => {
+  const registry=new SceneObjectRegistry();const root=new pc.Entity();root._enabledInHierarchy=true;
+  const runtime={
+    mapData:{objects:[]},
+    root,
+    objects:registry,
+  };
+  MapObjectFactory.createAll({
+    pc,
+    app:{},
+    modelLibrary:{},
+    definitions:[],
+    runtime,
+    onCreate:object=>registry.add("mapObject",object),
+  });
+  const definition={
+    id:"spawned-point",
+    object:"SpawnPoint",
+    position:{
+      x:1,
+      y:2,
+      z:3,
+    },
+  };
+  const actor=runtime.spawnObject(definition);
+  assert.equal(actor.entity.parent,root);assert.equal(registry.getAll("mapObject")[0],actor);assert.equal(runtime.mapData.objects[0],definition);
+  assert.equal(runtime.spawnObject(definition),null);
+  actor.destroy();assert.equal(runtime.mapData.objects.length,0);assert.equal(registry.getAll("mapObject").length,0);
+  assert.throws(()=>runtime.spawnObject({
+    ...definition,
+    object:"MissingClass",
+  }));assert.equal(runtime.mapData.objects.length,0);
 });

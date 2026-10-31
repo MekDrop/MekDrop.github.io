@@ -1,0 +1,43 @@
+{
+  "author": "rubberduck",
+  "title": "40 CC0 water / splash / slime SFX",
+  "sourceUrl": "https://opengameart.org/content/40-cc0-water-splash-slime-sfx",
+  "downloadUrl": "https://opengameart.org/sites/default/files/water-splash-slime-sfx.zip",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "retrieved": "2026-10-30",
+  "archiveSha256": "7cd39abb49d4362a37ba18dc0e454c7dc1d08029d4e5b683149046bc237b2eba",
+  "files": [
+    {
+      "cue": "jump",
+      "source": "sources/slime_02.ogg",
+      "sourceSha256": "a4ba1530c081706cb7ce8a08702c3552437561c33b851fe46e97d3232574320c",
+      "wavSha256": "8f79ba060418a3bb7734699d1527b2df81dfa5e44f8499727a1d332b2a5b26a5",
+      "runtimeOggSha256": "03eb668926861335986bbe5e32b3d33f7faa79a54af22349d38ab6b3123dcd7b"
+    },
+    {
+      "cue": "splash",
+      "source": "sources/splash_08.ogg",
+      "sourceSha256": "fd4c9c8fbfe4ac7348644918a73b1d004b037bac3ef24a1303549b705624828a",
+      "wavSha256": "e8e2f988dadca5262609faea4194284a7555be6ead2557006f24e22c75d40f88",
+      "runtimeOggSha256": "8a108ad50a8b5c383f6c44dde4d1e52177088d1315dc8a1154d2280f2638966e"
+    }
+  ],
+  "processing": "Decode to 48 kHz stereo PCM16 WAV, encode runtime Vorbis at nominal 192 kbps; no synthesis or layering. Original Ogg files remain byte-identical to archive entries.",
+  "stats": {
+    "jump": {
+      "duration": 0.44966666666666666,
+      "channels": 2,
+      "sampleRate": 48000,
+      "peak": 0.920166015625,
+      "rms": 0.03603450059500223
+    },
+    "splash": {
+      "duration": 0.6929375,
+      "channels": 2,
+      "sampleRate": 48000,
+      "peak": 0.948455810546875,
+      "rms": 0.06594203080602436
+    }
+  }
+}

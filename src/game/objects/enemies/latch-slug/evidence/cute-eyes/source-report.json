@@ -1,0 +1,33 @@
+{
+  "eyes": [
+    {
+      "bone": "antenna_L",
+      "vertices": 72,
+      "center": [
+        -0.20558437705039978,
+        0.4004366397857666,
+        0.6491134166717529
+      ],
+      "radiusBefore": 0.04576088405975288,
+      "scale": 0.78,
+      "roundingBlend": 0.45
+    },
+    {
+      "bone": "antenna_R",
+      "vertices": 74,
+      "center": [
+        0.2074207067489624,
+        0.33335211873054504,
+        0.6484001278877258
+      ],
+      "radiusBefore": 0.04493545857211442,
+      "scale": 0.78,
+      "roundingBlend": 0.45
+    }
+  ],
+  "triangles": 6596,
+  "vertices": 3304,
+  "bones": 17,
+  "actions": 30,
+  "maxInfluences": 4
+}

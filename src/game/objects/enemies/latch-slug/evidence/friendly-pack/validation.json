@@ -1,0 +1,79 @@
+{
+  "status": "passed",
+  "date": "2026-10-31",
+  "behavior": {
+    "people": "Hero, royal characters and servants",
+    "acquisitionRange": 6,
+    "retentionRange": 8,
+    "settlingRange": 0.95,
+    "resumeFollowRange": 1.6,
+    "locations": "Castle walkable floors or PATH/ENTRY tiles at matching elevation",
+    "visibility": "Native Ammo raycast at first meeting",
+    "greeting": "Antenna wag; sit, wag and contented pant beside companion",
+    "priority": "Closed-door suicidal leap, carry, stun and death retain priority"
+  },
+  "verification": {
+    "unitTests": 40,
+    "scopedEslint": "passed",
+    "visual": "Two clear interior angles of hero greeting, arrival and following; third recording repeats with an authored Servant. Roof-obscured recordings were replaced."
+  },
+  "runtime": {
+    "results": [
+      {
+        "view": 0,
+        "arrival": {
+          "leader": "Hero",
+          "distance": 0.9437431969096273,
+          "clip": "sit_loop",
+          "state": "LatchDogState",
+          "position": "[0.36510568857192993, 1.9999927282333374, -3.3702707290649414]"
+        },
+        "follow": {
+          "leader": "Hero",
+          "distance": 0.9150356398153627,
+          "clip": "pant",
+          "state": "LatchDogState",
+          "position": "[0.4245264530181885, 1.9999912977218628, -4.088095188140869]",
+          "alive": true
+        }
+      },
+      {
+        "view": 1,
+        "arrival": {
+          "leader": "Hero",
+          "distance": 0.9472918516280221,
+          "clip": "antenna_wag",
+          "state": "LatchDogState",
+          "position": "[0.3667958080768585, 1.9999932050704956, -3.373410940170288]"
+        },
+        "follow": {
+          "leader": "Hero",
+          "distance": 0.8907183732150413,
+          "clip": "pant",
+          "state": "LatchDogState",
+          "position": "[0.427309513092041, 1.999990701675415, -4.112270355224609]",
+          "alive": true
+        }
+      },
+      {
+        "view": 2,
+        "arrival": {
+          "leader": "Servant",
+          "distance": 0.949064603004575,
+          "clip": "antenna_wag",
+          "state": "LatchDogState",
+          "position": "[0.37500321865081787, 1.9999940395355225, -3.3709166049957275]"
+        },
+        "follow": {
+          "leader": "Servant",
+          "distance": 0.9217773275175121,
+          "clip": "pant",
+          "state": "LatchDogState",
+          "position": "[0.46364709734916687, 1.9999902248382568, -4.079809188842773]",
+          "alive": true
+        }
+      }
+    ],
+    "errors": []
+  }
+}

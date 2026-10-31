@@ -1,0 +1,128 @@
+{
+  "date": "2026-10-30",
+  "status": "verified",
+  "route": "http://127.0.0.1:9004/map/test_enemy-latch-slug",
+  "references": [
+    {
+      "title": "A talking slime #shorts",
+      "creator": "EarthyFier",
+      "url": "https://www.youtube.com/shorts/SiH8D99OQsY",
+      "review": "Played in browser and inspected key poses; motion reference for slime hopping, not visual anatomy."
+    },
+    {
+      "title": "Dripping Slime VFX for the Unity game engine",
+      "creator": "RealtimeVFXStore",
+      "url": "https://www.youtube.com/watch?v=ZkkBhKNC32c",
+      "review": "Played in browser; long narrowing strands and thick end beads informed the attached ooze. No external asset downloaded or reused."
+    }
+  ],
+  "jump": "One ballistic launch, distinct apex and falling door contact under native Ammo gravity. Authored rise, compact apex and fall poses follow vertical speed.",
+  "adhesive": "Native animated morphs over a 20-second clip. Upper attachment pinned; slow sag, thick beads and connected strands. Low impacts stop before crossing the floor; glue lifetime and clearing unchanged.",
+  "representation": "Authored adhesive presentation, not a free-surface fluid simulation; Ammo owns movement, leaf collision and contact.",
+  "trials": [
+    {
+      "view": "front",
+      "seed": 0.85,
+      "phases": [
+        "leap_rise",
+        "leap_apex",
+        "leap_fall"
+      ],
+      "descendingContactVelocity": -4.277199745178223,
+      "oozeTime": 17.390800000000016,
+      "groundStopTime": 19.14978120385147,
+      "morphWeights": [
+        0,
+        0.9162593326757591,
+        0.9008213908726042
+      ],
+      "shaderGrowth": 0,
+      "effectInstances": 1,
+      "passed": true,
+      "video": "front.mp4"
+    },
+    {
+      "view": "side",
+      "seed": 0.25,
+      "phases": [
+        "leap_rise",
+        "leap_apex",
+        "leap_fall"
+      ],
+      "descendingContactVelocity": -4.283807277679443,
+      "oozeTime": 8.495099999999997,
+      "groundStopTime": 8.448072526513076,
+      "morphWeights": [
+        0,
+        0.3836893333183699,
+        0.24596801478624347
+      ],
+      "shaderGrowth": 0,
+      "effectInstances": 1,
+      "passed": true,
+      "video": "side.mp4"
+    },
+    {
+      "view": "rear",
+      "seed": 0.6,
+      "phases": [
+        "leap_rise",
+        "leap_apex",
+        "leap_fall"
+      ],
+      "descendingContactVelocity": -4.498138904571533,
+      "oozeTime": 13.66730000000003,
+      "groundStopTime": 13.666473714316766,
+      "morphWeights": [
+        0,
+        0.6658985971328668,
+        0.6132139427792587
+      ],
+      "shaderGrowth": 0,
+      "effectInstances": 1,
+      "passed": true,
+      "video": "rear.mp4"
+    }
+  ],
+  "openDoor": {
+    "survives": true,
+    "landed": true,
+    "recoveredState": "LatchDogState"
+  },
+  "freshImport": {
+    "bodyClips": 30,
+    "posePhases": 5,
+    "finite": true,
+    "oozeClipSeconds": 20.0333,
+    "anchorDriftMax": 0,
+    "maxOozeDeformation": 0.7748532900723374
+  },
+  "checks": {
+    "unitTests": {
+      "passed": 34,
+      "failed": 0
+    },
+    "eslint": "passed",
+    "runtimeErrors": [],
+    "visualReview": "Reviewed recorded jump phases from three angles, continuous ooze at 4/9/12/14/17 seconds, floor-safe low splat and open-door recovery."
+  },
+  "preview": {
+    "mode": "RGBA",
+    "size": [
+      512,
+      512
+    ],
+    "visiblePixels": 31877,
+    "transparentPixels": 230267,
+    "translucentPixels": 10967,
+    "margin": 95
+  },
+  "hashes": {
+    "latch-slug.blend": "f6eac9f46149f35ff04f9fab158eb472083f9e61cf598d5b3e6e29bbba51bff6",
+    "latch-slug.glb": "8b200265f7d732f4594e6b60d66bd3f1a03223a00eca6c36b47435c1e04dfd12",
+    "latch-slug-splat.blend": "3f0c9caaa1a733ccc812ab67ae28e780b4631a99d3433bd34ee456bc94867fba",
+    "latch-slug-splat.glb": "dd55d55a8a6e47c8847061f5fc4aae6eb6771489918bf745cfd78266756f19d5"
+  },
+  "video": "multi-angle.mp4",
+  "montage": "Side hop (4.5 s), uninterrupted front hop and ooze (about 19 s), rear hop (4.5 s). Full individual recordings retained."
+}

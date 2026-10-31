@@ -1,0 +1,13 @@
+{
+  "status": "passed",
+  "meshes": 1,
+  "bones": 17,
+  "actions": 30,
+  "maxWeightError": 1.3224780559539795e-07,
+  "maxInfluences": 4,
+  "materials": [
+    "Golden living gel",
+    "Opaque dark sensory tips",
+    "Opaque eye catchlights"
+  ]
+}

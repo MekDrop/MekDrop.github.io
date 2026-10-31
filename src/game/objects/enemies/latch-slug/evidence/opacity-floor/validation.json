@@ -1,0 +1,87 @@
+{
+  "status": "passed",
+  "date": "2026-10-31",
+  "minimumSkinOpacity": 0.82,
+  "cloudOpacityCap": 0.97,
+  "closedSkinDepthWrite": true,
+  "backFacesCulled": true,
+  "reason": "Prevent later grass rendering over the transparent skin and maintain a readable silhouette when cloud density recedes.",
+  "runtime": {
+    "results": [
+      {
+        "view": 0,
+        "before": {
+          "entities": 28218,
+          "shaders": 117
+        },
+        "after": {
+          "entities": 28218,
+          "shaders": 117,
+          "alive": true,
+          "clip": "idle_dog"
+        },
+        "clips": [
+          "idle_dog",
+          "inflate_start",
+          "leap_rise",
+          "leap_apex",
+          "leap_fall",
+          "land",
+          "land_recover",
+          "waddle_walk"
+        ],
+        "maximumYVelocity": 5.666666507720947
+      },
+      {
+        "view": 1,
+        "before": {
+          "entities": 28218,
+          "shaders": 117
+        },
+        "after": {
+          "entities": 28218,
+          "shaders": 117,
+          "alive": true,
+          "clip": "idle_dog"
+        },
+        "clips": [
+          "idle_dog",
+          "inflate_start",
+          "leap_rise",
+          "leap_apex",
+          "leap_fall",
+          "land",
+          "land_recover",
+          "waddle_walk"
+        ],
+        "maximumYVelocity": 6.0333333015441895
+      }
+    ],
+    "captures": [
+      {
+        "visiblePixels": 40193,
+        "transparentPixels": 221951,
+        "margin": 110
+      },
+      {
+        "visiblePixels": 40193,
+        "transparentPixels": 221951,
+        "margin": 110
+      }
+    ],
+    "errors": []
+  },
+  "scopedEslint": "passed",
+  "visual": "Front and side inspected during idle, jump and recovery; no grass triangle overlay across the body.",
+  "preview": {
+    "visiblePixels": 40193,
+    "transparentPixels": 221951,
+    "margin": 110,
+    "straightAlpha": true
+  },
+  "cloudMigration": {
+    "visiblePixels": 40193,
+    "changedPixels": 13034,
+    "changedFraction": 0.3242853233150051
+  }
+}

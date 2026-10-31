@@ -1,0 +1,72 @@
+[
+  {
+    "seconds": 1,
+    "weights": {
+      "Basis": 1.0,
+      "Impact compression": 0.0,
+      "Slow gravitational sag": 0.019999999552965164,
+      "Heavy connected strands": 0.0
+    },
+    "minZ": -0.45100003480911255,
+    "maxZ": 0.4130873680114746,
+    "maxChange": 0.0,
+    "anchorDrift": 0.0,
+    "finite": true
+  },
+  {
+    "seconds": 5,
+    "weights": {
+      "Basis": 1.0,
+      "Impact compression": 0.0,
+      "Slow gravitational sag": 0.20156250894069672,
+      "Heavy connected strands": 0.05999999865889549
+    },
+    "minZ": -0.5344967842102051,
+    "maxZ": 0.4130873680114746,
+    "maxChange": 0.08354881559719178,
+    "anchorDrift": 0.0,
+    "finite": true
+  },
+  {
+    "seconds": 10,
+    "weights": {
+      "Basis": 1.0,
+      "Impact compression": 0.0,
+      "Slow gravitational sag": 0.46166670322418213,
+      "Heavy connected strands": 0.3499999940395355
+    },
+    "minZ": -0.7528300285339355,
+    "maxZ": 0.4130873680114746,
+    "maxChange": 0.3019152455502394,
+    "anchorDrift": 0.0,
+    "finite": true
+  },
+  {
+    "seconds": 15,
+    "weights": {
+      "Basis": 1.0,
+      "Impact compression": 0.0,
+      "Slow gravitational sag": 0.759548544883728,
+      "Heavy connected strands": 0.7200000286102295
+    },
+    "minZ": -1.0212006568908691,
+    "maxZ": 0.4130873680114746,
+    "maxChange": 0.5703271574064724,
+    "anchorDrift": 0.0,
+    "finite": true
+  },
+  {
+    "seconds": 19.5,
+    "weights": {
+      "Basis": 1.0,
+      "Impact compression": 0.0,
+      "Slow gravitational sag": 0.9964627027511597,
+      "Heavy connected strands": 0.9957671165466309
+    },
+    "minZ": -1.2256909608840942,
+    "maxZ": 0.4130873680114746,
+    "maxChange": 0.7748532900723374,
+    "anchorDrift": 0.0,
+    "finite": true
+  }
+]

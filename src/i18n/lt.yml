@@ -64,6 +64,7 @@ game:
     unsupported: Ši naršyklė nepalaiko MP4 įrašymo. Pabandykite kitą naršyklę.
     failed: Nepavyko įrašyti žaidimo. Bandykite dar kartą.
   buffs:
+    slime_affection: Gleivio prieraišumas
     affection: Švelnumas
     overstimulated: Per daug dėmesio
   patting:
@@ -89,6 +90,7 @@ game:
   graphics:
     webgl_fallback: WebGPU nepasiekiamas. Naudojamas suderinamumo WebGL 2 atvaizdavimas.
   interaction:
+    pat_slime: Paglostyti gleivį
     ring_bell: Skambinti varpu
     smash_bridge: Sugriauti tiltą
     collect_flower: Skinti gėles

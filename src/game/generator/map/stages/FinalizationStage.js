@@ -118,6 +118,10 @@ export class FinalizationStage extends AbstractMapGenerationStage {
         })),
     ];
     objects.push(...layout.entries.map(this.#mapEntry.bind(this)));
+    objects.push({
+      id: "enemy-wave-director",
+      object: "EnemyWaveDirector",
+    });
     if (riverData.length) {
       objects.push({
         id: "rivers",

@@ -1,0 +1,49 @@
+{
+  "status": "passed",
+  "date": "2026-10-31",
+  "route": "/map/test_enemy-latch-slug",
+  "body": "Original provider gel torso isolated without canine anatomy and fused with present mantle; exact current eye stalks, feelers and tips retained; existing rig and all 30 clips preserved.",
+  "trail": {
+    "implementation": "Ground-contact dynamic mesh with normals, soft transparent edges, specular wet film; Ammo owns all motion.",
+    "maximumAgeSeconds": 18,
+    "fadeSeconds": 8,
+    "boundedSamples": 480,
+    "teleportDiscontinuity": "does not bridge",
+    "airborneEmission": "native unsupported body tested; no new vertices",
+    "results": [
+      {
+        "position": "[1.487932801246643, 2.0039963722229004, -12.000019073486328]",
+        "clip": "waddle_walk",
+        "trail": 535,
+        "entities": 28083,
+        "shaders": 117
+      },
+      {
+        "position": "[1.5264902114868164, 2.003997325897217, -12.000045776367188]",
+        "clip": "waddle_walk",
+        "trail": 1045,
+        "entities": 28083,
+        "shaders": 119
+      }
+    ],
+    "faded": {
+      "enabled": false,
+      "entities": 28083,
+      "shaders": 119
+    },
+    "preview": {
+      "visiblePixels": 36803,
+      "transparentPixels": 225341,
+      "margin": 97
+    },
+    "airborneBefore": 1055,
+    "airborneAfter": 1055,
+    "errors": []
+  },
+  "verification": {
+    "focusedTests": 42,
+    "failures": 0,
+    "scopedEslint": "passed",
+    "visual": "Two fixed camera views at native speed; trail visible behind body and fully gone after waiting; full-body fresh-import views and posed checks inspected."
+  }
+}

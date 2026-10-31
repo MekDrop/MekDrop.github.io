@@ -1,0 +1,35 @@
+[
+  {
+    "view": "front",
+    "near": {
+      "rate": 0.65,
+      "state": "LatchDogState",
+      "clip": "follow",
+      "distance": 0.7111458373992201
+    },
+    "far": 1,
+    "passed": true
+  },
+  {
+    "view": "side",
+    "near": {
+      "rate": 0.65,
+      "state": "LatchDogState",
+      "clip": "follow",
+      "distance": 0.7098987145441858
+    },
+    "far": 1,
+    "passed": true
+  },
+  {
+    "view": "rear",
+    "near": {
+      "rate": 0.65,
+      "state": "LatchDogState",
+      "clip": "follow",
+      "distance": 0.7095512117054469
+    },
+    "far": 1,
+    "passed": true
+  }
+]

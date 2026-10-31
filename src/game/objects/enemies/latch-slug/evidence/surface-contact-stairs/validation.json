@@ -1,0 +1,30 @@
+{
+  "date": "2026-10-31",
+  "status": "passed",
+  "checks": [
+    {
+      "view": "front",
+      "status": "passed",
+      "treadCycles": 3,
+      "doorSplat": true
+    },
+    {
+      "view": "opposite",
+      "status": "passed",
+      "treadCycles": 3,
+      "doorSplat": true
+    }
+  ],
+  "tests": {
+    "passed": 70,
+    "failed": 0
+  },
+  "runtimeErrors": [],
+  "preview": {
+    "visiblePixels": 41485,
+    "transparentPixels": 220659,
+    "margin": 102
+  },
+  "implementation": "Whole-skin post-skinning deformation in GLSL and WGSL follows a lower-tread/riser/upper-tread contact path by arc length. Native raycasts measure the riser and bound both tread footprints. Finite skin thickness is retained outside the surfaces; normals are transformed using the deformation tangents. All model material variants participate, and local bounds expand only during active contact. The original three-phase native capsule motor remains authoritative.",
+  "rejected": "Nearest-plane projection alone left a diagonal bridge; replaced it with the surface-following arc. An extra rigidbody-position gate could stall against a leaf and was removed; measured footprint bounds keep the skin on the tread instead."
+}

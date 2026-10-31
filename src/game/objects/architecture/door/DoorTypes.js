@@ -11,6 +11,8 @@
  * @property {(x: number, y: number, z: number, radius: number) => boolean} blocksAt
  * @property {() => void} [breakLeaves] Disable moving visuals/bodies while preserving frame collision.
  * @property {() => void} destroy
+ * @property {(entity: import("playcanvas").Entity) => boolean} [ownsLeaf]
+ * @property {() => import("playcanvas").MeshInstance[]} [getSurfaceMeshes]
  * @property {import("./DoorSwingPhysics.js").DoorSwingPhysics} [swing]
  * @property {() => void} [syncFrameBodies]
  */

@@ -1,0 +1,18 @@
+[
+  {
+    "check": "interior door selected",
+    "passed": true,
+    "state": "LatchPressState"
+  },
+  {
+    "check": "bell splats at closed interior door",
+    "passed": true,
+    "bodyDisabled": true,
+    "health": 48
+  },
+  {
+    "check": "glue expires and releases door",
+    "passed": true,
+    "visualRemoved": true
+  }
+]

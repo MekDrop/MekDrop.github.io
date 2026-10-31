@@ -63,11 +63,47 @@ export class Door {
   }
 
   /**
-   * Remove only moving leaves; the frame and its Ammo bodies stay castle-owned.
-   * @param {number} amount
    * @returns {number}
    */
-  receiveDamage(amount) {
+  get clearHeight() {
+    return this.#height;
+  }
+
+  /**
+   * @param {import("playcanvas").Entity} entity
+   * @returns {boolean}
+   */
+  isLeafCollider(entity) {
+    return this.#collision.ownsLeaf?.(entity) ??
+      (entity === this.#entity || entity === this.#animationEntity);
+  }
+
+  /**
+   * Visible leaf geometry for surface-bound effects, including braces/handles.
+   * @returns {import("playcanvas").MeshInstance[]}
+   */
+  getSurfaceMeshInstances() {
+    const authored = this.#collision.getSurfaceMeshes?.();
+    if (authored?.length) {
+      return authored;
+    }
+    const meshes = [];
+    for (const render of (this.#hinge ?? this.#animationEntity).findComponents("render")) {
+      if (!/collision|masonry|frame|arch|course|jamb|header/i.test(render.entity.name)) {
+        meshes.push(...render.meshInstances);
+      }
+    }
+
+    return meshes;
+  }
+
+  /**
+   * Remove only moving leaves; the frame and its Ammo bodies stay castle-owned.
+   * @param {number} amount
+   * @param {import("../../enemies/shared/Enemy.js").Enemy|null} source
+   * @returns {number}
+   */
+  receiveDamage(amount, source = null) {
     if (!this.#entity || this.#broken || !Number.isFinite(amount) || amount <= 0) {
       return 0;
     }
@@ -76,6 +112,7 @@ export class Door {
     this.audio?.play(this.#health === 0 ? "break" : "hit");
     if (this.#health === 0) {
       this.#broken = true;
+      source?.onTargetDefeated?.(this, "break");
       this.clearGlue?.();
       this.#operator = null;
       this.#collision.syncFrameBodies?.();

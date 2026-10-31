@@ -1,0 +1,152 @@
+{
+  "date": "2026-10-30",
+  "status": "verified",
+  "route": "http://127.0.0.1:9003/map/test_enemy-latch-slug",
+  "presentation": {
+    "body": "62% opacity golden gel; opaque eye tips and glossy coat",
+    "motion": "Authored compression and recoil, stable elongated airborne pose, softer ballistic timing, Ammo-persistent facing",
+    "impact": "Authored irregular translucent membrane and native shaded droplet burst; prepared before contact"
+  },
+  "materials": [
+    {
+      "name": "Slug skin - moss resin",
+      "mode": "BLEND",
+      "opacity": 0.6200000047683716
+    },
+    {
+      "name": "Slug skin - sunlit jade",
+      "mode": "BLEND",
+      "opacity": 0.6200000047683716
+    },
+    {
+      "name": "Slug skin - shaded folds",
+      "mode": "BLEND",
+      "opacity": 0.6200000047683716
+    },
+    {
+      "name": "Slug mantle - olive",
+      "mode": "BLEND",
+      "opacity": 0.6200000047683716
+    },
+    {
+      "name": "Continuous crawling foot",
+      "mode": "BLEND",
+      "opacity": 0.6200000047683716
+    },
+    {
+      "name": "Tentacle eye tips",
+      "mode": "OPAQUE",
+      "opacity": 1
+    },
+    {
+      "name": "Resin flecks",
+      "mode": "BLEND",
+      "opacity": 0.7799999713897705
+    }
+  ],
+  "trials": [
+    {
+      "view": "front",
+      "passed": true,
+      "target": [
+        0.5084887027031676,
+        3.1347729053883775,
+        -6.565000146627426
+      ],
+      "minFacingVelocityDot": 0.9847202737991038,
+      "prewarmedShaders": 108,
+      "impactShaders": 108,
+      "effectInstances": 1,
+      "contact": {
+        "other": "Castle moving door plank collider",
+        "point": "[0.5079799294471741, 3.052126884460449, -6.566000461578369]",
+        "normal": "[0.000005417420652520377, 0.0000075843886406801175, 1]"
+      },
+      "video": "front.mp4"
+    },
+    {
+      "view": "side",
+      "passed": true,
+      "target": [
+        -0.5692479912551239,
+        3.5736165667059057,
+        -6.565000146627426
+      ],
+      "minFacingVelocityDot": 0.9956944625488375,
+      "prewarmedShaders": 108,
+      "impactShaders": 108,
+      "effectInstances": 1,
+      "contact": {
+        "other": "Castle moving door plank collider",
+        "point": "[-0.6463810801506042, 3.4057672023773193, -6.565993309020996]",
+        "normal": "[-0.11889834702014923, -0.0004753948887810111, 0.9929063320159912]"
+      },
+      "video": "side.mp4"
+    },
+    {
+      "view": "rear",
+      "passed": true,
+      "target": [
+        -0.3641603858256847,
+        3.1795097595533575,
+        -6.565000146627426
+      ],
+      "minFacingVelocityDot": 0.9975786140256977,
+      "prewarmedShaders": 108,
+      "impactShaders": 108,
+      "effectInstances": 1,
+      "contact": {
+        "other": "Castle moving door plank collider",
+        "point": "[-0.43283897638320923, 3.087656259536743, -6.5659871101379395]",
+        "normal": "[-0.1610489934682846, 0.00024532561656087637, 0.9869463443756104]"
+      },
+      "video": "rear.mp4"
+    }
+  ],
+  "openDuringFlight": {
+    "passed": true,
+    "alive": true,
+    "airborne": false,
+    "grounded": true,
+    "recoveredState": "LatchDogState",
+    "resumedClip": "waddle_run",
+    "video": "open-flight.mp4"
+  },
+  "preview": {
+    "mode": "RGBA",
+    "size": [
+      512,
+      512
+    ],
+    "visiblePixels": 33513,
+    "transparentPixels": 228631,
+    "translucentPixels": 11390,
+    "margin": 93
+  },
+  "checks": {
+    "focusedUnitTests": {
+      "passed": 32,
+      "failed": 0,
+      "command": "node --test --test-isolation=none test/unit/game/objects/enemies/latch-slug/latch-slug.test.js test/unit/game/objects/enemies/latch-slug/latch-slug-facing.test.js test/unit/game/objects/architecture/door/door-jam.test.js test/unit/game/objects/architecture/door/door-collision-filter.test.js test/unit/game/objects/architecture/door/door-damage-collision.test.js"
+    },
+    "eslint": "passed",
+    "freshImport": {
+      "clips": 27,
+      "phases": 5,
+      "allFinite": true,
+      "sourceReopened": true
+    },
+    "review": "Inspected current recorded motion frames from front, side and rear, including windup, launch, flight and contact; verified transparent body against grass and gel residue against door; no black quads or visible depth fighting.",
+    "runtimeErrors": []
+  },
+  "repairs": [
+    "Fixed dynamic Ammo orientation resetting after takeoff, verified by native physics regression test and flight telemetry.",
+    "Moved prepared effect destruction to owner teardown; repeated runtime attempts retain exactly one effect instance."
+  ],
+  "hashes": {
+    "latch-slug.blend": "037238b22b5f896fe15f626ecad8c00899b62915a351d42d9ad5f321fe2189c7",
+    "latch-slug.glb": "b463c1d095eac79d00cc4b0ab8918cbfaa0170ed37de46a0ed0bbfe84fe46aed",
+    "latch-slug-splat.blend": "8fd945dc63d8d9920e2e97a7d81ae2c942ef2fe3bf798c4f3f29e868ca4b7923",
+    "latch-slug-splat.glb": "061cd0ff3ddad8f399036783a813808864a7e21dc86437d3768450204a320332"
+  }
+}

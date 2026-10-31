@@ -152,6 +152,31 @@ export function createDoorCollision(pc, door) {
 
   return {
     swing,
+    /**
+     * The real moving surface, including hardware, remains queryable after
+     * batching disables the original render components.
+     * @returns {import("playcanvas").MeshInstance[]}
+     */
+    getSurfaceMeshes: () => {
+      const meshes = [];
+      for (const leaf of leafRoots) {
+        for (const render of leaf.findComponents("render")) {
+          if (!/collision/i.test(render.entity.name)) {
+            meshes.push(...render.meshInstances);
+          }
+        }
+      }
+
+      return meshes;
+    },
+    /**
+     * @param {import("playcanvas").Entity} entity
+     * @returns {boolean}
+     */
+    ownsLeaf: (entity) => parts.some(/**
+     * @param {{entity: import("playcanvas").Entity}} part
+     */
+      (part) => part.entity === entity),
     breakLeaves: () => {
       for (const leaf of leafRoots) {
         leaf.enabled = false;

@@ -1,0 +1,100 @@
+{
+  "date": "2026-10-30",
+  "status": "passed",
+  "route": "http://127.0.0.1:9002/map/test_enemy-latch-slug",
+  "renderer": "Production PlayCanvas test map, Ammo contact events",
+  "appearance": "Warm yellow ochre slug; dog-like behavior only",
+  "trials": [
+    {
+      "view": "front",
+      "passed": true,
+      "target": [
+        -0.12,
+        3.596866398386076,
+        -6.565000146627426
+      ],
+      "maxRise": 1.113745927810669,
+      "contact": {
+        "other": "Castle moving door plank collider",
+        "point": "[-0.08303391933441162, 3.535752296447754, -6.566000461578369]",
+        "normal": "[0.0001407824456691742, 0.0001027935286401771, 1]"
+      },
+      "video": "front.mp4"
+    },
+    {
+      "view": "side",
+      "passed": true,
+      "target": [
+        -0.4166938326176808,
+        3.6308555463483216,
+        -6.565000146627426
+      ],
+      "maxRise": 1.3681302070617676,
+      "contact": {
+        "other": "Castle moving door plank collider",
+        "point": "[-0.6460639238357544, 3.502532482147217, -6.5659003257751465]",
+        "normal": "[-0.43603014945983887, -0.00043556871241889894, 0.8999319076538086]"
+      },
+      "video": "side.mp4"
+    },
+    {
+      "view": "rear",
+      "passed": true,
+      "target": [
+        -0.47411591542852394,
+        2.952022690640417,
+        -6.565000146627426
+      ],
+      "maxRise": 0.7824854850769043,
+      "contact": {
+        "other": "Castle moving door plank collider",
+        "point": "[-0.4541361927986145, 2.8371098041534424, -6.566000461578369]",
+        "normal": "[0, 0.000020052386389579624, 1]"
+      },
+      "video": "rear.mp4"
+    }
+  ],
+  "openDuringFlight": {
+    "passed": true,
+    "alive": true,
+    "jammed": false,
+    "landed": 1.9999823570251465,
+    "video": "open-flight.mp4",
+    "recoveredState": "LatchDogState",
+    "resumedClip": "follow"
+  },
+  "checks": {
+    "focusedUnitTests": {
+      "passed": 30,
+      "failed": 0
+    },
+    "eslint": "passed",
+    "review": "Reviewed recorded front, side and rear motion frames: takeoff, airborne travel, leaf impact, disappearance and persistent yellow splat.",
+    "preview": {
+      "mode": "RGBA",
+      "size": [
+        512,
+        512
+      ],
+      "visiblePixels": 33401,
+      "transparentPixels": 228743,
+      "margin": 93
+    }
+  },
+  "hashes": {
+    "blend": "b3016f913b1aea0838dd4d2fd325c56aa0402e18c3443da57d341199894c8b07",
+    "glb": "8477d7a1c35e99eb1a08344122f7a4038f4ae501a0b067c3cb54ef4a855890d6",
+    "preview": "fb86e0a6c25ba8ff0bb09a5edad31b85091e578f51b4a4f3ba264763b95fd724"
+  },
+  "interiorSequence": {
+    "passed": true,
+    "entranceRemainedOpen": true,
+    "video": "open-then-interior.mp4",
+    "result": "Survives opening entrance, lands, resumes pursuit, then leaps into a separate closed interior door."
+  },
+  "repair": {
+    "observed": "Compound-floor manifold normals reversed: body landed while behavior remained airborne.",
+    "fix": "Validate actual contact point beneath capsule and normal magnitude; ignore rising support contact only during takeoff.",
+    "retest": "All three closed-leaf recordings repeated; opening-flight recovery returns to follow."
+  }
+}

@@ -1,0 +1,154 @@
+{
+  "date": "2026-10-30",
+  "status": "verified",
+  "route": "http://127.0.0.1:9006/map/test_enemy-latch-slug",
+  "change": "Rebuilt all six variants as single connected closed meshes. Drips deform directly from the lower edge of the continuous adhesive surface; no detached sphere or bead components. Shape and flow variation retained.",
+  "comparison": "Six consecutive production impacts at the same sampled leaf point, camera and elapsed age (8 s), leaving the splash randomization unmodified. Only the chosen authored node is enabled.",
+  "trials": [
+    {
+      "impact": 1,
+      "shape": "Narrow ragged",
+      "id": 5,
+      "drips": 5,
+      "width": 0.8794355499345702,
+      "height": 1.0410155285090719,
+      "thickness": 0.8229872903563151,
+      "speed": 0.9173928632522428,
+      "stopTime": 20,
+      "clip": "adhesive_ooze_5",
+      "visibleNodes": [
+        "Slug adhesive variant 5"
+      ],
+      "shaderGrowth": 17,
+      "effectInstances": 1,
+      "passed": true
+    },
+    {
+      "impact": 2,
+      "shape": "Uneven fan",
+      "id": 2,
+      "drips": 4,
+      "width": 0.9643301532415655,
+      "height": 1.0437751060201113,
+      "thickness": 1.0700332278047195,
+      "speed": 0.9584802090874901,
+      "stopTime": 20,
+      "clip": "adhesive_ooze_2",
+      "visibleNodes": [
+        "Slug adhesive variant 2"
+      ],
+      "shaderGrowth": 0,
+      "effectInstances": 1,
+      "passed": true
+    },
+    {
+      "impact": 3,
+      "shape": "Broad left-heavy",
+      "id": 0,
+      "drips": 2,
+      "width": 1.0093024049569201,
+      "height": 0.8495342181861961,
+      "thickness": 1.3165745739706123,
+      "speed": 1.1037476581433325,
+      "stopTime": 20,
+      "clip": "adhesive_ooze_0",
+      "visibleNodes": [
+        "Slug adhesive variant 0"
+      ],
+      "shaderGrowth": 0,
+      "effectInstances": 1,
+      "passed": true
+    },
+    {
+      "impact": 4,
+      "shape": "Low spreading smear",
+      "id": 4,
+      "drips": 3,
+      "width": 0.895180904176449,
+      "height": 0.8454564518027368,
+      "thickness": 1.3370377540538925,
+      "speed": 0.8433037185397476,
+      "stopTime": 20,
+      "clip": "adhesive_ooze_4",
+      "visibleNodes": [
+        "Slug adhesive variant 4"
+      ],
+      "shaderGrowth": 0,
+      "effectInstances": 1,
+      "passed": true
+    },
+    {
+      "impact": 5,
+      "shape": "Double lobe",
+      "id": 3,
+      "drips": 2,
+      "width": 0.8645145557183181,
+      "height": 0.9161019906175188,
+      "thickness": 1.2381471972089884,
+      "speed": 1.160964257227755,
+      "stopTime": 20,
+      "clip": "adhesive_ooze_3",
+      "visibleNodes": [
+        "Slug adhesive variant 3"
+      ],
+      "shaderGrowth": 0,
+      "effectInstances": 1,
+      "passed": true
+    },
+    {
+      "impact": 6,
+      "shape": "Tall pear",
+      "id": 1,
+      "drips": 3,
+      "width": 1.1319205475345626,
+      "height": 1.014866015038347,
+      "thickness": 0.8686580536878825,
+      "speed": 1.136773899973864,
+      "stopTime": 20,
+      "clip": "adhesive_ooze_1",
+      "visibleNodes": [
+        "Slug adhesive variant 1"
+      ],
+      "shaderGrowth": 0,
+      "effectInstances": 1,
+      "passed": true
+    }
+  ],
+  "sideView": {
+    "shape": "Double lobe",
+    "clearing": {
+      "hit": true,
+      "cleared": true,
+      "jammed": false,
+      "active": false
+    },
+    "remainingEffectInstances": 0,
+    "video": "grazing.mp4"
+  },
+  "checks": {
+    "focusedUnitTests": {
+      "passed": 38,
+      "failed": 0
+    },
+    "eslint": "passed",
+    "freshImport": "Six nodes and matching clips, sampled at 1/8/16 seconds with finite geometry.",
+    "runtimeErrors": [],
+    "floorSafety": "Each shape uses bounds sampled from its own authored clip, scaled for that impact, with 8 cm clearance.",
+    "connectedSurface": "All six exported mesh variants have exactly one connected component after welding export normal splits. Regression test passes. Morph animation retains the same topology.",
+    "shaderCompilation": "First capture includes 17 initial shaders compiled during scene warmup; subsequent six impacts show no shader growth."
+  },
+  "preview": {
+    "visiblePixels": 33513,
+    "transparentPixels": 228631,
+    "translucentPixels": 32756,
+    "margin": 93
+  },
+  "hashes": {
+    "blend": "ebd55745bfccc523cb2e443ce5be7af79b52073529e9a5b67d1805eb4e87ef79",
+    "glb": "7132349c4d678ccd61eda8c7b5b8c2d053c176fca76da0e7ab3ecc97bc533b7c",
+    "profiles": "4637c6cc75fe50f5632f283d791255d1f9ff9341996f85f2244c984710af07b1"
+  },
+  "comparisonImage": "in-game-comparison.png",
+  "video": "comparison.mp4",
+  "videoEditing": "10-second comparison contains last 5 seconds from front and grazing recordings, with fixed object crops; full recordings alongside."
+}

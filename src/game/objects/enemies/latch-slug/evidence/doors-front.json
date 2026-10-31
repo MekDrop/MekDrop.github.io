@@ -1,0 +1,11 @@
+[
+  {
+    "check": "closed exterior splat",
+    "passed": true,
+    "health": 48
+  },
+  {
+    "check": "actual pointer clears glue",
+    "passed": true
+  }
+]

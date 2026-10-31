@@ -7,6 +7,10 @@ uniform float uTime;
 uniform float uBurstAge;
 uniform float uBurstSide;
 uniform vec2 uBurstCenter;
+uniform float uArrivalStrength;
+uniform float uArrivalAge;
+uniform vec2 uArrivalCenter;
+uniform vec2 uArrivalRadius;
 
 varying vec2 vUv;
 varying float vSurfaceWave;
@@ -27,6 +31,11 @@ void main(void) {
   vec2 burstOffset = (vertex_texCoord0 - uBurstCenter) / vec2(0.32, 0.38);
   float burstShape = pow(max(0.0, 1.0 - dot(burstOffset, burstOffset)), 2.0);
   fluidPosition.x += uBurstSide * burstShape * burstEnvelope * 1.25;
+  vec2 arrivalOffset = (vertex_texCoord0 - uArrivalCenter) / uArrivalRadius;
+  float arrivalShape = exp(-dot(arrivalOffset, arrivalOffset) * 1.5);
+  float arrivalPulse = sin(clamp(uArrivalAge / 0.65, 0.0, 1.0) * 3.14159265);
+  // Local +X faces into the map: pressure comes from behind the membrane.
+  fluidPosition.x += arrivalShape * (uArrivalStrength * 0.12 + arrivalPulse * 0.42);
   gl_Position =
       matrix_viewProjection * matrix_model * vec4(fluidPosition, 1.0);
   vUv = vertex_texCoord0;

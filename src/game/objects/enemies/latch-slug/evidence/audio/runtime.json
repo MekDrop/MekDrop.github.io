@@ -1,0 +1,55 @@
+{
+  "setup": {
+    "context": "running",
+    "audioTracks": 1,
+    "slots": [
+      "jump",
+      "splash"
+    ],
+    "rangeVolume": 0.6272458735818436
+  },
+  "cues": [
+    {
+      "name": "jump",
+      "pitch": 1.0274392944429431,
+      "t": 30582.10000000894,
+      "contextTime": 23.610666666666667,
+      "instances": 1,
+      "playing": true,
+      "volume": 0.31331019300812496,
+      "state": "LatchLeapState",
+      "alive": true,
+      "velocity": "[1.2984683513641357, 7.221094608306885, 4.342606544494629]",
+      "seconds": 5.585100000008941
+    },
+    {
+      "name": "splash",
+      "pitch": 1.0004008068596462,
+      "t": 31120.70000000298,
+      "contextTime": 24.152,
+      "instances": 1,
+      "playing": true,
+      "volume": 0.2818916258128157,
+      "state": "LatchLeapState",
+      "alive": true,
+      "velocity": "[0.9087421298027039, -4.514734268188477, -0.5185065269470215]",
+      "seconds": 6.12370000000298
+    }
+  ],
+  "slots": [
+    {
+      "name": "jump",
+      "duration": 0.47733333333333333,
+      "asset": "http://127.0.0.1:9006/src/game/audio/latch-slug/jump.ogg"
+    },
+    {
+      "name": "splash",
+      "duration": 0.9573333333333334,
+      "asset": "http://127.0.0.1:9006/src/game/audio/latch-slug/splash.ogg"
+    }
+  ],
+  "alive": false,
+  "jammed": true,
+  "context": "running",
+  "errors": []
+}

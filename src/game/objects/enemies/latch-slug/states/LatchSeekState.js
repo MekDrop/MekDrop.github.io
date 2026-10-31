@@ -8,26 +8,36 @@ export class LatchSeekState extends State {
    * @param {import("../LatchSlug.js").LatchSlug} owner
    */
   execute(owner) {
-    const royal = owner.resolveRoyalTarget();
-    if (!royal) {
-      owner.stop();
-      owner.playClip(ANIMATION.SNIFF);
-
-      return;
-    }
     const door = owner.nearbyDoor;
-    if (door && door.openAmount <= 0.001 && !door.jammed) {
+    if (door && door.openAmount <= 0.001) {
+      if (owner.approachDoor(door)) {
+        owner.playClip(ANIMATION.WADDLE_WALK);
+
+        return;
+      }
       owner.doorTarget = door;
       owner.behavior.changeTo(LatchPressState.name);
 
       return;
     }
-    if (owner.distanceTo(royal) < 1.2 || door?.openAmount > 0.001) {
+    const companion = owner.resolvePackTarget();
+    if (!companion) {
+      if (owner.advanceToPack()) {
+        owner.playClip(ANIMATION.WADDLE_WALK);
+
+        return;
+      }
+      owner.stop();
+      owner.playClip(ANIMATION.SNIFF);
+
+      return;
+    }
+    if (owner.distanceTo(companion) <= 0.95 || door?.openAmount > 0.001) {
       owner.behavior.changeTo(LatchDogState.name);
 
       return;
     }
-    owner.playClip(ANIMATION.WADDLE_WALK);
-    owner.moveToward(royal, 0.85);
+    owner.playClip(owner.elapsed < owner.pack.greetingUntil ? ANIMATION.ANTENNA_WAG : ANIMATION.WADDLE_WALK);
+    owner.followTarget(companion, 0.85);
   }
 }

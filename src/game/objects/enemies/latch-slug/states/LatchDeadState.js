@@ -8,7 +8,11 @@ export class LatchDeadState extends State {
   enter(owner) {
     owner.stateAge = 0;
     owner.stop();
-    owner.playClip(owner.residue ? ANIMATION.TERMINAL_SPLAT : ANIMATION.DEATH);
+    // A contact captures the current 3D pose for the continuous wall morph.
+    // Changing its bones to another clip here would introduce a visible pop.
+    if (!owner.residue) {
+      owner.playClip(ANIMATION.DEATH);
+    }
     // No living body survives a fatal splat. Residue owns only a bounded effect.
     if (owner.entity.rigidbody) {
       owner.entity.rigidbody.enabled = false;

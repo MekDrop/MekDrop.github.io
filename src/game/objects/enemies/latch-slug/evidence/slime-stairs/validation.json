@@ -1,0 +1,53 @@
+{
+  "date": "2026-10-31",
+  "status": "passed",
+  "map": "/map/test_enemy-wave-director",
+  "checks": [
+    {
+      "name": "front",
+      "status": "passed",
+      "windupPosition": [
+        7.892024993896484,
+        2.735197067260742,
+        4.999148845672607
+      ],
+      "stairJumpState": false
+    },
+    {
+      "name": "opposite",
+      "status": "passed",
+      "windupPosition": [
+        7.887050628662109,
+        2.7337536811828613,
+        4.998459815979004
+      ],
+      "stairJumpState": false
+    },
+    {
+      "name": "up-and-down",
+      "status": "passed",
+      "turnaroundPosition": [
+        8.375203132629395,
+        2.985870838165283,
+        5.001189708709717
+      ],
+      "finalPosition": [
+        5.261481285095215,
+        1.9999990463256836,
+        5.024072647094727
+      ],
+      "minDownVelocity": -0.6000000238418579
+    }
+  ],
+  "tests": {
+    "passed": 64,
+    "failed": 0
+  },
+  "preview": {
+    "visiblePixels": 41658,
+    "transparentPixels": 220486,
+    "margin": 100
+  },
+  "motion": "Measured tread contact motor, gravity counterforce through Ammo, separate slow stair speed and multiple short probes. Render-only ground sampled belly controls flatten and drape over tread heights; authored transforms restored after rendering. Root movement remains native physics. The hero is moved outside after the slug reaches the upper landing to verify descent.",
+  "retries": "Rejected slow motor without gravity counterforce because it stalled at low frame rates; rejected single short probe because it missed the first riser. Final multi-probe motor verified up and down."
+}

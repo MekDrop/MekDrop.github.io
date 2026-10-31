@@ -1,0 +1,192 @@
+{
+  "status": "passed",
+  "date": "2026-10-31",
+  "route": "/map/test_enemy-latch-slug",
+  "approvedReference": "src/game/models/enemies/latch-slug/provenance/approved-faceted-jelly-concept.png",
+  "provider": {
+    "name": "Tripo3D Studio",
+    "job": "abd845a0-95d7-41d8-9fe5-eaf5e6e6862e",
+    "browser": "Opera",
+    "creditsAuthorized": 55,
+    "creditsUsed": 55
+  },
+  "asset": {
+    "status": "passed",
+    "vertices": 19500,
+    "triangles": 6500,
+    "skinJoints": [
+      "root",
+      "body",
+      "belly_front",
+      "belly_L",
+      "belly_R",
+      "belly_rear",
+      "head",
+      "antenna_L",
+      "antenna_R",
+      "feeler_L",
+      "feeler_R",
+      "tongue",
+      "paw_front_L",
+      "paw_front_R",
+      "paw_rear_L",
+      "paw_rear_R",
+      "tail"
+    ],
+    "clips": [
+      "airborne",
+      "antenna_wag",
+      "carried_ready",
+      "death",
+      "door_press",
+      "follow",
+      "hit",
+      "idle_dog",
+      "inflate_loop",
+      "inflate_start",
+      "knockback",
+      "land",
+      "land_recover",
+      "leap_apex",
+      "leap_fall",
+      "leap_rise",
+      "nudge",
+      "pant",
+      "recover",
+      "scoot",
+      "sit_down",
+      "sit_loop",
+      "sniff",
+      "stand_up",
+      "startled",
+      "stun",
+      "terminal_splat",
+      "turn",
+      "waddle_run",
+      "waddle_walk"
+    ],
+    "maximumWeightSumError": 1.3224780559539795e-7,
+    "sourceBytesMatch": true,
+    "sourceSha256": "3eef5d97be275ed7f76b3e13d941093c7566c3143950f3426b0eba4ed787fe6e",
+    "glbSha256": "74a830a7b87654757d524b9cd4c95eb3460ffb219e06474f3a1752e1a4c26b57"
+  },
+  "skeleton": {
+    "bones": 17,
+    "deforming": 11,
+    "maximumInfluences": 4,
+    "editableSource": "src/game/models/enemies/latch-slug/latch-slug.blend",
+    "diagnostic": "skeleton.png"
+  },
+  "motion": {
+    "authoredClips": 30,
+    "nativeAmmoTrajectory": true,
+    "riseApexFallFromVerticalVelocity": true,
+    "landingDurationSeconds": 0.67,
+    "ascendingContactRegression": "passed",
+    "secondaryBellyDeformation": true
+  },
+  "cloud": {
+    "visiblePixels": 39930,
+    "changedPixels": 16940,
+    "changedFraction": 0.42424242424242425,
+    "meanAlphaChange": 6.287678437265214,
+    "bodyPose": "Frozen across two captures with identical visible pixel masks",
+    "method": "Five depth samples of a slowly advected 3D density field; density changes opacity and colour, with bounded motion lag and landing response.",
+    "shaders": [
+      "GLSL",
+      "WGSL"
+    ],
+    "testedBackend": "WebGL2",
+    "webgpuRuntime": "not run"
+  },
+  "runtime": {
+    "trials": [
+      {
+        "view": "three-quarter",
+        "entitiesBefore": 28098,
+        "entitiesAfter": 28098,
+        "shadersBefore": 117,
+        "shadersAfter": 117,
+        "clips": [
+          "idle_dog",
+          "inflate_start",
+          "leap_rise",
+          "leap_fall",
+          "land",
+          "land_recover",
+          "waddle_walk"
+        ],
+        "ascendingLanding": false
+      },
+      {
+        "view": "side",
+        "entitiesBefore": 28098,
+        "entitiesAfter": 28098,
+        "shadersBefore": 117,
+        "shadersAfter": 117,
+        "clips": [
+          "idle_dog",
+          "inflate_start",
+          "airborne",
+          "leap_rise",
+          "leap_apex",
+          "leap_fall",
+          "land",
+          "land_recover",
+          "waddle_walk"
+        ],
+        "ascendingLanding": false
+      }
+    ],
+    "gates": [
+      {
+        "view": 0,
+        "entitiesStable": true,
+        "shadersStable": true,
+        "materialsRestored": true,
+        "physicsFactor": "[1, 1, 1]"
+      },
+      {
+        "view": 1,
+        "entitiesStable": true,
+        "shadersStable": true,
+        "materialsRestored": true,
+        "physicsFactor": "[1, 1, 1]"
+      }
+    ],
+    "errors": []
+  },
+  "door": {
+    "result": {
+      "alive": false,
+      "jammed": true,
+      "bodyDisabled": true,
+      "clip": "leap_fall"
+    },
+    "errors": []
+  },
+  "preview": {
+    "visiblePixels": 39930,
+    "transparentPixels": 222214,
+    "margin": 110,
+    "file": "../../preview.png",
+    "encoding": "straight-alpha RGBA, full actual production object, no scenery or HUD"
+  },
+  "checks": {
+    "focusedTestsPassed": 43,
+    "focusedTestsFailed": 0,
+    "scopedEslint": "passed",
+    "diffWhitespace": "passed",
+    "freshGlbImport": "passed",
+    "jointAndWeightValidation": "passed",
+    "visualReview": "Native-speed recordings inspected from three-quarter and side cameras; full object stays in frame; compressed takeoff, airborne stretch and landing recovery visible."
+  },
+  "recordings": {
+    "main": "motion-and-clouds.mp4",
+    "door": "door-splat.mp4",
+    "views": [
+      "view-0.mp4",
+      "view-1.mp4"
+    ]
+  }
+}

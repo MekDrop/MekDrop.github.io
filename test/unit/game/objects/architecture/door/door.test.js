@@ -258,3 +258,20 @@ it("nonlethal damage retains the existing opening timeline and rejects invalid a
   door.destroy();
   assert.equal(door.receiveDamage(8),0);
 });
+it("attributes a leaf break once without paying for nonlethal hits or cleanup", () => {
+  const { door } = fixture();
+  const outcomes = [];
+  const attacker = {
+    onTargetDefeated: (target,kind) => outcomes.push({
+      target,
+      kind,
+    }),
+  };
+  door.receiveDamage(47,attacker);
+  assert.equal(outcomes.length,0);
+  door.receiveDamage(2,attacker);
+  door.receiveDamage(100,attacker);
+  assert.equal(outcomes.length,1);
+  assert.equal(outcomes[0].target,door);
+  assert.equal(outcomes[0].kind,"break");
+});

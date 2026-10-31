@@ -1,0 +1,254 @@
+{
+  "file": "src/game/models/enemies/latch-slug/latch-slug.glb",
+  "aabb": {
+    "min": [
+      -0.3909,
+      0.0149,
+      -0.4902
+    ],
+    "max": [
+      0.3911,
+      0.6812,
+      0.4902
+    ]
+  },
+  "dims": [
+    0.782,
+    0.6662,
+    0.9803
+  ],
+  "center": [
+    0.0001,
+    0.348,
+    0
+  ],
+  "groundOffset": -0.0149,
+  "boundsSource": "vertices",
+  "boundsPose": "bind",
+  "requiresRuntimeCheck": true,
+  "nodes": 19,
+  "nodePaths": [
+    "LatchSlugRig",
+    "LatchSlugRig/LatchSlug - Tripo faceted jelly skin",
+    "LatchSlugRig/root",
+    "LatchSlugRig/root/body",
+    "LatchSlugRig/root/body/belly_L",
+    "LatchSlugRig/root/body/belly_R",
+    "LatchSlugRig/root/body/belly_front",
+    "LatchSlugRig/root/body/belly_rear",
+    "LatchSlugRig/root/body/head",
+    "LatchSlugRig/root/body/head/antenna_L",
+    "LatchSlugRig/root/body/head/antenna_R",
+    "LatchSlugRig/root/body/head/feeler_L",
+    "LatchSlugRig/root/body/head/feeler_R",
+    "LatchSlugRig/root/body/head/tongue",
+    "LatchSlugRig/root/body/paw_front_L",
+    "LatchSlugRig/root/body/paw_front_R",
+    "LatchSlugRig/root/body/paw_rear_L",
+    "LatchSlugRig/root/body/paw_rear_R",
+    "LatchSlugRig/root/body/tail"
+  ],
+  "meshNodes": 1,
+  "materials": [
+    "Golden living gel",
+    "Opaque dark sensory tips",
+    "Opaque eye catchlights"
+  ],
+  "clips": [
+    {
+      "name": "airborne",
+      "duration": 1.0333
+    },
+    {
+      "name": "antenna_wag",
+      "duration": 1.2333
+    },
+    {
+      "name": "carried_ready",
+      "duration": 1.2333
+    },
+    {
+      "name": "death",
+      "duration": 1.1333
+    },
+    {
+      "name": "door_press",
+      "duration": 0.4
+    },
+    {
+      "name": "follow",
+      "duration": 0.8333
+    },
+    {
+      "name": "hit",
+      "duration": 0.4333
+    },
+    {
+      "name": "idle_dog",
+      "duration": 2.0333
+    },
+    {
+      "name": "inflate_loop",
+      "duration": 1.2333
+    },
+    {
+      "name": "inflate_start",
+      "duration": 0.4
+    },
+    {
+      "name": "knockback",
+      "duration": 0.6333
+    },
+    {
+      "name": "land",
+      "duration": 0.6667
+    },
+    {
+      "name": "land_recover",
+      "duration": 0.6
+    },
+    {
+      "name": "leap_apex",
+      "duration": 0.2333
+    },
+    {
+      "name": "leap_fall",
+      "duration": 0.2333
+    },
+    {
+      "name": "leap_rise",
+      "duration": 0.2333
+    },
+    {
+      "name": "nudge",
+      "duration": 0.7333
+    },
+    {
+      "name": "pant",
+      "duration": 1.0333
+    },
+    {
+      "name": "recover",
+      "duration": 0.7
+    },
+    {
+      "name": "scoot",
+      "duration": 0.7333
+    },
+    {
+      "name": "sit_down",
+      "duration": 0.6333
+    },
+    {
+      "name": "sit_loop",
+      "duration": 2.0333
+    },
+    {
+      "name": "sniff",
+      "duration": 1.2333
+    },
+    {
+      "name": "stand_up",
+      "duration": 0.6333
+    },
+    {
+      "name": "startled",
+      "duration": 0.7
+    },
+    {
+      "name": "stun",
+      "duration": 1.2333
+    },
+    {
+      "name": "terminal_splat",
+      "duration": 0.7333
+    },
+    {
+      "name": "turn",
+      "duration": 0.7333
+    },
+    {
+      "name": "waddle_run",
+      "duration": 0.5667
+    },
+    {
+      "name": "waddle_walk",
+      "duration": 0.8333
+    }
+  ],
+  "joints": [
+    "antenna_L",
+    "antenna_R",
+    "belly_L",
+    "belly_R",
+    "belly_front",
+    "belly_rear",
+    "body",
+    "feeler_L",
+    "feeler_R",
+    "head",
+    "paw_front_L",
+    "paw_front_R",
+    "paw_rear_L",
+    "paw_rear_R",
+    "root",
+    "tail",
+    "tongue"
+  ],
+  "animationTargets": [
+    "LatchSlugRig/root.rotation",
+    "LatchSlugRig/root.scale",
+    "LatchSlugRig/root.translation",
+    "LatchSlugRig/root/body.rotation",
+    "LatchSlugRig/root/body.scale",
+    "LatchSlugRig/root/body.translation",
+    "LatchSlugRig/root/body/belly_L.rotation",
+    "LatchSlugRig/root/body/belly_L.scale",
+    "LatchSlugRig/root/body/belly_L.translation",
+    "LatchSlugRig/root/body/belly_R.rotation",
+    "LatchSlugRig/root/body/belly_R.scale",
+    "LatchSlugRig/root/body/belly_R.translation",
+    "LatchSlugRig/root/body/belly_front.rotation",
+    "LatchSlugRig/root/body/belly_front.scale",
+    "LatchSlugRig/root/body/belly_front.translation",
+    "LatchSlugRig/root/body/belly_rear.rotation",
+    "LatchSlugRig/root/body/belly_rear.scale",
+    "LatchSlugRig/root/body/belly_rear.translation",
+    "LatchSlugRig/root/body/head.rotation",
+    "LatchSlugRig/root/body/head.scale",
+    "LatchSlugRig/root/body/head.translation",
+    "LatchSlugRig/root/body/head/antenna_L.rotation",
+    "LatchSlugRig/root/body/head/antenna_L.scale",
+    "LatchSlugRig/root/body/head/antenna_L.translation",
+    "LatchSlugRig/root/body/head/antenna_R.rotation",
+    "LatchSlugRig/root/body/head/antenna_R.scale",
+    "LatchSlugRig/root/body/head/antenna_R.translation",
+    "LatchSlugRig/root/body/head/feeler_L.rotation",
+    "LatchSlugRig/root/body/head/feeler_L.scale",
+    "LatchSlugRig/root/body/head/feeler_L.translation",
+    "LatchSlugRig/root/body/head/feeler_R.rotation",
+    "LatchSlugRig/root/body/head/feeler_R.scale",
+    "LatchSlugRig/root/body/head/feeler_R.translation",
+    "LatchSlugRig/root/body/head/tongue.rotation",
+    "LatchSlugRig/root/body/head/tongue.scale",
+    "LatchSlugRig/root/body/head/tongue.translation",
+    "LatchSlugRig/root/body/paw_front_L.rotation",
+    "LatchSlugRig/root/body/paw_front_L.scale",
+    "LatchSlugRig/root/body/paw_front_L.translation",
+    "LatchSlugRig/root/body/paw_front_R.rotation",
+    "LatchSlugRig/root/body/paw_front_R.scale",
+    "LatchSlugRig/root/body/paw_front_R.translation",
+    "LatchSlugRig/root/body/paw_rear_L.rotation",
+    "LatchSlugRig/root/body/paw_rear_L.scale",
+    "LatchSlugRig/root/body/paw_rear_L.translation",
+    "LatchSlugRig/root/body/paw_rear_R.rotation",
+    "LatchSlugRig/root/body/paw_rear_R.scale",
+    "LatchSlugRig/root/body/paw_rear_R.translation",
+    "LatchSlugRig/root/body/tail.rotation",
+    "LatchSlugRig/root/body/tail.scale",
+    "LatchSlugRig/root/body/tail.translation"
+  ],
+  "morphed": false,
+  "morphAnimated": false,
+  "skinned": true
+}

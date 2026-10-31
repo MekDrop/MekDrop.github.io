@@ -1,0 +1,20 @@
+Author: rubberduck
+Pack: 40 CC0 water / splash / slime SFX (2018-07-29)
+Source: https://opengameart.org/content/40-cc0-water-splash-slime-sfx
+Download: https://opengameart.org/sites/default/files/water-splash-slime-sfx.zip
+License: Creative Commons Zero 1.0 Universal (CC0)
+License URL: https://creativecommons.org/publicdomain/zero/1.0/
+Full license: CC0-1.0.txt
+
+jump.wav / jump.ogg: supplied slime_02.ogg, 0.45 seconds.
+splash.wav / splash.ogg: supplied splash_08.ogg, about 0.69 seconds.
+
+Unmodified original Ogg files are preserved under sources/. The game WAV
+working copies decode those files to 16-bit PCM; runtime Ogg copies use the
+game's standard nominal 192-kbps Vorbis encoding. Stereo and 48 kHz are
+preserved. No synthesized audio, layers or generated waveforms are included.
+The previous procedural cues have been replaced.
+
+The source-page description says the pack's slime sounds are partly recorded
+from real slime; it does not identify each individual file's capture method.
+See provenance.json for source/download hashes and the selected-file roster.

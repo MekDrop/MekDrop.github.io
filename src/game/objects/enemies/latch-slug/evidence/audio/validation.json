@@ -1,0 +1,110 @@
+{
+  "date": "2026-10-30",
+  "status": "passed",
+  "route": "http://127.0.0.1:9006/map/test_enemy-latch-slug",
+  "clips": {
+    "jump": "Original sticky suction, hollow elastic gel pluck and short air release; takeoff only.",
+    "splash": "Original heavy wet impact and short descending bubble/plop tails; successful real leaf contact only."
+  },
+  "masters": {
+    "jump": {
+      "duration": 0.48,
+      "peak": 0.89,
+      "rms": 0.1710290073005833
+    },
+    "splash": {
+      "duration": 0.96,
+      "peak": 0.89,
+      "rms": 0.09963613420812896
+    }
+  },
+  "nativeRecording": {
+    "setup": {
+      "context": "running",
+      "audioTracks": 1,
+      "slots": [
+        "jump",
+        "splash"
+      ],
+      "rangeVolume": 0.6272458735818436
+    },
+    "cues": [
+      {
+        "name": "jump",
+        "pitch": 1.0274392944429431,
+        "t": 30582.10000000894,
+        "contextTime": 23.610666666666667,
+        "instances": 1,
+        "playing": true,
+        "volume": 0.31331019300812496,
+        "state": "LatchLeapState",
+        "alive": true,
+        "velocity": "[1.2984683513641357, 7.221094608306885, 4.342606544494629]",
+        "seconds": 5.585100000008941
+      },
+      {
+        "name": "splash",
+        "pitch": 1.0004008068596462,
+        "t": 31120.70000000298,
+        "contextTime": 24.152,
+        "instances": 1,
+        "playing": true,
+        "volume": 0.2818916258128157,
+        "state": "LatchLeapState",
+        "alive": true,
+        "velocity": "[0.9087421298027039, -4.514734268188477, -0.5185065269470215]",
+        "seconds": 6.12370000000298
+      }
+    ],
+    "slots": [
+      {
+        "name": "jump",
+        "duration": 0.47733333333333333,
+        "asset": "http://127.0.0.1:9006/src/game/audio/latch-slug/jump.ogg"
+      },
+      {
+        "name": "splash",
+        "duration": 0.9573333333333334,
+        "asset": "http://127.0.0.1:9006/src/game/audio/latch-slug/splash.ogg"
+      }
+    ],
+    "alive": false,
+    "jammed": true,
+    "context": "running",
+    "errors": [],
+    "editing": {
+      "startSeconds": 4.385100000008941,
+      "durationSeconds": 3.1385999999940397,
+      "note": "Unmodified in-game sound and canvas capture, trimmed together around the leap and impact; no offline SFX overlay."
+    },
+    "levels": {
+      "jump": {
+        "rms": 0.05697810731771934,
+        "peak": 0.287811279296875,
+        "start": 5.585100000008941
+      },
+      "splash": {
+        "rms": 0.04090771044496893,
+        "peak": 0.2420654296875,
+        "start": 6.12370000000298
+      }
+    }
+  },
+  "checks": {
+    "focusedTests": {
+      "passed": 53,
+      "failed": 0
+    },
+    "eslint": "passed",
+    "ogg": "Both preferred Ogg assets preloaded and decoded in Chrome; WAV fallback/cache and 192-kbps Vorbis registry checks pass.",
+    "timing": "Takeoff occurs in LatchLeapState with positive native vertical velocity; splash follows real accepted closed-leaf contact. Duplicate contacts and opened/rejected doors cannot add a false cue.",
+    "lifecycle": "Uses borrowed GameAudioLibrary assets and entity-owned playback/follow teardown, with normal player-distance attenuation and mute controls."
+  },
+  "video": "in-game.mp4",
+  "hashes": {
+    "jumpWav": "e1065e131242606e8cf59fa141dfd5d7ddf84f0b1ccc8b28a89c5355f5e88831",
+    "splashWav": "9f4fc47470860731b8001b23dc7653a3628fe8bd3c70bf82f1db596ae1e7cdfb",
+    "jumpOgg": "bfc0789c60518e6e1441e576321f90cf288bdef4d1b4f6881ddf76fa2b555b55",
+    "splashOgg": "d26a556ffac2096847ab53c246f2140284666dd4da54ad3fc7db155db9589f10"
+  }
+}

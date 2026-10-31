@@ -128,6 +128,22 @@ export class Gateway {
    */
   #portalMaterial = null;
   /**
+   * @type {Set<import("../enemies/shared/Enemy.js").Enemy>}
+   */
+  #arrivals = new Set();
+  /**
+   * @type {GatewayRepulsionEffect|null}
+   */
+  #arrivalSpray = null;
+  /**
+   * @type {number}
+   */
+  #arrivalStarted = -10;
+  /**
+   * @type {number}
+   */
+  #arrivalStrength = 0;
+  /**
    *
    * @type {import("playcanvas").StandardMaterial}
    */
@@ -277,6 +293,11 @@ export class Gateway {
     this.#createFrame(surfaceLift);
     this.#createPortal();
     this.#repulsionEffect = new GatewayRepulsionEffect(pc, app.graphicsDevice, this.#visualRoot, cubeSize);
+    this.#arrivalSpray = new GatewayRepulsionEffect(pc, app.graphicsDevice, this.#visualRoot, cubeSize, {
+      lifetime: 0.42,
+      speed: 0.4,
+    });
+    this.#arrivalSpray.prewarm(cubeSize);
     this.setColor(color);
     if (definition) {
       const entry = definition.entry;
@@ -311,8 +332,61 @@ export class Gateway {
     this.#visualRoot.setLocalPosition(0, offset, 0);
   }
 
+  /**
+   * @returns {number}
+   */
+  get arrivalCount() {
+    return this.#arrivals.size;
+  }
+
   get entity() {
     return this.#entity;
+  }
+
+  /**
+   * @param {number} radius
+   * @returns {{from:import("playcanvas").Vec3,to:import("playcanvas").Vec3,direction:import("playcanvas").Vec3,distance:number}}
+   */
+  entrancePath(radius) {
+    const distance = radius + 0.75, matrix = this.#visualRoot.getWorldTransform();
+
+    return {
+      from: matrix.transformPoint(new this.#pc.Vec3(-distance, 0.03, 0)),
+      to: matrix.transformPoint(new this.#pc.Vec3(distance, 0.03, 0)),
+      direction: matrix.transformVector(new this.#pc.Vec3(1, 0, 0)).normalize(),
+      distance,
+    };
+  }
+
+  /**
+   * @param {import("playcanvas").Vec3} position
+   * @returns {import("playcanvas").Vec3}
+   */
+  arrivalPosition(position) {
+    return this.#visualRoot.getWorldTransform().clone().invert().transformPoint(position);
+  }
+
+  /**
+   * @param {import("../enemies/shared/Enemy.js").Enemy} actor
+   */
+  trackArrival(actor) {
+    this.#arrivals.add(actor);
+  }
+
+  /**
+   * @param {import("../enemies/shared/Enemy.js").Enemy} actor
+   */
+  crossArrival(actor) {
+    this.#arrivalStarted = this.#elapsed;
+    const local = this.arrivalPosition(actor.position);
+    this.#arrivalSpray.play(1, local.z, this.#cubeSize);
+  }
+
+  /**
+   * @param {import("../enemies/shared/Enemy.js").Enemy} actor
+   */
+  releaseArrival(actor) {
+    this.#arrivals.delete(actor);
   }
 
   get symbol() {
@@ -527,6 +601,9 @@ export class Gateway {
   }
 
   destroy() {
+    this.#arrivalSpray?.destroy();
+    this.#arrivalSpray = null;
+    this.#arrivals.clear();
     this.#repulsionEffect?.destroy();
     this.#updateHandle?.off();
     this.#updateHandle = null;
@@ -609,7 +686,7 @@ export class Gateway {
       FRAME_OPENING_HEIGHT_BLOCKS * this.#cubeSize + surfaceLift;
     const windFeather = PORTAL_WIND_FEATHER_BLOCKS * this.#cubeSize;
 
-    // Local +X is the enemy-facing side. Right gates rotate the whole gateway
+    // Local +X is the map-facing side. Right gates rotate the whole gateway
     // 180 degrees, keeping this cloth on the approach side only.
     for (let row = 0; row <= rowSegments; row += 1) {
       const v = row / rowSegments;
@@ -850,6 +927,10 @@ export class Gateway {
     this.#portalMaterial.setParameter("uBurstAge", 10);
     this.#portalMaterial.setParameter("uBurstSide", 1);
     this.#portalMaterial.setParameter("uBurstCenter", [0.5, 0.25]);
+    this.#portalMaterial.setParameter("uArrivalStrength", 0);
+    this.#portalMaterial.setParameter("uArrivalAge", 10);
+    this.#portalMaterial.setParameter("uArrivalCenter", [0.5, 0.25]);
+    this.#portalMaterial.setParameter("uArrivalRadius", [0.24, 0.28]);
     const portalColor = colorFromValue(this.#pc, DEFAULT_GATEWAY_COLOR);
     this.#portalMaterial.setParameter("uColor", [
       portalColor.r,
@@ -863,6 +944,7 @@ export class Gateway {
     meshInstance.castShadow = false;
     meshInstance.receiveShadow = false;
     meshInstance.pick = false;
+    meshInstance.cull = false;
     const portal = new pc.Entity("Gateway portal surface");
     portal.addComponent("render", {
       meshInstances: [meshInstance],
@@ -888,6 +970,24 @@ export class Gateway {
   #on(deltaTime) {
     this.#elapsed += deltaTime;
     this.#repulsionEffect.update(deltaTime);
+    this.#arrivalSpray.update(deltaTime);
+    let strength = 0;
+    for (const actor of this.#arrivals) {
+      if (!actor.alive) {
+        this.#arrivals.delete(actor);
+        continue;
+      }
+      const local = this.arrivalPosition(actor.position);
+      const proximity = Math.max(0, 1 - Math.abs(local.x) / 2);
+      if (proximity >= strength) {
+        strength = proximity;
+        this.#portalMaterial.setParameter("uArrivalCenter", [0.5 + local.z / (8 * this.#cubeSize), (local.y + actor.height / 2) / (8 * this.#cubeSize)]);
+        this.#portalMaterial.setParameter("uArrivalRadius", [Math.max(0.16, actor.radius / (8 * this.#cubeSize)), Math.max(0.16, actor.height * 0.65 / (8 * this.#cubeSize))]);
+      }
+    }
+    this.#arrivalStrength += (strength - this.#arrivalStrength) * (1 - Math.exp(-deltaTime * 8));
+    this.#portalMaterial.setParameter("uArrivalStrength", this.#arrivalStrength);
+    this.#portalMaterial.setParameter("uArrivalAge", this.#elapsed - this.#arrivalStarted);
     this.#portalMaterial?.setParameter("uTime", this.#elapsed);
     this.#portalMaterial?.setParameter("uBurstAge", this.#elapsed - this.#burstStarted);
     this.#animateBanner(deltaTime);

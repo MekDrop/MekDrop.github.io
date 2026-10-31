@@ -1,0 +1,25 @@
+{
+  "date": "2026-10-31",
+  "status": "passed",
+  "checks": [
+    {
+      "side": "front",
+      "stairSamples": 36,
+      "minimumRequestedHorizontalSpeed": 0.20000000298101925,
+      "doorSplat": true
+    },
+    {
+      "side": "opposite",
+      "stairSamples": 39,
+      "minimumRequestedHorizontalSpeed": 0.2000000029961757,
+      "doorSplat": true
+    }
+  ],
+  "tests": {
+    "passed": 70,
+    "failed": 0
+  },
+  "runtimeErrors": [],
+  "behavior": "Removed intentional zero-speed reaches. Reach glides forward at 0.2 m/s and subsequent phases use 0.4 m/s. Bounded monotonic gel-coordinate flow advances the middle during transfer while front/rear contacts stay planted, and blends continuously into the rear pull. Native collisions remain authoritative; telemetry records commanded velocity, not guaranteed displacement through an obstacle.",
+  "visualReview": "Dense native frame sequence and both camera recordings reviewed; three stair cycles and the following closed-door splat complete."
+}

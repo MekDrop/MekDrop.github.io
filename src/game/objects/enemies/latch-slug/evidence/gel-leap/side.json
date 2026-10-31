@@ -1,0 +1,1613 @@
+{
+  "preparedShaders": 108,
+  "shaders": 108,
+  "effects": 1,
+  "samples": [
+    {
+      "t": 835812.5,
+      "facing": 0,
+      "pos": [
+        1.4000005722045898,
+        2.003998279571533,
+        -9.100000381469727
+      ],
+      "v": [
+        0,
+        0,
+        0
+      ],
+      "state": "LatchClipState",
+      "airborne": false,
+      "grounded": true,
+      "clip": "idle_dog",
+      "alive": true,
+      "target": null,
+      "door": 0,
+      "jammed": false
+    },
+    {
+      "t": 835877.8999999985,
+      "facing": 0,
+      "pos": [
+        1.4000009298324585,
+        2.003998279571533,
+        -9.100000381469727
+      ],
+      "v": [
+        0,
+        0,
+        0
+      ],
+      "state": "LatchClipState",
+      "airborne": false,
+      "grounded": true,
+      "clip": "idle_dog",
+      "alive": true,
+      "target": null,
+      "door": 0,
+      "jammed": false
+    },
+    {
+      "t": 835959.6000000015,
+      "facing": 0,
+      "pos": [
+        1.4000009298324585,
+        2.003998279571533,
+        -9.100000381469727
+      ],
+      "v": [
+        0,
+        0,
+        0
+      ],
+      "state": "LatchClipState",
+      "airborne": false,
+      "grounded": true,
+      "clip": "idle_dog",
+      "alive": true,
+      "target": null,
+      "door": 0,
+      "jammed": false
+    },
+    {
+      "t": 836030.6999999955,
+      "facing": 0,
+      "pos": [
+        1.4000006914138794,
+        2.003998279571533,
+        -9.100000381469727
+      ],
+      "v": [
+        0,
+        0,
+        0
+      ],
+      "state": "LatchClipState",
+      "airborne": false,
+      "grounded": true,
+      "clip": "idle_dog",
+      "alive": true,
+      "target": null,
+      "door": 0,
+      "jammed": false
+    },
+    {
+      "t": 836090,
+      "facing": 0,
+      "pos": [
+        1.4000005722045898,
+        2.003998279571533,
+        -9.100000381469727
+      ],
+      "v": [
+        0,
+        0,
+        0
+      ],
+      "state": "LatchClipState",
+      "airborne": false,
+      "grounded": true,
+      "clip": "idle_dog",
+      "alive": true,
+      "target": null,
+      "door": 0,
+      "jammed": false
+    },
+    {
+      "t": 836165.799999997,
+      "facing": 0,
+      "pos": [
+        1.400000810623169,
+        2.003998279571533,
+        -9.100000381469727
+      ],
+      "v": [
+        0,
+        0,
+        0
+      ],
+      "state": "LatchClipState",
+      "airborne": false,
+      "grounded": true,
+      "clip": "idle_dog",
+      "alive": true,
+      "target": null,
+      "door": 0,
+      "jammed": false
+    },
+    {
+      "t": 836204.3999999985,
+      "facing": 0,
+      "pos": [
+        1.4000005722045898,
+        2.003998279571533,
+        -9.100000381469727
+      ],
+      "v": [
+        0,
+        0,
+        0
+      ],
+      "state": "LatchClipState",
+      "airborne": false,
+      "grounded": true,
+      "clip": "idle_dog",
+      "alive": true,
+      "target": null,
+      "door": 0,
+      "jammed": false
+    },
+    {
+      "t": 836295.6999999955,
+      "facing": 0,
+      "pos": [
+        1.400000810623169,
+        2.003998279571533,
+        -9.100000381469727
+      ],
+      "v": [
+        0,
+        0,
+        0
+      ],
+      "state": "LatchClipState",
+      "airborne": false,
+      "grounded": true,
+      "clip": "idle_dog",
+      "alive": true,
+      "target": null,
+      "door": 0,
+      "jammed": false
+    },
+    {
+      "t": 836331.799999997,
+      "facing": 0,
+      "pos": [
+        1.4000006914138794,
+        2.003998279571533,
+        -9.100000381469727
+      ],
+      "v": [
+        0,
+        0,
+        0
+      ],
+      "state": "LatchClipState",
+      "airborne": false,
+      "grounded": true,
+      "clip": "idle_dog",
+      "alive": true,
+      "target": null,
+      "door": 0,
+      "jammed": false
+    },
+    {
+      "t": 836404.6999999955,
+      "facing": 0,
+      "pos": [
+        1.4000006914138794,
+        2.003998279571533,
+        -9.100000381469727
+      ],
+      "v": [
+        0,
+        0,
+        0
+      ],
+      "state": "LatchClipState",
+      "airborne": false,
+      "grounded": true,
+      "clip": "idle_dog",
+      "alive": true,
+      "target": null,
+      "door": 0,
+      "jammed": false
+    },
+    {
+      "t": 836480.8999999985,
+      "facing": 0,
+      "pos": [
+        1.400000810623169,
+        2.003998279571533,
+        -9.100000381469727
+      ],
+      "v": [
+        0,
+        0,
+        0
+      ],
+      "state": "LatchClipState",
+      "airborne": false,
+      "grounded": true,
+      "clip": "idle_dog",
+      "alive": true,
+      "target": null,
+      "door": 0,
+      "jammed": false
+    },
+    {
+      "t": 836536,
+      "facing": 0,
+      "pos": [
+        1.4000006914138794,
+        2.003998279571533,
+        -9.100000381469727
+      ],
+      "v": [
+        0,
+        0,
+        0
+      ],
+      "state": "LatchClipState",
+      "airborne": false,
+      "grounded": true,
+      "clip": "idle_dog",
+      "alive": true,
+      "target": null,
+      "door": 0,
+      "jammed": false
+    },
+    {
+      "t": 836613.1000000015,
+      "facing": 0,
+      "pos": [
+        1.4000005722045898,
+        2.003998279571533,
+        -9.100000381469727
+      ],
+      "v": [
+        0,
+        0,
+        0
+      ],
+      "state": "LatchPressState",
+      "airborne": false,
+      "grounded": true,
+      "clip": "inflate_start",
+      "alive": true,
+      "target": null,
+      "door": 0,
+      "jammed": false
+    },
+    {
+      "t": 836648.1000000015,
+      "facing": 0,
+      "pos": [
+        1.4000009298324585,
+        2.003998279571533,
+        -9.100000381469727
+      ],
+      "v": [
+        0,
+        0,
+        0
+      ],
+      "state": "LatchPressState",
+      "airborne": false,
+      "grounded": true,
+      "clip": "inflate_start",
+      "alive": true,
+      "target": null,
+      "door": 0,
+      "jammed": false
+    },
+    {
+      "t": 836719.299999997,
+      "facing": 0,
+      "pos": [
+        1.4000016450881958,
+        2.003998279571533,
+        -9.100000381469727
+      ],
+      "v": [
+        0,
+        0,
+        0
+      ],
+      "state": "LatchPressState",
+      "airborne": false,
+      "grounded": true,
+      "clip": "inflate_start",
+      "alive": true,
+      "target": null,
+      "door": 0,
+      "jammed": false
+    },
+    {
+      "t": 836810.6000000015,
+      "facing": 0,
+      "pos": [
+        1.400001883506775,
+        2.003998279571533,
+        -9.100000381469727
+      ],
+      "v": [
+        0,
+        0,
+        0
+      ],
+      "state": "LatchPressState",
+      "airborne": false,
+      "grounded": true,
+      "clip": "inflate_start",
+      "alive": true,
+      "target": null,
+      "door": 0,
+      "jammed": false
+    },
+    {
+      "t": 836884.6999999955,
+      "facing": 0,
+      "pos": [
+        1.400001883506775,
+        2.003998279571533,
+        -9.100000381469727
+      ],
+      "v": [
+        0,
+        0,
+        0
+      ],
+      "state": "LatchPressState",
+      "airborne": false,
+      "grounded": true,
+      "clip": "inflate_start",
+      "alive": true,
+      "target": null,
+      "door": 0,
+      "jammed": false
+    },
+    {
+      "t": 836949,
+      "facing": 0.9956944770805832,
+      "pos": [
+        1.400001883506775,
+        2.003998279571533,
+        -9.100000381469727
+      ],
+      "v": [
+        -3.078150749206543,
+        8.834238052368164,
+        3.2825276851654053
+      ],
+      "state": "LatchLeapState",
+      "airborne": true,
+      "grounded": false,
+      "clip": "airborne",
+      "alive": true,
+      "target": [
+        -0.5692479912551239,
+        3.5736165667059057,
+        -6.565000146627426
+      ],
+      "door": 0,
+      "jammed": false
+    },
+    {
+      "t": 837023.799999997,
+      "facing": 0.9956944625488375,
+      "pos": [
+        1.250855565071106,
+        2.3970797061920166,
+        -8.94095230102539
+      ],
+      "v": [
+        -3.078150749206543,
+        7.7342376708984375,
+        3.2825276851654053
+      ],
+      "state": "LatchLeapState",
+      "airborne": true,
+      "grounded": false,
+      "clip": "airborne",
+      "alive": true,
+      "target": [
+        -0.5692479912551239,
+        3.5736165667059057,
+        -6.565000146627426
+      ],
+      "door": 0,
+      "jammed": false
+    },
+    {
+      "t": 837083.5,
+      "facing": 0.9956944625488375,
+      "pos": [
+        1.0452349185943604,
+        2.854689121246338,
+        -8.721680641174316
+      ],
+      "v": [
+        -3.078150749206543,
+        6.267570495605469,
+        3.2825276851654053
+      ],
+      "state": "LatchLeapState",
+      "airborne": true,
+      "grounded": false,
+      "clip": "airborne",
+      "alive": true,
+      "target": [
+        -0.5692479912551239,
+        3.5736165667059057,
+        -6.565000146627426
+      ],
+      "door": 0,
+      "jammed": false
+    },
+    {
+      "t": 837111.799999997,
+      "facing": 0.9956944625488375,
+      "pos": [
+        0.9221090078353882,
+        3.081279993057251,
+        -8.590380668640137
+      ],
+      "v": [
+        -3.078150749206543,
+        5.167570114135742,
+        3.2825276851654053
+      ],
+      "state": "LatchLeapState",
+      "airborne": true,
+      "grounded": false,
+      "clip": "airborne",
+      "alive": true,
+      "target": [
+        -0.5692479912551239,
+        3.5736165667059057,
+        -6.565000146627426
+      ],
+      "door": 0,
+      "jammed": false
+    },
+    {
+      "t": 837138.5,
+      "facing": 0.9956944625488375,
+      "pos": [
+        0.8396146297454834,
+        3.2141289710998535,
+        -8.502408981323242
+      ],
+      "v": [
+        -3.078150749206543,
+        4.8009033203125,
+        3.2825276851654053
+      ],
+      "state": "LatchLeapState",
+      "airborne": true,
+      "grounded": false,
+      "clip": "airborne",
+      "alive": true,
+      "target": [
+        -0.5692479912551239,
+        3.5736165667059057,
+        -6.565000146627426
+      ],
+      "door": 0,
+      "jammed": false
+    },
+    {
+      "t": 837194.3999999985,
+      "facing": 0.9956944625488375,
+      "pos": [
+        0.6755492687225342,
+        3.4303882122039795,
+        -8.327451705932617
+      ],
+      "v": [
+        -3.078150749206543,
+        3.3342361450195312,
+        3.2825276851654053
+      ],
+      "state": "LatchLeapState",
+      "airborne": true,
+      "grounded": false,
+      "clip": "airborne",
+      "alive": true,
+      "target": [
+        -0.5692479912551239,
+        3.5736165667059057,
+        -6.565000146627426
+      ],
+      "door": 0,
+      "jammed": false
+    },
+    {
+      "t": 837241.8999999985,
+      "facing": 0.9956944625488375,
+      "pos": [
+        0.5927470326423645,
+        3.5155863761901855,
+        -8.239151954650879
+      ],
+      "v": [
+        -3.078150749206543,
+        2.967569351196289,
+        3.2825276851654053
+      ],
+      "state": "LatchLeapState",
+      "airborne": true,
+      "grounded": false,
+      "clip": "airborne",
+      "alive": true,
+      "target": [
+        -0.5692479912551239,
+        3.5736165667059057,
+        -6.565000146627426
+      ],
+      "door": 0,
+      "jammed": false
+    },
+    {
+      "t": 837300.1000000015,
+      "facing": 0.9956944625488375,
+      "pos": [
+        0.34649497270584106,
+        3.675527811050415,
+        -7.976551055908203
+      ],
+      "v": [
+        -3.078150749206543,
+        1.1342357397079468,
+        3.2825276851654053
+      ],
+      "state": "LatchLeapState",
+      "airborne": true,
+      "grounded": false,
+      "clip": "airborne",
+      "alive": true,
+      "target": [
+        -0.5692479912551239,
+        3.5736165667059057,
+        -6.565000146627426
+      ],
+      "door": 0,
+      "jammed": false
+    },
+    {
+      "t": 837330.299999997,
+      "facing": 0.9956944625488375,
+      "pos": [
+        0.2640005350112915,
+        3.698064088821411,
+        -7.88857889175415
+      ],
+      "v": [
+        -3.078150749206543,
+        0.4009023904800415,
+        3.2825276851654053
+      ],
+      "state": "LatchLeapState",
+      "airborne": true,
+      "grounded": false,
+      "clip": "airborne",
+      "alive": true,
+      "target": [
+        -0.5692479912551239,
+        3.5736165667059057,
+        -6.565000146627426
+      ],
+      "door": 0,
+      "jammed": false
+    },
+    {
+      "t": 837391.6999999955,
+      "facing": 0.9956944625488375,
+      "pos": [
+        0.09993507713079453,
+        3.6948435306549072,
+        -7.713619709014893
+      ],
+      "v": [
+        -3.078150749206543,
+        -0.6990976333618164,
+        3.2825276851654053
+      ],
+      "state": "LatchLeapState",
+      "airborne": true,
+      "grounded": false,
+      "clip": "airborne",
+      "alive": true,
+      "target": [
+        -0.5692479912551239,
+        3.5736165667059057,
+        -6.565000146627426
+      ],
+      "door": 0,
+      "jammed": false
+    },
+    {
+      "t": 837442.299999997,
+      "facing": 0.9956944625488375,
+      "pos": [
+        -0.022575322538614273,
+        3.65199613571167,
+        -7.582974910736084
+      ],
+      "v": [
+        -3.078150749206543,
+        -1.4324309825897217,
+        3.2825276851654053
+      ],
+      "state": "LatchLeapState",
+      "airborne": true,
+      "grounded": false,
+      "clip": "airborne",
+      "alive": true,
+      "target": [
+        -0.5692479912551239,
+        3.5736165667059057,
+        -6.565000146627426
+      ],
+      "door": 0,
+      "jammed": false
+    },
+    {
+      "t": 837472.299999997,
+      "facing": 0.9956944625488375,
+      "pos": [
+        -0.14631696045398712,
+        3.573490619659424,
+        -7.451016902923584
+      ],
+      "v": [
+        -3.078150749206543,
+        -2.532431125640869,
+        3.2825276851654053
+      ],
+      "state": "LatchLeapState",
+      "airborne": true,
+      "grounded": false,
+      "clip": "airborne",
+      "alive": true,
+      "target": [
+        -0.5692479912551239,
+        3.5736165667059057,
+        -6.565000146627426
+      ],
+      "door": 0,
+      "jammed": false
+    },
+    {
+      "t": 837543.8999999985,
+      "facing": 0.9956944625488375,
+      "pos": [
+        -0.39287686347961426,
+        3.3108227252960205,
+        -7.188085556030273
+      ],
+      "v": [
+        -3.078150749206543,
+        -3.999098300933838,
+        3.2825276851654053
+      ],
+      "state": "LatchLeapState",
+      "airborne": true,
+      "grounded": false,
+      "clip": "airborne",
+      "alive": true,
+      "target": [
+        -0.5692479912551239,
+        3.5736165667059057,
+        -6.565000146627426
+      ],
+      "door": 0,
+      "jammed": false
+    },
+    {
+      "t": 837616.3999999985,
+      "facing": 0.9956944625488375,
+      "pos": [
+        -0.5978816747665405,
+        2.984760284423828,
+        -6.969468593597412
+      ],
+      "v": [
+        -3.078150749206543,
+        -5.465765476226807,
+        3.2825276851654053
+      ],
+      "state": "LatchLeapState",
+      "airborne": true,
+      "grounded": false,
+      "clip": "airborne",
+      "alive": true,
+      "target": [
+        -0.5692479912551239,
+        3.5736165667059057,
+        -6.565000146627426
+      ],
+      "door": 0,
+      "jammed": false
+    },
+    {
+      "t": 837693.6000000015,
+      "facing": 0,
+      "pos": [
+        -0.5978816747665405,
+        2.984760284423828,
+        -6.969468593597412
+      ],
+      "v": [
+        0,
+        -5.83087682723999,
+        0
+      ],
+      "state": "LatchDeadState",
+      "airborne": false,
+      "grounded": false,
+      "clip": "terminal_splat",
+      "alive": false,
+      "target": null,
+      "door": 0,
+      "jammed": true
+    },
+    {
+      "t": 837790.799999997,
+      "facing": 0,
+      "pos": [
+        -0.5978816747665405,
+        2.984760284423828,
+        -6.969468593597412
+      ],
+      "v": [
+        0,
+        -5.83087682723999,
+        0
+      ],
+      "state": "LatchDeadState",
+      "airborne": false,
+      "grounded": false,
+      "clip": "terminal_splat",
+      "alive": false,
+      "target": null,
+      "door": 0,
+      "jammed": true
+    },
+    {
+      "t": 837838.3999999985,
+      "facing": 0,
+      "pos": [
+        -0.5978816747665405,
+        2.984760284423828,
+        -6.969468593597412
+      ],
+      "v": [
+        0,
+        -5.83087682723999,
+        0
+      ],
+      "state": "LatchDeadState",
+      "airborne": false,
+      "grounded": false,
+      "clip": "terminal_splat",
+      "alive": false,
+      "target": null,
+      "door": 0,
+      "jammed": true
+    },
+    {
+      "t": 837905.6000000015,
+      "facing": 0,
+      "pos": [
+        -0.5978816747665405,
+        2.984760284423828,
+        -6.969468593597412
+      ],
+      "v": [
+        0,
+        -5.83087682723999,
+        0
+      ],
+      "state": "LatchDeadState",
+      "airborne": false,
+      "grounded": false,
+      "clip": "terminal_splat",
+      "alive": false,
+      "target": null,
+      "door": 0,
+      "jammed": true
+    },
+    {
+      "t": 837955.8999999985,
+      "facing": 0,
+      "pos": [
+        -0.5978816747665405,
+        2.984760284423828,
+        -6.969468593597412
+      ],
+      "v": [
+        0,
+        -5.83087682723999,
+        0
+      ],
+      "state": "LatchDeadState",
+      "airborne": false,
+      "grounded": false,
+      "clip": "terminal_splat",
+      "alive": false,
+      "target": null,
+      "door": 0,
+      "jammed": true
+    },
+    {
+      "t": 837998.6000000015,
+      "facing": 0,
+      "pos": [
+        -0.5978816747665405,
+        2.984760284423828,
+        -6.969468593597412
+      ],
+      "v": [
+        0,
+        -5.83087682723999,
+        0
+      ],
+      "state": "LatchDeadState",
+      "airborne": false,
+      "grounded": false,
+      "clip": "terminal_splat",
+      "alive": false,
+      "target": null,
+      "door": 0,
+      "jammed": true
+    },
+    {
+      "t": 838033.8999999985,
+      "facing": 0,
+      "pos": [
+        -0.5978816747665405,
+        2.984760284423828,
+        -6.969468593597412
+      ],
+      "v": [
+        0,
+        -5.83087682723999,
+        0
+      ],
+      "state": "LatchDeadState",
+      "airborne": false,
+      "grounded": false,
+      "clip": "terminal_splat",
+      "alive": false,
+      "target": null,
+      "door": 0,
+      "jammed": true
+    },
+    {
+      "t": 838094.799999997,
+      "facing": 0,
+      "pos": [
+        -0.5978816747665405,
+        2.984760284423828,
+        -6.969468593597412
+      ],
+      "v": [
+        0,
+        -5.83087682723999,
+        0
+      ],
+      "state": "LatchDeadState",
+      "airborne": false,
+      "grounded": false,
+      "clip": "terminal_splat",
+      "alive": false,
+      "target": null,
+      "door": 0,
+      "jammed": true
+    },
+    {
+      "t": 838175.6999999955,
+      "facing": 0,
+      "pos": [
+        -0.5978816747665405,
+        2.984760284423828,
+        -6.969468593597412
+      ],
+      "v": [
+        0,
+        -5.83087682723999,
+        0
+      ],
+      "state": "LatchDeadState",
+      "airborne": false,
+      "grounded": false,
+      "clip": "terminal_splat",
+      "alive": false,
+      "target": null,
+      "door": 0,
+      "jammed": true
+    },
+    {
+      "t": 838257.3999999985,
+      "facing": 0,
+      "pos": [
+        -0.5978816747665405,
+        2.984760284423828,
+        -6.969468593597412
+      ],
+      "v": [
+        0,
+        -5.83087682723999,
+        0
+      ],
+      "state": "LatchDeadState",
+      "airborne": false,
+      "grounded": false,
+      "clip": "terminal_splat",
+      "alive": false,
+      "target": null,
+      "door": 0,
+      "jammed": true
+    },
+    {
+      "t": 838344.5,
+      "facing": 0,
+      "pos": [
+        -0.5978816747665405,
+        2.984760284423828,
+        -6.969468593597412
+      ],
+      "v": [
+        0,
+        -5.83087682723999,
+        0
+      ],
+      "state": "LatchDeadState",
+      "airborne": false,
+      "grounded": false,
+      "clip": "terminal_splat",
+      "alive": false,
+      "target": null,
+      "door": 0,
+      "jammed": true
+    },
+    {
+      "t": 838416,
+      "facing": 0,
+      "pos": [
+        -0.5978816747665405,
+        2.984760284423828,
+        -6.969468593597412
+      ],
+      "v": [
+        0,
+        -5.83087682723999,
+        0
+      ],
+      "state": "LatchDeadState",
+      "airborne": false,
+      "grounded": false,
+      "clip": "terminal_splat",
+      "alive": false,
+      "target": null,
+      "door": 0,
+      "jammed": true
+    },
+    {
+      "t": 838448.6000000015,
+      "facing": 0,
+      "pos": [
+        -0.5978816747665405,
+        2.984760284423828,
+        -6.969468593597412
+      ],
+      "v": [
+        0,
+        -5.83087682723999,
+        0
+      ],
+      "state": "LatchDeadState",
+      "airborne": false,
+      "grounded": false,
+      "clip": "terminal_splat",
+      "alive": false,
+      "target": null,
+      "door": 0,
+      "jammed": true
+    },
+    {
+      "t": 838514,
+      "facing": 0,
+      "pos": [
+        -0.5978816747665405,
+        2.984760284423828,
+        -6.969468593597412
+      ],
+      "v": [
+        0,
+        -5.83087682723999,
+        0
+      ],
+      "state": "LatchDeadState",
+      "airborne": false,
+      "grounded": false,
+      "clip": "terminal_splat",
+      "alive": false,
+      "target": null,
+      "door": 0,
+      "jammed": true
+    },
+    {
+      "t": 838570.1999999955,
+      "facing": 0,
+      "pos": [
+        -0.5978816747665405,
+        2.984760284423828,
+        -6.969468593597412
+      ],
+      "v": [
+        0,
+        -5.83087682723999,
+        0
+      ],
+      "state": "LatchDeadState",
+      "airborne": false,
+      "grounded": false,
+      "clip": "terminal_splat",
+      "alive": false,
+      "target": null,
+      "door": 0,
+      "jammed": true
+    },
+    {
+      "t": 838648,
+      "facing": 0,
+      "pos": [
+        -0.5978816747665405,
+        2.984760284423828,
+        -6.969468593597412
+      ],
+      "v": [
+        0,
+        -5.83087682723999,
+        0
+      ],
+      "state": "LatchDeadState",
+      "airborne": false,
+      "grounded": false,
+      "clip": "terminal_splat",
+      "alive": false,
+      "target": null,
+      "door": 0,
+      "jammed": true
+    },
+    {
+      "t": 838721.8999999985,
+      "facing": 0,
+      "pos": [
+        -0.5978816747665405,
+        2.984760284423828,
+        -6.969468593597412
+      ],
+      "v": [
+        0,
+        -5.83087682723999,
+        0
+      ],
+      "state": "LatchDeadState",
+      "airborne": false,
+      "grounded": false,
+      "clip": "terminal_splat",
+      "alive": false,
+      "target": null,
+      "door": 0,
+      "jammed": true
+    },
+    {
+      "t": 838816.1000000015,
+      "facing": 0,
+      "pos": [
+        -0.5978816747665405,
+        2.984760284423828,
+        -6.969468593597412
+      ],
+      "v": [
+        0,
+        -5.83087682723999,
+        0
+      ],
+      "state": "LatchDeadState",
+      "airborne": false,
+      "grounded": false,
+      "clip": "terminal_splat",
+      "alive": false,
+      "target": null,
+      "door": 0,
+      "jammed": true
+    },
+    {
+      "t": 838902.1999999955,
+      "facing": 0,
+      "pos": [
+        -0.5978816747665405,
+        2.984760284423828,
+        -6.969468593597412
+      ],
+      "v": [
+        0,
+        -5.83087682723999,
+        0
+      ],
+      "state": "LatchDeadState",
+      "airborne": false,
+      "grounded": false,
+      "clip": "terminal_splat",
+      "alive": false,
+      "target": null,
+      "door": 0,
+      "jammed": true
+    },
+    {
+      "t": 838936.799999997,
+      "facing": 0,
+      "pos": [
+        -0.5978816747665405,
+        2.984760284423828,
+        -6.969468593597412
+      ],
+      "v": [
+        0,
+        -5.83087682723999,
+        0
+      ],
+      "state": "LatchDeadState",
+      "airborne": false,
+      "grounded": false,
+      "clip": "terminal_splat",
+      "alive": false,
+      "target": null,
+      "door": 0,
+      "jammed": true
+    },
+    {
+      "t": 839034.6000000015,
+      "facing": 0,
+      "pos": [
+        -0.5978816747665405,
+        2.984760284423828,
+        -6.969468593597412
+      ],
+      "v": [
+        0,
+        -5.83087682723999,
+        0
+      ],
+      "state": "LatchDeadState",
+      "airborne": false,
+      "grounded": false,
+      "clip": "terminal_splat",
+      "alive": false,
+      "target": null,
+      "door": 0,
+      "jammed": true
+    },
+    {
+      "t": 839110.8999999985,
+      "facing": 0,
+      "pos": [
+        -0.5978816747665405,
+        2.984760284423828,
+        -6.969468593597412
+      ],
+      "v": [
+        0,
+        -5.83087682723999,
+        0
+      ],
+      "state": "LatchDeadState",
+      "airborne": false,
+      "grounded": false,
+      "clip": "terminal_splat",
+      "alive": false,
+      "target": null,
+      "door": 0,
+      "jammed": true
+    },
+    {
+      "t": 839184.3999999985,
+      "facing": 0,
+      "pos": [
+        -0.5978816747665405,
+        2.984760284423828,
+        -6.969468593597412
+      ],
+      "v": [
+        0,
+        -5.83087682723999,
+        0
+      ],
+      "state": "LatchDeadState",
+      "airborne": false,
+      "grounded": false,
+      "clip": "terminal_splat",
+      "alive": false,
+      "target": null,
+      "door": 0,
+      "jammed": true
+    },
+    {
+      "t": 839267.5,
+      "facing": 0,
+      "pos": [
+        -0.5978816747665405,
+        2.984760284423828,
+        -6.969468593597412
+      ],
+      "v": [
+        0,
+        -5.83087682723999,
+        0
+      ],
+      "state": "LatchDeadState",
+      "airborne": false,
+      "grounded": false,
+      "clip": "terminal_splat",
+      "alive": false,
+      "target": null,
+      "door": 0,
+      "jammed": true
+    },
+    {
+      "t": 839325,
+      "facing": 0,
+      "pos": [
+        -0.5978816747665405,
+        2.984760284423828,
+        -6.969468593597412
+      ],
+      "v": [
+        0,
+        -5.83087682723999,
+        0
+      ],
+      "state": "LatchDeadState",
+      "airborne": false,
+      "grounded": false,
+      "clip": "terminal_splat",
+      "alive": false,
+      "target": null,
+      "door": 0,
+      "jammed": true
+    },
+    {
+      "t": 839371.1999999955,
+      "facing": 0,
+      "pos": [
+        -0.5978816747665405,
+        2.984760284423828,
+        -6.969468593597412
+      ],
+      "v": [
+        0,
+        -5.83087682723999,
+        0
+      ],
+      "state": "LatchDeadState",
+      "airborne": false,
+      "grounded": false,
+      "clip": "terminal_splat",
+      "alive": false,
+      "target": null,
+      "door": 0,
+      "jammed": true
+    },
+    {
+      "t": 839409.299999997,
+      "facing": 0,
+      "pos": [
+        -0.5978816747665405,
+        2.984760284423828,
+        -6.969468593597412
+      ],
+      "v": [
+        0,
+        -5.83087682723999,
+        0
+      ],
+      "state": "LatchDeadState",
+      "airborne": false,
+      "grounded": false,
+      "clip": "terminal_splat",
+      "alive": false,
+      "target": null,
+      "door": 0,
+      "jammed": true
+    },
+    {
+      "t": 839486.5,
+      "facing": 0,
+      "pos": [
+        -0.5978816747665405,
+        2.984760284423828,
+        -6.969468593597412
+      ],
+      "v": [
+        0,
+        -5.83087682723999,
+        0
+      ],
+      "state": "LatchDeadState",
+      "airborne": false,
+      "grounded": false,
+      "clip": "terminal_splat",
+      "alive": false,
+      "target": null,
+      "door": 0,
+      "jammed": true
+    },
+    {
+      "t": 839553.1000000015,
+      "facing": 0,
+      "pos": [
+        -0.5978816747665405,
+        2.984760284423828,
+        -6.969468593597412
+      ],
+      "v": [
+        0,
+        -5.83087682723999,
+        0
+      ],
+      "state": "LatchDeadState",
+      "airborne": false,
+      "grounded": false,
+      "clip": "terminal_splat",
+      "alive": false,
+      "target": null,
+      "door": 0,
+      "jammed": true
+    },
+    {
+      "t": 839597.3999999985,
+      "facing": 0,
+      "pos": [
+        -0.5978816747665405,
+        2.984760284423828,
+        -6.969468593597412
+      ],
+      "v": [
+        0,
+        -5.83087682723999,
+        0
+      ],
+      "state": "LatchDeadState",
+      "airborne": false,
+      "grounded": false,
+      "clip": "terminal_splat",
+      "alive": false,
+      "target": null,
+      "door": 0,
+      "jammed": true
+    },
+    {
+      "t": 839679.8999999985,
+      "facing": 0,
+      "pos": [
+        -0.5978816747665405,
+        2.984760284423828,
+        -6.969468593597412
+      ],
+      "v": [
+        0,
+        -5.83087682723999,
+        0
+      ],
+      "state": "LatchDeadState",
+      "airborne": false,
+      "grounded": false,
+      "clip": "terminal_splat",
+      "alive": false,
+      "target": null,
+      "door": 0,
+      "jammed": true
+    },
+    {
+      "t": 839771.1000000015,
+      "facing": 0,
+      "pos": [
+        -0.5978816747665405,
+        2.984760284423828,
+        -6.969468593597412
+      ],
+      "v": [
+        0,
+        -5.83087682723999,
+        0
+      ],
+      "state": "LatchDeadState",
+      "airborne": false,
+      "grounded": false,
+      "clip": "terminal_splat",
+      "alive": false,
+      "target": null,
+      "door": 0,
+      "jammed": true
+    },
+    {
+      "t": 839808.3999999985,
+      "facing": 0,
+      "pos": [
+        -0.5978816747665405,
+        2.984760284423828,
+        -6.969468593597412
+      ],
+      "v": [
+        0,
+        -5.83087682723999,
+        0
+      ],
+      "state": "LatchDeadState",
+      "airborne": false,
+      "grounded": false,
+      "clip": "terminal_splat",
+      "alive": false,
+      "target": null,
+      "door": 0,
+      "jammed": true
+    },
+    {
+      "t": 839890.6000000015,
+      "facing": 0,
+      "pos": [
+        -0.5978816747665405,
+        2.984760284423828,
+        -6.969468593597412
+      ],
+      "v": [
+        0,
+        -5.83087682723999,
+        0
+      ],
+      "state": "LatchDeadState",
+      "airborne": false,
+      "grounded": false,
+      "clip": "terminal_splat",
+      "alive": false,
+      "target": null,
+      "door": 0,
+      "jammed": true
+    },
+    {
+      "t": 839989.3999999985,
+      "facing": 0,
+      "pos": [
+        -0.5978816747665405,
+        2.984760284423828,
+        -6.969468593597412
+      ],
+      "v": [
+        0,
+        -5.83087682723999,
+        0
+      ],
+      "state": "LatchDeadState",
+      "airborne": false,
+      "grounded": false,
+      "clip": "terminal_splat",
+      "alive": false,
+      "target": null,
+      "door": 0,
+      "jammed": true
+    },
+    {
+      "t": 840073.799999997,
+      "facing": 0,
+      "pos": [
+        -0.5978816747665405,
+        2.984760284423828,
+        -6.969468593597412
+      ],
+      "v": [
+        0,
+        -5.83087682723999,
+        0
+      ],
+      "state": "LatchDeadState",
+      "airborne": false,
+      "grounded": false,
+      "clip": "terminal_splat",
+      "alive": false,
+      "target": null,
+      "door": 0,
+      "jammed": true
+    },
+    {
+      "t": 840154.6999999955,
+      "facing": 0,
+      "pos": [
+        -0.5978816747665405,
+        2.984760284423828,
+        -6.969468593597412
+      ],
+      "v": [
+        0,
+        -5.83087682723999,
+        0
+      ],
+      "state": "LatchDeadState",
+      "airborne": false,
+      "grounded": false,
+      "clip": "terminal_splat",
+      "alive": false,
+      "target": null,
+      "door": 0,
+      "jammed": true
+    },
+    {
+      "t": 840256.5,
+      "facing": 0,
+      "pos": [
+        -0.5978816747665405,
+        2.984760284423828,
+        -6.969468593597412
+      ],
+      "v": [
+        0,
+        -5.83087682723999,
+        0
+      ],
+      "state": "LatchDeadState",
+      "airborne": false,
+      "grounded": false,
+      "clip": "terminal_splat",
+      "alive": false,
+      "target": null,
+      "door": 0,
+      "jammed": true
+    },
+    {
+      "t": 840336.1999999955,
+      "facing": 0,
+      "pos": [
+        -0.5978816747665405,
+        2.984760284423828,
+        -6.969468593597412
+      ],
+      "v": [
+        0,
+        -5.83087682723999,
+        0
+      ],
+      "state": "LatchDeadState",
+      "airborne": false,
+      "grounded": false,
+      "clip": "terminal_splat",
+      "alive": false,
+      "target": null,
+      "door": 0,
+      "jammed": true
+    }
+  ],
+  "contacts": [
+    {
+      "other": "Castle moving door plank collider",
+      "point": "[-0.6463810801506042, 3.4057672023773193, -6.565993309020996]",
+      "normal": "[-0.11889834702014923, -0.0004753948887810111, 0.9929063320159912]"
+    }
+  ],
+  "state": "LatchDeadState",
+  "alive": false,
+  "jammed": true
+}

@@ -1,0 +1,73 @@
+{
+  "date": "2026-10-30",
+  "status": "passed",
+  "blender": "5.2.1 LTS",
+  "direction": "A native slug in the angular game world. Dog is a behavioral nickname, not hybrid anatomy.",
+  "anatomy": [
+    "continuous broad foot",
+    "low mantle",
+    "tapered rear",
+    "two upper sensory tentacles with small dark tips",
+    "short lower feelers",
+    "moss-green and olive resin skin"
+  ],
+  "removed": [
+    "paws",
+    "canine face",
+    "large facial eye sockets",
+    "hanging tongue",
+    "curled horns",
+    "curled tail"
+  ],
+  "source": "src/game/models/enemies/latch-slug/latch-slug.blend",
+  "export": "src/game/models/enemies/latch-slug/latch-slug.glb",
+  "hashes": {
+    "blend": "944e9efa4ad7ec91f63b46f4380202e23a1bffd219cf65ce212550fcc9e88a24",
+    "glb": "3990227dfb4568cbdba4bde627c16332599b2093e54a3e01c006ae342a13a638"
+  },
+  "sourceGeometry": {
+    "vertices": 614,
+    "triangles": 1172,
+    "closed": true,
+    "degenerateFaces": 0
+  },
+  "exportGeometry": {
+    "vertices": 3146,
+    "triangles": 1172,
+    "materials": 7,
+    "clips": 27
+  },
+  "exportNotes": "Flat-shading normal and material seams split exported vertices. Source is closed; exported seam-edge counts do not indicate visible holes.",
+  "groundedPoseMinimum": 0.014965549111366272,
+  "clips": {
+    "retained": 27,
+    "finite": 27,
+    "withChangingGeometry": 27,
+    "unusedRigBindings": "Legacy paw/tongue bones retained for clip compatibility; they have no visible geometry."
+  },
+  "runtime": {
+    "behavior": {
+      "alive": true,
+      "distance": 0.9360228776320756,
+      "state": "LatchDogState",
+      "royalRate": 0.65
+    },
+    "splat": {
+      "alive": false,
+      "jammed": true,
+      "state": "LatchDeadState"
+    },
+    "errors": []
+  },
+  "preview": {
+    "visiblePixels": 33513,
+    "transparentPixels": 228631,
+    "margin": 93
+  },
+  "tests": {
+    "passed": 22,
+    "failed": 0
+  },
+  "review": "Fresh GLB import, front/side/rear and key-pose views, actual production scene, and recorded actions reviewed.",
+  "historicalEvidence": "Earlier dog-slug concept and behavior recordings outside this subfolder depict the previous appearance."
+}

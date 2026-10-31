@@ -1,0 +1,104 @@
+{
+  "status": "passed",
+  "date": "2026-10-31",
+  "appearance": "Dark sensory tips reduced to 78%, softly rounded and given small warm catchlights. Same stalks, body, rig and authored motion.",
+  "source": {
+    "eyes": [
+      {
+        "bone": "antenna_L",
+        "vertices": 72,
+        "center": [
+          -0.20558437705039978,
+          0.4004366397857666,
+          0.6491134166717529
+        ],
+        "radiusBefore": 0.04576088405975288,
+        "scale": 0.78,
+        "roundingBlend": 0.45
+      },
+      {
+        "bone": "antenna_R",
+        "vertices": 74,
+        "center": [
+          0.2074207067489624,
+          0.33335211873054504,
+          0.6484001278877258
+        ],
+        "radiusBefore": 0.04493545857211442,
+        "scale": 0.78,
+        "roundingBlend": 0.45
+      }
+    ],
+    "triangles": 6596,
+    "vertices": 3304,
+    "bones": 17,
+    "actions": 30,
+    "maxInfluences": 4
+  },
+  "freshImport": {
+    "status": "passed",
+    "meshes": 1,
+    "bones": 17,
+    "actions": 30,
+    "maxWeightError": 1.3224780559539795e-7,
+    "maxInfluences": 4,
+    "materials": [
+      "Golden living gel",
+      "Opaque dark sensory tips",
+      "Opaque eye catchlights"
+    ]
+  },
+  "runtime": {
+    "results": [
+      {
+        "view": 0,
+        "eyes": [
+          {
+            "label": "near",
+            "length": 0.8550108082579959,
+            "weight": 0.9999998701777981,
+            "tracking": true
+          },
+          {
+            "label": "far",
+            "length": 1.1970332501502094,
+            "weight": 0.9999999999999999,
+            "tracking": true
+          },
+          {
+            "label": "relaxed",
+            "length": 1.1970384882837528,
+            "weight": 0.00014453339064181427,
+            "tracking": false
+          }
+        ]
+      },
+      {
+        "view": 1,
+        "eyes": [
+          {
+            "label": "near",
+            "length": 0.8760922043040515,
+            "weight": 0.9999999999470145,
+            "tracking": true
+          },
+          {
+            "label": "far",
+            "length": 1.2406451832619838,
+            "weight": 0.9999999999999999,
+            "tracking": true
+          },
+          {
+            "label": "relaxed",
+            "length": 1.2406546978716213,
+            "weight": 0.00010008407251876397,
+            "tracking": false
+          }
+        ]
+      }
+    ],
+    "errors": []
+  },
+  "visual": "Both actual game camera angles inspected at near, far and relaxed attention. Catchlights remain attached during distance-driven stalk scaling.",
+  "preview": "Owning preview regenerated from production render, straight RGBA, complete model with transparent margins."
+}

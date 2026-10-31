@@ -1,0 +1,9 @@
+{
+  "result": {
+    "alive": false,
+    "jammed": true,
+    "bodyDisabled": true,
+    "clip": "leap_fall"
+  },
+  "errors": []
+}

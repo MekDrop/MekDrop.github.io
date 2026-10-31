@@ -1,0 +1,207 @@
+{
+  "date": "2026-10-30",
+  "status": "passed",
+  "scope": "Dog-like behavior; existing character model and authored clips retained.",
+  "route": "http://localhost:9001/map/test_enemy-latch-slug",
+  "engine": "production PlayCanvas and Ammo",
+  "browser": "installed Chrome, visible browser, focus emulation enabled for final recordings",
+  "views": [
+    {
+      "view": "front",
+      "minimumRoyalDistance": 0.9244547045180836,
+      "elapsedGameSeconds": 14.82139999999822,
+      "samples": 144,
+      "states": [
+        "LatchSeekState",
+        "LatchDogState"
+      ],
+      "passed": true
+    },
+    {
+      "view": "side",
+      "minimumRoyalDistance": 0.9175135930557284,
+      "elapsedGameSeconds": 14.740999999997314,
+      "samples": 141,
+      "states": [
+        "LatchSeekState",
+        "LatchDogState"
+      ],
+      "passed": true
+    },
+    {
+      "view": "rear",
+      "minimumRoyalDistance": 0.9200446048112556,
+      "elapsedGameSeconds": 14.78819999999692,
+      "samples": 148,
+      "states": [
+        "LatchSeekState",
+        "LatchDogState"
+      ],
+      "passed": true
+    }
+  ],
+  "underfoot": [
+    {
+      "view": "front",
+      "near": {
+        "rate": 0.65,
+        "state": "LatchDogState",
+        "clip": "follow",
+        "distance": 0.7111458373992201
+      },
+      "far": 1,
+      "passed": true
+    },
+    {
+      "view": "side",
+      "near": {
+        "rate": 0.65,
+        "state": "LatchDogState",
+        "clip": "follow",
+        "distance": 0.7098987145441858
+      },
+      "far": 1,
+      "passed": true
+    },
+    {
+      "view": "rear",
+      "near": {
+        "rate": 0.65,
+        "state": "LatchDogState",
+        "clip": "follow",
+        "distance": 0.7095512117054469
+      },
+      "far": 1,
+      "passed": true
+    }
+  ],
+  "doorChecks": [
+    {
+      "check": "closed exterior splat",
+      "passed": true,
+      "health": 48
+    },
+    {
+      "check": "actual pointer clears glue",
+      "passed": true
+    },
+    {
+      "check": "interior door selected",
+      "passed": true,
+      "state": "LatchPressState"
+    },
+    {
+      "check": "bell splats at closed interior door",
+      "passed": true,
+      "bodyDisabled": true,
+      "health": 48
+    },
+    {
+      "check": "glue expires and releases door",
+      "passed": true,
+      "visualRemoved": true
+    },
+    {
+      "check": "closed-door windup",
+      "passed": true
+    },
+    {
+      "check": "opening cancels splat",
+      "passed": true,
+      "state": "LatchDogState"
+    },
+    {
+      "check": "crosses open doors and reaches actual castle royal",
+      "passed": true,
+      "distance": 0.945032673152621,
+      "state": "LatchDogState"
+    }
+  ],
+  "videos": [
+    {
+      "file": "behavior-front.mp4",
+      "durationSeconds": 14.9,
+      "codec_name": "h264",
+      "width": 1166,
+      "height": 834
+    },
+    {
+      "file": "behavior-side.mp4",
+      "durationSeconds": 14.933333,
+      "codec_name": "h264",
+      "width": 1166,
+      "height": 834
+    },
+    {
+      "file": "behavior-rear.mp4",
+      "durationSeconds": 14.8,
+      "codec_name": "h264",
+      "width": 1166,
+      "height": 834
+    },
+    {
+      "file": "behavior-multi-angle.mp4",
+      "durationSeconds": 14.8,
+      "codec_name": "h264",
+      "width": 1440,
+      "height": 344
+    },
+    {
+      "file": "doors-front.mp4",
+      "durationSeconds": 4.5,
+      "codec_name": "h264",
+      "width": 1166,
+      "height": 834
+    },
+    {
+      "file": "doors-interior.mp4",
+      "durationSeconds": 22.7,
+      "codec_name": "h264",
+      "width": 1166,
+      "height": 834
+    },
+    {
+      "file": "open-door-pursuit.mp4",
+      "durationSeconds": 24.266016,
+      "codec_name": "h264",
+      "width": 1166,
+      "height": 834
+    },
+    {
+      "file": "door-checks.mp4",
+      "durationSeconds": 51.466667,
+      "codec_name": "h264",
+      "width": 1166,
+      "height": 834
+    },
+    {
+      "file": "reactions-side.mp4",
+      "durationSeconds": 28.933333,
+      "codec_name": "h264",
+      "width": 1166,
+      "height": 834
+    }
+  ],
+  "browserErrors": [],
+  "tests": {
+    "passed": 22,
+    "failed": 0,
+    "command": "node --test --test-isolation=none test/unit/game/objects/enemies/latch-slug/latch-slug.test.js test/unit/game/objects/architecture/door/door-jam.test.js"
+  },
+  "lint": "Passed for changed enemy files and focused tests",
+  "mapControlScriptsCompiled": 45,
+  "preview": {
+    "file": "../preview.png",
+    "visiblePixels": 39594,
+    "transparentPixels": 222550,
+    "margin": 103
+  },
+  "fixtureNotes": [
+    "Three outdoor views reposition the actual King through its normal entity transform to make following unobstructed and visible.",
+    "Open-door pursuit also reaches the actual royal in his authored castle room, without relocating him.",
+    "Interior door recording uses the production first-person camera with a fixed inspection viewpoint.",
+    "Additional test enemies were authored into the live test map objects array and instantiated with the production object class.",
+    "Recordings were reviewed using extracted sequential frames and matching runtime position/state samples.",
+    "Full visual acceptance of all 27 animation clips is outside the user-requested behavior scope."
+  ]
+}

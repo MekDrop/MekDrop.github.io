@@ -1,0 +1,110 @@
+{
+  "freshImport": true,
+  "actions": [
+    "airborne",
+    "antenna_wag",
+    "carried_ready",
+    "death",
+    "door_press",
+    "follow",
+    "hit",
+    "idle_dog",
+    "inflate_loop",
+    "inflate_start",
+    "knockback",
+    "land",
+    "land_recover",
+    "leap_apex",
+    "leap_fall",
+    "leap_rise",
+    "nudge",
+    "pant",
+    "recover",
+    "scoot",
+    "sit_down",
+    "sit_loop",
+    "sniff",
+    "stand_up",
+    "startled",
+    "stun",
+    "terminal_splat",
+    "turn",
+    "waddle_run",
+    "waddle_walk"
+  ],
+  "meshes": 1,
+  "vertices": 7494,
+  "triangles": 2728,
+  "poses": [
+    {
+      "clip": "follow",
+      "phase": 0.25,
+      "finite": true,
+      "minZ": 0.041641008108854294,
+      "maxZ": 0.67667156457901
+    },
+    {
+      "clip": "follow",
+      "phase": 0.75,
+      "finite": true,
+      "minZ": 0.04262851923704147,
+      "maxZ": 0.6602460145950317
+    },
+    {
+      "clip": "sit_down",
+      "phase": 0.25,
+      "finite": true,
+      "minZ": 0.015416143462061882,
+      "maxZ": 0.6434663534164429
+    },
+    {
+      "clip": "sit_down",
+      "phase": 0.75,
+      "finite": true,
+      "minZ": 0.01626782864332199,
+      "maxZ": 0.6180768013000488
+    },
+    {
+      "clip": "inflate_loop",
+      "phase": 0.25,
+      "finite": true,
+      "minZ": 0.017503734678030014,
+      "maxZ": 0.7731416821479797
+    },
+    {
+      "clip": "inflate_loop",
+      "phase": 0.75,
+      "finite": true,
+      "minZ": 0.01715504378080368,
+      "maxZ": 0.7123053073883057
+    },
+    {
+      "clip": "terminal_splat",
+      "phase": 0.25,
+      "finite": true,
+      "minZ": 0.01500064879655838,
+      "maxZ": 0.7105751633644104
+    },
+    {
+      "clip": "terminal_splat",
+      "phase": 0.75,
+      "finite": true,
+      "minZ": 0.08565005660057068,
+      "maxZ": 0.1271091103553772
+    },
+    {
+      "clip": "airborne",
+      "phase": 0.25,
+      "finite": true,
+      "minZ": -0.048390358686447144,
+      "maxZ": 0.5719702243804932
+    },
+    {
+      "clip": "airborne",
+      "phase": 0.75,
+      "finite": true,
+      "minZ": -0.08676660060882568,
+      "maxZ": 0.60983806848526
+    }
+  ]
+}

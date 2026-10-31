@@ -1,0 +1,47 @@
+{
+  "date": "2026-10-31",
+  "map": "/map/test_enemy-wave-director",
+  "status": "passed",
+  "checks": [
+    {
+      "view": "front",
+      "impacts": 3,
+      "renderedMasses": 1,
+      "volumeError": 2.5701148986811972e-8
+    },
+    {
+      "view": "opposite",
+      "impacts": 3,
+      "renderedMasses": 1,
+      "volumeError": 2.6065617331205715e-8,
+      "trailStats": [
+        {
+          "triangles": 432,
+          "maxRise": 0.0029997825622558594
+        },
+        {
+          "triangles": 600,
+          "maxRise": 0.0029997825622558594
+        },
+        {
+          "triangles": 608,
+          "maxRise": 0.0029997825622558594
+        }
+      ]
+    }
+  ],
+  "focusedTests": {
+    "passed": 48,
+    "failed": 0
+  },
+  "preview": {
+    "visiblePixels": 42134,
+    "transparentPixels": 220010,
+    "margin": 107
+  },
+  "note": "Three nearby slugs strike the native closed leaf and fuse. Two further fixture slugs start outside perception range and remain alive. Merge reuses one connected mesh with the sum of incoming volumes. Trail samples each row and clips discontinuities, including across its width. The final opposite recording includes the stricter per-quad stair guard.",
+  "enemyTests": {
+    "passed": 60,
+    "failed": 0
+  }
+}

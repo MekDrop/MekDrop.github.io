@@ -1,0 +1,25 @@
+{
+  "date": "2026-10-31",
+  "status": "passed",
+  "map": "/map/test_enemy-wave-director",
+  "checks": [
+    {
+      "name": "front",
+      "impacts": 3,
+      "settledMeshes": 1,
+      "maxRelativeVolumeError": 2.43525521970156e-7
+    },
+    {
+      "name": "opposite",
+      "impacts": 3,
+      "settledMeshes": 1,
+      "maxRelativeVolumeError": 3.847119327549109e-7
+    }
+  ],
+  "tests": {
+    "passed": 62,
+    "failed": 0
+  },
+  "behavior": "Existing impact age, starting shape and contour are retained. New gel flattens at contact, drains over 0.95 seconds after a 0.32-second hold, and swells the receiving film locally. Settled result is one mesh. Volume redistribution uses bounded thickness weighting around the contact; no global radial remesh or impact restart.",
+  "visualRetry": "The first local-deposit candidate developed a spike in native video and was rejected. Thickness weighting was corrected and both final camera views were recorded again."
+}

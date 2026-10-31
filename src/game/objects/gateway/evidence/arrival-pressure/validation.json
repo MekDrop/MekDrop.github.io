@@ -1,0 +1,33 @@
+{
+  "date": "2026-10-31",
+  "status": "passed",
+  "tests": {
+    "passed": 68,
+    "failed": 0
+  },
+  "runtimeErrors": [],
+  "pixels": {
+    "front": {
+      "changedPixels": 27557,
+      "maxChannelDifference": 213
+    },
+    "back": {
+      "changedPixels": 0,
+      "maxChannelDifference": 0
+    }
+  },
+  "gatewayPreview": {
+    "result": {
+      "visiblePixels": 72246,
+      "transparentPixels": 189898,
+      "margin": 75
+    },
+    "errors": []
+  },
+  "creaturePreview": {
+    "visiblePixels": 43931,
+    "transparentPixels": 218213,
+    "margin": 105
+  },
+  "behavior": "No arrival opacity modulation. Clipped creature retains original opacity and depth-write behavior. Membrane bulges toward map-facing local +X under approaching pressure and ripples at crossing. Rear-side creature clipping retained."
+}

@@ -1,0 +1,201 @@
+{
+  "status": "passed",
+  "date": "2026-10-31",
+  "affection": {
+    "delay": 3,
+    "requires": "One live companion in reach, a clear native sightline, a stationary slug and calm companion.",
+    "breaks": "Movement, leaving reach, changing companion, blocked sight, stun, carry, jumping or death resets buildup.",
+    "heroBuff": {
+      "id": "slime-affection",
+      "movementBonus": 0.05,
+      "maxStacks": 1,
+      "remainingAfterLeaving": 2
+    },
+    "pat": "Native E interaction and scene pointer click reuse the authored HeroPatHand; two contact callbacks trigger a happy reaction without bypassing the delay."
+  },
+  "eyes": {
+    "axis": "Authored antenna local Y",
+    "minimum": 0.82,
+    "maximum": 1.25,
+    "range": [
+      0.7,
+      3
+    ],
+    "blend": "Exponential smoothing, weighted by attention",
+    "restoration": "Authored local rotation and scale restored after all cameras; 100-cycle drift regression passed."
+  },
+  "verification": {
+    "focusedTests": 53,
+    "scopedEslint": "passed",
+    "visual": "Two affection/pat views and two eye-reach views inspected from actual game captures; invalid roof and HUD iterations replaced.",
+    "runtime": {
+      "results": [
+        {
+          "view": 0,
+          "early": {
+            "charge": 0.8673999999999977,
+            "buff": false,
+            "canPat": true,
+            "interaction": {
+              "x": 3.816715693494288e-11,
+              "y": 1.9999948740005493,
+              "z": -4.19999885559082,
+              "id": "latch-slug",
+              "labelKey": "game.interaction.pat_slime",
+              "showHealth": false
+            }
+          },
+          "pat": {
+            "hand": true,
+            "contacts": 1,
+            "happy": 1.2665,
+            "patting": 0.44629999999999936
+          },
+          "earned": {
+            "charge": 3,
+            "firstBuff": 3.028799999999996,
+            "buffs": [
+              {
+                "id": "slime-affection",
+                "kind": "buff",
+                "labelKey": "game.buffs.slime_affection",
+                "icon": "♥",
+                "duration": 2,
+                "maxStacks": 1,
+                "modifiers": {
+                  "movementSpeed": {
+                    "percent": 0.05
+                  }
+                },
+                "stacks": 1,
+                "remaining": 1.513
+              }
+            ],
+            "status": true,
+            "hud": true,
+            "contacts": 2
+          },
+          "left": {
+            "charge": 0,
+            "buffs": [],
+            "status": false,
+            "hud": false
+          }
+        },
+        {
+          "view": 1,
+          "early": {
+            "charge": 0.8805999999999986,
+            "buff": false,
+            "canPat": true,
+            "interaction": {
+              "x": 6.975161781497263e-9,
+              "y": 1.9999942779541016,
+              "z": -4.199999809265137,
+              "id": "latch-slug",
+              "labelKey": "game.interaction.pat_slime",
+              "showHealth": false
+            }
+          },
+          "pat": {
+            "hand": false,
+            "contacts": 2,
+            "happy": 0,
+            "patting": 0
+          },
+          "earned": {
+            "charge": 3,
+            "firstBuff": 3.4022999999999755,
+            "buffs": [
+              {
+                "id": "slime-affection",
+                "kind": "buff",
+                "labelKey": "game.buffs.slime_affection",
+                "icon": "♥",
+                "duration": 2,
+                "maxStacks": 1,
+                "modifiers": {
+                  "movementSpeed": {
+                    "percent": 0.05
+                  }
+                },
+                "stacks": 1,
+                "remaining": 1.553
+              }
+            ],
+            "status": true,
+            "hud": true,
+            "contacts": 2
+          },
+          "left": {
+            "charge": 0,
+            "buffs": [],
+            "status": false,
+            "hud": false
+          }
+        }
+      ],
+      "errors": []
+    },
+    "eyeViews": [
+      [
+        {
+          "label": "near",
+          "length": 0.8760882306882156,
+          "weight": 0.9999998847199494,
+          "tracking": true
+        },
+        {
+          "label": "far",
+          "length": 1.2406476315972128,
+          "weight": 0.9999999999999998,
+          "tracking": true
+        },
+        {
+          "label": "relaxed",
+          "length": 1.240655023007566,
+          "weight": 0.00012236526632640585,
+          "tracking": false
+        }
+      ],
+      [
+        {
+          "label": "near",
+          "length": 0.8537276831007105,
+          "weight": 0.9999999367518525,
+          "tracking": true
+        },
+        {
+          "label": "far",
+          "length": 1.206015386042861,
+          "weight": 0.9999999999999999,
+          "tracking": true
+        },
+        {
+          "label": "relaxed",
+          "length": 1.2060754321942504,
+          "weight": 0.00014460567540682472,
+          "tracking": false
+        }
+      ]
+    ]
+  },
+  "preview": {
+    "mode": "RGBA",
+    "size": [
+      512,
+      512
+    ],
+    "alpha": [
+      0,
+      255
+    ],
+    "bounds": [
+      137,
+      186,
+      402,
+      371
+    ],
+    "straightAlpha": true
+  }
+}

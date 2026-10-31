@@ -1,0 +1,57 @@
+{
+  "date": "2026-10-31",
+  "map": "/map/test_enemy-wave-director",
+  "checks": [
+    {
+      "name": "closed-front",
+      "status": "passed",
+      "states": [
+        "LatchSeekState",
+        "LatchPressState",
+        "LatchLeapState",
+        "LatchDeadState"
+      ],
+      "alive": false,
+      "jammed": true
+    },
+    {
+      "name": "closed-opposite",
+      "status": "passed",
+      "states": [
+        "LatchSeekState",
+        "LatchPressState",
+        "LatchLeapState",
+        "LatchDeadState"
+      ],
+      "alive": false,
+      "jammed": true
+    },
+    {
+      "name": "open-entry",
+      "status": "passed",
+      "states": [
+        "LatchSeekState",
+        "LatchDogState"
+      ],
+      "alive": true,
+      "jammed": false
+    },
+    {
+      "name": "five-slugs",
+      "status": "passed",
+      "states": [
+        "LatchSeekState",
+        "LatchPressState",
+        "LatchLeapState",
+        "LatchDeadState"
+      ],
+      "alive": false,
+      "jammed": true
+    }
+  ],
+  "unitTests": {
+    "passed": 40,
+    "failed": 0
+  },
+  "notes": "Native Ammo movement and contact. Closed-door approach climbs the quarter-tile treads before windup; open entrance remains traversable. Setup placement only uses teleport. A jammed door keeps its existing exclusion."
+}

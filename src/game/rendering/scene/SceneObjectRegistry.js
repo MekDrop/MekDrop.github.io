@@ -20,7 +20,7 @@ export class SceneObjectRegistry {
   getWithMethod(method) {
     if (!this.#methodMembers.has(method)) {
       this.#methodMembers.set(method, [...this.#objects.values()].filter(/**
-       * @param {import("src/game/GameContracts.js").GameObjectContract} object
+   * @param {import("src/game/GameContracts.js").GameObjectContract} object
        */
         (object) => typeof object[method] === "function"));
     }
@@ -50,23 +50,19 @@ export class SceneObjectRegistry {
     return this.#revision;
   }
   /**
-   *
    * @type {Map}
    */
   #objects = new Map();
   /**
-   *
    * @type {Map}
    */
   #keysByType = new Map();
   /**
-   *
    * @type {Map}
    */
   #countsByType = new Map();
 
   /**
-   *
    * @param {string} type
    * @param {import("src/game/GameContracts.js").GameObjectContract} object
    */
@@ -83,7 +79,6 @@ export class SceneObjectRegistry {
   }
 
   /**
-   *
    * @param {string} type
    * @param {import("src/game/GameContracts.js").GameObjectContract} object
    */
@@ -101,7 +96,6 @@ export class SceneObjectRegistry {
   }
 
   /**
-   *
    * @param {string} key
    */
   get(key) {
@@ -109,7 +103,6 @@ export class SceneObjectRegistry {
   }
 
   /**
-   *
    * @param {string} type
    */
   getOne(type) {
@@ -117,7 +110,6 @@ export class SceneObjectRegistry {
   }
 
   /**
-   *
    * @param {string} type
    */
   getFirst(type) {
@@ -127,7 +119,6 @@ export class SceneObjectRegistry {
   }
 
   /**
-   *
    * @param {string} type
    */
   getAll(type) {
@@ -136,12 +127,33 @@ export class SceneObjectRegistry {
       .filter(Boolean);
   }
 
+  /**
+   * Remove a dynamic object without destroying unrelated members.
+   * @param {import("src/game/GameContracts.js").GameObjectContract} object
+   */
+  remove(object) {
+    for (const [key, member] of this.#objects) {
+      if (member !== object) {
+        continue;
+      }
+      this.#objects.delete(key);
+      for (const [type, keys] of this.#keysByType) {
+        this.#keysByType.set(type, keys.filter(/**
+   * @param {string} value
+       */
+          value => value !== key));
+      }
+      this.#methodMembers.clear();
+      this.#firstByClass = null;
+      this.#revision++;
+    }
+  }
+
   *[Symbol.iterator]() {
     yield* this.#objects.values();
   }
 
   /**
-   *
    * @param {string} type
    */
   destroyType(type) {
@@ -183,7 +195,6 @@ export class SceneObjectRegistry {
   }
 
   /**
-   *
    * @param {string} type
    */
   #nextCollectionKey(type) {
@@ -194,7 +205,6 @@ export class SceneObjectRegistry {
   }
 
   /**
-   *
    * @param {string} type
    */
   #forgetType(type) {
@@ -207,7 +217,6 @@ export class SceneObjectRegistry {
   }
 
   /**
-   *
    * @param {string} key
    */
   #mapKey(key) {

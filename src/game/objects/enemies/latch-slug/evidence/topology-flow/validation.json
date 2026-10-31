@@ -1,0 +1,181 @@
+{
+  "date": "2026-10-30",
+  "status": "passed",
+  "route": "http://127.0.0.1:9006/map/test_enemy-latch-slug",
+  "changes": [
+    "Each variant remains a single connected closed mass.",
+    "Settled sag narrows and thins the film instead of creating more slime.",
+    "Impact resamples the actual current skinned body triangles into the same connected topology, then deforms continuously for 0.38 seconds.",
+    "Native morph travel follows arc length over real door leaf meshes. Raised braces, handles and plank contours alter the surface and delay downward movement; depth compensates area changes to conserve the captured volume."
+  ],
+  "nativePhysics": "Ammo owns flight and leaf collision. Deformation is a bounded visual operation, not a custom physics integrator.",
+  "trials": [
+    {
+      "variant": "Narrow ragged",
+      "side": "front",
+      "surface": {
+        "triangles": 3024,
+        "bodyTriangles": 1172,
+        "preparationMs": 16.900000005960464,
+        "sourceVolume": 0.03363525600444398,
+        "maxRelativeVolumeError": 3.034063467133308e-08,
+        "frames": 564,
+        "transition": 1,
+        "volume": 0.03363525622237867
+      },
+      "alive": false,
+      "jammed": true,
+      "shaderGrowth": 5
+    },
+    {
+      "variant": "Double lobe",
+      "side": "front",
+      "surface": {
+        "triangles": 3024,
+        "bodyTriangles": 1172,
+        "preparationMs": 8.900000005960464,
+        "sourceVolume": 0.03500493552197516,
+        "maxRelativeVolumeError": 3.0114602256325895e-08,
+        "frames": 613,
+        "transition": 1,
+        "volume": 0.03500493601578261
+      },
+      "alive": false,
+      "jammed": true,
+      "shaderGrowth": 0
+    },
+    {
+      "variant": "Low spreading smear",
+      "side": "front",
+      "surface": {
+        "triangles": 3024,
+        "bodyTriangles": 1172,
+        "preparationMs": 12.200000002980232,
+        "sourceVolume": 0.025336415690019317,
+        "maxRelativeVolumeError": 5.280505044336081e-08,
+        "frames": 539,
+        "transition": 1,
+        "volume": 0.02533641555387707
+      },
+      "alive": false,
+      "jammed": true,
+      "shaderGrowth": 0
+    },
+    {
+      "variant": "Uneven fan",
+      "side": "opposite oblique",
+      "surface": {
+        "triangles": 3024,
+        "bodyTriangles": 1172,
+        "preparationMs": 10.899999991059303,
+        "sourceVolume": 0.028352362041246925,
+        "maxRelativeVolumeError": 2.8628359682869586e-08,
+        "frames": 600,
+        "transition": 1,
+        "volume": 0.028352361878079366
+      },
+      "alive": false,
+      "jammed": true,
+      "shaderGrowth": 0
+    },
+    {
+      "variant": "Tall pear",
+      "side": "opposite oblique",
+      "surface": {
+        "triangles": 3024,
+        "bodyTriangles": 1172,
+        "preparationMs": 8.5,
+        "sourceVolume": 0.03122264790770786,
+        "maxRelativeVolumeError": 2.5714280482702634e-08,
+        "frames": 595,
+        "transition": 1,
+        "volume": 0.031222647875141573
+      },
+      "alive": false,
+      "jammed": true,
+      "shaderGrowth": 0
+    },
+    {
+      "variant": "Broad left-heavy",
+      "side": "opposite oblique",
+      "surface": {
+        "triangles": 3024,
+        "bodyTriangles": 1172,
+        "preparationMs": 10.5,
+        "sourceVolume": 0.04781843338901765,
+        "maxRelativeVolumeError": 3.193803999046452e-08,
+        "frames": 575,
+        "transition": 1,
+        "volume": 0.04781843295641819
+      },
+      "alive": false,
+      "jammed": true,
+      "shaderGrowth": 0
+    }
+  ],
+  "latestDoorQuery": {
+    "triangles": 2324,
+    "bodyTriangles": 1172,
+    "preparationMs": 15.200000002980232,
+    "sourceVolume": 0.028633776071932567,
+    "maxRelativeVolumeError": 3.6279561355101464e-08,
+    "frames": 631,
+    "transition": 1,
+    "volume": 0.028633776380522512
+  },
+  "interior": {
+    "surface": {
+      "triangles": 2828,
+      "bodyTriangles": 1172,
+      "preparationMs": 13.799999997019768,
+      "sourceVolume": 0.02850662677367492,
+      "maxRelativeVolumeError": 3.298677508922765e-08,
+      "frames": 610,
+      "transition": 1,
+      "volume": 0.02850662646193278
+    },
+    "setup": {
+      "p": "[1.5299999713897705, 2, -4.375]",
+      "spawn": "[-0.17000003159046173, 2.0399999618530273, -4.375]",
+      "meshes": 38
+    },
+    "jammedAtImpact": true,
+    "clearing": {
+      "hit": true,
+      "cleared": true,
+      "jammed": false
+    }
+  },
+  "checks": {
+    "focusedUnitTests": {
+      "passed": 41,
+      "failed": 0
+    },
+    "eslint": "passed",
+    "runtimeErrors": [],
+    "preview": {
+      "mode": "RGBA",
+      "visiblePixels": 33513,
+      "transparentPixels": 228631,
+      "translucentPixels": 32756,
+      "margin": 93
+    },
+    "doorQuery": "Real moving-leaf meshes include hardware even when batching disables their source render components; fixture test and final production-route entrance/interior captures pass.",
+    "volume": "All recorded deformation frames remain within 0.0001% of their captured body volume; independent GLB sag samples within 1%.",
+    "visualReview": "Reviewed fixed-camera contact sequences and 2/8/16-second surfaces from two oblique views and inside the castle."
+  },
+  "recordings": {
+    "comparison": "comparison.mp4",
+    "front": "front.mp4",
+    "opposite": "impact-3.mp4",
+    "interior": "interior.mp4",
+    "editing": "Three full fixed-camera game-canvas runs concatenated at native speed. No spatial crop, camera move or edit through contact. Six variant runs and numerical telemetry retained alongside."
+  },
+  "hashes": {
+    "blend": "2633f511c8e3a71d81cd617e7ca1dbfb2f5e256b4c65399144699fa8c9b558a9",
+    "glb": "68f2e086f20179ba0004f08e551a8c4dd0b72d7ec6bd592186a79a806e35a0ab",
+    "impact": "66eb1b36fe49d9cc225605b37cd6016bf3a9be8f0b0694270c1c4a14cef3b8aa",
+    "surface": "712285eb58e7e3198e5d9161e895a66e63b23642253cf370945594f9f4ec5247",
+    "flow": "3297f095d00f2eaf8f27e3aa153f3d788bcdde7466f236581730bfa25412b89a"
+  }
+}

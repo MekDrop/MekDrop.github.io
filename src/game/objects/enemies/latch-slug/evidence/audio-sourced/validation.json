@@ -1,0 +1,118 @@
+{
+  "date": "2026-10-30",
+  "status": "passed",
+  "source": {
+    "author": "rubberduck",
+    "title": "40 CC0 water / splash / slime SFX",
+    "sourceUrl": "https://opengameart.org/content/40-cc0-water-splash-slime-sfx",
+    "downloadUrl": "https://opengameart.org/sites/default/files/water-splash-slime-sfx.zip",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "retrieved": "2026-10-30",
+    "archiveSha256": "7cd39abb49d4362a37ba18dc0e454c7dc1d08029d4e5b683149046bc237b2eba",
+    "files": [
+      {
+        "cue": "jump",
+        "source": "sources/slime_02.ogg",
+        "sourceSha256": "a4ba1530c081706cb7ce8a08702c3552437561c33b851fe46e97d3232574320c",
+        "wavSha256": "8f79ba060418a3bb7734699d1527b2df81dfa5e44f8499727a1d332b2a5b26a5",
+        "runtimeOggSha256": "03eb668926861335986bbe5e32b3d33f7faa79a54af22349d38ab6b3123dcd7b"
+      },
+      {
+        "cue": "splash",
+        "source": "sources/splash_08.ogg",
+        "sourceSha256": "fd4c9c8fbfe4ac7348644918a73b1d004b037bac3ef24a1303549b705624828a",
+        "wavSha256": "e8e2f988dadca5262609faea4194284a7555be6ead2557006f24e22c75d40f88",
+        "runtimeOggSha256": "8a108ad50a8b5c383f6c44dde4d1e52177088d1315dc8a1154d2280f2638966e"
+      }
+    ],
+    "processing": "Decode to 48 kHz stereo PCM16 WAV, encode runtime Vorbis at nominal 192 kbps; no synthesis or layering. Original Ogg files remain byte-identical to archive entries.",
+    "stats": {
+      "jump": {
+        "duration": 0.44966666666666666,
+        "channels": 2,
+        "sampleRate": 48000,
+        "peak": 0.920166015625,
+        "rms": 0.03603450059500223
+      },
+      "splash": {
+        "duration": 0.6929375,
+        "channels": 2,
+        "sampleRate": 48000,
+        "peak": 0.948455810546875,
+        "rms": 0.06594203080602436
+      }
+    }
+  },
+  "change": "Both procedural cues replaced with supplied external slime_02.ogg and splash_08.ogg. Only decoding/encoding was applied; no synthesized sound or layers.",
+  "runtime": {
+    "setup": {
+      "context": "running",
+      "audioTracks": 1,
+      "slots": [
+        "jump",
+        "splash"
+      ],
+      "rangeVolume": 0.6272458735818436
+    },
+    "cues": [
+      {
+        "name": "jump",
+        "pitch": 1.016934965963888,
+        "t": 23695,
+        "contextTime": 16.44,
+        "instances": 1,
+        "playing": true,
+        "volume": 0.31330999373778207,
+        "state": "LatchLeapState",
+        "alive": true,
+        "velocity": "[2.7426884174346924, 6.118505477905273, 4.819377899169922]",
+        "seconds": 5.601
+      },
+      {
+        "name": "splash",
+        "pitch": 0.9817654968558798,
+        "t": 24212.70000000298,
+        "contextTime": 16.96,
+        "instances": 1,
+        "playing": true,
+        "volume": 0.31110491046452815,
+        "state": "LatchLeapState",
+        "alive": true,
+        "velocity": "[0.705388069152832, -4.514772891998291, -0.3937697410583496]",
+        "seconds": 6.11870000000298
+      }
+    ],
+    "slots": [
+      {
+        "name": "jump",
+        "duration": 0.447,
+        "asset": "http://127.0.0.1:9006/src/game/audio/latch-slug/jump.ogg"
+      },
+      {
+        "name": "splash",
+        "duration": 0.6902708333333333,
+        "asset": "http://127.0.0.1:9006/src/game/audio/latch-slug/splash.ogg"
+      }
+    ],
+    "alive": false,
+    "jammed": true,
+    "context": "running",
+    "errors": []
+  },
+  "checks": {
+    "focusedTests": {
+      "passed": 41,
+      "failed": 0
+    },
+    "sourceIntegrity": "Both preserved source files byte-match their original downloaded ZIP entries.",
+    "license": "Author, source page, CC0 license text and archive/clip SHA-256 roster retained alongside game audio.",
+    "nativePlayback": "Both newly decoded Ogg clips played once, at committed takeoff and successful closed-leaf impact; context running, nonzero playback gain, no runtime errors."
+  },
+  "video": "in-game.mp4",
+  "editing": {
+    "startSeconds": 4.401,
+    "durationSeconds": 2.9677000000029805,
+    "note": "In-game canvas and native audio captured together, trimmed around the leap and contact; audio is not overlaid offline."
+  }
+}
