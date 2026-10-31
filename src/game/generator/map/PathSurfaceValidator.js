@@ -62,6 +62,7 @@ export class PathSurfaceValidator {
               heightmap[row][col] ===
                 (metadata.slope.lowHeight + metadata.slope.highHeight) / 2
             : heightmap[row][col] === OVERPASS_ELEVATION ||
+              heightmap[row][col] === layout?.overpassPlan?.baseElevation ||
               heightmap[row][col] === PATH_HEIGHT);
         const validPathDipHeight =
           metadata.pathDipId &&
@@ -127,6 +128,7 @@ export class PathSurfaceValidator {
 
     validatePathCells(plan.crossingCells, plan.baseElevation, TILE_SHAPE.FLAT);
     validatePathCells(plan.approachCells, plan.deckElevation, TILE_SHAPE.FLAT);
+    validatePathCells(plan.lowerApproachCells ?? [], plan.baseElevation, TILE_SHAPE.FLAT);
     for (const cell of plan.approachCells) {
       if (
         tileMeta[cell.row][cell.col].renderMode !== "SOLID" ||
@@ -162,14 +164,15 @@ export class PathSurfaceValidator {
         });
       }
     }
+    const slopeCells = [...plan.slopeCells, ...(plan.lowerSlopeCells ?? [])];
     const expectedSlopeCellCount =
       OVERPASS_RAMP_TILES * (plan.raisedEntryApproach ? 2 : 4);
-    if (plan.slopeCells.length !== expectedSlopeCellCount) {
+    if (slopeCells.length !== expectedSlopeCellCount) {
       throw new InvalidOverpassError({
         reason: "does not preserve its required two-tile-wide approach flights",
       });
     }
-    for (const cell of plan.slopeCells) {
+    for (const cell of slopeCells) {
       validatePathCells(
         [cell],
         (cell.lowHeight + cell.highHeight) / 2,

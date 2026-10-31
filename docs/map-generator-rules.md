@@ -145,6 +145,8 @@ path | grass | grass | path
 * Ordinary slopes change elevation by one block per tile. A grade-separated path crossing uses two consecutive half-block ramp tiles per block of elevation so the approach remains gentle.
 * The optional terrain-dip bridge alternative in section 9a also uses two consecutive half-block ramp tiles per block so its descent and climb remain visually gentle.
 * Both lanes must rise or descend together.
+* Grade-separated crossings may also be underpasses: the vertical road descends two blocks, passes beneath a horizontal road at ordinary path elevation, and climbs back to ordinary elevation. Both descending and ascending flights retain the same four-tile, half-block-per-tile profile. The trench floor must remain visible and walkable even at elevation zero. Underpasses do not raise entry terrain or use stair approaches. Their recessed approaches use retaining terrain walls; the level crossing deck retains both outer railings.
+* Eligible automatic crossings select raised or descending construction deterministically from the map seed. `underpass: true` requests descending construction, `underpass: false` retains raised construction, and `overpass: false` disables both. An explicit `overpass: true` retains raised construction unless `underpass: true` is also supplied.
 * A slope cannot turn, twist, or change direction midway.
 * A slope cannot incline sideways across the path.
 * Required slope length is:
@@ -164,11 +166,11 @@ ramp tiles = 2 * absolute elevation difference
 * Every elevated flat approach cell is a solid earth-filled column up to its path surface. It must never be reclassified as an ordinary thin bridge or expose a lower ledge beneath its deck.
 * Every exposed side and fascia belonging to a grade-separated ramp, flat approach, or crossing deck uses a dedicated dirt-only crop of the normal terrain-wall texture. Green grass pixels, dangling grass roots, grass fringes, and path-surface textures are forbidden on those fill faces. Path-surface material is restricted to the walkable top; railings may retain their structural path material.
 * A grade-separated approach must not raise or add lateral support cubes beside the path. Adjacent terrain keeps its generated elevation; only the two path lanes form the filled ramp and approach.
-* Sixty percent of generated grade-separated crossings raise the complete gate-side route and a connected grass plateau to deck elevation. This variant has no ascending flight before the bridge; travel from that gate stays level through the deck and only descends on the castle side.
-* Forty percent of generated grade-separated crossings render their remaining approach flights as castle-style sandstone stairs. Both lanes must use the same stair treatment, and the logical movement surface retains the validated half-block-per-tile elevation profile.
+* Sixty percent of generated raised grade-separated crossings raise the complete gate-side route and a connected grass plateau to deck elevation. This variant has no ascending flight before the bridge; travel from that gate stays level through the deck and only descends on the castle side.
+* Forty percent of generated raised grade-separated crossings render their remaining approach flights as castle-style sandstone stairs. Both lanes must use the same stair treatment, and the logical movement surface retains the validated half-block-per-tile elevation profile.
 * A grade-separated deck must leave enough clearance beneath its fascia for the complete collision height of a walking actor.
 * The deck top and underside are separate collision surfaces: actors may walk on top or pass underneath, but jumping actors must collide with the underside.
-* Both outer edges of a grade-separated path must have continuous railings across its complete ramp, elevated approach, and crossing deck. Rail segments on slopes must follow the walkable plane rather than stepping or floating horizontally.
+* Both outer edges of a raised grade-separated path must have continuous railings across its complete ramp, elevated approach, and crossing deck. Rail segments on slopes must follow the walkable plane rather than stepping or floating horizontally.
 * After a slope, the path must remain flat for at least one tile before turning.
 * Terraces are allowed as:
 

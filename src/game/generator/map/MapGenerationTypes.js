@@ -64,6 +64,9 @@
 
 /**
  * @typedef {object} OverpassPlan
+ * @property {boolean} [underpass] Lower the vertical route beneath a level crossing.
+ * @property {SlopeCell[]} [lowerSlopeCells]
+ * @property {MapCell[]} [lowerApproachCells]
  * @property {string} [id]
  * @property {string} [axis]
  * @property {number} [start]
@@ -128,6 +131,7 @@
  * @property {number} [numPaths]
  * @property {number} [numRivers]
  * @property {boolean|OverpassPlan} [overpass]
+ * @property {boolean} [underpass] Force a descending crossing; false keeps raised crossings.
  * @property {boolean} [islandConnectors]
  * @property {AbortSignal} [signal]
  */

@@ -62,17 +62,20 @@ export class OverpassPlanner {
   /**
    * @param {MapLayout} layout
    * @param {boolean|OverpassPlan} requestedOverpass
+   * @param {boolean} [requestedUnderpass]
    */
-  selectOverpassPlan(layout, requestedOverpass) {
+  selectOverpassPlan(layout, requestedOverpass, requestedUnderpass) {
     if (requestedOverpass === false || layout.entries.length < 2) {
       return null;
     }
 
     const chance =
       OVERPASS_CHANCE_BY_PATH_COUNT[layout.entries.length] ?? 0;
-    if (requestedOverpass !== true && this.#random.rng(1, 100) > chance) {
+    if (requestedUnderpass !== true && requestedOverpass !== true && this.#random.rng(1, 100) > chance) {
       return null;
     }
+    const underpass = requestedUnderpass ?? (requestedOverpass !== true &&
+      this.#random.deterministicChance(layout.signature, "underpass", 50));
 
     const trunkTop = layout.pathRows[0];
     const candidates = [];
@@ -203,6 +206,9 @@ export class OverpassPlanner {
         !PathTopology.findUnexpectedFlatPathCrossing(previewGrid, plan) &&
         !PathTopology.findUnexpectedRouteConnection(routeCellsByPath, layout, plan)
       ) {
+        if (underpass) {
+          return OverpassPlanner.#buildUnderpassPlan(plan);
+        }
         return {
           ...plan,
           raisedEntryApproach: this.#random.deterministicChance(
@@ -229,6 +235,47 @@ export class OverpassPlanner {
       });
 
     return null;
+  }
+
+  /**
+   * Keep the horizontal road level and excavate the vertical road beneath it.
+   * @param {OverpassPlan} plan
+   * @returns {OverpassPlan}
+   */
+  static #buildUnderpassPlan(plan) {
+    const baseElevation = PATH_HEIGHT - (OVERPASS_ELEVATION - PATH_HEIGHT);
+    const lowerSlopeCells = plan.slopeCells.map(OverpassPlanner.#lowerSlope);
+
+    return {
+      ...plan,
+      underpass: true,
+      baseElevation,
+      deckElevation: PATH_HEIGHT,
+      slopeCells: [],
+      approachCells: [],
+      lowerSlopeCells,
+      lowerApproachCells: plan.approachCells,
+      upperPathIdx: plan.lowerPathIdx,
+      lowerPathIdx: plan.upperPathIdx,
+      upperDirection: plan.lowerDirection,
+      lowerDirection: plan.upperDirection,
+      raisedEntryApproach: false,
+      stairApproach: false,
+    };
+  }
+
+  /**
+   * @param {import("./MapGenerationTypes.js").SlopeCell} cell
+   * @returns {import("./MapGenerationTypes.js").SlopeCell}
+   */
+  static #lowerSlope(cell) {
+    return {
+      ...cell,
+      lowHeight: 2 * PATH_HEIGHT - cell.highHeight,
+      highHeight: 2 * PATH_HEIGHT - cell.lowHeight,
+      riseDirection: cell.riseDirection === SLOPE_DIRECTION.NORTH
+        ? SLOPE_DIRECTION.SOUTH : SLOPE_DIRECTION.NORTH,
+    };
   }
 
   /**
@@ -329,6 +376,8 @@ export class OverpassPlanner {
       ...plan.crossingCells,
       ...plan.approachCells,
       ...plan.slopeCells,
+      ...(plan.lowerSlopeCells ?? []),
+      ...(plan.lowerApproachCells ?? []),
       ...(plan.raisedApproachCells ?? []),
     ];
     for (const { col, row } of pathCells) {

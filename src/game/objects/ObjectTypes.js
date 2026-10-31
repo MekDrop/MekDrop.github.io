@@ -225,6 +225,7 @@
  * @property {Array<Array<number>>} sources
  * @property {boolean[]} [connectedSides] Perpendicular spills at the negative and positive width edges.
  * @typedef {object} PathOverpass
+ * @property {boolean} [underpass] The level deck crosses a descending vertical road.
  * @property {Array<{col: number, row: number, riseDirection: string, lowHeight: number, highHeight: number}>} slopeCells
  * @property {Array<GridPoint>} approachCells
  * @property {Array<GridPoint>} crossingCells

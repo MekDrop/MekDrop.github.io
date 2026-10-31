@@ -9,13 +9,13 @@
 export class GenerationContext {
   /**
    *
-   * @param {{mapName?: string, numPaths?: number, numRivers?: number, overpass?: boolean, signal?: AbortSignal}} options
+   * @param {{mapName?: string, numPaths?: number, numRivers?: number, overpass?: boolean, underpass?: boolean, signal?: AbortSignal}} options
    * @param {{now: () => number, yieldToMainThread: () => Promise<void>, yieldIfNeeded: (state: {lastYield: number}) => Promise<void>, throwIfAborted?: () => void}} scheduler
    */
   constructor(options, scheduler) {
     /**
      *
-     * @type {Readonly<{mapName?: string, numPaths?: number, numRivers?: number, overpass?: boolean, signal?: AbortSignal}>}
+     * @type {Readonly<{mapName?: string, numPaths?: number, numRivers?: number, overpass?: boolean, underpass?: boolean, signal?: AbortSignal}>}
      */
     this.input = Object.freeze({ ...options });
     /**

@@ -288,14 +288,25 @@ export class TerrainBuilder {
       };
     }
 
-    for (const cell of plan.slopeCells) {
+    for (const cell of plan.lowerApproachCells ?? []) {
+      heightmap[cell.row][cell.col] = plan.baseElevation;
+      tileMeta[cell.row][cell.col] = {
+        ...tileMeta[cell.row][cell.col],
+        baseHeight: plan.baseElevation,
+        shape: TILE_SHAPE.FLAT,
+        direction: plan.lowerDirection,
+        overpassId: plan.id,
+      };
+    }
+
+    for (const cell of [...plan.slopeCells, ...(plan.lowerSlopeCells ?? [])]) {
       const centerHeight = (cell.lowHeight + cell.highHeight) / 2;
       heightmap[cell.row][cell.col] = centerHeight;
       tileMeta[cell.row][cell.col] = {
         ...tileMeta[cell.row][cell.col],
         baseHeight: centerHeight,
         shape: TILE_SHAPE.SLOPE,
-        direction: plan.upperDirection,
+        direction: plan.underpass ? plan.lowerDirection : plan.upperDirection,
         slope: {
           lowHeight: cell.lowHeight,
           highHeight: cell.highHeight,
@@ -459,6 +470,7 @@ export class TerrainBuilder {
               pathHeight,
             ) ||
             !MapGrid.inBounds(sideCol, sideRow) ||
+            tileMeta[sideRow][sideCol].overpassId ||
             riverCells.has(MapGrid.tileKey(sideCol, sideRow))
           ) {
             continue;

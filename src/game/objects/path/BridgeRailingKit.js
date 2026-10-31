@@ -166,6 +166,19 @@ export class BridgeRailingKit {
    * @param {number} rows
    */
   addOverpass(overpass, material, cols, rows) {
+    if (overpass.underpass) {
+      const { col, row, width, depth } = overpass.crossing;
+      this.addSpan({
+        horizontal: true,
+        start: col,
+        end: col + width - 1,
+        center: col + (width - 1) / 2,
+        crossCenter: row + (depth - 1) / 2,
+        length: width,
+      }, overpass.deckElevation, material, cols, rows);
+
+      return;
+    }
     this.#currentGroup = this.#groupForCell(
       overpass.crossing.col,
       overpass.crossing.row,

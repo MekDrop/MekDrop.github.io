@@ -60,6 +60,7 @@ export class LayoutStage extends AbstractMapGenerationStage {
     layout.overpassPlan = this.#overpasses.selectOverpassPlan(
       layout,
       requestedOverpass,
+      context.input.underpass,
     );
     if (!layout.overpassPlan) {
       this.#layout.retainSeparatedCurvePlans(layout);

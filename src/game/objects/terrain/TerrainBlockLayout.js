@@ -267,6 +267,15 @@ export class TerrainBlockLayout {
           continue;
         }
 
+        // Excavated paths at the island datum still need a complete floor.
+        if (type === TileType.PATH && height === 0) {
+          this.#instanceRenderer.addBoxMatrix(
+            SURFACE_MATERIALS[type],
+            this.#pathEarthSideMaterial(col, row, 0),
+            x, -0.025, z, 0, CUBE_SCALE, 0.05, CUBE_SCALE,
+            "full", "none",
+          );
+        }
         for (let level = 0; level < height; level += 1) {
           const topCube = level === height - 1;
           const overpassFill = Boolean(
@@ -358,7 +367,7 @@ export class TerrainBlockLayout {
       2,
       deckThickness,
       span.length,
-      "bridgeVerticalSidesOnly",
+      overpass.underpass ? "bridgeHorizontalSidesOnly" : "bridgeVerticalSidesOnly",
       railingMaterial,
     );
     this.#bridgeRailingKit.addOverpass(overpass, railingMaterial, cols, rows);

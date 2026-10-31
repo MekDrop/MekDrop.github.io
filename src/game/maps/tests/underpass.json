@@ -1,0 +1,3823 @@
+{
+  "name": "Underpass crossing",
+  "cols": 14,
+  "rows": 20,
+  "grid": [
+    [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      2,
+      2,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      2,
+      2,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      2,
+      2,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      2,
+      2,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      2,
+      2,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      2,
+      2,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      2,
+      2,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      2,
+      2,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      2,
+      2,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      2,
+      2,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      2,
+      2,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      2,
+      2,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      2,
+      2,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      2,
+      2,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      2,
+      2,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      2,
+      2,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      2,
+      2,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      2,
+      2,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ]
+  ],
+  "heightmap": [
+    [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      1.75,
+      1.75,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      1.25,
+      1.25,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0.75,
+      0.75,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0.25,
+      0.25,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0,
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0,
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0,
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0,
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0.25,
+      0.25,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0.75,
+      0.75,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      1.25,
+      1.25,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      1.75,
+      1.75,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ]
+  ],
+  "tileMeta": [
+    [
+      {
+        "x": 0,
+        "y": 0,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 1,
+        "y": 0,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 2,
+        "y": 0,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 3,
+        "y": 0,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 4,
+        "y": 0,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 5,
+        "y": 0,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 6,
+        "y": 0,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 7,
+        "y": 0,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 8,
+        "y": 0,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 9,
+        "y": 0,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 10,
+        "y": 0,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 11,
+        "y": 0,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 12,
+        "y": 0,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 13,
+        "y": 0,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      }
+    ],
+    [
+      {
+        "x": 0,
+        "y": 1,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 1,
+        "y": 1,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 2,
+        "y": 1,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 3,
+        "y": 1,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 4,
+        "y": 1,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 5,
+        "y": 1,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 6,
+        "y": 1,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 7,
+        "y": 1,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 8,
+        "y": 1,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 9,
+        "y": 1,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 10,
+        "y": 1,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 11,
+        "y": 1,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 12,
+        "y": 1,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 13,
+        "y": 1,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      }
+    ],
+    [
+      {
+        "x": 0,
+        "y": 2,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 1,
+        "y": 2,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 2,
+        "y": 2,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 3,
+        "y": 2,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 4,
+        "y": 2,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 5,
+        "y": 2,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 6,
+        "y": 2,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 7,
+        "y": 2,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 8,
+        "y": 2,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 9,
+        "y": 2,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 10,
+        "y": 2,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 11,
+        "y": 2,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 12,
+        "y": 2,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 13,
+        "y": 2,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      }
+    ],
+    [
+      {
+        "x": 0,
+        "y": 3,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 1,
+        "y": 3,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 2,
+        "y": 3,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 3,
+        "y": 3,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 4,
+        "y": 3,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 5,
+        "y": 3,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 6,
+        "y": 3,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 7,
+        "y": 3,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 8,
+        "y": 3,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 9,
+        "y": 3,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 10,
+        "y": 3,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 11,
+        "y": 3,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 12,
+        "y": 3,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 13,
+        "y": 3,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      }
+    ],
+    [
+      {
+        "x": 0,
+        "y": 4,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 1,
+        "y": 4,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 2,
+        "y": 4,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 3,
+        "y": 4,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 4,
+        "y": 4,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 5,
+        "y": 4,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 6,
+        "y": 4,
+        "baseHeight": 1.75,
+        "shape": "SLOPE",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null,
+        "overpassId": "path-overpass-0",
+        "slope": {
+          "lowHeight": 1.5,
+          "highHeight": 2,
+          "riseDirection": "NORTH"
+        }
+      },
+      {
+        "x": 7,
+        "y": 4,
+        "baseHeight": 1.75,
+        "shape": "SLOPE",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null,
+        "overpassId": "path-overpass-0",
+        "slope": {
+          "lowHeight": 1.5,
+          "highHeight": 2,
+          "riseDirection": "NORTH"
+        }
+      },
+      {
+        "x": 8,
+        "y": 4,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 9,
+        "y": 4,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 10,
+        "y": 4,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 11,
+        "y": 4,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 12,
+        "y": 4,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 13,
+        "y": 4,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      }
+    ],
+    [
+      {
+        "x": 0,
+        "y": 5,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 1,
+        "y": 5,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 2,
+        "y": 5,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 3,
+        "y": 5,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 4,
+        "y": 5,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 5,
+        "y": 5,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 6,
+        "y": 5,
+        "baseHeight": 1.25,
+        "shape": "SLOPE",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null,
+        "overpassId": "path-overpass-0",
+        "slope": {
+          "lowHeight": 1,
+          "highHeight": 1.5,
+          "riseDirection": "NORTH"
+        }
+      },
+      {
+        "x": 7,
+        "y": 5,
+        "baseHeight": 1.25,
+        "shape": "SLOPE",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null,
+        "overpassId": "path-overpass-0",
+        "slope": {
+          "lowHeight": 1,
+          "highHeight": 1.5,
+          "riseDirection": "NORTH"
+        }
+      },
+      {
+        "x": 8,
+        "y": 5,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 9,
+        "y": 5,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 10,
+        "y": 5,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 11,
+        "y": 5,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 12,
+        "y": 5,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 13,
+        "y": 5,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      }
+    ],
+    [
+      {
+        "x": 0,
+        "y": 6,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 1,
+        "y": 6,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 2,
+        "y": 6,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 3,
+        "y": 6,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 4,
+        "y": 6,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 5,
+        "y": 6,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 6,
+        "y": 6,
+        "baseHeight": 0.75,
+        "shape": "SLOPE",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null,
+        "overpassId": "path-overpass-0",
+        "slope": {
+          "lowHeight": 0.5,
+          "highHeight": 1,
+          "riseDirection": "NORTH"
+        }
+      },
+      {
+        "x": 7,
+        "y": 6,
+        "baseHeight": 0.75,
+        "shape": "SLOPE",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null,
+        "overpassId": "path-overpass-0",
+        "slope": {
+          "lowHeight": 0.5,
+          "highHeight": 1,
+          "riseDirection": "NORTH"
+        }
+      },
+      {
+        "x": 8,
+        "y": 6,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 9,
+        "y": 6,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 10,
+        "y": 6,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 11,
+        "y": 6,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 12,
+        "y": 6,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 13,
+        "y": 6,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      }
+    ],
+    [
+      {
+        "x": 0,
+        "y": 7,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 1,
+        "y": 7,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 2,
+        "y": 7,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 3,
+        "y": 7,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 4,
+        "y": 7,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 5,
+        "y": 7,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 6,
+        "y": 7,
+        "baseHeight": 0.25,
+        "shape": "SLOPE",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null,
+        "overpassId": "path-overpass-0",
+        "slope": {
+          "lowHeight": 0,
+          "highHeight": 0.5,
+          "riseDirection": "NORTH"
+        }
+      },
+      {
+        "x": 7,
+        "y": 7,
+        "baseHeight": 0.25,
+        "shape": "SLOPE",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null,
+        "overpassId": "path-overpass-0",
+        "slope": {
+          "lowHeight": 0,
+          "highHeight": 0.5,
+          "riseDirection": "NORTH"
+        }
+      },
+      {
+        "x": 8,
+        "y": 7,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 9,
+        "y": 7,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 10,
+        "y": 7,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 11,
+        "y": 7,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 12,
+        "y": 7,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 13,
+        "y": 7,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      }
+    ],
+    [
+      {
+        "x": 0,
+        "y": 8,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 1,
+        "y": 8,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 2,
+        "y": 8,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 3,
+        "y": 8,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 4,
+        "y": 8,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 5,
+        "y": 8,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 6,
+        "y": 8,
+        "baseHeight": 0,
+        "shape": "FLAT",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null,
+        "overpassId": "path-overpass-0"
+      },
+      {
+        "x": 7,
+        "y": 8,
+        "baseHeight": 0,
+        "shape": "FLAT",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null,
+        "overpassId": "path-overpass-0"
+      },
+      {
+        "x": 8,
+        "y": 8,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 9,
+        "y": 8,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 10,
+        "y": 8,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 11,
+        "y": 8,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 12,
+        "y": 8,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 13,
+        "y": 8,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      }
+    ],
+    [
+      {
+        "x": 0,
+        "y": 9,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "PATH",
+        "direction": "EAST",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 1,
+        "y": 9,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "PATH",
+        "direction": "EAST",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 2,
+        "y": 9,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "PATH",
+        "direction": "EAST",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 3,
+        "y": 9,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "PATH",
+        "direction": "EAST",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 4,
+        "y": 9,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "PATH",
+        "direction": "EAST",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 5,
+        "y": 9,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "PATH",
+        "direction": "EAST",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 6,
+        "y": 9,
+        "baseHeight": 0,
+        "shape": "FLAT",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null,
+        "overpassId": "path-overpass-0",
+        "overpass": {
+          "elevation": 2,
+          "direction": "WEST"
+        }
+      },
+      {
+        "x": 7,
+        "y": 9,
+        "baseHeight": 0,
+        "shape": "FLAT",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null,
+        "overpassId": "path-overpass-0",
+        "overpass": {
+          "elevation": 2,
+          "direction": "WEST"
+        }
+      },
+      {
+        "x": 8,
+        "y": 9,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "PATH",
+        "direction": "EAST",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 9,
+        "y": 9,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "PATH",
+        "direction": "EAST",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 10,
+        "y": 9,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "PATH",
+        "direction": "EAST",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 11,
+        "y": 9,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "PATH",
+        "direction": "EAST",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 12,
+        "y": 9,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "PATH",
+        "direction": "EAST",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 13,
+        "y": 9,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "PATH",
+        "direction": "EAST",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      }
+    ],
+    [
+      {
+        "x": 0,
+        "y": 10,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "PATH",
+        "direction": "EAST",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 1,
+        "y": 10,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "PATH",
+        "direction": "EAST",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 2,
+        "y": 10,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "PATH",
+        "direction": "EAST",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 3,
+        "y": 10,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "PATH",
+        "direction": "EAST",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 4,
+        "y": 10,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "PATH",
+        "direction": "EAST",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 5,
+        "y": 10,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "PATH",
+        "direction": "EAST",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 6,
+        "y": 10,
+        "baseHeight": 0,
+        "shape": "FLAT",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null,
+        "overpassId": "path-overpass-0",
+        "overpass": {
+          "elevation": 2,
+          "direction": "WEST"
+        }
+      },
+      {
+        "x": 7,
+        "y": 10,
+        "baseHeight": 0,
+        "shape": "FLAT",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null,
+        "overpassId": "path-overpass-0",
+        "overpass": {
+          "elevation": 2,
+          "direction": "WEST"
+        }
+      },
+      {
+        "x": 8,
+        "y": 10,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "PATH",
+        "direction": "EAST",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 9,
+        "y": 10,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "PATH",
+        "direction": "EAST",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 10,
+        "y": 10,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "PATH",
+        "direction": "EAST",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 11,
+        "y": 10,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "PATH",
+        "direction": "EAST",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 12,
+        "y": 10,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "PATH",
+        "direction": "EAST",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 13,
+        "y": 10,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "PATH",
+        "direction": "EAST",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      }
+    ],
+    [
+      {
+        "x": 0,
+        "y": 11,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 1,
+        "y": 11,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 2,
+        "y": 11,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 3,
+        "y": 11,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 4,
+        "y": 11,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 5,
+        "y": 11,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 6,
+        "y": 11,
+        "baseHeight": 0,
+        "shape": "FLAT",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null,
+        "overpassId": "path-overpass-0"
+      },
+      {
+        "x": 7,
+        "y": 11,
+        "baseHeight": 0,
+        "shape": "FLAT",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null,
+        "overpassId": "path-overpass-0"
+      },
+      {
+        "x": 8,
+        "y": 11,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 9,
+        "y": 11,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 10,
+        "y": 11,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 11,
+        "y": 11,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 12,
+        "y": 11,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 13,
+        "y": 11,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      }
+    ],
+    [
+      {
+        "x": 0,
+        "y": 12,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 1,
+        "y": 12,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 2,
+        "y": 12,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 3,
+        "y": 12,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 4,
+        "y": 12,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 5,
+        "y": 12,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 6,
+        "y": 12,
+        "baseHeight": 0.25,
+        "shape": "SLOPE",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null,
+        "overpassId": "path-overpass-0",
+        "slope": {
+          "lowHeight": 0,
+          "highHeight": 0.5,
+          "riseDirection": "SOUTH"
+        }
+      },
+      {
+        "x": 7,
+        "y": 12,
+        "baseHeight": 0.25,
+        "shape": "SLOPE",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null,
+        "overpassId": "path-overpass-0",
+        "slope": {
+          "lowHeight": 0,
+          "highHeight": 0.5,
+          "riseDirection": "SOUTH"
+        }
+      },
+      {
+        "x": 8,
+        "y": 12,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 9,
+        "y": 12,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 10,
+        "y": 12,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 11,
+        "y": 12,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 12,
+        "y": 12,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 13,
+        "y": 12,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      }
+    ],
+    [
+      {
+        "x": 0,
+        "y": 13,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 1,
+        "y": 13,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 2,
+        "y": 13,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 3,
+        "y": 13,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 4,
+        "y": 13,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 5,
+        "y": 13,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 6,
+        "y": 13,
+        "baseHeight": 0.75,
+        "shape": "SLOPE",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null,
+        "overpassId": "path-overpass-0",
+        "slope": {
+          "lowHeight": 0.5,
+          "highHeight": 1,
+          "riseDirection": "SOUTH"
+        }
+      },
+      {
+        "x": 7,
+        "y": 13,
+        "baseHeight": 0.75,
+        "shape": "SLOPE",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null,
+        "overpassId": "path-overpass-0",
+        "slope": {
+          "lowHeight": 0.5,
+          "highHeight": 1,
+          "riseDirection": "SOUTH"
+        }
+      },
+      {
+        "x": 8,
+        "y": 13,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 9,
+        "y": 13,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 10,
+        "y": 13,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 11,
+        "y": 13,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 12,
+        "y": 13,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 13,
+        "y": 13,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      }
+    ],
+    [
+      {
+        "x": 0,
+        "y": 14,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 1,
+        "y": 14,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 2,
+        "y": 14,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 3,
+        "y": 14,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 4,
+        "y": 14,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 5,
+        "y": 14,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 6,
+        "y": 14,
+        "baseHeight": 1.25,
+        "shape": "SLOPE",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null,
+        "overpassId": "path-overpass-0",
+        "slope": {
+          "lowHeight": 1,
+          "highHeight": 1.5,
+          "riseDirection": "SOUTH"
+        }
+      },
+      {
+        "x": 7,
+        "y": 14,
+        "baseHeight": 1.25,
+        "shape": "SLOPE",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null,
+        "overpassId": "path-overpass-0",
+        "slope": {
+          "lowHeight": 1,
+          "highHeight": 1.5,
+          "riseDirection": "SOUTH"
+        }
+      },
+      {
+        "x": 8,
+        "y": 14,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 9,
+        "y": 14,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 10,
+        "y": 14,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 11,
+        "y": 14,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 12,
+        "y": 14,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 13,
+        "y": 14,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      }
+    ],
+    [
+      {
+        "x": 0,
+        "y": 15,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 1,
+        "y": 15,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 2,
+        "y": 15,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 3,
+        "y": 15,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 4,
+        "y": 15,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 5,
+        "y": 15,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 6,
+        "y": 15,
+        "baseHeight": 1.75,
+        "shape": "SLOPE",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null,
+        "overpassId": "path-overpass-0",
+        "slope": {
+          "lowHeight": 1.5,
+          "highHeight": 2,
+          "riseDirection": "SOUTH"
+        }
+      },
+      {
+        "x": 7,
+        "y": 15,
+        "baseHeight": 1.75,
+        "shape": "SLOPE",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null,
+        "overpassId": "path-overpass-0",
+        "slope": {
+          "lowHeight": 1.5,
+          "highHeight": 2,
+          "riseDirection": "SOUTH"
+        }
+      },
+      {
+        "x": 8,
+        "y": 15,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 9,
+        "y": 15,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 10,
+        "y": 15,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 11,
+        "y": 15,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 12,
+        "y": 15,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 13,
+        "y": 15,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      }
+    ],
+    [
+      {
+        "x": 0,
+        "y": 16,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 1,
+        "y": 16,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 2,
+        "y": 16,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 3,
+        "y": 16,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 4,
+        "y": 16,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 5,
+        "y": 16,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 6,
+        "y": 16,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 7,
+        "y": 16,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 8,
+        "y": 16,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 9,
+        "y": 16,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 10,
+        "y": 16,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 11,
+        "y": 16,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 12,
+        "y": 16,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 13,
+        "y": 16,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      }
+    ],
+    [
+      {
+        "x": 0,
+        "y": 17,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 1,
+        "y": 17,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 2,
+        "y": 17,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 3,
+        "y": 17,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 4,
+        "y": 17,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 5,
+        "y": 17,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 6,
+        "y": 17,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 7,
+        "y": 17,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 8,
+        "y": 17,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 9,
+        "y": 17,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 10,
+        "y": 17,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 11,
+        "y": 17,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 12,
+        "y": 17,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 13,
+        "y": 17,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      }
+    ],
+    [
+      {
+        "x": 0,
+        "y": 18,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 1,
+        "y": 18,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 2,
+        "y": 18,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 3,
+        "y": 18,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 4,
+        "y": 18,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 5,
+        "y": 18,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 6,
+        "y": 18,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 7,
+        "y": 18,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 8,
+        "y": 18,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 9,
+        "y": 18,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 10,
+        "y": 18,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 11,
+        "y": 18,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 12,
+        "y": 18,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 13,
+        "y": 18,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      }
+    ],
+    [
+      {
+        "x": 0,
+        "y": 19,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 1,
+        "y": 19,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 2,
+        "y": 19,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 3,
+        "y": 19,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 4,
+        "y": 19,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 5,
+        "y": 19,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 6,
+        "y": 19,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 7,
+        "y": 19,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "PATH",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 8,
+        "y": 19,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 9,
+        "y": 19,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 10,
+        "y": 19,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 11,
+        "y": 19,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 12,
+        "y": 19,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      },
+      {
+        "x": 13,
+        "y": 19,
+        "baseHeight": 2,
+        "shape": "FLAT",
+        "surfaceType": "GRASS",
+        "direction": "SOUTH",
+        "renderMode": "SOLID",
+        "bridgeGroundHeight": null
+      }
+    ]
+  ],
+  "objects": [
+    {
+      "id": "underpass",
+      "object": "Overpass",
+      "layout": {
+        "id": "path-overpass-0",
+        "upperPathIdx": 1,
+        "lowerPathIdx": 0,
+        "upperDirection": "WEST",
+        "lowerDirection": "SOUTH",
+        "baseElevation": 0,
+        "deckElevation": 2,
+        "deckThickness": 0.24,
+        "clearance": 1.7599999999999998,
+        "crossing": {
+          "col": 6,
+          "row": 9,
+          "width": 2,
+          "depth": 2
+        },
+        "crossingCells": [
+          {
+            "col": 6,
+            "row": 9
+          },
+          {
+            "col": 6,
+            "row": 10
+          },
+          {
+            "col": 7,
+            "row": 9
+          },
+          {
+            "col": 7,
+            "row": 10
+          }
+        ],
+        "approachCells": [],
+        "slopeCells": [],
+        "underpass": true,
+        "lowerSlopeCells": [
+          {
+            "col": 6,
+            "row": 4,
+            "lowHeight": 1.5,
+            "highHeight": 2,
+            "riseDirection": "NORTH"
+          },
+          {
+            "col": 6,
+            "row": 12,
+            "lowHeight": 0,
+            "highHeight": 0.5,
+            "riseDirection": "SOUTH"
+          },
+          {
+            "col": 6,
+            "row": 5,
+            "lowHeight": 1,
+            "highHeight": 1.5,
+            "riseDirection": "NORTH"
+          },
+          {
+            "col": 6,
+            "row": 13,
+            "lowHeight": 0.5,
+            "highHeight": 1,
+            "riseDirection": "SOUTH"
+          },
+          {
+            "col": 6,
+            "row": 6,
+            "lowHeight": 0.5,
+            "highHeight": 1,
+            "riseDirection": "NORTH"
+          },
+          {
+            "col": 6,
+            "row": 14,
+            "lowHeight": 1,
+            "highHeight": 1.5,
+            "riseDirection": "SOUTH"
+          },
+          {
+            "col": 6,
+            "row": 7,
+            "lowHeight": 0,
+            "highHeight": 0.5,
+            "riseDirection": "NORTH"
+          },
+          {
+            "col": 6,
+            "row": 15,
+            "lowHeight": 1.5,
+            "highHeight": 2,
+            "riseDirection": "SOUTH"
+          },
+          {
+            "col": 7,
+            "row": 4,
+            "lowHeight": 1.5,
+            "highHeight": 2,
+            "riseDirection": "NORTH"
+          },
+          {
+            "col": 7,
+            "row": 12,
+            "lowHeight": 0,
+            "highHeight": 0.5,
+            "riseDirection": "SOUTH"
+          },
+          {
+            "col": 7,
+            "row": 5,
+            "lowHeight": 1,
+            "highHeight": 1.5,
+            "riseDirection": "NORTH"
+          },
+          {
+            "col": 7,
+            "row": 13,
+            "lowHeight": 0.5,
+            "highHeight": 1,
+            "riseDirection": "SOUTH"
+          },
+          {
+            "col": 7,
+            "row": 6,
+            "lowHeight": 0.5,
+            "highHeight": 1,
+            "riseDirection": "NORTH"
+          },
+          {
+            "col": 7,
+            "row": 14,
+            "lowHeight": 1,
+            "highHeight": 1.5,
+            "riseDirection": "SOUTH"
+          },
+          {
+            "col": 7,
+            "row": 7,
+            "lowHeight": 0,
+            "highHeight": 0.5,
+            "riseDirection": "NORTH"
+          },
+          {
+            "col": 7,
+            "row": 15,
+            "lowHeight": 1.5,
+            "highHeight": 2,
+            "riseDirection": "SOUTH"
+          }
+        ],
+        "lowerApproachCells": [
+          {
+            "col": 6,
+            "row": 8
+          },
+          {
+            "col": 6,
+            "row": 11
+          },
+          {
+            "col": 7,
+            "row": 8
+          },
+          {
+            "col": 7,
+            "row": 11
+          }
+        ],
+        "raisedEntryApproach": false,
+        "stairApproach": false,
+        "raisedApproachCells": [],
+        "raisedTerrainCells": []
+      }
+    },
+    {
+      "id": "hero-spawn",
+      "object": "SpawnPoint",
+      "position": {
+        "x": 0,
+        "y": 2,
+        "z": -7.5
+      }
+    }
+  ],
+  "animationViewport": {
+    "zoom": 1.6,
+    "rotation": 0,
+    "panX": 0,
+    "panZ": 0
+  },
+  "testControls": {
+    "panels": [
+      {
+        "title": "Underpass",
+        "buttons": [
+          {
+            "label": "Crossing view",
+            "script": "camera.setViewport({zoom:2.2,rotation:0,panX:0,panZ:0});"
+          },
+          {
+            "label": "Reverse view",
+            "script": "camera.setViewport({zoom:2.2,rotation:2,panX:0,panZ:0});"
+          }
+        ]
+      }
+    ]
+  }
+}
