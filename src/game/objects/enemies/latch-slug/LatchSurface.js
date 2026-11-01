@@ -1,4 +1,5 @@
 import { LatchDoorSurface } from "./LatchDoorSurface.js";
+import { LatchFootprint } from "./LatchFootprint.js";
 import { bodyToGel, gelVolume, impactTriangles } from "./LatchImpactShape.js";
 
 /**
@@ -8,6 +9,10 @@ import { bodyToGel, gelVolume, impactTriangles } from "./LatchImpactShape.js";
  * sampled door surface; it never integrates forces or alters door collision.
  */
 export class LatchSurface {
+  /**
+   * @type {LatchFootprint|null}
+   */
+  #footprint = null;
   /**
    * @type {{surface:LatchSurface,center:import("playcanvas").Vec3,age:number,volume:number,progress:number}[]}
    */
@@ -189,6 +194,7 @@ export class LatchSurface {
       this.positions[i] *= this.normalSign;
     }
     this.mesh.setPositions(this.positions);
+    this.#footprint = null;
     this.mesh.setNormals(pc.calculateNormals(this.positions, this.indices));
     this.mesh.update();
     // One frame shows the untouched skinned body, then the resampled same pose
@@ -197,6 +203,35 @@ export class LatchSurface {
       this.owner.finishSplatTransition();
       this.entity.enabled = true;
     }
+  }
+
+  /**
+   * @returns {LatchFootprint}
+   */
+  get footprint() {
+    if (!this.#footprint) {
+      const entity = this.splash.entity;
+      const transform = entity.getWorldTransform();
+      const right = entity.right, up = entity.up;
+      const point = new this.owner.pc.Vec3();
+      const projected = [];
+      for (let i = 0; i < this.positions.length; i += 3) {
+        transform.transformPoint(point.set(this.positions[i], this.positions[i + 1], this.positions[i + 2]), point);
+        projected.push(point.dot(right), point.dot(up));
+      }
+      this.#footprint = new LatchFootprint(projected, this.indices);
+    }
+
+    return this.#footprint;
+  }
+
+  /**
+   * Only settled door contact counts; a flying body's projection is not wet film.
+   * @param {LatchSurface} other
+   * @returns {boolean}
+   */
+  touches(other) {
+    return this.age >= 0.38 && other.age >= 0.38 && this.footprint.touches(other.footprint);
   }
 
   /**

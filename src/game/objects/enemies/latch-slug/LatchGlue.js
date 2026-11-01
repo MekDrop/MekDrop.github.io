@@ -54,22 +54,7 @@ export class LatchGlue {
       this.#createVisual(owner, impact);
       const masses = doorMasses.get(door) ?? new Set();
       doorMasses.set(door, masses);
-      const existing = [...masses].find(/**
-       *
-       * @param {LatchGlue} mass
-       */
-        mass => mass.active &&
-        mass.#splash.surface.normalSign === this.#splash.surface.normalSign);
-      if (existing) {
-        existing.#splash.surface.absorb(this.#splash.surface);
-        this.#splash = null;
-        this.#visual = null;
-        this.#mergedInto = existing;
-        existing.#members.add(this);
-        existing.#remaining = Math.max(existing.#remaining, this.#remaining);
-      } else {
-        masses.add(this);
-      }
+      masses.add(this);
     }
   }
 
@@ -170,9 +155,35 @@ export class LatchGlue {
       this.#visual.setPosition(this.#door.entity.getWorldTransform().transformPoint(this.#anchor));
       this.#visual.setRotation(this.#door.entity.getRotation());
       this.#splash.update(dt);
+      this.#joinTouchingMasses();
     }
     if (!this.active || (this.#door && !this.#door.jammed)) {
       this.clear();
+    }
+  }
+
+  #joinTouchingMasses() {
+    for (const mass of doorMasses.get(this.#door) ?? []) {
+      if (mass === this || !mass.active || mass.#remaining > this.#remaining ||
+        mass.#splash.surface.normalSign !== this.#splash.surface.normalSign ||
+        !mass.#splash.surface.touches(this.#splash.surface)) {
+        continue;
+      }
+      mass.#splash.surface.absorb(this.#splash.surface);
+      this.#splash = null;
+      this.#visual = null;
+      this.#mergedInto = mass;
+      mass.#members.add(this);
+      for (const member of this.#members) {
+        member.#mergedInto = mass;
+        mass.#members.add(member);
+      }
+      this.#members.clear();
+      // Joining drops must not renew the lifetime of the older wet film.
+      mass.#remaining = Math.min(mass.#remaining, this.#remaining);
+      doorMasses.get(this.#door).delete(this);
+
+      return;
     }
   }
 
