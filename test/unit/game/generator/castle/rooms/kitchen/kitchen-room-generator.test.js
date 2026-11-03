@@ -192,6 +192,21 @@ test("active authored pipeline publishes kitchen objects and replaces old seeded
   assert.ok(bowls.some(bowl => bowl.color === "#b16832" && bowl.items.every(item => item.object === "GreenVegetable")));
   assert.ok(first.find(item => item.object === "Fireplace").chimneyHeight > 9,
     "basement chimney reaches above the keep roof rather than the terrace");
+  const generatedHearth = first.find(item => item.object === "Fireplace");
+  const fire = first.find(item => item.id === `${generatedHearth.id}-fire`);
+  const scale = generatedHearth.scale ?? 1;
+  const angle = generatedHearth.rotation * Math.PI / 180;
+  const dx = (fire.position.x - generatedHearth.position.x) / scale;
+  const dz = (fire.position.z - generatedHearth.position.z) / scale;
+  const localX = Math.cos(angle) * dx - Math.sin(angle) * dz;
+  const localZ = Math.sin(angle) * dx + Math.cos(angle) * dz;
+  assert.ok(Math.abs(localX) + fire.volume.x / scale / 2 < 0.326,
+    "flames fit between the soot side linings");
+  assert.ok(localZ - fire.volume.z / scale / 2 > -0.34 &&
+    localZ + fire.volume.z / scale / 2 < 0.285,
+  "flame footprint stays inside the open firebox depth");
+  assert.ok((fire.position.y - generatedHearth.position.y) / scale >= 0.36,
+    "flames start on the log pile rather than under its opaque upper faces");
   KitchenRoomMapObjects.prepareMap(map);
   assert.deepEqual(map.objects.slice(1), first);
   castle.buildPlan = await CastleAuthoredBuildPlan.generate({

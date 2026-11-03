@@ -82,10 +82,14 @@ test('one volume creates one emitter with derived footprint, height and density'
   // Box spawning already applies world rotation; avoid rotating it again at render.
   assert.equal(particles.localSpace, false);
   assert.equal(particles.intensity, 1.08);
-  assert.equal(particles.emitterExtents.x, 1.6400000000000001);
-  assert.equal(particles.emitterExtents.z, 0.64);
-  assert.equal(particles.numParticles, 124);
-  assert.equal(particles.localVelocityGraph.keys[1][1], 0.64 / 0.42);
+  assert.equal(particles.emitterExtents.x, 1.44);
+  assert.equal(particles.emitterExtents.z, 0.43999999999999995);
+  assert.equal(particles.numParticles, 31);
+  // Motion varies through the lifetime, while remaining an upward flow.
+  const vertical = particles.localVelocityGraph.keys[1];
+  assert.ok(vertical[1] > 0 && vertical[3] > vertical[1] && vertical[5] > 0);
+  assert.equal(particles.alignToMotion, false);
+  assert.equal(particles.stretch, 0);
   fire.destroy();
   assert.equal(fire.entity.destroyed, true);
 });
@@ -113,8 +117,8 @@ test('intensity changes brightness independently of the box and zero disables fl
     const emitter = fire.entity.children[0].children[0];
     assert.equal(emitter.enabled, intensity > 0);
     assert.equal(emitter.particlesystem.intensity, 1.08 * intensity);
-    assert.equal(emitter.particlesystem.emitterExtents.x, 1.6400000000000001);
-    assert.equal(emitter.particlesystem.localVelocityGraph.keys[1][1], 0.64 / 0.42);
+    assert.equal(emitter.particlesystem.emitterExtents.x, 1.44);
+    assert.ok(emitter.particlesystem.localVelocityGraph.keys[1][1] > 0);
     fire.destroy();
   }
 });

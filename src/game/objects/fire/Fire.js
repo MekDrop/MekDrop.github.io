@@ -76,9 +76,12 @@ export class Fire {
     if (!arePositiveFiniteNumbers(width, height, depth)) {
       return;
     }
-    const size = Math.min(width, depth, height * 0.18);
-    const count = Math.min(2048, Math.max(16, Math.ceil(width * depth / (size * size) * 2)));
-    const lifetime = 0.42;
+    // Broader, overlapping tongues stay connected to the fuel instead of
+    // reading as a shower of tiny upward-moving dots.
+    const size = Math.min(width, depth, height * 0.28);
+    const count = Math.min(2048, Math.max(16, Math.ceil(width * depth / (size * size) * 1.2)));
+    const lifetime = 0.85;
+    const rise = Math.max(0, height - size * 2) / lifetime;
     const requestedIntensity = definition.intensity ?? 1;
     const intensity = Number.isFinite(requestedIntensity) ? Math.max(0, requestedIntensity) : 1;
     const emitter = new pc.Entity("Rising fire particles");
@@ -104,20 +107,20 @@ export class Fire {
       emitterExtents: new pc.Vec3(Math.max(0, width - size * 2), 0, Math.max(0, depth - size * 2)),
       colorMap: app.assets.find("castleFireParticle", "texture").resource,
       orientation: pc.PARTICLEORIENTATION_SCREEN,
-      localVelocityGraph: new pc.CurveSet([[0, 0, 1, 0], [0, (height - size * 2) / lifetime, 1, (height - size * 2) / lifetime], [0, 0, 1, 0]]),
-      scaleGraph: new pc.Curve([0, size, 0.3, size, 1, 0]),
-      scaleGraph2: new pc.Curve([0, size * 0.45, 0.3, size * 0.65, 1, 0]),
-      localVelocityGraph2: new pc.CurveSet([[0, 0, 1, 0], [0, (height - size * 2) * 0.5 / lifetime, 1, (height - size * 2) * 0.5 / lifetime], [0, 0, 1, 0]]),
+      localVelocityGraph: new pc.CurveSet([[0, -size * 0.2, 0.5, size * 0.35, 1, -size * 0.15], [0, rise * 0.6, 0.35, rise * 1.2, 1, rise * 0.8], [0, -size * 0.12, 1, size * 0.12]]),
+      scaleGraph: new pc.Curve([0, size * 0.8, 0.2, size, 0.65, size * 0.6, 1, 0]),
+      scaleGraph2: new pc.Curve([0, size * 0.65, 0.25, size * 0.8, 0.7, size * 0.35, 1, 0]),
+      localVelocityGraph2: new pc.CurveSet([[0, size * 0.2, 0.5, -size * 0.35, 1, size * 0.15], [0, rise * 0.4, 0.35, rise * 0.85, 1, rise * 0.6], [0, size * 0.12, 1, -size * 0.12]]),
       colorGraph: new pc.CurveSet([[0, 1, 1, 0.74], [0, 0.72, 0.42, 0.3, 1, 0.025], [0, 0.08, 1, 0]]),
-      alphaGraph: new pc.Curve([0, 0, 0.02, 0.8, 0.58, 0.5, 1, 0]),
-      alignToMotion: true,
-      stretch: height * 0.14,
+      alphaGraph: new pc.Curve([0, 0, 0.12, 0.85, 0.45, 0.75, 0.8, 0.25, 1, 0]),
+      alignToMotion: false,
+      stretch: 0,
       startAngle: -8,
       startAngle2: 8,
     });
     root.addChild(emitter);
     if (intensity > 0) {
-      new FireAudio(root, app, runtime, 0.12);
+      new FireAudio(root, app, runtime, 0.65);
     }
   }
 

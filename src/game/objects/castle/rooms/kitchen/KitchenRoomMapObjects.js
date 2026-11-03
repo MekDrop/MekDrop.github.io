@@ -63,15 +63,17 @@ export class KitchenRoomMapObjects {
             id: `${id}-fire`,
             object: "Fire",
             position: {
-              x: position.x - Math.sin(angle) * 0.06 * scale,
-              y: position.y + 0.29 * scale,
-              z: position.z - Math.cos(angle) * 0.06 * scale,
+              // Seat the flames on the log pile, in front of the rear lining.
+              // A full-depth emitter intersects the wood and clips at oblique views.
+              x: position.x + Math.sin(angle) * 0.1 * scale,
+              y: position.y + 0.38 * scale,
+              z: position.z + Math.cos(angle) * 0.1 * scale,
             },
             rotation,
             volume: {
-              x: 0.64 * scale,
+              x: 0.56 * scale,
               y: 0.3 * scale,
-              z: 0.6 * scale,
+              z: 0.3 * scale,
             },
             intensity: 0.75,
             generated: true,
