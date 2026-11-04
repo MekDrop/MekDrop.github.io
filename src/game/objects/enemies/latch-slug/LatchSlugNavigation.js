@@ -389,7 +389,7 @@ export class LatchSlugNavigation {
   }
 
   /**
-   * Follow the chosen gate centerline until a nearby companion or door takes priority.
+   * Follow the chosen gate lane until a nearby companion or door takes priority.
    * @returns {boolean}
    */
   advanceRoute() {
@@ -407,8 +407,9 @@ export class LatchSlugNavigation {
     }
     const points = path.route.map(/**
    * @param {import("../../../navigation/WalkingPaths.js").WalkingPoint} p
+   * @param {number} index
      */
-      p => new owner.pc.Vec3(p.col - (map.cols - 1) / 2, p.elevation, p.row - (map.rows - 1) / 2));
+      (p, index) => owner.pathLane.routePoint(path.route, index));
     if (this.#route !== path.route || points[this.#routeIndex]?.distance(owner.position) > 2.5) {
       this.#route = path.route;
       this.#routeIndex = points.reduce(/**

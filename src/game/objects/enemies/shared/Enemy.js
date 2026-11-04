@@ -5,6 +5,7 @@ import { NpcStateMachine } from "../../shared/NpcStateMachine.js";
 import { EnemyBridgeNavigation } from "../../../navigation/EnemyBridgeNavigation.js";
 import { ENEMY_TRAVERSAL } from "../../../enum/EnemyTraversal.js";
 import { EnemyGatewayArrival } from "./EnemyGatewayArrival.js";
+import { EnemyPathLane } from "../../../navigation/EnemyPathLane.js";
 
 /**
  * Map-owned enemy foundation. Subclasses own their Yuka states and artwork.
@@ -63,6 +64,7 @@ export class Enemy {
     this.radius = definition.radius ?? 0.3;
     this.height = definition.height ?? 1;
     this.#bridgeNavigation = new EnemyBridgeNavigation(this);
+    this.pathLane = new EnemyPathLane(this);
     this.gatewayArrival = new EnemyGatewayArrival(this);
   }
 
@@ -305,7 +307,8 @@ export class Enemy {
 
       return false;
     }
-    const next = this.#bridgeNavigation.next(point, speed);
+    const lanePoint = this.pathLane.next(point);
+    const next = this.#bridgeNavigation.next(lanePoint, speed);
     point = next.point;
     speed = next.speed;
     if (!point) {
