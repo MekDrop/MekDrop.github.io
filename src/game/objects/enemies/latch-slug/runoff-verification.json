@@ -1,0 +1,108 @@
+{
+  "route": "/map/test_enemy-latch-slug",
+  "source": [
+    {
+      "node": "Slug adhesive variant 0",
+      "durationSeconds": 60,
+      "runoffWeight": 1,
+      "downwardTravel": 3.6
+    },
+    {
+      "node": "Slug adhesive variant 1",
+      "durationSeconds": 60,
+      "runoffWeight": 1,
+      "downwardTravel": 3.6
+    },
+    {
+      "node": "Slug adhesive variant 2",
+      "durationSeconds": 60,
+      "runoffWeight": 1,
+      "downwardTravel": 3.6
+    },
+    {
+      "node": "Slug adhesive variant 3",
+      "durationSeconds": 60,
+      "runoffWeight": 1,
+      "downwardTravel": 3.6
+    },
+    {
+      "node": "Slug adhesive variant 4",
+      "durationSeconds": 60,
+      "runoffWeight": 1,
+      "downwardTravel": 3.6
+    },
+    {
+      "node": "Slug adhesive variant 5",
+      "durationSeconds": 60,
+      "runoffWeight": 1,
+      "downwardTravel": 3.6
+    }
+  ],
+  "stages": [
+    {
+      "time": 1,
+      "active": true,
+      "fresh": true,
+      "jammed": true,
+      "age": 1.2871999999999972,
+      "drained": false,
+      "volume": 0.08777749320265084,
+      "initialVolume": 0.08777753437873832,
+      "visible": true
+    },
+    {
+      "time": 20,
+      "active": true,
+      "fresh": true,
+      "jammed": true,
+      "age": 2.3674000000000093,
+      "drained": false,
+      "volume": 0.08777750740109998,
+      "initialVolume": 0.08777753437873832,
+      "visible": true
+    },
+    {
+      "time": 30,
+      "active": true,
+      "fresh": true,
+      "jammed": true,
+      "age": 3.4078999999999953,
+      "drained": false,
+      "volume": 0.08580125385655657,
+      "initialVolume": 0.08777753437873832,
+      "visible": true
+    },
+    {
+      "time": 40,
+      "active": true,
+      "fresh": true,
+      "jammed": true,
+      "age": 4.401899999999981,
+      "drained": false,
+      "volume": 0.002991026891428846,
+      "initialVolume": 0.08777753437873832,
+      "visible": true
+    },
+    {
+      "time": 60,
+      "active": false,
+      "fresh": true,
+      "jammed": true,
+      "age": 5.095499999999971,
+      "drained": true,
+      "volume": 0,
+      "initialVolume": 0.08777753437873832,
+      "visible": false
+    }
+  ],
+  "scraped": {
+    "active": false,
+    "jammed": false
+  },
+  "preview": {
+    "visiblePixels": 41560,
+    "transparentPixels": 220584,
+    "margin": 109
+  },
+  "runtimeErrors": []
+}

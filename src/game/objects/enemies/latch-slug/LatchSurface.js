@@ -1,3 +1,4 @@
+import { LatchGelUnion } from "./LatchGelUnion.js";
 import { LatchDoorSurface } from "./LatchDoorSurface.js";
 import { LatchFootprint } from "./LatchFootprint.js";
 import { bodyToGel, gelVolume, impactTriangles } from "./LatchImpactShape.js";
@@ -5,7 +6,7 @@ import { bodyToGel, gelVolume, impactTriangles } from "./LatchImpactShape.js";
 /**
  * Continuous visual deformation of authored geometry. Ammo still owns contact
  * and the launch. Its solver cannot simulate viscous free-surface wetting, so
- * this bounded 20-second presentation follows native morph animation over a
+ * this persistent presentation follows native morph animation over a
  * sampled door surface; it never integrates forces or alters door collision.
  */
 export class LatchSurface {
@@ -14,13 +15,14 @@ export class LatchSurface {
    */
   #footprint = null;
   /**
-   * @type {{surface:LatchSurface,center:import("playcanvas").Vec3,age:number,volume:number,progress:number}[]}
+   * @type {LatchGelUnion|null}
    */
-  deposits = [];
+  #union = null;
+
   /**
-   * @type {{center:import("playcanvas").Vec3,progress:number}|null}
+   * @type {boolean}
    */
-  drainage = null;
+  drained = false;
   /**
    * @param {import("./LatchSplash.js").LatchSplash} splash
    * @param {import("./LatchSlug.js").LatchSlug} owner
@@ -59,8 +61,10 @@ export class LatchSurface {
    */
   bind(door, side) {
     const { pc } = this.owner;
+    this.frame = door.entity;
     this.normalSign = side > 0 ? -1 : 1;
     this.inverse = this.splash.entity.getWorldTransform().clone().invert();
+    this.floor = this.inverse.transformPoint(this.frame.getPosition()).y;
     this.field = new LatchDoorSurface();
     const point = new pc.Vec3();
     for (const instance of door.getSurfaceMeshInstances()) {
@@ -113,6 +117,7 @@ export class LatchSurface {
     this.base = new Float32Array(initial.length);
     this.splash.age = 0;
     this.age = 0;
+    this.drained = false;
     this.entity.enabled = false;
     this.mesh.clear(true, false);
     this.mesh.setIndices(this.indices);
@@ -127,24 +132,8 @@ export class LatchSurface {
       return;
     }
     const { pc } = this.owner;
-    for (const deposit of this.deposits) {
-      deposit.age += dt;
-      const time = Math.max(0, Math.min(1, (deposit.age - 0.32) / 0.95));
-      deposit.progress = time * time * (3 - 2 * time);
-      deposit.surface.drainage.progress = deposit.progress;
-      if (deposit.progress < 0.9999) {
-        deposit.surface.splash.update(dt);
-      } else if (deposit.surface.original) {
-        deposit.surface.splash.clear();
-      }
-    }
-    const addedVolume = this.deposits.reduce(/**
-     *
-     * @param {number} sum
-     * @param {(typeof this.deposits)[number]} deposit
-     */
-      (sum, deposit) => sum + deposit.volume * deposit.progress, 0);
-    this.sourceVolume = this.drainage ? this.initialVolume * Math.max(0.0001, 1 - this.drainage.progress) : this.initialVolume + addedVolume;
+    const remainingVolume = this.sourceVolume;
+    this.sourceVolume = this.initialVolume;
     this.age += dt;
     const progress = Math.min(1, this.age / 0.38);
     const blend = progress * progress * (3 - 2 * progress);
@@ -165,11 +154,6 @@ export class LatchSurface {
       const flowY = this.field.flow(point.x, this.initial[i + 1], point.y);
       let outX = this.start[i] * (1 - blend) + point.x * blend;
       let outY = this.start[i + 1] * (1 - blend) + flowY * blend;
-      if (this.drainage) {
-        const shrink = Math.cbrt(Math.max(0.0001, 1 - this.drainage.progress));
-        outX = this.drainage.center.x + (outX - this.drainage.center.x) * shrink;
-        outY = this.drainage.center.y + (outY - this.drainage.center.y) * shrink;
-      }
       const surface = this.field.height(outX, outY) * blend;
       this.base.set([outX, outY, surface], i);
       this.positions.set([outX, outY, this.start[i + 2] * (1 - blend) + (point.z * this.normalSign + surface) * blend], i);
@@ -177,19 +161,42 @@ export class LatchSurface {
     // A surface displacement is a shear. Compensate the extra area/compression
     // from routing around metal lips with thickness, including during impact.
     const raw = gelVolume(this.positions, this.indices), zero = gelVolume(this.base, this.indices);
-    const wanted = Math.sign(raw) * (this.drainage ? this.sourceVolume : this.initialVolume);
+    const wanted = Math.sign(raw) * this.initialVolume;
     const thickness = Math.abs(raw - zero) > 1e-9 ? (wanted - zero) / (raw - zero) : 1;
     for (let i = 2; i < this.positions.length; i += 3) {
       this.positions[i] = this.base[i] + (this.positions[i] - this.base[i]) * thickness;
     }
-    this.#depositVolume(addedVolume);
+    const conservedVolume = Math.abs(gelVolume(this.positions, this.indices));
+    this.metrics.maxRelativeVolumeError = Math.max(this.metrics.maxRelativeVolumeError, Math.abs(conservedVolume / this.initialVolume - 1));
+    // Ammo has no viscous free-surface solver: the authored morph owns downward
+    // travel. Clip only gel that has actually reached the door's floor plane;
+    // never restore drained volume or hide a patch based on its age.
+    const floor = this.floor;
+    let highest = -Infinity;
+    for (let i = 0; i < this.positions.length; i += 3) {
+      highest = Math.max(highest, this.positions[i + 1]);
+      if (this.positions[i + 1] <= floor) {
+        this.positions[i + 1] = floor;
+        this.base[i + 1] = floor;
+        this.base[i + 2] = this.field.height(this.positions[i], floor);
+      }
+    }
+    this.drained = highest <= floor + 0.0001;
+    // Floor projection may change the tessellated surface's signed volume.
+    // Keep only the remaining mass, never refill it from the original splat.
+    const clipped = gelVolume(this.positions, this.indices);
+    const clippedBase = gelVolume(this.base, this.indices);
+    const retained = Math.sign(clipped) * Math.min(Math.abs(clipped), remainingVolume);
+    const retainedThickness = Math.abs(clipped - clippedBase) > 1e-9 ? (retained - clippedBase) / (clipped - clippedBase) : 1;
+    for (let i = 2; i < this.positions.length; i += 3) {
+      this.positions[i] = this.base[i] + (this.positions[i] - this.base[i]) * retainedThickness;
+    }
     const volume = Math.abs(gelVolume(this.positions, this.indices));
-    this.metrics.maxRelativeVolumeError = Math.max(this.metrics.maxRelativeVolumeError, Math.abs(volume / this.sourceVolume - 1));
+    this.sourceVolume = volume;
     this.metrics.frames++;
     this.metrics.transition = progress;
     this.metrics.volume = volume;
     this.metrics.sourceVolume = this.sourceVolume;
-    this.metrics.transferredVolume = addedVolume;
     for (let i = 2; i < this.positions.length; i += 3) {
       this.positions[i] *= this.normalSign;
     }
@@ -226,80 +233,45 @@ export class LatchSurface {
   }
 
   /**
-   * Only settled door contact counts; a flying body's projection is not wet film.
+   * Binding only happens at door impact. The first visible wet frame can join;
+   * waiting for the full flattening animation can miss a brief real contact.
    * @param {LatchSurface} other
    * @returns {boolean}
    */
   touches(other) {
-    return this.age >= 0.38 && other.age >= 0.38 && this.footprint.touches(other.footprint);
+    return this.age >= 1 / 60 && other.age >= 1 / 60 && this.footprint.touches(other.footprint);
   }
 
   /**
-   * Keep the old film stable while the new contact drains into a local bulge.
-   * Ammo owns contact; bounded analytic deformation presents viscous transfer.
+   * Join wet coverage without moving either patch into the other's footprint.
    * @param {LatchSurface} incoming
    */
-  absorb(incoming) {
-    const { pc } = this.owner;
-    const transform = new pc.Mat4().mul2(this.inverse, incoming.splash.entity.getWorldTransform());
-    const contact = transform.transformPoint(new pc.Vec3());
-    const center = new pc.Vec3();
-    let nearest = Infinity;
-    for (let i = 0; i < this.positions.length; i += 3) {
-      const distance = Math.hypot(this.positions[i] - contact.x, this.positions[i + 1] - contact.y);
-      if (distance < nearest) {
-        nearest = distance;
-        center.set(this.positions[i], this.positions[i + 1], this.positions[i + 2]);
-      }
+  merge(incoming) {
+    if (this.#union?.active && this.#union === incoming.#union) {
+      return;
     }
-    const world = this.splash.entity.getWorldTransform().transformPoint(center);
-    incoming.drainage = {
-      center: incoming.inverse.transformPoint(world),
-      progress: 0,
-    };
-    this.deposits.push({
-      surface: incoming,
-      center,
-      age: 0,
-      volume: incoming.sourceVolume,
-      progress: 0,
-    });
-    this.metrics.mergedBodies = (this.metrics.mergedBodies ?? 1) + 1;
+    if (!this.#union?.active) {
+      this.#union = new LatchGelUnion(this);
+    }
+    const previous = incoming.#union;
+    const members = previous?.active ? [...previous.members] : [incoming];
+    previous?.destroy();
+    for (const surface of members) {
+      this.#union.add(surface);
+      surface.#union = this.#union;
+    }
   }
 
   /**
-   * Add volume only around the contact, with a widening settling footprint.
-   * @param {number} volume
+   * @returns {import("playcanvas").Entity}
    */
-  #depositVolume(volume) {
-    if (volume <= 0) {
-      return;
-    }
-    const bump = new Float32Array(this.positions.length / 3);
-    const before = gelVolume(this.positions, this.indices);
-    const count = this.positions.length / 3;
-    for (let vertex = 0; vertex < count; vertex++) {
-      const i = vertex * 3;
-      for (const deposit of this.deposits) {
-        const radius = 0.28 + 0.42 * (1 - Math.exp(-deposit.age / 2));
-        const distance = Math.hypot(this.positions[i] - deposit.center.x,
-          this.positions[i + 1] - deposit.center.y);
-        const influence = 0.2 + 0.8 * Math.exp(-2 * (distance / radius) ** 2);
-        bump[vertex] += (this.positions[i + 2] - this.base[i + 2]) * influence * deposit.volume * deposit.progress;
-      }
-      this.positions[i + 2] += bump[vertex];
-    }
-    const delta = gelVolume(this.positions, this.indices) - before;
-    const scale = Math.abs(delta) > 1e-10 ? Math.sign(before) * volume / delta : 0;
-    for (let vertex = 0; vertex < count; vertex++) {
-      this.positions[vertex * 3 + 2] += bump[vertex] * (scale - 1);
-    }
+  get visibleEntity() {
+    return this.#union?.active ? this.#union.entity : this.entity;
   }
 
   clear() {
-    for (const deposit of this.deposits) {
-      deposit.surface.splash.clear();
-    }
+    this.#union?.remove(this);
+    this.#union = null;
     this.entity.enabled = false;
     if (this.original) {
       this.owner.finishSplatTransition();
@@ -308,6 +280,8 @@ export class LatchSurface {
   }
 
   destroy() {
+    this.#union?.remove(this);
+    this.#union = null;
     this.entity.destroy();
     this.mesh.destroy();
     this.material.destroy();

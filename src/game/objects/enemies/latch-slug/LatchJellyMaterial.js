@@ -2,7 +2,7 @@ import fieldGlsl from "./LatchJellyField.frag?raw";
 import fieldWgsl from "./LatchJellyField.wgsl?raw";
 
 /**
- * Advected cloudy gel inside the authored skin, driven by native body motion.
+ * Submerged inclusions inside the authored skin, driven by native body motion.
  */
 export class LatchJellyMaterial {
   /**
@@ -32,7 +32,7 @@ export class LatchJellyMaterial {
     this.radius.y *= 0.67;
     this.radius.x *= 0.87;
     this.radius.z *= 0.87;
-    const color = new pc.Color(1, 0.76, 0.23).linear();
+    const color = new pc.Color(0.62, 0.36, 0.065).linear();
     this.cloudColor = [color.r, color.g, color.b];
     for (const instance of instances) {
       const source = instance.material;
@@ -112,16 +112,18 @@ export class LatchJellyMaterial {
       this.inverse.invert(owner.entity.getWorldTransform());
       this.inverse.transformVector(velocity, this.velocity);
       // A bounded visual low-pass filter, not a replacement physics integrator.
-      const blend = 1 - Math.exp(-dt * 4.5);
-      this.lag.x += (Math.max(-0.11, Math.min(0.11, -this.velocity.x * 0.07)) - this.lag.x) * blend;
-      this.lag.y += (Math.max(-0.09, Math.min(0.09, -this.velocity.y * 0.025)) - this.lag.y) * blend;
-      this.lag.z += (Math.max(-0.11, Math.min(0.11, -this.velocity.z * 0.07)) - this.lag.z) * blend;
+      // These are optical contents, not separate colliders. A slow bounded lag
+      // follows Ammo velocity without integrating another physics simulation.
+      const blend = 1 - Math.exp(-dt * 1.25);
+      this.lag.x += (Math.max(-0.035, Math.min(0.035, -this.velocity.x * 0.045)) - this.lag.x) * blend;
+      this.lag.y += (Math.max(-0.025, Math.min(0.025, -this.velocity.y * 0.012)) - this.lag.y) * blend;
+      this.lag.z += (Math.max(-0.035, Math.min(0.035, -this.velocity.z * 0.045)) - this.lag.z) * blend;
     }
   }
 
   update() {
     this.inverse.invert(this.owner.entity.getWorldTransform());
-    this.motion[0] = this.time * 0.5;
+    this.motion[0] = this.time * 0.14;
     this.motion[1] = Math.cos(this.landingAge * 15) * Math.exp(-this.landingAge * 5);
     for (const { instance } of this.instances) {
       // Mesh parameters survive the gate's temporary material clones.

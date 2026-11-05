@@ -152,7 +152,7 @@ it("a rejected jump and an opened door never play a false wet impact", () => {
   assert.equal(slug.alive, true);
 });
 
-it("uses real Yuka states and sacrifices into a bounded, damage-free closed-door jam", () => {
+it("uses real Yuka states and sacrifices into a persistent, damage-free closed-door jam", () => {
   const { slug, door } = fixture();
   slug.update(0.1);
   assert.equal(slug.stateName, "LatchPressState");
@@ -166,6 +166,9 @@ it("uses real Yuka states and sacrifices into a bounded, damage-free closed-door
   assert.equal(slug.stateName, "LatchDeadState");
   assert.equal(slug.receiveHealing(100), 0);
   slug.update(21);
+  assert.equal(door.jammed, true);
+  assert.equal(slug.residue.active, true);
+  slug.clearGlue();
   assert.equal(door.jammed, false);
 });
 
@@ -883,4 +886,80 @@ it("a second slug commits and splats even when the first impact has jammed the l
   assert.equal(first.door.jammed, true);
   second.slug.clearGlue();
   assert.equal(first.door.jammed, false);
+});
+
+it("boosts actual slime movement near a bell bug and drops back to normal when stamina runs out", () => {
+  const { slug } = fixture(1);
+  const bug = {
+    entity: {
+      enabled: true,
+      getPosition: () => new pc.Vec3(1, 0, 0),
+    },
+    alive: true,
+    isBellBug: true,
+  };
+
+  slug.runtime.objects.push(bug);
+  slug.crawlTime = 1.15 / 4;
+  const target = { position: new pc.Vec3(10, 0, 0) };
+  slug.moveToward(target, 0.8);
+  const ordinarySpeed = slug.entity.rigidbody.linearVelocity.length();
+  slug.hurry.update(0.1);
+  slug.moveToward(target, 0.8);
+  assert.ok(Math.abs(slug.entity.rigidbody.linearVelocity.length() / ordinarySpeed - 1.8) < 1e-6);
+  slug.hurry.update(2);
+  slug.moveToward(target, 0.8);
+  assert.ok(Math.abs(slug.entity.rigidbody.linearVelocity.length() - ordinarySpeed) < 1e-6);
+});
+
+it("performs an idle twirl hop with native takeoff and waits for supporting contact before landing", () => {
+  const { slug } = fixture(1);
+  const sounds = [];
+  slug.audio = { play: (name) => sounds.push(name) };
+  slug.app = { systems: { rigidbody: { raycastFirst: (from, to) => from.y > to.y ? { normal: pc.Vec3.UP } : null } } };
+  slug.grounded = true;
+  assert.equal(slug.beginIdleHop(), true);
+  assert.equal(slug.stateName, "LatchIdleHopState");
+  assert.equal(slug.requestedClip, "idle_hop_prepare");
+  assert.deepEqual(sounds, []);
+  slug.update(0.24);
+  assert.deepEqual(sounds, ["idleHop"]);
+  assert.equal(slug.airborne, true);
+  assert.equal(slug.requestedClip, "idle_hop_spin");
+  assert.ok(slug.entity.rigidbody.linearVelocity.y > 3);
+  assert.equal(slug.onLanding(), false, "takeoff contacts do not terminate a rising hop");
+  slug.entity.rigidbody.linearVelocity.y = -1;
+  slug.update(1);
+  assert.equal(slug.airborne, true, "elapsed animation time must never force a landing");
+  slug.onLanding();
+  assert.equal(slug.requestedClip, "land");
+  assert.equal(slug.stateName, "LatchIdleHopState");
+  slug.update(0.65);
+  assert.equal(slug.requestedClip, "land_recover");
+  slug.update(0.61);
+  assert.equal(slug.stateName, "LatchSeekState");
+  assert.equal(slug.residue, null);
+  assert.deepEqual(sounds, ["idleHop"], "the hop cue plays once, at takeoff");
+});
+
+it("cancels an idle hop if headroom closes during anticipation or stun interrupts it", () => {
+  const { slug } = fixture(1);
+  const sounds = [];
+  slug.audio = { play: (name) => sounds.push(name) };
+  let ceiling = false;
+  slug.app = { systems: { rigidbody: { raycastFirst: (from, to) => from.y > to.y || ceiling ? { normal: pc.Vec3.UP } : null } } };
+  slug.grounded = true;
+  assert.equal(slug.beginIdleHop(), true);
+  ceiling = true;
+  slug.update(0.24);
+  assert.equal(slug.airborne, false);
+  assert.equal(slug.stateName, "LatchSeekState");
+  ceiling = false;
+  assert.equal(slug.beginIdleHop(), true);
+  slug.applyStatus("stun", { duration: 2 });
+  slug.update(0.5);
+  assert.equal(slug.stateName, "LatchReactionState");
+  assert.equal(slug.airborne, false);
+  assert.equal(slug.requestedClip, "stun");
+  assert.deepEqual(sounds, [], "cancelled hops stay silent");
 });

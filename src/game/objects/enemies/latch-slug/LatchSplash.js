@@ -113,7 +113,6 @@ export class LatchSplash {
     }
     this.model.setLocalEulerAngles(0, side > 0 ? 180 : 0, 0);
     this.model.setLocalScale(choice.width, choice.height, choice.thickness);
-    this.maxOozeTime = choice.stopTime;
     this.model.anim.speed = choice.speed;
     this.model.anim.baseLayer.transition(choice.profile.clip, 0);
     this.surface.bind(door, side);
@@ -128,12 +127,8 @@ export class LatchSplash {
   update(dt) {
     this.age += dt;
     this.surface.update(dt);
-    // Ammo has no viscous free-surface solver. The door-bound mass uses an
-    // authored morph clip: the upper footprint recedes and the film thins as
-    // the lower contour stretches, preserving volume. Stop above the floor.
-    if (this.model.anim.baseLayer.activeStateCurrentTime >= this.maxOozeTime) {
-      this.model.anim.speed = 0;
-    }
+    // The authored clip continues down past the threshold. The surface clips
+    // runoff at floor contact; only fully drained patches release their jam.
   }
 
   clear() {

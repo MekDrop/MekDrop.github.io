@@ -28,7 +28,7 @@ The new skin was generated in Tripo3D Studio through Opera from that exact image
 
 All 30 gameplay clips are retained. Manga-style movement uses a grounded compression, upward stretch, compact apex, downward stretch, a broad landing squash and damped recovery. The whole-body squash/stretch keys preserve scale volume. Smaller staggered belly poses create secondary settling. Ammo owns trajectory and contact; rise, apex and fall are selected from native vertical velocity. An ascending floor manifold cannot trigger an early landing.
 
-`LatchJellyMaterial` samples a slowly advected 3D cloudy field inside the skin. Cloudy areas become denser and less transparent, drift and merge independently of the outline, lag behind native motion and gather after contact. The outer skin keeps an 82% base opacity (up to 97% in dense regions), writes depth and culls back faces so later grass passes cannot overlay the body. Gate emergence still multiplies opacity separately. The material preserves the engine lighting and skinning pipeline, supports GLSL and WGSL, and leaves eye tips opaque. Gate fades multiply the same material opacity. Frozen-pose RGBA captures verify migration without changing the body pose.
+`LatchJellyMaterial` now ray-intersects nine small faceted inclusions beneath the closed skin. The outer mesh is faired to remove the former surface bumps while preserving its rig, sensory stalks and clips. Each inclusion keeps a stable shape and slowly drifts/turns, with depth attenuation and view-dependent parallax. A bounded 0.8-second visual lag follows native Ammo velocity; contents settle gradually after motion stops. Centres are constrained to 0.68 of a conservative body ellipsoid and their largest corner radius is below 0.131, leaving a gel margin around them. This material-only lag does not simulate extra rigid bodies or replace native physics. GLSL and WGSL use the same field. The outer skin retains depth writing and back-face culling, keeping later grass passes behind it; sensory tips remain opaque.
 
 The ground mucus remains a thin continuous wet ribbon, fading over 18 seconds. Closed doors still cause a continuous body-to-adhesive transition; the connected wall mass conserves captured gel volume and follows moving door hardware. Open doors remain survivable. Existing sourced CC0 jump and splash recordings are unchanged.
 
@@ -44,3 +44,42 @@ Eye stalks ease along authored antenna local Y from 0.82x at close range toward 
 Smaller eye refinement: dark sensory tips are 78% of their prior size, rounded toward a soft bead shape. Two tiny warm catchlights share the existing antenna weights, so tracking, distance-based extension and all 30 clips remain attached. Body geometry and the 17-bone rig are retained; total mesh is 6,596 triangles. Editable .blend is the source of the adjacent exported GLB. Actual game two-angle recordings and fresh-import checks: objects/enemies/latch-slug/evidence/cute-eyes/.
 
 Local merge refinement: native recordings in `evidence/local-coalescence/` replace the earlier immediate remesh presentation. A failed spike-producing candidate was rejected and thickness weighting was corrected before recording both final angles. All 62 slug tests pass, including no immediate contour reset and bounded volume transfer.
+
+## Snail-reference locomotion (2026-11-04)
+
+Reference: https://www.youtube.com/watch?v=EU1__0iOnuY — “Snail Animation in After Effects Tutorials”, opening animation preview. Downloaded and inspected locally with Pytubefix; reference media stays in ignored `tmp/`.
+
+The reference keeps the main mass steady while the low foot stretches and gathers, with small head and stalk motion. `waddle_walk` and `follow` now contain a 1.6-second rear-to-front belly wave; `waddle_run` uses the same motion over 0.9 seconds. Root and body scales remain constant. The former runtime whole-model squash overlay was removed. Terrain and stair deformation still belongs to `LatchGroundCrawl`.
+
+Runtime playback follows horizontal travel speed, so the existing bell-bug stamina burst also accelerates the authored crawl. Inspection plays clips at their authored rate. Source and fresh-import checks verify loop seams and foot movement; sampled idle, leap, door-press and antenna-wag poses are unchanged. Compact evidence is in `objects/enemies/latch-slug/snail-crawl-verification.json`; game captures and native/fresh-import renders are in ignored `tmp/snail-crawl/`.
+
+## Door gel coverage and persistent accumulation (updated 2026-11-05)
+
+Touching splats now share a door-plane coverage mesh through `LatchGelUnion` and `LatchCoverage`. The reconstructed outline covers the union of their actual wet footprints, with a locally rounded seam and conserved combined volume. It does not shrink a new splat toward an older splat's center. Opposite faces and separated footprints remain independent.
+
+Door splats stay attached until their visible gel has dripped off the threshold or somebody scrapes them away; the former 20-second automatic expiry has been removed. There is no count cap: later slimes add coverage without evicting earlier splats. Each `LatchGlue` retains its own door restraint, and clearing one source removes only that source's contribution. Explicit finite lifetimes remain available to callers that request them; gameplay uses geometry-driven drainage. The union mesh owns its material and follows the door frame independently of the first slime. Clearing the door releases all remaining sources and the union's render callback/resources.
+
+## Occasional idle twirl hops (2026-11-05)
+
+A slime that stays within 12 cm of one spot for a random 4–9 seconds can perform a small in-place hop. This includes companion waits and blocked crawls. `LatchIdleHop` checks supporting ground and overhead capsule clearance; patting, stairs, carrying, gateway entry, stun, confusion and other action states suspend the timer.
+
+`idle_hop_prepare` (7/30 s) and `idle_hop_spin` (19/30 s) are authored skeletal clips in the editable source. The spin completes one sideways barrel roll around the front-to-back axis through the belly centre and returns to its starting pose. `LatchIdleHopState` supplies a single vertical takeoff velocity targeting a 0.5 m rise; Ammo determines flight, contacts and landing. Spin playback is matched to the gravity-dependent flight time. Real landing contact plays the existing land and land-recover clips before resuming normal behavior. No elapsed-time teleport or synthetic landing is used.
+
+The Friendly pack test-map panel has an Idle hop button. Seeded in-game recordings captured two automatic takeoffs and two contact landings from two cameras. Compact validation is in `objects/enemies/latch-slug/idle-hop-verification.json`; recordings and source/fresh-import reviews are in ignored `tmp/idle-hop/`.
+
+
+## Submerged inclusions (2026-11-05)
+
+The user’s marked skin bumps should read as objects suspended inside living gel. Source and fresh-import renders check the faired body; the native test map checks both viewing angles, velocity lag and settling. The main transparent preview was recaptured from the actual game. Compact results are in `objects/enemies/latch-slug/internal-gel-verification.json`; captures and diagnostics remain in ignored `tmp/internal-gel-*`.
+
+Accumulation regression checks retain 32 sequential splats through repeated group transfers and simulated waits beyond the former expiry, then verify independent removal and final resource cleanup.
+
+## Visible runoff instead of expiry (2026-11-05)
+
+All six editable splat variants now include a fifth morph, `Complete downward runoff`, extending each native clip to 60 seconds. The former above-floor playback stop is removed. `LatchSurface` clips gel reaching the door-floor plane and reports only the remaining wall volume to the area union; it never replenishes drained volume. `LatchGlue` releases a patch only when its entire authored contour is below the threshold. Arrival height and viscosity affect when that happens. New splats remain independent. Existing pointer clearing represents scraping. Native validation and phase captures are in ignored `tmp/runoff/`.
+
+## Cohesive door-gel merging (2026-11-05)
+
+Reference: user video `20261105_180849.mp4`, particularly the touching upper and lower patches around 9–15 seconds. Previously, the first 0.38 seconds of contact could be missed, and independent authored drip contours could pull a joined group into disconnected islands. Binding already proves physical door impact, so merging now starts at the first visible wet frame.
+
+Area reconstruction for an already coalesced group keeps a continuous wet neck between separated lobes, using nearest-boundary grid paths and the existing mesh smoothing. New film samples the authored door surface in the reference splat’s coordinates so the neck stays above wood and projecting hardware. The neck redistributes existing volume rather than adding mass or moving either impact centre. Never-touching sources still remain independent; drained or scraped sources leave no phantom bridge. Ammo still owns collision; this is bounded viscous-surface reconstruction, not a replacement physics integrator. Regression checks verify the actual triangle mesh has one connected component. Native phase captures are in ignored `tmp/cohesive-goo/`.

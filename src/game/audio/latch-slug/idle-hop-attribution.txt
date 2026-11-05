@@ -1,0 +1,13 @@
+80 CC0 creature SFX by rubberduck
+Selected file: cute_03.ogg (sample C)
+
+Source: https://opengameart.org/content/80-cc0-creature-sfx
+Download: https://opengameart.org/sites/default/files/80-CC0-creature-SFX_0.zip
+License: Creative Commons Zero 1.0 Universal (CC0)
+License URL: https://creativecommons.org/publicdomain/zero/1.0/
+
+The original Ogg is preserved byte-for-byte under sources/. The working copy
+is 48 kHz stereo PCM16 WAV, with a Vorbis runtime copy at nominal 192 kbps.
+No synthesis, AI audio generation, layering or editing. Playback has a small
+random pitch variation. The source page does not specify this file's recording
+or production method.

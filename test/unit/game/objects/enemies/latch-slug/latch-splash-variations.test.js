@@ -23,7 +23,7 @@ test("every splat cycle uses all authored shapes without adjacent repeats, with 
   assert.ok(new Set(results.map((v) => v.profile.drips)).size >= 4);
 });
 
-test("every shape and allowed height variation stops above the floor", () => {
+test("every shape reports its initial above-floor ooze landmark", () => {
   for (const contactHeight of [0.7, 0.85, 1, 1.25, 1.5]) {
     for (const extreme of [0, 0.999999]) {
       const choices = new LatchSplashVariations();
@@ -50,7 +50,8 @@ test("the GLB supplies each distinct authored node and its matching viscous clip
     const animation = asset.animations.find((clip) => clip.name === profile.clip);
     assert.equal(asset.nodes[nodeIndex].extras.dripCount, profile.drips);
     assert.ok(animation.channels.some((channel) => channel.target.node === nodeIndex && channel.target.path === "weights"));
-    assert.equal(asset.meshes[asset.nodes[nodeIndex].mesh].primitives[0].targets.length, 4);
+    assert.equal(asset.meshes[asset.nodes[nodeIndex].mesh].primitives[0].targets.length, 5);
+    assert.ok(asset.meshes[asset.nodes[nodeIndex].mesh].extras.targetNames.includes("Complete downward runoff"));
   }
 });
 

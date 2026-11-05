@@ -1,8 +1,23 @@
 /**
- * Sourced slime and splash effects by rubberduck (CC0, OpenGameArt).
+ * Sourced effects from OpenGameArt; per-cue authors and licenses are recorded here.
  * Original files and provenance live alongside the game's audio encodings.
  */
 export class LatchSlugAudio {
+  /**
+   * Cute creature vocal by rubberduck (CC0), selected as sample C.
+   * @type {{wavUrl:string,oggUrl:string}}
+   */
+  static idleHop = {
+    wavUrl: new URL("./idle-hop.wav", import.meta.url).href,
+    oggUrl: new URL("./idle-hop.ogg", import.meta.url).href,
+  };
+
+  /**
+   * Preserve the source credit in production asset output.
+   * @type {string}
+   */
+  static idleHopAttributionUrl = new URL("./idle-hop-attribution.txt", import.meta.url).href;
+
   /**
    * @type {{wavUrl:string,oggUrl:string}}
    */
@@ -23,6 +38,6 @@ export class LatchSlugAudio {
    * @returns {{wavUrl:string,oggUrl:string}[]}
    */
   static get sources() {
-    return [LatchSlugAudio.jump, LatchSlugAudio.splash];
+    return [LatchSlugAudio.jump, LatchSlugAudio.splash, LatchSlugAudio.idleHop];
   }
 }

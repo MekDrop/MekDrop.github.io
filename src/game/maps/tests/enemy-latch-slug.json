@@ -3825,6 +3825,10 @@
           {
             "label": "Release camera",
             "script": "map.friendlyView?.off();camera.setViewport({zoom:5,rotation:2,panX:0,panZ:-3.6});"
+          },
+          {
+            "label": "Idle hop",
+            "script": "const s=[...objects].find(o=>o.definition?.id==='latch-slug');s.resumeBehavior();s.beginIdleHop();"
           }
         ]
       },

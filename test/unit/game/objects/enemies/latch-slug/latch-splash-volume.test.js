@@ -55,6 +55,7 @@ test("exported viscous clips redistribute a fixed volume while thinning and narr
         width: span(0),
         height: span(1),
         thickness: span(2),
+        highest: Math.max(...positions.filter((_, i) => i % 3 === 1)),
       };
     };
     const initial = sample(0.3), final = sample(20);
@@ -66,5 +67,6 @@ test("exported viscous clips redistribute a fixed volume while thinning and narr
     assert.ok(final.height > initial.height * 1.3, clip.name);
     assert.ok(final.thickness < initial.thickness * 0.85, clip.name);
     assert.ok(final.width < initial.width * 0.99, clip.name);
+    assert.ok(sample(60).highest < -2, clip.name + " visibly drains below even a high impact's floor");
   }
 });

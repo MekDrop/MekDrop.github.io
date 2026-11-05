@@ -1,17 +1,9 @@
 const doorMasses = new WeakMap();
 
 /**
- * Independent, bounded restraint lifetime. No damage and no living collider.
+ * Independent door restraint, retained until drained or cleared.
  */
 export class LatchGlue {
-  /**
-   * @type {LatchGlue|null}
-   */
-  #mergedInto = null;
-  /**
-   * @type {Set<LatchGlue>}
-   */
-  #members = new Set();
   /**
    * @type {import("../../architecture/door/Door.js").Door|null}
    */
@@ -35,13 +27,13 @@ export class LatchGlue {
 
   /**
    * @param {import("../../architecture/door/Door.js").Door|null} door
-   * @param {number} duration
+   * @param {number|null} duration Null disables timed expiry; drainage still clears it.
    * @param {import("./LatchSlug.js").LatchSlug|null} owner
    * @param {import("playcanvas").Vec3|null} impact
    */
-  constructor(door, duration = 20, owner = null, impact = null) {
+  constructor(door, duration = null, owner = null, impact = null) {
     this.#door = door;
-    this.#remaining = Number.isFinite(duration) ? Math.max(0, Math.min(30, duration)) : 20;
+    this.#remaining = duration === null ? Infinity : Number.isFinite(duration) ? Math.max(0, duration) : 0;
     if (!this.active) {
       this.#door = null;
 
@@ -59,7 +51,7 @@ export class LatchGlue {
   }
 
   /**
-   * Bounded, collider-free residue stays attached to the actual door frame.
+   * Collider-free residue stays attached to the actual door frame.
    * @param {import("./LatchSlug.js").LatchSlug} owner
    * @param {import("playcanvas").Vec3|null} impact
    */
@@ -98,13 +90,10 @@ export class LatchGlue {
    * @returns {{distance:number,point:import("playcanvas").Vec3}|null}
    */
   getPointerHit(rayStart, rayEnd, pc) {
-    if (this.#mergedInto) {
-      return this.#mergedInto.getPointerHit(rayStart, rayEnd, pc);
-    }
     if (!this.active || !this.#visual) {
       return null;
     }
-    const meshes = this.#visual.findComponents("render").filter(/**
+    const meshes = (this.#splash?.surface.visibleEntity ?? this.#visual).findComponents("render").filter(/**
      *
      * @param {import("playcanvas").RenderComponent} render
      */
@@ -147,57 +136,37 @@ export class LatchGlue {
     if (!Number.isFinite(dt) || dt <= 0) {
       return;
     }
-    if (this.#mergedInto?.active) {
+    this.#remaining = Math.max(0, this.#remaining - dt);
+    if (!this.active || (this.#door && !this.#door.jammed)) {
+      this.clear();
+
       return;
     }
-    this.#remaining = Math.max(0, this.#remaining - dt);
     if (this.#visual && this.#door?.entity) {
       this.#visual.setPosition(this.#door.entity.getWorldTransform().transformPoint(this.#anchor));
       this.#visual.setRotation(this.#door.entity.getRotation());
       this.#splash.update(dt);
+      if (this.#splash.surface.drained) {
+        this.clear();
+
+        return;
+      }
       this.#joinTouchingMasses();
-    }
-    if (!this.active || (this.#door && !this.#door.jammed)) {
-      this.clear();
     }
   }
 
   #joinTouchingMasses() {
     for (const mass of doorMasses.get(this.#door) ?? []) {
-      if (mass === this || !mass.active || mass.#remaining > this.#remaining ||
+      if (mass === this || !mass.active ||
         mass.#splash.surface.normalSign !== this.#splash.surface.normalSign ||
         !mass.#splash.surface.touches(this.#splash.surface)) {
         continue;
       }
-      mass.#splash.surface.absorb(this.#splash.surface);
-      this.#splash = null;
-      this.#visual = null;
-      this.#mergedInto = mass;
-      mass.#members.add(this);
-      for (const member of this.#members) {
-        member.#mergedInto = mass;
-        mass.#members.add(member);
-      }
-      this.#members.clear();
-      // Joining drops must not renew the lifetime of the older wet film.
-      mass.#remaining = Math.min(mass.#remaining, this.#remaining);
-      doorMasses.get(this.#door).delete(this);
-
-      return;
+      this.#splash.surface.merge(mass.#splash.surface);
     }
   }
 
   clear() {
-    if (this.#mergedInto) {
-      const primary = this.#mergedInto;
-      this.#mergedInto = null;
-      primary.clear();
-    }
-    for (const member of this.#members) {
-      member.#mergedInto = null;
-      member.clear();
-    }
-    this.#members.clear();
     if (this.#door) {
       doorMasses.get(this.#door)?.delete(this);
     }

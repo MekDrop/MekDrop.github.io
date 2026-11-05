@@ -1,0 +1,29 @@
+{
+  "route": "/map/test_enemy-latch-slug",
+  "seededIdleWaitSeconds": 4,
+  "automaticTakeoffs": 2,
+  "contactLandings": 2,
+  "sampledFrames": 668,
+  "minimumRootY": 1.9730303287506104,
+  "maximumRootY": 2.463243246078491,
+  "asset": {
+    "source": {
+      "axis": "front-to-back",
+      "turnDegrees": 360.00001001791225,
+      "seam": 1.7484555314695172e-7,
+      "duration": 0.6333333333333333
+    },
+    "export": {
+      "axis": "front-to-back",
+      "turnDegrees": 360.000010017913,
+      "seam": 1.7484556735780643e-7,
+      "duration": 0.6333333303531011
+    }
+  },
+  "preview": {
+    "visiblePixels": 41771,
+    "transparentPixels": 220373,
+    "margin": 107
+  },
+  "runtimeErrors": []
+}

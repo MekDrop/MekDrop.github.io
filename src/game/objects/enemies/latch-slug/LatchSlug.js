@@ -24,6 +24,9 @@ import { LatchPack } from "./LatchPack.js";
 import { LatchHeroGaze } from "./LatchHeroGaze.js";
 import { LatchGroundCrawl } from "./LatchGroundCrawl.js";
 import { LatchStairSurface } from "./LatchStairSurface.js";
+import { LatchHurry } from "./LatchHurry.js";
+import { LatchIdleHop } from "./LatchIdleHop.js";
+import { LatchIdleHopState } from "./states/LatchIdleHopState.js";
 const LOOPING_CLIPS = new Set([
   ANIMATION.IDLE_DOG, ANIMATION.WADDLE_WALK, ANIMATION.WADDLE_RUN, ANIMATION.PANT,
   ANIMATION.SIT_LOOP, ANIMATION.FOLLOW, ANIMATION.ANTENNA_WAG, ANIMATION.STUN,
@@ -86,6 +89,19 @@ export class LatchSlug extends Enemy {
    * @type {LatchPatPresentation|null}
    */
   patPresentation = null;
+  /**
+   * @type {LatchHurry}
+   */
+  hurry;
+  /**
+   * @type {LatchIdleHop}
+   */
+  idleHop;
+  /**
+   * Continuous pulse clock, advanced faster during the stamina burst.
+   * @type {number}
+   */
+  crawlTime = 0;
 
   /**
    * @returns {string[]}
@@ -97,7 +113,7 @@ export class LatchSlug extends Enemy {
    * @returns {string[]}
    */
   static get audioUrls() {
-    return [LatchSlugAudio.jump.wavUrl, LatchSlugAudio.splash.wavUrl];
+    return [LatchSlugAudio.jump.wavUrl, LatchSlugAudio.splash.wavUrl, LatchSlugAudio.idleHop.wavUrl];
   }
   /**
    * @type {GameObjectAudio|null}
@@ -132,6 +148,8 @@ export class LatchSlug extends Enemy {
 
     this.pack = new LatchPack(this);
     this.affection = new LatchAffection(this);
+    this.hurry = new LatchHurry(this);
+    this.idleHop = new LatchIdleHop(this);
     this.radius = 0.42;
     // Ammo clamps a capsule shorter than its diameter to a sphere. Matching the
     // diameter keeps its bottom at the model's grounded semantic root.
@@ -142,7 +160,7 @@ export class LatchSlug extends Enemy {
     if (position) {
       this.entity.setPosition(position.x, position.y ?? 0, position.z);
     }
-    for (const StateClass of [LatchSeekState, LatchDogState, LatchPressState, LatchLeapState, LatchReactionState, LatchDeadState, LatchClipState]) {
+    for (const StateClass of [LatchSeekState, LatchDogState, LatchPressState, LatchLeapState, LatchIdleHopState, LatchReactionState, LatchDeadState, LatchClipState]) {
       this.behavior.add(StateClass.name, new StateClass());
     }
     this.behavior.changeTo(LatchSeekState.name);
@@ -170,6 +188,7 @@ export class LatchSlug extends Enemy {
    * @returns {boolean}
    */
   moveToward(target, speed = 1.2, arrivalRadius = 0.05) {
+    speed *= this.hurry.speedFactor;
     const limit = this.stairCrawl?.active ? this.stairCrawl.speedLimit : this.#navigation?.crawling ? 0.65 : speed;
 
     if (limit === 0) {
@@ -179,7 +198,10 @@ export class LatchSlug extends Enemy {
       return true;
     }
 
-    return super.moveToward(target, Math.min(speed, limit), arrivalRadius);
+    // The foot wave carries a mostly steady body, with a gentle gather phase.
+    const pulse = this.stairCrawl?.active ? 1 : 1 - 0.15 * Math.cos(this.crawlTime * Math.PI * 2 / 1.6);
+
+    return super.moveToward(target, Math.min(speed, limit) * pulse, arrivalRadius);
   }
 
   /**
@@ -216,6 +238,7 @@ export class LatchSlug extends Enemy {
         {
           jump: LatchSlugAudio.jump,
           splash: LatchSlugAudio.splash,
+          idleHop: LatchSlugAudio.idleHop,
         }, 0.6);
       this.audio.follow(() => this.runtime.getHero()?.position ?? null, 14);
     }
@@ -349,6 +372,8 @@ export class LatchSlug extends Enemy {
     if (!Number.isFinite(dt) || dt <= 0) {
       return;
     }
+    this.hurry.update(dt);
+    this.crawlTime += dt * this.hurry.speedFactor;
     if (this.gatewayArrival.active) {
       super.update(dt);
 
@@ -365,10 +390,33 @@ export class LatchSlug extends Enemy {
       return;
     }
     super.update(dt);
+    this.idleHop.update(dt);
+    this.#updateAnimationSpeed();
     this.affection.update(dt);
     if (this.alive && !this.carrier && !this.airborne) {
       this.limitNearbyMovement(0.65);
     }
+  }
+
+  #updateAnimationSpeed() {
+    if (!this.#model?.anim) {
+      return;
+    }
+    if (this.requestedClip === ANIMATION.IDLE_HOP_SPIN && this.stateName === LatchIdleHopState.name) {
+      this.#model.anim.speed = (19 / 30) / this.idleHop.flightDuration;
+
+      return;
+    }
+    const locomotion = [ANIMATION.WADDLE_WALK, ANIMATION.WADDLE_RUN, ANIMATION.FOLLOW].includes(this.requestedClip);
+    if (!locomotion || this.stateName === LatchClipState.name) {
+      this.#model.anim.speed = 1;
+
+      return;
+    }
+    const velocity = this.entity.rigidbody?.linearVelocity;
+    const speed = velocity ? Math.hypot(velocity.x, velocity.z) : 0;
+    const reference = this.requestedClip === ANIMATION.WADDLE_RUN ? 1.35 : 0.85;
+    this.#model.anim.speed = Math.max(0.1, Math.min(2.8, speed / reference));
   }
 
   /**
@@ -415,7 +463,7 @@ export class LatchSlug extends Enemy {
 
       return false;
     }
-    this.residue = new LatchGlue(door, 20, this, impact);
+    this.residue = new LatchGlue(door, null, this, impact);
     if (!this.residue.active) {
       this.residue = null;
       this.cancelDoorLeap();
@@ -604,8 +652,45 @@ export class LatchSlug extends Enemy {
   }
 
   onLanded() {
+    if (this.behavior.currentState instanceof LatchIdleHopState) {
+      this.behavior.currentState.land(this);
+
+      return;
+    }
     this.behavior.changeTo(LatchReactionState.name);
     this.playClip(ANIMATION.LAND);
+  }
+
+  /**
+   * @returns {boolean}
+   */
+  beginIdleHop() {
+    if (!this.idleHop.eligible || !this.idleHop.clearance) {
+      return false;
+    }
+    this.idleHop.reset();
+    this.behavior.changeTo(LatchIdleHopState.name);
+
+    return true;
+  }
+
+  /**
+   * @returns {boolean}
+   */
+  launchIdleHop() {
+    if (!this.alive || !this.grounded || this.carrier || this.airborne ||
+      this.statuses.has("stun") || this.statuses.has("confused") || !this.idleHop.clearance ||
+      this.stateName !== LatchIdleHopState.name) {
+      return false;
+    }
+    this.#doorLeap.cancel();
+    this.airborne = true;
+    this.grounded = false;
+    this.entity.rigidbody.linearVelocity = new this.pc.Vec3(0, this.idleHop.lift, 0);
+    this.playClip(ANIMATION.IDLE_HOP_SPIN);
+    this.audio?.play("idleHop", 0.96 + Math.random() * 0.08);
+
+    return true;
   }
 
   onDamaged() {

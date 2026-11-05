@@ -13,7 +13,7 @@ export class LatchDeadState extends State {
     if (!owner.residue) {
       owner.playClip(ANIMATION.DEATH);
     }
-    // No living body survives a fatal splat. Residue owns only a bounded effect.
+    // No living body survives a fatal splat. Residue owns only the door effect.
     if (owner.entity.rigidbody) {
       owner.entity.rigidbody.enabled = false;
     }

@@ -1,0 +1,76 @@
+{
+  "reference": "20261105_180849.mp4",
+  "route": "/map/test_enemy-latch-slug",
+  "stages": [
+    {
+      "time": 1,
+      "active": true,
+      "fresh": true,
+      "jammed": true,
+      "age": 1.1604999999999999,
+      "drained": false,
+      "volume": 0.10490712639102424,
+      "initialVolume": 0.10490711475338414,
+      "components": 1,
+      "visible": true
+    },
+    {
+      "time": 20,
+      "active": true,
+      "fresh": true,
+      "jammed": true,
+      "age": 2.2340000000000293,
+      "drained": false,
+      "volume": 0.10490710540411918,
+      "initialVolume": 0.10490711475338414,
+      "components": 1,
+      "visible": true
+    },
+    {
+      "time": 30,
+      "active": true,
+      "fresh": true,
+      "jammed": true,
+      "age": 3.3340000000000303,
+      "drained": false,
+      "volume": 0.10292874737132028,
+      "initialVolume": 0.10490711475338414,
+      "components": 1,
+      "visible": true
+    },
+    {
+      "time": 40,
+      "active": true,
+      "fresh": true,
+      "jammed": true,
+      "age": 4.400900000000024,
+      "drained": false,
+      "volume": 0.00267342062327148,
+      "initialVolume": 0.10490711475338414,
+      "components": 1,
+      "visible": true
+    },
+    {
+      "time": 60,
+      "active": false,
+      "fresh": true,
+      "jammed": true,
+      "age": 5.241700000000011,
+      "drained": true,
+      "volume": 2.3129646346357427e-18,
+      "initialVolume": 0.10490711475338414,
+      "components": 1,
+      "visible": false
+    }
+  ],
+  "scraped": {
+    "active": false,
+    "jammed": false
+  },
+  "preview": {
+    "visiblePixels": 41793,
+    "transparentPixels": 220351,
+    "margin": 110
+  },
+  "runtimeErrors": []
+}

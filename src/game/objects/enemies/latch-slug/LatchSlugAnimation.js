@@ -20,6 +20,8 @@ export const LATCH_SLUG_ANIMATION = Object.freeze({
   KNOCKBACK: "knockback",
   CARRIED_READY: "carried_ready",
   AIRBORNE: "airborne",
+  IDLE_HOP_PREPARE: "idle_hop_prepare",
+  IDLE_HOP_SPIN: "idle_hop_spin",
   LEAP_RISE: "leap_rise",
   LEAP_APEX: "leap_apex",
   LEAP_FALL: "leap_fall",

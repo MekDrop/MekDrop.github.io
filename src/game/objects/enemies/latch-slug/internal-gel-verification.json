@@ -1,0 +1,68 @@
+{
+  "route": "/map/test_enemy-latch-slug",
+  "graphicsBackend": "webgl2",
+  "inclusions": 9,
+  "maximumNormalizedCenterRadius": 0.68,
+  "maximumNormalizedCornerRadius": 0.1304882657559675,
+  "lagTimeConstantSeconds": 0.8,
+  "asset": {
+    "source": {
+      "triangles": 6596,
+      "bones": 17,
+      "clips": 32,
+      "finiteVertices": true
+    },
+    "export": {
+      "triangles": 6676,
+      "bones": 17,
+      "clips": 32,
+      "finiteVertices": true,
+      "bodyTriangles": 6596,
+      "importerHelperTriangles": 80
+    }
+  },
+  "observations": [
+    {
+      "time": 67879.29999995232,
+      "position": "[-0.00001611379957466852, 2.0039961338043213, -11.000001907348633]",
+      "lag": [
+        2.0646051987288525e-7,
+        0.0001304066017870015,
+        3.357509676653159e-8
+      ]
+    },
+    {
+      "time": 68300.5,
+      "position": "[0.1961340606212616, 2.003995895385742, -11.000001907348633]",
+      "lag": [
+        -0.008861482154416166,
+        0.00007646162599741025,
+        -3.043419302612421e-8
+      ]
+    },
+    {
+      "time": 68438.69999998808,
+      "position": "[0.19998326897621155, 2.003995656967163, -11.000001907348633]",
+      "lag": [
+        -0.007499472345921545,
+        0.00006470988643149702,
+        -2.5756621686562862e-8
+      ]
+    },
+    {
+      "time": 70869,
+      "position": "[0.19998033344745636, 2.003995656967163, -11.000001907348633]",
+      "lag": [
+        -0.00035410350325956573,
+        0.000003055410623889454,
+        -1.2161519649696153e-9
+      ]
+    }
+  ],
+  "preview": {
+    "visiblePixels": 42349,
+    "transparentPixels": 219795,
+    "margin": 98
+  },
+  "runtimeErrors": []
+}

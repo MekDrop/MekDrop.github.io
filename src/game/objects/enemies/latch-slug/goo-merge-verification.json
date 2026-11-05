@@ -1,0 +1,28 @@
+{
+  "route": "/map/test_enemy-latch-slug",
+  "renderedViews": ["front", "three-quarter"],
+  "merge": {
+    "bothSourcesActive": true,
+    "sharedAreaMesh": true,
+    "vertices": 4702
+  },
+  "afterOldSourceExpires": {
+    "oldActive": false,
+    "freshActive": true,
+    "freshVisible": true,
+    "doorJammed": true,
+    "sharedMeshSurvives": true
+  },
+  "afterExplicitDoorClear": {
+    "doorJammed": false,
+    "sharedMeshPresent": false
+  },
+  "preview": {
+    "visiblePixels": 41075,
+    "transparentPixels": 221069,
+    "margin": 108
+  },
+  "focusedTestsPassed": 49,
+  "excludedKnownFailure": "a dispatched slug follows its gate route and rejoins nearby after a companion detour",
+  "runtimeErrors": []
+}

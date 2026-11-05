@@ -40,8 +40,8 @@ export class LatchSplashVariations {
     const height = 0.84 + random() * 0.24;
     const thickness = 0.7 + random() * 0.65;
     const speed = 0.78 + random() * 0.44;
-    // Use the last sampled safe pose, with clearance for a final animation step.
-    // Bounds belong to the selected shape, rather than the former single blob.
+    // Last sampled pose above the floor, useful to inspect the initial ooze.
+    // Playback continues beyond this landmark into the authored runoff phase.
     let stopTime = 0.3;
     for (const [time, depth] of profile.depthBySecond) {
       if (depth * height <= contactHeight - 0.08) {

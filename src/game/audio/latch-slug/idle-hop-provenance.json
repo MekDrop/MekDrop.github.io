@@ -1,0 +1,19 @@
+{
+  "title": "80 CC0 creature SFX",
+  "authors": [
+    "rubberduck"
+  ],
+  "sourceUrl": "https://opengameart.org/content/80-cc0-creature-sfx",
+  "downloadUrl": "https://opengameart.org/sites/default/files/80-CC0-creature-SFX_0.zip",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "retrieved": "2026-11-05",
+  "source": "sources/cute_03.ogg",
+  "archiveSha256": "5d4002eea42f278e76543bb36e8ddd2cb978588a13271984191d8228f5d26768",
+  "sourceSha256": "de5b8609ffcdb6f22865c8dc696dc01bdbc54e78ca54af45cb22116a0641b6c2",
+  "wavSha256": "9b22ed479b67647c4ce87461e728429f689257aeeb4fbf619f6e8ef3ae45b23b",
+  "runtimeOggSha256": "6e4074a923a4a66785e511e09b2222645abb68717fa5781547df9e1587ba6368",
+  "processing": "User-selected sample C. Decode original Ogg to stereo 48 kHz PCM16 WAV and encode nominal 192 kbps Vorbis. No synthesis, AI generation, layering or editing. Source page does not specify the individual file production method.",
+  "durationSeconds": 0.611396,
+  "attributionFile": "idle-hop-attribution.txt"
+}

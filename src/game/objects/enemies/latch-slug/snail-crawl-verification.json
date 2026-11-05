@@ -1,0 +1,77 @@
+{
+  "asset": {
+    "source": [
+      {
+        "clip": "waddle_walk",
+        "seam": 1.714505530400385e-18,
+        "frontMotion": 0.09083147690938101,
+        "steadyRootAndBodyScale": true,
+        "duration": 1.6
+      },
+      {
+        "clip": "waddle_run",
+        "seam": 1.714505530400385e-18,
+        "frontMotion": 0.09084801566718362,
+        "steadyRootAndBodyScale": true,
+        "duration": 0.9
+      },
+      {
+        "clip": "follow",
+        "seam": 1.714505530400385e-18,
+        "frontMotion": 0.09083147690938101,
+        "steadyRootAndBodyScale": true,
+        "duration": 1.6
+      }
+    ],
+    "export": [
+      {
+        "clip": "waddle_walk",
+        "seam": 1.714500561091824e-18,
+        "frontMotion": 0.09083145640277446,
+        "steadyRootAndBodyScale": true,
+        "duration": 1.6000000288089116
+      },
+      {
+        "clip": "waddle_run",
+        "seam": 1.714500561091824e-18,
+        "frontMotion": 0.0905714774030805,
+        "steadyRootAndBodyScale": true,
+        "duration": 0.8999999811251959
+      },
+      {
+        "clip": "follow",
+        "seam": 1.714500561091824e-18,
+        "frontMotion": 0.09083145640277446,
+        "steadyRootAndBodyScale": true,
+        "duration": 1.6000000288089116
+      }
+    ]
+  },
+  "runtime": {
+    "errors": [],
+    "clips": [
+      {
+        "clip": "waddle_walk",
+        "samples": 196,
+        "movingJoints": [
+          "belly_front",
+          "belly_rear",
+          "head",
+          "antenna_L"
+        ],
+        "steadyModelScale": true
+      },
+      {
+        "clip": "waddle_run",
+        "samples": 211,
+        "movingJoints": [
+          "belly_front",
+          "belly_rear",
+          "head",
+          "antenna_L"
+        ],
+        "steadyModelScale": true
+      }
+    ]
+  }
+}
