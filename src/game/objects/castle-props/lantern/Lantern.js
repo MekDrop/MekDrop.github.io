@@ -33,7 +33,7 @@ export class Lantern extends AbstractCastleProp {
 
     if ((options.definition.intensity ?? 1) > 0 && options.definition.flame !== false &&
       !(options.definition.variant === "tower" && !options.definition.flame)) {
-      new FireAudio(this.visualRoots[0], options.app ?? options.pc.Application.getApplication(), options.runtime, 0.025);
+      new FireAudio(this.visualRoots[0], options.app ?? options.pc.Application.getApplication(), options.runtime, 0.0025);
     }
 
     const { pc, definition } = options;
