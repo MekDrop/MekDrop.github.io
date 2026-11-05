@@ -16,15 +16,19 @@ const room = {
   height: 3,
 };
 
-test("some storerooms gain barrels at the wall while others retain open space", () => {
+test("storerooms add wall-side supplies while retaining open space", () => {
   const generator = new TerraceStorageRoomGenerator();
   const counts = new Set();
+  const types = new Set();
   for (let seed = 0; seed < 24; seed++) {
     const items = generator.furnish(room, { seed });
-    const barrels = items.filter(item => item.object === "Barrel");
+    const barrels = items.filter(item => item.id?.includes("-spare-barrel-"));
+    for (const item of barrels) {
+      types.add(item.object);
+    }
     counts.add(barrels.length);
     assert.deepEqual(generator.furnish(room, { seed }), items);
-    const placed = items.filter(item => item.object !== "Barrel");
+    const placed = items.filter(item => !item.id?.includes("-spare-barrel-"));
     for (const barrel of barrels) {
       assert.ok(RoomPlacementRules.accepts(barrel, room, placed));
       const gap = Math.min(barrel.x - barrel.width / 2, room.maxX - barrel.x - barrel.width / 2,
@@ -36,9 +40,8 @@ test("some storerooms gain barrels at the wall while others retain open space", 
       placed.push(barrel);
     }
   }
-  assert.ok(counts.has(0));
-  assert.ok(counts.has(1));
-  assert.ok(counts.has(2));
+  assert.ok([...counts].every(count => count >= 3));
+  assert.deepEqual([...types].sort(), ["Barrel", "Crate"]);
 });
 
 test("door swings can consume every wall slot without forcing a barrel into the aisle", () => {

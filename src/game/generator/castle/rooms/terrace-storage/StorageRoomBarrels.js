@@ -6,7 +6,7 @@ import { RoomPlacementRules } from "../RoomPlacementRules.js";
  */
 
 /**
- * Optional wall-side supplies, with an adult-width route through the storeroom.
+ * Wall-side supplies, with an adult-width route through the storeroom.
  */
 export class StorageRoomBarrels {
   /**
@@ -17,7 +17,7 @@ export class StorageRoomBarrels {
    */
   static furnish(room, occupied, context) {
     const seed = context.seed ?? room.furnishingSeed ?? 0;
-    const wanted = RoomFurnishingChoices.order([0, 0, 1, 2, 3], room, "spare-barrel-count", seed)[0];
+    const wanted = RoomFurnishingChoices.order([3, 4, 5, 6], room, "spare-barrel-count", seed)[0];
     const items = [];
     const inset = (context.wallThickness ?? 0.25) / 2 + 0.03;
     const half = 0.554 / 2;
@@ -32,15 +32,17 @@ export class StorageRoomBarrels {
       if (items.length >= wanted) {
         break;
       }
+      const object = RoomFurnishingChoices.order(["Barrel", "Crate"], room,
+        `spare-supply-${items.length}`, seed)[0];
       const barrel = {
         id: `${room.id}-spare-barrel-${items.length}`,
         role: "serviceProp",
-        object: "Barrel",
+        object,
         x,
         z,
         width: 0.554,
         depth: 0.554,
-        height: 0.65,
+        height: object === "Barrel" ? 0.65 : 0.4702,
         scale: 1,
         rotation: 0,
         y: 0.002,

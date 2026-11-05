@@ -12,7 +12,8 @@ test("terrace spares stay in storage with supported tea ware and a central aisle
     });
     const room = plan.spaces.find(space => space.id === "storage-south");
     const items = plan.furniture.filter(item => item.roomId === room.id);
-    assert.deepEqual(items.filter(item => item.object !== "Barrel").map(item => item.object), ["Sunbed", "Table", "Chair",
+    assert.ok(items.filter(item => item.id?.includes("-spare-barrel-")).length >= 2);
+    assert.deepEqual(items.filter(item => !item.id?.includes("-spare-barrel-")).map(item => item.object), ["Sunbed", "Table", "Chair",
       "ServingTray", "Teapot", "Teacup", "Book"]);
     for (const item of items) {
       assert.ok(item.x - item.width * item.scale / 2 >= room.minX);
