@@ -6153,6 +6153,66 @@
         "side": "WEST",
         "color": 16752640
       }
+    },
+    {
+      "id": "store-reserve-crate-1",
+      "object": "Crate",
+      "position": {
+        "x": 2.350000000000001,
+        "y": 2,
+        "z": -5.145
+      },
+      "scale": 1,
+      "roomId": "storeroom",
+      "rotation": 0
+    },
+    {
+      "id": "store-reserve-crate-2",
+      "object": "Crate",
+      "position": {
+        "x": 3.1500000000000017,
+        "y": 2,
+        "z": -5.145
+      },
+      "scale": 1,
+      "roomId": "storeroom",
+      "rotation": 0
+    },
+    {
+      "id": "store-reserve-barrel",
+      "object": "Barrel",
+      "position": {
+        "x": 3.9500000000000006,
+        "y": 2,
+        "z": -5.144999999999999
+      },
+      "scale": 1,
+      "roomId": "storeroom",
+      "rotation": 0
+    },
+    {
+      "id": "store-reserve-crate-top",
+      "object": "Crate",
+      "position": {
+        "x": 2.350000000000001,
+        "y": 2.4702,
+        "z": -5.145
+      },
+      "scale": 0.85,
+      "roomId": "storeroom",
+      "rotation": 0
+    },
+    {
+      "id": "store-reserve-linens",
+      "object": "FoldedLinens",
+      "position": {
+        "x": 3.1500000000000017,
+        "y": 2.4702,
+        "z": -5.145
+      },
+      "scale": 0.65,
+      "roomId": "storeroom",
+      "rotation": 0
     }
   ],
   "testControls": {

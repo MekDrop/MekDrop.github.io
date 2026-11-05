@@ -6365,6 +6365,66 @@
       },
       "rotation": 90,
       "scale": 0.85
+    },
+    {
+      "id": "store-reserve-crate-1",
+      "object": "Crate",
+      "position": {
+        "x": 2.3499999999999996,
+        "y": 2,
+        "z": 4.480000000000001
+      },
+      "scale": 1,
+      "roomId": "storeroom",
+      "rotation": 0
+    },
+    {
+      "id": "store-reserve-crate-2",
+      "object": "Crate",
+      "position": {
+        "x": 3.1500000000000004,
+        "y": 2,
+        "z": 4.480000000000001
+      },
+      "scale": 1,
+      "roomId": "storeroom",
+      "rotation": 0
+    },
+    {
+      "id": "store-reserve-barrel",
+      "object": "Barrel",
+      "position": {
+        "x": 3.9499999999999993,
+        "y": 2,
+        "z": 4.480000000000001
+      },
+      "scale": 1,
+      "roomId": "storeroom",
+      "rotation": 0
+    },
+    {
+      "id": "store-reserve-crate-top",
+      "object": "Crate",
+      "position": {
+        "x": 2.3499999999999996,
+        "y": 2.4702,
+        "z": 4.480000000000001
+      },
+      "scale": 0.85,
+      "roomId": "storeroom",
+      "rotation": 0
+    },
+    {
+      "id": "store-reserve-linens",
+      "object": "FoldedLinens",
+      "position": {
+        "x": 3.1500000000000004,
+        "y": 2.4702,
+        "z": 4.480000000000001
+      },
+      "scale": 0.65,
+      "roomId": "storeroom",
+      "rotation": 0
     }
   ],
   "testControls": {
