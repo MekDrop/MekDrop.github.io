@@ -16,6 +16,8 @@ Start with [docs/ai/task-map.md](docs/ai/task-map.md) for task locations and foc
 
 Follow `.editorconfig` and [docs/ai/code-style.md](docs/ai/code-style.md). ESLint and Prettier configuration define enforced style. Store temporary helper, conversion, migration, and diagnostic scripts in ignored project-root `tmp/`; never stage or commit its contents.
 
+For browser-based work, including workflows described by skills, use the agent's built-in browser (such as Codex's in-app browser) whenever it can perform the task. If Playwright is needed, run it headlessly by default so it does not open a browser window. Use a visible external browser only when the task cannot be completed otherwise or the user or a specific project rule requires it.
+
 ## Tripo3D Workflow
 
 Always use the Opera web browser for working with Tripo3D tasks. After generating or downloading an asset, use Blender for local adjustments as needed to better match the game's visual style.
