@@ -10,8 +10,8 @@ import { QueenGameOverBehavior } from "./QueenGameOverBehavior.js";
 import { RoyalGameOverRouteFollower } from "./RoyalGameOverRouteFollower.js";
 import { RoyalTears } from "./RoyalTears.js";
 import { NpcDoorAvoidance } from "../../shared/NpcDoorAvoidance.js";
-import { KingCapePhysics } from "../../characters/royal/king/KingCapePhysics.js";
 import { KingThroneIdle } from "./KingThroneIdle.js";
+import { KingCapePhysics } from "../../characters/royal/king/KingCapePhysics.js";
 
 const MODEL_URLS = Object.freeze([
   kingModelUrl,
@@ -36,6 +36,10 @@ const FALLBACK_VISUAL_SIZE = Object.freeze({
  */
 export class SeatedRoyal {
   /**
+   * @type {KingCapePhysics|null}
+   */
+  #capePhysics = null;
+  /**
    * @type {KingThroneIdle|null}
    */
   #throneIdle = null;
@@ -47,10 +51,6 @@ export class SeatedRoyal {
    * @type {import("playcanvas").EventHandle|null}
    */
   #restoreIdleHandle = null;
-  /**
-   * @type {KingCapePhysics|null}
-   */
-  #capePhysics = null;
   /**
    * @type {NpcDoorAvoidance}
    */
@@ -396,11 +396,11 @@ export class SeatedRoyal {
   }
 
   destroy() {
+    this.#capePhysics?.destroy();
+    this.#capePhysics = null;
     this.#idleHandle?.off();
     this.#restoreIdleHandle?.off();
     this.#throneIdle?.restore();
-    this.#capePhysics?.destroy();
-    this.#capePhysics = null;
     this.#doorAvoidance?.destroy();
     this.#tears?.destroy();
     if (!this.#resident) {

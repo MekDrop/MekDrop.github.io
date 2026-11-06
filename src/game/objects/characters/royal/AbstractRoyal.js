@@ -150,6 +150,8 @@ export class AbstractRoyal {
     this.#entity.tags.add("map-object", definition.id, this.constructor.name);
     this.#resident = new RoyalType({
       pc,
+      app,
+      runtime,
       modelLibrary,
       performanceSeed: definition.seed ?? 0,
     });

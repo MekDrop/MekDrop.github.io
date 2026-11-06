@@ -47,6 +47,10 @@ locks. Keep this underlying head volume closed; hair pieces must not conceal
 missing side walls. The temple repair preserves the original front facial
 landmarks and weights the complete head surface to the head joint.
 
+The runtime simulates the continuous mantle with Ammo through `KingCapePhysics`. Embedded cape bones supply initialization poses; gravity, body collision, and inertia drive subsequent cloth motion.
+
+The mantle side panels and their rear trim retain cape deformation. The side sections are welded into the mantle mesh along shared edge vertices, with three columns of geometry blending toward the front trim. The original separate wool side boxes are removed, so the garment has no independently deforming join. The waist band follows `Royal hips`; articulated sleeves retain shoulder, arm, elbow, and chest weights.
+
 The rear cape is a continuous 13 × 13 cloth sheet with its original broad folds
 and two navy materials. `KingCapePhysics` gives this sheet live Ammo soft-body
 motion in the game. The whole top seam is sewn to the chest; strong stretch and
@@ -57,8 +61,8 @@ above the walking surface. The cape mesh is cloned per king; instances never sha
 deformation buffers. Destroying the owner restores the original mesh and skin
 and releases its physics resources.
 
-The live profile uses Bullet structural stiffness 0.99, bending stiffness 0.98,
-mass 0.3, damping 0.24, and 28 position / 14 velocity iterations. It steps at
+The live profile uses Bullet structural stiffness 0.99, bending stiffness 0.55,
+mass 0.3, damping 0.22, and 28 position / 14 velocity iterations. It steps at
 120 Hz with at most six catch-up steps per render, using a consistent 20× physics
 scale for the small character. The top 4% height band includes the complete
 slightly sloping collar and leaves the next cloth row free. Normal animation
@@ -67,12 +71,12 @@ These are runtime settings in `KingCapePhysics.js`; no Blender cloth cache is
 required by the game.
 
 The lower-coat proxy includes the fixed gold frame, not just the navy fabric.
-Its authored half-width is 0.48 and its depth spans -0.15 to +0.38 in model
+Its authored half-width is 0.35 and its depth spans -0.25 to +0.25 in model
 coordinates. Keep its rear face ahead of the resting cape; starting the cloth
 inside this proxy pushes it upward instead of letting it drape.
 
-All 19 existing clips are embedded in the armature: `RoyalSit`, `WalkOut`, `Cry`,
-`TerraceIdle`, `TerraceWalk`, and the 14 `Sword*` training clips declared by
+All 28 clips are embedded in the armature: `RoyalSit`, `WalkOut`, `Cry`,
+`TerraceIdle`, `TerraceWalk`, `GroundSitDown`, `GroundRest`, `GroundStandUp`, and the 15 `Sword*` training clips declared by
 `KingAnimation.js`. The existing performances are baked onto the anatomical
 chains at 24 fps; they do not require a runtime IK solver or Blender constraints.
 No third-party motion pack is bundled. External human motion must first be
@@ -116,3 +120,19 @@ Focused checks:
 ```sh
 node --test test/unit/game/models/castle/royals/king-skeleton.test.js test/unit/game/models/castle/royals/king-attachments.test.js test/unit/game/models/castle/royals/king-model-animations.test.js test/unit/game/models/castle/royals/royal-seated-pose.test.js test/unit/game/objects/castle/rooms/terrace/terrace-actor.test.js test/unit/game/objects/castle/rooms/terrace/king-terrace-performance.test.js
 ```
+
+The simulated mantle carries an additional 0.15 mass budget distributed over fur attachment nodes. Nearby fur vertices follow those same simulated nodes, while unrelated collar/coat trim retains normal skinning. Teardown restores both cloth and trim meshes.
+
+Fur and dark hem details are attached per connected component (including duplicated shading seams), preserving each piece’s shape while following the simulated cloth. The torso collider is measured from the complete navy torso mesh, excluding the separately hinged lap panels, so a seated fold cannot enter the back of the body.
+
+The continuous mantle is sewn along the collar and the front opening edges, matching its original body-attached side panels. Rear panels and hem remain simulated. Training root turns are limited to 90 degrees per second to avoid impulsively winding the cloth around the torso.
+
+The terrace routine uses separate Yuka exercise states: `KingSwordCombinationState`, `KingAdvanceRetreatState`, `KingHalfTurnState`, `KingJumpSpinState`, and `KingGuardPracticeState`. Each plays its own nonlooping, guard-ended clip from the editable model. Completion randomly selects any other exercise with equal probability; no immediate repeats or mid-exercise random interruptions. `SwordTrainingDrill` remains the continuous 19.958-second authoring reference. It advances into an overhead cut, recovers to guard, thrusts, then withdraws. A second footwork passage takes three alternating steps forward, thrusts from guard, and takes three steps backward to the opening stance. Foot contacts are baked in Blender; the runtime adds no translation or random pose changes. The rear ankle stays planted during the opening sword exercise, and both feet return to their starting contacts. Air swings are silent. Stone footsteps play at the baked landings at 1.55, 5.15, 7.2, 8, 8.8, 10.2, 11 and 11.8 seconds; planted feet produce no repeated steps. The terrace has a stone floor.
+
+The routine occasionally adds two quick 180-degree step turns (12.65–14.85 s), with a brief backward-facing guard between them. The jump takes off at 16.45 s, completes one 360-degree rotation while airborne, and lands at 17.25 s with a short knee compression and recovery. The loop ends in the original guard and floor contacts. Footsteps include turn-step landings at 13.05, 13.5, 14.4 and 14.85 s, plus the jump landing at 17.25 s; air swings remain silent.
+
+Training stamina drains over 65 seconds of active exercise and scales drill playback continuously from full speed to 45%. Exhaustion waits for the completed exercise before the 1.5-second `GroundSitDown`. Only the seated `GroundRest` loop recovers stamina, over 6 seconds; `GroundStandUp` finishes before full-speed training resumes. Cancellation uses the stand-up before departure. Paused reactions do not advance fatigue or recovery.
+
+The lower front coat and its gold ornaments share `King lap cloth`, hinged at the rear waist for the ground-seated lap. Every standing exercise explicitly keeps that joint neutral. The torso and shoulder seams retain their original binding. Ground contact limits sewn mantle edges at floor level while the remaining cloth settles through the existing simulation.
+
+For seated hems, the cloth world uses a convex floor box. Moving zero-mass seams can exceed Bullet's contact tolerance, so a narrowly bounded post-step floor projection resolves remaining penetration and removes only downward contact velocity. Gravity, inertia, links, and body collision remain Ammo-driven. The seated-recovery regression checks floor support through descent and rise.

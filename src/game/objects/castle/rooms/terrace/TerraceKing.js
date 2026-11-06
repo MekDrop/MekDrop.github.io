@@ -1,12 +1,40 @@
 import kingModelUrl from "../../../../models/castle/royals/king.glb?url";
 import { KING_ANIMATION } from "../../../../enum/KingAnimation.js";
 import { KingTerracePerformance } from "./KingTerracePerformance.js";
+import { KingTrainingClips } from "./KingTrainingClips.js";
 import { TerraceActor } from "./TerraceActor.js";
+import { CastleAudio } from "../../../../audio/castle/CastleAudio.js";
+import { GameObjectAudio } from "../../../../audio/GameObjectAudio.js";
+import { KingTrainingExpression } from "./KingTrainingExpression.js";
 
 /**
  * Owns the king model, its embedded animation player, and roof routine.
  */
 export class TerraceKing {
+  /**
+   * @type {number}
+   */
+  #visualYaw = 0;
+  /**
+   * @type {number|null}
+   */
+  #poseTime = null;
+  /**
+   * @type {KingTrainingExpression|null}
+   */
+  #expression = null;
+  /**
+   * @type {GameObjectAudio|null}
+   */
+  #audio = null;
+  /**
+   * @type {number|null}
+   */
+  #soundTime = null;
+  /**
+   * @type {string|null}
+   */
+  #soundClip = null;
   /**
    *
     * @returns {string}
@@ -89,15 +117,25 @@ export class TerraceKing {
    * @param {string} options.modelLibrary
    * @param {number|string} options.performanceSeed
    */
-  constructor({ pc, modelLibrary, performanceSeed }) {
+  constructor({ pc, modelLibrary, performanceSeed, app, runtime }) {
     this.#actor = new TerraceActor({
       pc,
       modelLibrary,
       modelUrl: kingModelUrl,
       kind: TerraceKing.kind,
     });
-    this.#performance = new KingTerracePerformance(performanceSeed);
+    this.#performance = new KingTerracePerformance();
     this.#setupAnimations(modelLibrary);
+    if (app) {
+      this.#expression = new KingTrainingExpression(this.model, app);
+    }
+    if (app && runtime?.audioLibrary) {
+      this.#audio = new GameObjectAudio(this.entity, app, runtime.audioLibrary, {
+        stoneStep1: CastleAudio.stoneStep1,
+        stoneStep2: CastleAudio.stoneStep2,
+      }, 0.22);
+      this.#audio.follow(() => runtime.objects.getOne("hero")?.position ?? null);
+    }
   }
 
   /**
@@ -126,6 +164,9 @@ export class TerraceKing {
    */
   set behavior(value) {
     this.#actor.behavior = value;
+    if (value && "trainingRoutine" in value) {
+      value.trainingRoutine = this.#performance.routine;
+    }
   }
 
   /**
@@ -184,6 +225,8 @@ export class TerraceKing {
   pose(action, time = 0, blend = 1) {
     if (action !== this.#action) {
       this.#action = action;
+      this.#poseTime = null;
+      this.#visualYaw = 0;
       this.#performanceOrigin = action === "sword"
         ? this.entity.getLocalPosition().clone()
         : null;
@@ -199,8 +242,36 @@ export class TerraceKing {
         this.#lastYaw = 0;
       }
     }
-    const sample = this.#performance.sample(action, time, blend);
-    this.#play(sample.clip, sample.sequenceStep, action === "walk" ? 0.75 : 1);
+    const sample = this.#performance.sample(action, time, blend, {
+      clip: this.#animationLayer.activeState,
+      time: this.#animationLayer.activeStateCurrentTime ?? 0,
+    });
+    this.#expression?.pose(action, sample.clip);
+    this.#play(sample.clip, sample.sequenceStep, action === "walk" ? 0.75 : sample.failed ? 1.25 : sample.speed ?? 1);
+    const contacts = KingTrainingClips.contacts(sample.clip);
+    if (sample.clip !== this.#soundClip) {
+      this.#soundTime = null;
+      this.#soundClip = sample.clip;
+    }
+    if (contacts.length) {
+      const elapsed = this.#animationLayer.activeStateCurrentTime ?? 0;
+      const duration = KingTrainingClips.duration(sample.clip);
+      const phase = Math.min(elapsed, duration);
+      const previous = this.#soundTime;
+      if (previous !== null) {
+        // These are the baked foot landings, not the blade strokes.
+        for (const [index, contact] of contacts.entries()) {
+          const crossed = phase >= previous ? previous < contact && phase >= contact
+            : previous < contact || phase >= contact;
+          if (crossed) {
+            this.#audio?.play(`stoneStep${index % 2 + 1}`);
+          }
+        }
+      }
+      this.#soundTime = phase;
+    } else {
+      this.#soundTime = null;
+    }
     if (action !== "sword" || !this.#performanceOrigin) {
       return;
     }
@@ -229,14 +300,41 @@ export class TerraceKing {
       this.#performanceOrigin.y + offset.y,
       this.#performanceOrigin.z + offset.z,
     );
+    const dt = this.#poseTime === null ? 0 : Math.min(0.05, Math.max(0, time - this.#poseTime));
+    this.#poseTime = time;
+    const error = ((yaw - this.#visualYaw) % 360 + 540) % 360 - 180;
+    this.#visualYaw += Math.max(-90 * dt, Math.min(90 * dt, error));
     this.entity.setLocalEulerAngles(
       this.#performanceRotation.x,
-      this.#performanceRotation.y + yaw,
+      this.#performanceRotation.y + this.#visualYaw,
       this.#performanceRotation.z,
     );
   }
 
+  /**
+   * @returns {number}
+   */
+  get stamina() {
+    return this.#performance.stamina;
+  }
+
+  /**
+   * @param {number} value
+   */
+  set stamina(value) {
+    this.#performance.stamina = value;
+  }
+
+  /**
+   * @returns {boolean}
+   */
+  get resting() {
+    return this.#performance.resting;
+  }
+
   destroy() {
+    this.#expression?.destroy();
+    this.#expression = null;
     this.#actor.destroy();
     this.#actor = null;
     this.#performance = null;
@@ -259,6 +357,8 @@ export class TerraceKing {
         KING_ANIMATION.TERRACE_IDLE,
         KING_ANIMATION.TERRACE_WALK,
         KING_ANIMATION.SWORD_READY,
+        KING_ANIMATION.SWORD_TRAINING_DRILL,
+        KING_ANIMATION.GROUND_REST,
       ].includes(name);
       model.anim.addAnimationState(name, tracks.get(name), 1, looping);
     }
@@ -281,7 +381,7 @@ export class TerraceKing {
     if (name === this.#animationName) {
       this.#animationLayer.play(name);
     } else {
-      this.#animationLayer.transition(name, 0.06);
+      this.#animationLayer.transition(name, 0.12);
     }
     this.#animationName = name;
     this.#animationStep = sequenceStep;

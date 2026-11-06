@@ -3,8 +3,15 @@ import { CastleTerraceActivity } from "../../../castle/rooms/terrace/CastleTerra
 import { KingTrainingBehavior } from "../../../castle/residents/KingTrainingBehavior.js";
 import { TerraceKing } from "../../../castle/rooms/terrace/TerraceKing.js";
 import { AbstractRoyal } from "../AbstractRoyal.js";
+import { CastleAudio } from "../../../../audio/castle/CastleAudio.js";
 
 export class King extends AbstractRoyal {
+  /**
+   * @returns {string[]}
+   */
+  static get audioUrls() {
+    return [CastleAudio.stoneStep1.wavUrl, CastleAudio.stoneStep2.wavUrl];
+  }
   /**
    *
     * @returns {Array<string>}

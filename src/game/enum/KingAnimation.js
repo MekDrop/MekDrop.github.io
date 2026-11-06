@@ -1,4 +1,13 @@
 export const KING_ANIMATION = Object.freeze({
+  SWORD_COMBINATION: "SwordCombination",
+  ADVANCE_RETREAT: "AdvanceRetreat",
+  HALF_TURN_PRACTICE: "HalfTurnPractice",
+  JUMP_SPIN: "JumpSpin",
+  GUARD_PRACTICE: "GuardPractice",
+  GROUND_SIT_DOWN: "GroundSitDown",
+  GROUND_REST: "GroundRest",
+  GROUND_STAND_UP: "GroundStandUp",
+  SWORD_TRAINING_DRILL: "SwordTrainingDrill",
   TERRACE_IDLE: "TerraceIdle",
   TERRACE_WALK: "TerraceWalk",
   SWORD_READY: "SwordReady",

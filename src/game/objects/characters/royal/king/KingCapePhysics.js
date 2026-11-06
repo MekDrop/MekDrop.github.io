@@ -1,5 +1,5 @@
 /**
- * @typedef {{instance: import("playcanvas").MeshInstance, originalMesh: import("playcanvas").Mesh, originalMaterial: import("playcanvas").Material, originalSkin: import("playcanvas").SkinInstance|null, mesh: import("playcanvas").Mesh, material: import("playcanvas").Material, source: number[], positions: number[], indices: number[], joints: number[], weights: number[], mapping: number[]}} KingCapeBinding
+ * @typedef {{instance: import("playcanvas").MeshInstance, originalMesh: import("playcanvas").Mesh, originalMaterial: import("playcanvas").Material, originalSkin: import("playcanvas").SkinInstance|null, mesh: import("playcanvas").Mesh, material: import("playcanvas").Material, source: number[], positions: number[], indices: number[], joints: number[], weights: number[], mapping: number[], trimOffsets?: import("playcanvas").Vec3[]}} KingCapeBinding
  * @typedef {{index: number, local: import("playcanvas").Vec3, previous: import("playcanvas").Vec3, target: import("playcanvas").Vec3}} KingCapePin
  * @typedef {{entity: import("playcanvas").Entity, localCenter: import("playcanvas").Vec3, floor: boolean, previousPosition: import("playcanvas").Vec3, targetPosition: import("playcanvas").Vec3, previousRotation: import("playcanvas").Quat, targetRotation: import("playcanvas").Quat, body: import("sync-ammo/dist/ammo").btRigidBody, motion: import("sync-ammo/dist/ammo").btDefaultMotionState, transform: import("sync-ammo/dist/ammo").btTransform, position: import("sync-ammo/dist/ammo").btVector3, rotation: import("sync-ammo/dist/ammo").btQuaternion}} KingCapeCollider
  */
@@ -260,6 +260,7 @@ export class KingCapePhysics {
     const chestInverse = this.#chest.getWorldTransform().clone().invert();
     const unique = new Map();
     const triangles = [];
+    const frontSeams = new Set();
     this.#bindings = instances.map(this.#readBinding.bind(this));
     let top = -Infinity, bottom = Infinity;
     for (const binding of this.#bindings) {
@@ -277,6 +278,11 @@ export class KingCapePhysics {
           bottom = Math.min(bottom, local.y);
         }
         binding.mapping.push(index);
+        const rest = rootInverse.transformPoint(binding.instance.node.getWorldTransform().transformPoint(
+          new this.#pc.Vec3(...binding.source.slice(vertex * 3, vertex * 3 + 3))));
+        if (rest.z > 0.04 && Math.abs(rest.x) > 0.3) {
+          frontSeams.add(index);
+        }
       }
       for (const index of binding.indices) {
         triangles.push(binding.mapping[index]);
@@ -287,7 +293,7 @@ export class KingCapePhysics {
     const threshold = top - (top - bottom) * 0.04;
     for (let index = 0; index < this.#nodes.length; index++) {
       const point = this.#nodes[index];
-      if (rootInverse.transformPoint(point).y >= threshold - 0.0001) {
+      if (rootInverse.transformPoint(point).y >= threshold - 0.0001 || frontSeams.has(index)) {
         this.#pins.push({
           index,
           local: chestInverse.transformPoint(point),
@@ -327,17 +333,18 @@ export class KingCapePhysics {
       this.#addLink(c, a, structural, links);
     }
     const bending = this.#body.appendMaterial();
-    bending.set_m_kLST(0.98);
-    bending.set_m_kAST(0.98);
+    bending.set_m_kLST(0.55);
+    bending.set_m_kAST(0.55);
     this.#body.generateBendingConstraints(2, bending);
     this.#body.setTotalMass(0.3, false);
+    this.#attachTrim();
     for (const pin of this.#pins) {
       this.#body.setMass(pin.index, 0);
     }
     const config = this.#body.get_m_cfg();
     config.set_piterations(28);
     config.set_viterations(14);
-    config.set_kDP(0.24);
+    config.set_kDP(0.22);
     config.set_kDF(0.45);
     config.set_kCHR(1);
     config.set_kKHR(1);
@@ -376,11 +383,22 @@ export class KingCapePhysics {
     const inverse = this.#chest.getWorldTransform().clone().invert();
     const minimum = new this.#pc.Vec3(Infinity, Infinity, Infinity);
     const maximum = new this.#pc.Vec3(-Infinity, -Infinity, -Infinity);
-    const body = this.#root.findByName("Indigo bodice front");
+    const body = this.#root.findByName("Royal animation rig - Dynasty midnight wool");
     for (const instance of body?.render?.meshInstances ?? []) {
       const binding = this.#readBinding(instance);
       const matrices = this.#skinMatrices(binding);
       for (let vertex = 0; vertex < binding.source.length / 3; vertex++) {
+        let lap = false;
+        for (let influence = 0; influence < 4; influence++) {
+          const offset = vertex * 4 + influence;
+          if (binding.weights[offset] > 0 &&
+            binding.originalSkin?.bones[binding.joints[offset]]?.name === "King lap cloth") {
+            lap = true;
+          }
+        }
+        if (lap) {
+          continue;
+        }
         const local = inverse.transformPoint(this.#sourceWorld(binding, vertex, matrices));
         minimum.min(local);
         maximum.max(local);
@@ -393,21 +411,8 @@ export class KingCapePhysics {
     const center = minimum.clone().add(maximum).mulScalar(0.5);
     const extents = maximum.clone().sub(minimum).mulScalar(0.5);
     const scale = this.#chest.getWorldTransform().getScale();
-    // The bodice is a thin front panel. Extend its proxy toward the cape to
-    // cover the actual chest volume rather than treating that panel as a wall.
-    const capeCenter = new this.#pc.Vec3();
-    for (const point of this.#nodes) {
-      capeCenter.add(inverse.transformPoint(point));
-    }
-    capeCenter.mulScalar(1 / this.#nodes.length).sub(center);
-    capeCenter.y = 0;
-    if (capeCenter.lengthSq() > 0.000001) {
-      capeCenter.normalize();
-      const halfDepth = 0.18 * this.#scale / Math.max(0.001, scale.z);
-      center.addScaled(capeCenter, halfDepth);
-      extents.x += Math.abs(capeCenter.x) * halfDepth;
-      extents.z += Math.abs(capeCenter.z) * halfDepth;
-    }
+    // The complete torso supplies the volume. The hinged lap panels have their
+    // own motion and must not enlarge this chest-owned collider while seated.
     const half = this.#own(new this.#ammo.btVector3(
       Math.max(0.02, extents.x * scale.x) * PHYSICS_SCALE,
       Math.max(0.02, extents.y * scale.y) * PHYSICS_SCALE,
@@ -425,13 +430,13 @@ export class KingCapePhysics {
   #addCoatCollider() {
     const hips = this.#root.findByName("Royal hips") ?? this.#chest;
     const worldCenter = this.#root.getWorldTransform().transformPoint(
-      new this.#pc.Vec3(0, 0.43, 0.115),
+      new this.#pc.Vec3(0, 0.43, 0),
     );
     const center = hips.getWorldTransform().clone().invert().transformPoint(worldCenter);
     const half = this.#own(new this.#ammo.btVector3(
-      0.48 * this.#scale * PHYSICS_SCALE,
+      0.35 * this.#scale * PHYSICS_SCALE,
       0.32 * this.#scale * PHYSICS_SCALE,
-      0.265 * this.#scale * PHYSICS_SCALE,
+      0.25 * this.#scale * PHYSICS_SCALE,
     ));
     const shape = this.#own(new this.#ammo.btBoxShape(half));
     shape.setMargin(0.008 * this.#scale * PHYSICS_SCALE);
@@ -439,9 +444,16 @@ export class KingCapePhysics {
   }
 
   #addFloorCollider() {
-    const normal = this.#own(new this.#ammo.btVector3(0, 1, 0));
-    const shape = this.#own(new this.#ammo.btStaticPlaneShape(normal, 0));
-    this.#addCollider(this.#root, new this.#pc.Vec3(), shape, true);
+    // Bullet's soft-body sparse SDF does not reliably resolve a descending hem
+    // against an infinite plane. A solid box provides a supported convex floor.
+    const half = this.#own(new this.#ammo.btVector3(
+      8 * this.#scale * PHYSICS_SCALE,
+      0.05 * this.#scale * PHYSICS_SCALE,
+      8 * this.#scale * PHYSICS_SCALE,
+    ));
+    const shape = this.#own(new this.#ammo.btBoxShape(half));
+    shape.setMargin(0.002 * this.#scale * PHYSICS_SCALE);
+    this.#addCollider(this.#root, new this.#pc.Vec3(0, -0.05, 0), shape, true);
   }
 
   /**
@@ -486,7 +498,8 @@ export class KingCapePhysics {
    */
   #targetCollider(collider) {
     if (collider.floor) {
-      collider.targetPosition.set(0, this.#root.getPosition().y, 0);
+      collider.targetPosition.copy(this.#root.getPosition());
+      collider.targetPosition.y += collider.localCenter.y * this.#scale;
       collider.targetRotation.set(0, 0, 0, 1);
     } else {
       const matrix = collider.entity.getWorldTransform();
@@ -529,6 +542,9 @@ export class KingCapePhysics {
   #reset() {
     const nodes = this.#body.get_m_nodes();
     for (const binding of this.#bindings) {
+      if (binding.trimOffsets) {
+        continue;
+      }
       const matrices = this.#skinMatrices(binding);
       for (let vertex = 0; vertex < binding.mapping.length; vertex++) {
         const point = this.#sourceWorld(binding, vertex, matrices).mulScalar(PHYSICS_SCALE);
@@ -540,6 +556,28 @@ export class KingCapePhysics {
     }
     this.#accumulator = 0;
     this.#resets++;
+  }
+
+  /**
+   * Moving zero-mass seams can pull nodes through Bullet's soft-body SDF contact
+   * tolerance even with a convex floor. Resolve only that remaining penetration;
+   * Ammo still owns gravity, inertia, links, friction, and all body collisions.
+   */
+  #resolveFloorContact() {
+    const floor = (this.#root.getPosition().y + 0.012 * this.#scale) * PHYSICS_SCALE;
+    const nodes = this.#body.get_m_nodes();
+    for (let index = 0; index < this.#nodes.length; index++) {
+      const node = nodes.at(index);
+      const point = node.get_m_x();
+      if (point.y() >= floor) {
+        continue;
+      }
+      point.setValue(point.x(), floor, point.z());
+      const previous = node.get_m_q();
+      previous.setValue(previous.x(), Math.max(floor, previous.y()), previous.z());
+      const velocity = node.get_m_v();
+      velocity.setValue(velocity.x(), Math.max(0, velocity.y()), velocity.z());
+    }
   }
 
   #beforeRender() {
@@ -570,6 +608,9 @@ export class KingCapePhysics {
     this.#previousPosition.copy(this.#root.getPosition());
     for (const pin of this.#pins) {
       this.#chest.getWorldTransform().transformPoint(pin.local, pin.target);
+      // A ground-seated hem rests on the floor instead of pulling sewn edges
+      // through it when the chest descends. Collar anchors remain unaffected.
+      pin.target.y = Math.max(pin.target.y, this.#root.getPosition().y + 0.012 * this.#scale);
       if (reset) {
         pin.previous.copy(pin.target);
       }
@@ -594,6 +635,7 @@ export class KingCapePhysics {
       }
       this.#syncPins(amount);
       this.#world.stepSimulation(FIXED_STEP, 0);
+      this.#resolveFloorContact();
     }
     this.#accumulator -= this.#substeps * FIXED_STEP;
     // Bullet can move even mass-zero nodes during contact resolution; enforce
@@ -614,9 +656,18 @@ export class KingCapePhysics {
     const point = new this.#pc.Vec3();
     for (const binding of this.#bindings) {
       const inverse = binding.instance.node.getWorldTransform().clone().invert();
+      const matrices = binding.trimOffsets ? this.#skinMatrices(binding) : null;
       for (let vertex = 0; vertex < binding.mapping.length; vertex++) {
-        const position = nodes.at(binding.mapping[vertex]).get_m_x();
-        point.set(position.x() / PHYSICS_SCALE, position.y() / PHYSICS_SCALE, position.z() / PHYSICS_SCALE);
+        const index = binding.mapping[vertex];
+        if (index < 0) {
+          point.copy(this.#sourceWorld(binding, vertex, matrices));
+        } else {
+          const position = nodes.at(index).get_m_x();
+          point.set(position.x() / PHYSICS_SCALE, position.y() / PHYSICS_SCALE, position.z() / PHYSICS_SCALE);
+          if (binding.trimOffsets) {
+            point.add(this.#root.getWorldTransform().transformVector(binding.trimOffsets[vertex]));
+          }
+        }
         inverse.transformPoint(point, point);
         binding.positions[vertex * 3] = point.x;
         binding.positions[vertex * 3 + 1] = point.y;
@@ -625,6 +676,95 @@ export class KingCapePhysics {
       binding.mesh.setPositions(binding.positions);
       binding.mesh.setNormals(this.#pc.calculateNormals(binding.positions, binding.indices));
       binding.mesh.update(this.#pc.PRIMITIVE_TRIANGLES, true);
+    }
+  }
+
+  /**
+   * Sew nearby fur vertices to the cloth nodes and distribute their hem mass.
+   */
+  #attachTrim() {
+    const inverse = this.#root.getWorldTransform().clone().invert();
+    const counts = new Array(this.#nodes.length).fill(0);
+    let total = 0;
+    for (const render of this.#root.findComponents("render")) {
+      for (const instance of render.meshInstances) {
+        if (!/Dynasty (fur tips|ivory ermine|ink)/.test(instance.node.name)) {
+          continue;
+        }
+        const binding = this.#readBinding(instance);
+        const matrices = this.#skinMatrices(binding);
+        binding.trimOffsets = [];
+        const sources = [];
+        const parents = [];
+        const seams = new Map();
+        for (let vertex = 0; vertex < binding.source.length / 3; vertex++) {
+          const point = this.#sourceWorld(binding, vertex, matrices);
+          sources.push(point);
+          const key = `${Math.round(point.x * 100000)}:${Math.round(point.y * 100000)}:${Math.round(point.z * 100000)}`;
+          parents.push(seams.get(key) ?? vertex);
+          seams.set(key, parents[vertex]);
+        }
+        /**
+         * @param {number} index @returns {number}
+         */
+        const find = (index) => {
+          while (parents[index] !== index) {
+            index = parents[index];
+          }
+
+          return index;
+        };
+        for (let face = 0; face < binding.indices.length; face += 3) {
+          const first = find(binding.indices[face]);
+          parents[find(binding.indices[face + 1])] = first;
+          parents[find(binding.indices[face + 2])] = first;
+        }
+        const centers = new Map();
+        for (let vertex = 0; vertex < sources.length; vertex++) {
+          const group = find(vertex);
+          if (!centers.has(group)) {
+            centers.set(group, {
+              point: new this.#pc.Vec3(),
+              count: 0,
+            });
+          }
+          const center = centers.get(group);
+          center.point.add(sources[vertex]);
+          center.count++;
+        }
+        for (const center of centers.values()) {
+          center.point.mulScalar(1 / center.count);
+        }
+        let attached = false;
+        for (let vertex = 0; vertex < binding.source.length / 3; vertex++) {
+          const source = sources[vertex];
+          const center = centers.get(find(vertex)).point;
+          let nearest = -1, distance = 0.22 * this.#scale;
+          for (let index = 0; index < this.#nodes.length; index++) {
+            const separation = center.distance(this.#nodes[index]);
+            if (separation < distance) {
+              nearest = index;
+              distance = separation;
+            }
+          }
+          binding.mapping.push(nearest);
+          binding.trimOffsets.push(nearest < 0 ? new this.#pc.Vec3()
+            : inverse.transformVector(source.clone().sub(this.#nodes[nearest])));
+          if (nearest >= 0) {
+            counts[nearest]++;
+            total++;
+            attached = true;
+          }
+        }
+        if (attached) {
+          this.#bindings.push(binding);
+        }
+      }
+    }
+    if (total > 0) {
+      for (let index = 0; index < counts.length; index++) {
+        this.#body.setMass(index, 0.3 / counts.length + 0.15 * counts[index] / total);
+      }
     }
   }
 

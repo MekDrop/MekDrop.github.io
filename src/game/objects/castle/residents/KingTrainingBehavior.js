@@ -10,8 +10,51 @@ import { KingOnThroneState } from "../states/terrace/king/KingOnThroneState.js";
 import { KingPrepareTrainingState } from "../states/terrace/king/KingPrepareTrainingState.js";
 import { KingReturnToThroneState } from "../states/terrace/king/KingReturnToThroneState.js";
 import { RoyalTerraceActivityBehavior } from "../rooms/terrace/RoyalTerraceActivityBehavior.js";
+import { CASTLE_TERRACE_PHASE } from "../../../enum/CastleTerracePhase.js";
 
 export class KingTrainingBehavior extends RoyalTerraceActivityBehavior {
+  /**
+   * @type {import("../rooms/terrace/KingTrainingRoutine.js").KingTrainingRoutine|null}
+   */
+  #trainingRoutine = null;
+
+  get trainingRoutine() {
+    return this.#trainingRoutine;
+  }
+
+  /**
+   * @param {import("../rooms/terrace/KingTrainingRoutine.js").KingTrainingRoutine} value
+   */
+  set trainingRoutine(value) {
+    this.#trainingRoutine = value;
+  }
+
+  /**
+   * @returns {string}
+   */
+  get animation() {
+    return this.stagePhase === CASTLE_TERRACE_PHASE.ACTIVITY && this.#trainingRoutine
+      ? this.#trainingRoutine.clip : super.animation;
+  }
+
+  /**
+   * @returns {import("src/game/objects/ObjectTypes.js").TerraceActivityState}
+   */
+  get state() {
+    const state = super.state;
+    if (this.stagePhase !== CASTLE_TERRACE_PHASE.ACTIVITY || !this.#trainingRoutine) {
+      return state;
+    }
+
+    return {
+      ...state,
+      name: this.#trainingRoutine.stateName,
+      progress: this.#trainingRoutine.progress,
+      stamina: this.#trainingRoutine.stamina,
+      resting: this.#trainingRoutine.resting,
+    };
+  }
+
   /**
    * @type {number}
    */
@@ -122,7 +165,7 @@ export class KingTrainingBehavior extends RoyalTerraceActivityBehavior {
         new KingEnterTrainingState(walkDuration),
         new KingPrepareTrainingState(1.4),
         new KingCombatTrainingState(),
-        new KingFinishTrainingState(1.4),
+        new KingFinishTrainingState(2),
         new KingReturnToThroneState(walkDuration),
       ],
       phases: {

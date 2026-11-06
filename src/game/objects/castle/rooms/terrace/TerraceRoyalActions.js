@@ -192,7 +192,7 @@ export class TerraceRoyalActions {
         return;
       }
       const target = this.#kind === "princess" ? [-0.75, 0, 3.2] : [0, 0, 3.1];
-      this.#place(...target, this.#kind === "princess" ? 90 : 0);
+      this.#place(...target, this.#kind === "princess" ? 90 : 180);
       this.#royal.pose(behavior.action, this.#activityTime, phase === PHASE.SETTLE
         ? behavior.progress : phase === PHASE.RISE ? 1 - behavior.progress : 1);
 
@@ -229,7 +229,7 @@ export class TerraceRoyalActions {
     this.#royal.entity.setLocalPosition(...target);
     this.#royal.entity.setLocalEulerAngles(
       0,
-      this.#kind === "princess" ? 90 : 0,
+      this.#kind === "princess" ? 90 : 180,
       0,
     );
     const blend = phase === PHASE.SETTLE

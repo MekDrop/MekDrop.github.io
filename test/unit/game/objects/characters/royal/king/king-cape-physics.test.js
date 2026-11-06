@@ -106,9 +106,10 @@ class TestMaterial {
 }
 
 /**
+ * @param {{frontSeams?:boolean}} options
  * @returns {{pc: typeof playCanvas, root: playCanvas.Entity, chest: playCanvas.Entity, app: playCanvas.EventHandler, instances: Array<{mesh: TestMesh, material: TestMaterial, node: playCanvas.Entity, skinInstance: {bones: playCanvas.Entity[], skin: {inverseBindPose: playCanvas.Mat4[]}}}>, physics: KingCapePhysics, frame: (dt?: number) => void}}
  */
-function fixture() {
+function fixture({ frontSeams = false } = {}) {
   const pc = {
     ...playCanvas,
     Mesh: TestMesh,
@@ -131,7 +132,8 @@ function fixture() {
     const fraction = row / 6;
     for (let column = 0; column < 7; column++) {
       const x = (column / 6 * 2 - 1) * (0.45 + 0.16 * fraction);
-      grid.push([x, 1.2 - fraction * 1.05, -0.28 - 0.09 * fraction - 0.08 * (1 - Math.abs(column / 3 - 1))]);
+      grid.push([x, 1.2 - fraction * 1.05, frontSeams && (column === 0 || column === 6)
+        ? 0.1 : -0.28 - 0.09 * fraction - 0.08 * (1 - Math.abs(column / 3 - 1))]);
     }
   }
   const meshes = [new TestMesh(), new TestMesh()];
@@ -154,10 +156,10 @@ function fixture() {
     skinInstance: skin,
   }));
   cape.render = { meshInstances: instances };
-  const panel = new pc.Entity("Indigo bodice front");
+  const panel = new pc.Entity("Royal animation rig - Dynasty midnight wool");
   root.addChild(panel);
   const panelMesh = new TestMesh();
-  panelMesh.setPositions([-0.3, 0.6, 0.16, 0.3, 1.1, 0.2]);
+  panelMesh.setPositions([-0.33, 0.62, -0.23, 0.33, 1.22, 0.23]);
   panelMesh.update();
   panel.render = {
     meshInstances: [{
@@ -226,6 +228,28 @@ it("lazily initializes visible capes, deduplicates seams, and restores shared as
     }
     assert.equal(scene.app.hasEvent("update"), false);
     assert.equal(scene.app.hasEvent("prerender"), false);
+  } finally {
+    scene.physics.destroy();
+  }
+});
+
+it("supports sewn front hems on the floor throughout seated recovery and standing", () => {
+  const scene = fixture({ frontSeams: true });
+  try {
+    scene.frame();
+    assert.ok(scene.physics.testState.pins.length > 7, "front seams must be represented");
+    for (let frame = 0; frame <= 180; frame++) {
+      const descent = frame <= 90 ? frame / 90 : 2 - frame / 90;
+      scene.chest.setLocalPosition(0, 1.1 - 0.43 * descent, 0);
+      scene.frame();
+      const state = scene.physics.testState;
+      assert.ok(state.pins.every((pin) => pin.target[1] >= 0.012 - 0.00001),
+        "a descending sewn hem must not pull cloth through the floor");
+      assert.ok(state.maxPinError < 0.00001);
+      assert.ok(Math.min(...state.nodes.map((point) => point[1])) > -0.015,
+        `floor penetration at frame ${frame}: ${Math.min(...state.nodes.map((point) => point[1]))}`);
+      assert.ok(state.nodes.flat().every(Number.isFinite));
+    }
   } finally {
     scene.physics.destroy();
   }
