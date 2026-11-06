@@ -14,6 +14,13 @@ export class CastleAuthoredMapObjects {
       const position = castle.buildPlan?.input?.position ?? castle.position;
       for (const item of castle.buildPlan?.metadata?.runtime?.authoredObjects ?? []) {
         const id = `${castle.id}-authored-${item.id}`;
+        if (item.authoredStorageSupply) {
+          for (let index = map.objects.length - 1; index >= 0; index--) {
+            if (map.objects[index].id === item.id) {
+              map.objects.splice(index, 1);
+            }
+          }
+        }
         // Older test maps may still author the same fixture explicitly.
         const exists = map.objects.some(/**
          *

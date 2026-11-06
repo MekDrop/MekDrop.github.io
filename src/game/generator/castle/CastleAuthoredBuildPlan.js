@@ -3,6 +3,7 @@ import { CastleGenerationScheduler } from "./CastleGenerationScheduler.js";
 import { CastleBasePlanGenerator } from "./CastleBasePlanGenerator.js";
 import { StairwellRoomGenerator } from "./rooms/stairwell/StairwellRoomGenerator.js";
 import { SpiralStairStorage } from "./rooms/stairwell/SpiralStairStorage.js";
+import { AuthoredStorageSupplies } from "./rooms/terrace-storage/AuthoredStorageSupplies.js";
 import { CastleBasePlanInvalidError } from "../../errors/castle/index.js";
 import { CastleAuthoredResidentialPlan } from "./CastleAuthoredResidentialPlan.js";
 import { castleStraightStairSurfaces } from "../../objects/castle/stairs/CastleStraightStairs.js";
@@ -1101,7 +1102,7 @@ export class CastleAuthoredBuildPlan {
       metadata: {
         runtime: {
           entranceDoorOwnedByRoom: envelope.entrance.doorOwnedByRoom === true,
-          authoredObjects: [...(envelope.objects ?? []), ...SpiralStairStorage.furnish(envelope.roundTower,
+          authoredObjects: [...AuthoredStorageSupplies.furnish(envelope.objects ?? [], options.seed), ...SpiralStairStorage.furnish(envelope.roundTower,
             authored.mirrored ? (gate.axis === "z" ? "x" : "z") : null, options.seed)].map(/**
            *
            * @param {import("../../objects/ObjectTypes.js").MapObjectDefinition} item

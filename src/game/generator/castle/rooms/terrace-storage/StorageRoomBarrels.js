@@ -17,34 +17,41 @@ export class StorageRoomBarrels {
    */
   static furnish(room, occupied, context) {
     const seed = context.seed ?? room.furnishingSeed ?? 0;
-    const wanted = RoomFurnishingChoices.order([3, 4, 5, 6], room, "spare-barrel-count", seed)[0];
+    const wanted = RoomFurnishingChoices.order([3, 4, 5, 6, 7, 8], room, "spare-barrel-count", seed)[0];
     const items = [];
-    const inset = (context.wallThickness ?? 0.25) / 2 + 0.03;
-    const half = 0.554 / 2;
+    const inset = (context.wallThickness ?? 0.25) / 2 + 0.025;
+    const bounds = room.wallBounds ?? room;
     const candidates = [];
-    for (const fraction of [0, 0.25, 0.5, 0.75, 1]) {
-      const x = room.minX + inset + half + fraction * (room.maxX - room.minX - 2 * (inset + half));
-      const z = room.minZ + inset + half + fraction * (room.maxZ - room.minZ - 2 * (inset + half));
-      candidates.push([x, room.minZ + inset + half], [x, room.maxZ - inset - half],
-        [room.minX + inset + half, z], [room.maxX - inset - half, z]);
+    for (let slot = 0; slot <= 10; slot++) {
+      candidates.push([slot, 0], [slot, 1], [slot, 2], [slot, 3]);
     }
-    for (const [x, z] of RoomFurnishingChoices.order(candidates, room, "spare-barrel-wall", seed)) {
+    for (const [slot, wall] of RoomFurnishingChoices.order(candidates, room, "spare-barrel-wall", seed)) {
       if (items.length >= wanted) {
         break;
       }
-      const object = RoomFurnishingChoices.order(["Barrel", "Crate"], room,
+      const object = RoomFurnishingChoices.order(["Barrel", "Crate", "PotteryJar"], room,
         `spare-supply-${items.length}`, seed)[0];
+      const scale = RoomFurnishingChoices.order([0.8, 0.9, 1, 1.1], room,
+        `spare-supply-scale-${items.length}`, seed)[0];
+      const size = object === "PotteryJar" ? 0.236 : 0.554;
+      const half = size * scale / 2;
+      const fraction = slot / 10;
+      const alongX = bounds.minX + inset + half + fraction * (bounds.maxX - bounds.minX - 2 * (inset + half));
+      const alongZ = bounds.minZ + inset + half + fraction * (bounds.maxZ - bounds.minZ - 2 * (inset + half));
+      const x = wall < 2 ? alongX : wall === 2 ? bounds.minX + inset + half : bounds.maxX - inset - half;
+      const z = wall >= 2 ? alongZ : wall === 0 ? bounds.minZ + inset + half : bounds.maxZ - inset - half;
       const barrel = {
         id: `${room.id}-spare-barrel-${items.length}`,
         role: "serviceProp",
         object,
         x,
         z,
-        width: 0.554,
-        depth: 0.554,
-        height: object === "Barrel" ? 0.65 : 0.4702,
-        scale: 1,
-        rotation: 0,
+        width: size,
+        depth: size,
+        height: object === "Barrel" ? 0.65 : object === "Crate" ? 0.4702 : 0.3,
+        scale,
+        rotation: RoomFurnishingChoices.order([0, 90, 180, 270], room,
+          `spare-supply-rotation-${items.length}`, seed)[0],
         y: 0.002,
         properties: {
           weathering: 0.45,
@@ -69,7 +76,7 @@ export class StorageRoomBarrels {
    * @returns {boolean}
    */
   static #clearApproaches(barrel, room, context) {
-    const half = barrel.width / 2;
+    const half = barrel.width * barrel.scale / 2;
     const dx = Math.max(0, Math.abs(barrel.x - (room.minX + room.maxX) / 2) - half);
     const dz = Math.max(0, Math.abs(barrel.z - (room.minZ + room.maxZ) / 2) - half);
     if (Math.hypot(dx, dz) < 0.5) {
