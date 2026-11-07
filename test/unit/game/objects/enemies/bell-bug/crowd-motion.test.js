@@ -106,3 +106,23 @@ test('a moving leader is followed instead of repeatedly overtaken',()=>{
   assert.equal(body.linearVelocity.x,0);
   assert.ok(Math.abs(body.linearVelocity.z)<1.15);
 });
+
+test('a yielding slug still blocks the Bell Bug until it clears the way', () => {
+  const { body, peer, motion } = fixture(0, -0.7);
+  motion.owner.isBellBug = true;
+  motion.owner.deltaTime = 0.2;
+  peer.isBellBug = false;
+  peer.radius = 0.42;
+  peer.yieldsTo = actor => actor.isBellBug;
+  motion.owner.stepSupport = { surface: () => null };
+  for (let frame = 0; frame < 30; frame++) {
+    body.linearVelocity.set(0, -0.5, -1.15);
+    assert.equal(motion.constrain(), false);
+    assert.equal(Math.hypot(body.linearVelocity.x, body.linearVelocity.z), 0);
+    assert.equal(body.linearVelocity.y, -0.5);
+  }
+  peer.position.z = -2;
+  body.linearVelocity.set(0, -0.5, -1.15);
+  assert.equal(motion.constrain(), true);
+  assert.deepEqual(body.linearVelocity, new Vec3(0, -0.5, -1.15));
+});

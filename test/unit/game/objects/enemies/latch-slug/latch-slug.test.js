@@ -30,6 +30,12 @@ const shaderHooks = registerHooks({
 const { LatchSlug } = await import("../../../../../../src/game/objects/enemies/latch-slug/LatchSlug.js");
 shaderHooks.deregister();
 
+it("yields to Bell Bugs without giving other enemies the same priority", () => {
+  assert.equal(LatchSlug.prototype.yieldsTo({ isBellBug: true }), true);
+  assert.equal(LatchSlug.prototype.yieldsTo({ isEnemy: true }), false);
+  assert.equal(LatchSlug.prototype.yieldsTo({ isBellBug: false }), false);
+});
+
 function fixture(openAmount = 0) {
   const jam = new DoorJam();
   const door = {

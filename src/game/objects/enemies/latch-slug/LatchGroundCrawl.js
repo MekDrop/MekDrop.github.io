@@ -117,7 +117,7 @@ export class LatchGroundCrawl {
     this.weight += (target - this.weight) * (1 - Math.exp(-10 * dt));
   }
   apply() {
-    if (this.destroyed || this.applied || (!this.active && this.weight < 0.001) || !this.owner.alive || this.owner.airborne) {
+    if (this.destroyed || this.applied || (!this.active && this.weight < 0.001) || !this.owner.alive || this.owner.airborne || this.owner.carrier) {
       return;
     }
     for (const record of this.records) {

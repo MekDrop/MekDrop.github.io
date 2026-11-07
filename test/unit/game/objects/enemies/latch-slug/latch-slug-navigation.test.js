@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import * as pc from "playcanvas";
 import { LatchSlugNavigation } from "../../../../../../src/game/objects/enemies/latch-slug/LatchSlugNavigation.js";
+import { EnemyPathLane } from "../../../../../../src/game/navigation/EnemyPathLane.js";
 
 function fixture(rise = .25) {
   const entity = new pc.Entity();
@@ -106,4 +107,80 @@ test("steers around an idle Bell Bug's complete footprint instead of driving int
   assert.ok(Math.hypot(next.position.x-bug.position.x,next.position.z-bug.position.z)>.9);
   bug.position.y=2;
   assert.ok(Math.abs(navigation.next({position:new pc.Vec3(0,0,-3)}).position.x)<.01, 'another floor is not an obstruction');
+});
+
+test("keeps a Bell Bug detour through the shared lane planner and finishes it before turning", () => {
+  const { owner, navigation } = fixture(0);
+  owner.position.set(0, 0, 0.5);
+  owner.definition = { id: "slug" };
+  owner.runtime = {
+    mapData: {
+      cols: 1,
+      rows: 1,
+      paths: [{
+        route: [
+          {
+            col: -4,
+            row: 0,
+            elevation: 0,
+          },
+          {
+            col: 4,
+            row: 0,
+            elevation: 0,
+          },
+        ],
+      }],
+    },
+  };
+  const bug = {
+    isBellBug: true,
+    isEnemy: true,
+    alive: true,
+    radius: 0.254,
+    footprintRadius: 0.45,
+    height: 0.515,
+    position: new pc.Vec3(0.95, 0, 0.5),
+    entity: { rigidbody: { enabled: true } },
+  };
+  owner.actors = [bug];
+  owner.targetPosition = actor => actor.position;
+  const lane = new EnemyPathLane(owner);
+  const target = { position: new pc.Vec3(4, 0, 0.5) };
+  const first = navigation.next(target).position.clone();
+  assert.ok(Math.abs(first.z - owner.position.z) > 0.1);
+  assert.equal(lane.next(first), first, "the lane planner preserves the local detour");
+  owner.position.lerp(owner.position, first, 0.15);
+  const second = navigation.next(target).position;
+  assert.deepEqual(second, first, "the slug commits to the waypoint instead of flipping sides");
+  let closest = Infinity;
+  for (let frame = 0; frame < 600; frame++) {
+    const point = lane.next(navigation.next(target).position);
+    const direction = point.clone().sub(owner.position);
+    const distance = direction.length();
+    if (distance > 0.025) {
+      owner.position.add(direction.mulScalar(Math.min(distance, 0.85 / 60) / distance));
+    }
+    closest = Math.min(closest, owner.position.distance(bug.position));
+  }
+  assert.ok(owner.position.x > 3.5, "the combined planners carry the slug past the bug");
+  assert.ok(closest >= owner.radius + bug.radius, "the detour does not require physical overlap");
+});
+
+test("escapes existing Bell Bug clearance without steering further into the bug", () => {
+  const { owner, navigation } = fixture(0);
+  owner.position.set(0, 0, 0);
+  owner.targetPosition = actor => actor.position;
+  const bug = {
+    isBellBug: true,
+    alive: true,
+    footprintRadius: 0.45,
+    height: 0.515,
+    position: new pc.Vec3(0, 0, 0.7),
+    entity: { rigidbody: { enabled: true } },
+  };
+  owner.actors = [bug];
+  const next = navigation.next({ position: new pc.Vec3(0, 0, -3) });
+  assert.ok(Math.abs(next.position.x) < 1e-6);
+  assert.ok(next.position.z < 0, "separating motion is allowed even while initially within clearance");
 });

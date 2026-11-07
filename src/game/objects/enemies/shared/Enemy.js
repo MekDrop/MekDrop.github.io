@@ -76,6 +76,14 @@ export class Enemy {
   }
 
   /**
+   * Override when a species owns its lane selection and crowd behavior.
+   * @returns {boolean}
+   */
+  get usesPathLanes() {
+    return true;
+  }
+
+  /**
    * Local obstacle planners must not reject the lower waypoint while the
    * shared bridge planner is deliberately walking the body off a raised lip.
    * @returns {boolean}

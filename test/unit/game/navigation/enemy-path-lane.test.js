@@ -3,6 +3,66 @@ import { it } from "node:test";
 import * as pc from "playcanvas";
 import { EnemyPathLane } from "../../../../src/game/navigation/EnemyPathLane.js";
 
+it("changes lanes around a peer, waits with both lanes occupied, and resumes when clear", () => {
+  for (const vertical of [false, true]) {
+    const owner = fixture("enemy-a", vertical);
+    const lane = new EnemyPathLane(owner);
+    const side = lane.side;
+    owner.position.set(vertical ? -side * 0.5 : 0, 0, vertical ? 0 : side * 0.5);
+    const blocker = {
+      isEnemy: true,
+      alive: true,
+      radius: 0.3,
+      position: owner.position.clone().add(new pc.Vec3(vertical ? 0 : 0.9, 0, vertical ? 0.9 : 0)),
+    };
+    owner.actors = [blocker];
+    const goal = new pc.Vec3(vertical ? 0 : 5, 0, vertical ? 5 : 0);
+    const crossing = lane.next(goal);
+    assert.equal(lane.side, -side);
+    assert.equal(vertical ? crossing.x : crossing.z, - (vertical ? owner.position.x : owner.position.z));
+    lane.side = side;
+    owner.actors.push({
+      ...blocker,
+      position: new pc.Vec3(vertical ? side * 0.5 : 0, 0, vertical ? 0 : -side * 0.5),
+    });
+    assert.deepEqual(lane.next(goal), owner.position);
+    assert.equal(lane.side, side);
+    owner.actors = [];
+    assert.notDeepEqual(lane.next(goal), owner.position);
+  }
+});
+
+it("waits when a wall blocks the lane change and ignores dead or airborne peers", () => {
+  const owner = fixture("enemy-a");
+  const lane = new EnemyPathLane(owner);
+  owner.position.z = lane.side * 0.5;
+  const blocker = {
+    isEnemy: true,
+    alive: true,
+    radius: 0.3,
+    position: new pc.Vec3(0.9, 0, owner.position.z),
+  };
+  owner.actors = [blocker];
+  owner.app = {
+    systems: {
+      rigidbody: {
+        raycastAll: () => [{
+          entity: { rigidbody: { type: "static" } },
+          normal: new pc.Vec3(1, 0, 0),
+        }],
+      },
+    },
+  };
+  const goal = new pc.Vec3(5, 0, 0);
+  assert.deepEqual(lane.next(goal), owner.position);
+  delete owner.app;
+  blocker.alive = false;
+  assert.notDeepEqual(lane.next(goal), owner.position);
+  blocker.alive = true;
+  blocker.airborne = true;
+  assert.notDeepEqual(lane.next(goal), owner.position);
+});
+
 /**
  * @param {string} id
  * @param {boolean} vertical
@@ -119,4 +179,51 @@ it("continues past short centerline segments without stopping at each joint", ()
     owner.position.add(direction.mulScalar(0.01));
   }
   assert.ok(owner.position.x > 0.99);
+});
+
+it("allows separation from existing contact but refuses to move deeper into it", () => {
+  const owner = fixture("enemy-a");
+  const lane = new EnemyPathLane(owner);
+  owner.position.z = lane.side * 0.5;
+  const peer = {
+    isEnemy: true,
+    alive: true,
+    radius: 0.42,
+    position: new pc.Vec3(-0.6, 0, owner.position.z),
+  };
+  owner.actors = [peer];
+  const escaping = lane.next(new pc.Vec3(5, 0, owner.position.z));
+  assert.ok(escaping.x > owner.position.x, "contact does not permanently pin the pair");
+  peer.position.x = 0.6;
+  const toward = lane.next(new pc.Vec3(5, 0, owner.position.z));
+  assert.ok(toward.x <= owner.position.x, "the blocked forward sweep is not allowed");
+});
+
+it("waits for a yielding slug when the other lane is occupied", () => {
+  const owner = fixture("bell-bug");
+  owner.isBellBug = true;
+  const lane = new EnemyPathLane(owner);
+  const side = lane.side;
+  owner.position.z = side * 0.5;
+  owner.actors = [{
+    isEnemy: true,
+    alive: true,
+    radius: 0.42,
+    position: new pc.Vec3(0.7, 0, owner.position.z),
+    yieldsTo: actor => actor.isBellBug,
+  }, {
+    isEnemy: true,
+    alive: true,
+    radius: 0.42,
+    position: new pc.Vec3(0, 0, -owner.position.z),
+  }];
+  const goal = new pc.Vec3(5, 0, owner.position.z);
+  for (let frame = 0; frame < 60; frame++) {
+    const next = lane.next(goal);
+    assert.equal(lane.side, side);
+    assert.equal(next.z, owner.position.z);
+    assert.deepEqual(next, owner.position);
+  }
+  owner.actors[0].position.x = 2;
+  assert.ok(lane.next(goal).x > owner.position.x);
 });

@@ -204,6 +204,15 @@ export class LatchSlug extends Enemy {
   }
 
   /**
+   * Slugs own the detour around Bell Bugs; the bug keeps its route and heading.
+   * @param {import("../shared/Enemy.js").EnemyActor} actor
+   * @returns {boolean}
+   */
+  yieldsTo(actor) {
+    return actor.isBellBug === true;
+  }
+
+  /**
    * @returns {boolean}
    */
   advanceToPack() {

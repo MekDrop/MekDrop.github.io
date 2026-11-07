@@ -62,6 +62,10 @@ export class LatchSlugNavigation {
    * @type {number}
    */
   #measureDoorAfter = 0;
+  /**
+   * @type {import("playcanvas").Vec3|null}
+   */
+  #detour = null;
 
   /**
    * @param {import("./LatchSlug.js").LatchSlug} owner
@@ -246,7 +250,9 @@ export class LatchSlugNavigation {
 
       return { position: destination };
     }
-    const reach = Math.min(distance, 0.8);
+    // Keep local steering inside EnemyPathLane's close-target range. Otherwise
+    // the shared lane planner can replace an obstacle detour with forward intent.
+    const reach = Math.min(distance, 0.65);
     const yaw = Math.atan2(dx, dz);
     let best = null;
     let bestScore = Infinity;
@@ -258,9 +264,20 @@ export class LatchSlugNavigation {
         continue;
       }
       if (angle === 0) {
+        this.#detour = null;
         this.#step(point);
 
         return { position: point };
+      }
+      if (this.#detour) {
+        const detourMiddle = origin.clone().lerp(origin, this.#detour, 0.5);
+        if (origin.distance(this.#detour) > 0.1 &&
+          !this.#blocked(detourMiddle, ignoredDoor) && !this.#blocked(this.#detour, ignoredDoor)) {
+          this.#step(this.#detour);
+
+          return { position: this.#detour };
+        }
+        this.#detour = null;
       }
       const score = Math.hypot(destination.x - point.x, destination.z - point.z) + Math.abs(angle) * 0.002;
       if (score < bestScore) {
@@ -270,6 +287,8 @@ export class LatchSlugNavigation {
     }
 
     if (best) {
+      // Finish the chosen step before choosing another side around the peer.
+      this.#detour = best;
       this.#step(best);
     }
 
@@ -292,7 +311,11 @@ export class LatchSlugNavigation {
         const overlapsHeight = position.y < point.y + this.#owner.height &&
           position.y + actor.height > point.y;
         const clearance = this.#owner.radius + (actor.footprintRadius ?? actor.radius) + 0.05;
-        if (overlapsHeight && Math.hypot(point.x - position.x, point.z - position.z) < clearance) {
+        const origin = this.#owner.position;
+        const distance = Math.hypot(point.x - position.x, point.z - position.z);
+        const separating = (origin.x - position.x) * (point.x - origin.x) +
+          (origin.z - position.z) * (point.z - origin.z) > 0;
+        if (overlapsHeight && distance < clearance && !separating) {
           return true;
         }
       }
@@ -458,7 +481,15 @@ export class LatchSlugNavigation {
        */
         (best, p, i) => p.distance(owner.position) < points[best].distance(owner.position) ? i : best, 0);
     }
-    while (this.#routeIndex < points.length && points[this.#routeIndex].distance(owner.position) < 0.45) {
+    while (this.#routeIndex < points.length) {
+      const point = points[this.#routeIndex], next = points[this.#routeIndex + 1];
+      const distance = point.distance(owner.position);
+      const passed = next && distance < 1.2 && Math.abs(point.y - owner.position.y) < 0.4 &&
+        (owner.position.x - point.x) * (next.x - point.x) +
+        (owner.position.z - point.z) * (next.z - point.z) >= 0;
+      if (distance >= 0.45 && !passed) {
+        break;
+      }
       this.#routeIndex++;
     }
     const destination = points[this.#routeIndex];

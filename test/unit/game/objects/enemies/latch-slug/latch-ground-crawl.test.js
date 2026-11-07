@@ -119,3 +119,29 @@ it("reaches before lifting, holds three separate contacts, then pulls the rear o
   assert.equal(front.getLocalPosition().y,-.01);
   crawl.destroy();
 });
+
+it("leaves flat-ground motion to the authored snail clip without scaling the whole model", () => {
+  const app = new pc.EventHandler();
+  const model = new pc.Entity();
+  const body = new pc.Entity("body");
+  model.addChild(body);
+  app.systems = { rigidbody: { raycastFirst: () => null } };
+  const owner = {
+    pc,
+    app,
+    position: new pc.Vec3(),
+    entity: { rigidbody: { linearVelocity: new pc.Vec3(0, 0, -0.5) } },
+    alive: true,
+    gatewayArrival: { active: false },
+  };
+  const crawl = new LatchGroundCrawl(owner, model);
+  for (let frame = 0; frame < 60; frame++) {
+    crawl.update(1 / 60);
+    crawl.apply();
+    assert.equal(crawl.applied, false);
+    assert.deepEqual(model.getLocalScale(), pc.Vec3.ONE);
+    assert.deepEqual(model.getLocalPosition(), pc.Vec3.ZERO);
+    crawl.restore();
+  }
+  crawl.destroy();
+});
