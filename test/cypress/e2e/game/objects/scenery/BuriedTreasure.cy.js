@@ -21,6 +21,24 @@ describe("Buried treasure", () => {
     });
     cy.get(".interaction-prompt").should("contain.text", "Chop tree");
     pressKey("KeyE");
+    cy.window({ timeout: 5000 }).should((window) => {
+      expect(window.gameMovementTest.state().animation).to.equal(HERO_ANIMATION.CHOP_ROW_2);
+    });
+    cy.window({ timeout: 10000 }).should((window) => {
+      expect(window.gameMovementTest.state().action.name).to.equal("exploring");
+    });
+    cy.window().then((window) => {
+      window.gameMovementTest.teleport({
+        x: -2,
+        y: 2.004,
+        z: 0.35,
+      });
+    });
+    cy.get(".interaction-prompt").should("contain.text", "Chop tree");
+    pressKey("KeyE");
+    cy.window({ timeout: 5000 }).should((window) => {
+      expect(window.gameMovementTest.state().animation).to.equal(HERO_ANIMATION.SMASH_BRIDGE);
+    });
     cy.get(".interaction-prompt", { timeout: 10000 }).should(
       "contain.text",
       "Dig for treasure",

@@ -132,6 +132,38 @@ export class CastleAudio {
   /**
    * @type {{wavUrl:string,oggUrl:string}}
    */
+  static bridgeHammer = {
+    wavUrl: new URL("./bridgeHammer.wav", import.meta.url).href,
+    oggUrl: new URL("./bridgeHammer.ogg", import.meta.url).href,
+  };
+
+  /**
+   * @type {{wavUrl:string,oggUrl:string}}
+   */
+  static bridgeCrack1 = {
+    wavUrl: new URL("./bridgeCrack1.wav", import.meta.url).href,
+    oggUrl: new URL("./bridgeCrack1.ogg", import.meta.url).href,
+  };
+
+  /**
+   * @type {{wavUrl:string,oggUrl:string}}
+   */
+  static bridgeCrack2 = {
+    wavUrl: new URL("./bridgeCrack2.wav", import.meta.url).href,
+    oggUrl: new URL("./bridgeCrack2.ogg", import.meta.url).href,
+  };
+
+  /**
+   * @type {{wavUrl:string,oggUrl:string}}
+   */
+  static bridgeTimbers = {
+    wavUrl: new URL("./bridgeTimbers.wav", import.meta.url).href,
+    oggUrl: new URL("./bridgeTimbers.ogg", import.meta.url).href,
+  };
+
+  /**
+   * @type {{wavUrl:string,oggUrl:string}}
+   */
   static land = {
     wavUrl: new URL("./land.wav", import.meta.url).href,
     oggUrl: new URL("./land.ogg", import.meta.url).href,
@@ -165,6 +197,6 @@ export class CastleAudio {
    * @returns {{wavUrl:string,oggUrl:string}[]}
    */
   static get sources() {
-    return [CastleAudio.transition, CastleAudio.transitionRelease, CastleAudio.doorOpen, CastleAudio.doorClose, CastleAudio.chop, CastleAudio.swing, CastleAudio.pickup, CastleAudio.latch, CastleAudio.creak, CastleAudio.cloth, CastleAudio.grassStep1, CastleAudio.grassStep2, CastleAudio.stoneStep1, CastleAudio.stoneStep2, CastleAudio.woodBreak, CastleAudio.hammer, CastleAudio.land, CastleAudio.mist, CastleAudio.reveal, CastleAudio.fire];
+    return [CastleAudio.transition, CastleAudio.transitionRelease, CastleAudio.doorOpen, CastleAudio.doorClose, CastleAudio.chop, CastleAudio.swing, CastleAudio.pickup, CastleAudio.latch, CastleAudio.creak, CastleAudio.cloth, CastleAudio.grassStep1, CastleAudio.grassStep2, CastleAudio.stoneStep1, CastleAudio.stoneStep2, CastleAudio.woodBreak, CastleAudio.hammer, CastleAudio.bridgeHammer, CastleAudio.bridgeCrack1, CastleAudio.bridgeCrack2, CastleAudio.bridgeTimbers, CastleAudio.land, CastleAudio.mist, CastleAudio.reveal, CastleAudio.fire];
   }
 }

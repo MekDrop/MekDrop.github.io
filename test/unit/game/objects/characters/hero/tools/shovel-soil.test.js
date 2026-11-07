@@ -137,11 +137,12 @@ it("carries released dirt and its landing surface with their original island wit
     assert.equal(clod.enabled, false, "deposited dirt merges into the filled surface");
     action.elapsed = 1.5;
     soil.update(0, action);
+    action.useAnimation = HERO_ANIMATION.FILL_HOLE_OPPOSITE;
     action.elapsed = 0.42;
     const pickupAnchor = source.getPosition().clone();
     soil.update(0, action);
     assert.equal(load.enabled, true, "the next stroke scoops again after elapsed wraps");
-    assert.equal(scoops, 2);
+    assert.equal(scoops, 2, "the opposite-side clip also picks up soil");
     assert.deepEqual(source.getPosition(), pickupAnchor, "pickup grows dirt in place on the blade");
     action.elapsed = 1.5;
     soil.update(0, action);

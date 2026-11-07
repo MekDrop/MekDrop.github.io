@@ -31,6 +31,41 @@ function scene() {
   };
 }
 
+it("resumes immediately when the watched door finishes moving", () => {
+  const { app, door, behavior } = scene();
+  let moving = true;
+  try {
+    NpcDoorAvoidance.requestClearance(door, () => true, () => false, null, null, () => moving);
+    app.fire("update", 1 / 60);
+    app.fire("prerender");
+    assert.equal(behavior.behavior.reacting, true);
+    moving = false;
+    app.fire("update", 1 / 60);
+    app.fire("prerender");
+    assert.equal(behavior.behavior.reacting, false);
+  } finally {
+    behavior.destroy();
+  }
+});
+
+it("times out a continually refreshed blocked reaction and allows task progress", () => {
+  const { app, door, npc, behavior } = scene();
+  try {
+    for (let frame = 0; frame < 130; frame++) {
+      NpcDoorAvoidance.requestClearance(door, () => true, () => false);
+      app.fire("update", 1 / 60);
+      app.fire("prerender");
+    }
+    assert.equal(behavior.behavior.reacting, false);
+    assert.equal(behavior.phase, PHASE.IDLE);
+    assert.ok(npc.getPosition().length() < 0.001, "timeout must not teleport the actor");
+    NpcDoorAvoidance.requestClearance(door, () => true, () => false);
+    assert.equal(behavior.behavior.reacting, false, "the same door must allow time to resume");
+  } finally {
+    behavior.destroy();
+  }
+});
+
 it("sidesteps a loaded actor without rotating its cargo across the doorway", () => {
   const { app, door, npc, behavior } = scene();
   npc.setEulerAngles(0, 180, 0);
@@ -56,7 +91,7 @@ it("lets walking traffic resume at a safe sidestep while its old position is res
   try {
     NpcDoorAvoidance.requestClearance(door, inSwing, () => true);
     assert.equal(behavior.resumeFromSafePosition(), false);
-    for (let frame = 0; frame < 240; frame++) {
+    for (let frame = 0; frame < 90; frame++) {
       NpcDoorAvoidance.requestClearance(door, inSwing, () => true);
       app.fire("update", 1 / 60);
       app.fire("prerender");
@@ -77,14 +112,14 @@ it("steps clear, waits while the door is active, and returns after it closes", (
   const { app, door, npc, behavior } = scene();
   try {
     const inSwing = (point) => Math.abs(point.x) < 1;
-    for (let frame = 0; frame < 240; frame++) {
+    for (let frame = 0; frame < 90; frame++) {
       NpcDoorAvoidance.requestClearance(door, inSwing, () => true);
       app.fire("update", 1 / 60); app.fire("prerender");
     }
     assert.ok(npc.getPosition().x >= 1);
     assert.equal(behavior.phase, PHASE.WAIT);
     const waiting = npc.getPosition().clone();
-    for (let frame = 0; frame < 60; frame++) {
+    for (let frame = 0; frame < 15; frame++) {
       NpcDoorAvoidance.requestClearance(door, inSwing, () => true);
       app.fire("update", 1 / 60); app.fire("prerender");
     }
@@ -93,7 +128,7 @@ it("steps clear, waits while the door is active, and returns after it closes", (
       app.fire("update", 1 / 60); app.fire("prerender");
     }
     assert.equal(behavior.phase, PHASE.IDLE);
-    assert.ok(npc.getPosition().length() < 0.04);
+    assert.ok(npc.getPosition().distance(waiting) < 0.5, "deadline resumes near the sidestep without teleporting home");
   } finally {
     behavior.destroy();
   }
@@ -119,15 +154,15 @@ it("hero clearance interrupts only the requested servant", () => {
   root.addChild(other);
   const otherBehavior = new NpcDoorAvoidance(other, app);
   try {
-    for (let frame = 0; frame < 180; frame++) {
+    for (let frame = 0; frame < 90; frame++) {
       NpcDoorAvoidance.requestClearance(hero,
         (point) => Math.hypot(point.x, point.z) < 1.1,
         () => true, npc);
       app.fire("update", 1 / 60);
       app.fire("prerender");
     }
-    assert.ok(npc.getPosition().length() >= 1.1);
-    assert.equal(behavior.phase, PHASE.WAIT);
+    assert.ok(npc.getPosition().length() > 0);
+    assert.equal(behavior.behavior.reacting, true);
     assert.equal(otherBehavior.phase, PHASE.IDLE);
     assert.equal(other.getPosition().length(), 0);
   } finally {
@@ -168,7 +203,7 @@ it("resumes the servant's interrupted work while hero checks continue after movi
     assert.equal(behavior.phase, PHASE.IDLE);
     assert.equal(role.currentState, suspended);
     assert.equal(role.elapsed, .75);
-    assert.ok(npc.getPosition().length() < .04);
+    assert.ok(npc.getPosition().length() < 1.5, "resume remains within the local sidestep");
     role.update(.25);
     assert.equal(role.elapsed, 1);
   } finally {

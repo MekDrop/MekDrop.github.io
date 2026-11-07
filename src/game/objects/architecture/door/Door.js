@@ -161,7 +161,6 @@ export class Door {
    */
   #ownedMaterials;
   /**
-   *
    * @type {import("playcanvas").Entity}
    */
   #entity;
@@ -186,32 +185,26 @@ export class Door {
    */
   #insideHandle;
   /**
-   *
    * @type {import("playcanvas").AnimController}
    */
   #animationLayer;
   /**
-   *
    * @type {number}
    */
   #animationDuration;
   /**
-   *
    * @type {{x: number, y: number, z: number}}
    */
   #center;
   /**
-   *
    * @type {{x: number, z: number}}
    */
   #inward;
   /**
-   *
    * @type {{x: number, z: number}}
    */
   #tangent;
   /**
-   *
    * @type {number}
    */
   #width;
@@ -232,12 +225,10 @@ export class Door {
    */
   #elevated = false;
   /**
-   *
    * @type {boolean}
    */
   #targetOpen = false;
   /**
-   *
    * @type {number}
    */
   #openAmount = 0;
@@ -314,7 +305,6 @@ export class Door {
   }
 
   /**
-   *
    * @type {number}
    */
   #manualOpenRemaining = 0;
@@ -332,13 +322,14 @@ export class Door {
 
   /**
    * @param {import("yuka").Vector3} point
-   * @type {(point: import("yuka").Vector3) => boolean}
+   * @param {number} radius
+   * @type {(point: import("yuka").Vector3, radius?: number) => boolean}
    */
-  #inNpcSwing = (point) => {
+  #inNpcSwing = (point, radius = 0.22) => {
     // Reserve ahead of the actual leaf, rather than the whole doorway room.
     // Ammo still checks every swing increment and waits while occupants yield.
-    return this.#collision.blocksAt(point.x, point.y + 0.6, point.z, 0.6) ||
-      this.#collision.blocksAt(point.x, point.y + 1.5, point.z, 0.6);
+    return this.#collision.blocksAt(point.x, point.y + 0.6, point.z, radius) ||
+      this.#collision.blocksAt(point.x, point.y + 1.5, point.z, radius);
   };
 
   /**
@@ -458,7 +449,6 @@ export class Door {
   }
 
   /**
-   *
    * @returns {boolean}
    */
   get revealsInterior() {
@@ -466,7 +456,6 @@ export class Door {
   }
 
   /**
-   *
    * @param {number} duration
    */
   openTemporarily(duration = CLICK_OPEN_SECONDS) {
@@ -477,7 +466,6 @@ export class Door {
   }
 
   /**
-   *
    * @param {import("playcanvas").Vec3} rayStart
    * @param {import("playcanvas").Vec3} rayEnd
    */
@@ -496,7 +484,6 @@ export class Door {
   }
 
   /**
-   *
    * @param {import("playcanvas").Vec3} rayStart
    * @param {import("playcanvas").Vec3} rayEnd
    */
@@ -523,7 +510,6 @@ export class Door {
   }
 
   /**
-   *
    * @param {{x: number, y?: number, z: number}} options
    * @param {number} options.x
    * @param {number} options.z
@@ -565,7 +551,6 @@ export class Door {
   }
 
   /**
-   *
    * @param {number} deltaTime
    * @param {boolean} [open] Explicit opening target for scripted doors.
    * @param {number} [speed] Opening speed override.
@@ -587,7 +572,8 @@ export class Door {
     }
     const target = this.#testOpenAmount ?? Math.max(Number(open ?? this.#shouldOpen()), this.#sequenceOpenAmount ?? 0);
     if (Math.abs(target - this.#openAmount) > 0.000001 && this.#canNpcMove) {
-      NpcDoorAvoidance.requestClearance(this.#entity, this.#inNpcSwing, this.#canNpcMove, null, this.#operator);
+      NpcDoorAvoidance.requestClearance(this.#entity, this.#inNpcSwing, this.#canNpcMove, null, this.#operator,
+        () => Math.abs(target - this.#openAmount) > 0.000001);
     }
     const amount = speed * Math.max(0, deltaTime);
     const destination = this.#openAmount < target
@@ -618,8 +604,7 @@ export class Door {
       this.#syncAnimation();
       const contacts = this.#collision.swing.contacts();
       const obstructed = [...contacts].some(/**
-       *
-       * @param {number[]} entry
+   * @param {number[]} entry
        */
         (entry) =>
           entry[1] > Math.max(0.002, initialContacts.get(entry[0]) ?? 0) + 0.000001);
@@ -655,7 +640,6 @@ export class Door {
   }
 
   /**
-   *
    * @param {number} x
    * @param {number} z
    * @param {number} radius
@@ -715,13 +699,11 @@ export class Door {
           const material = materials[binding.material];
           const names = [entity.name, instance.node?.name ?? ""];
           const matches = names.some(/**
-           *
-           * @param {string} name
+   * @param {string} name
            */
             (name) =>
               binding.names?.includes(name) || binding.prefixes?.some(/**
-             *
-             * @param {string} prefix
+   * @param {string} prefix
              */
                 (prefix) => name.startsWith(prefix)));
           if (material && matches) {
@@ -738,13 +720,13 @@ export class Door {
   }
 
   /**
-   *
    * @param {import("yuka").Vector3} point
+   * @param {number} radius
    */
-  #occupied(point) {
+  #occupied(point, radius = 0.22) {
     return (
-      this.#collision.blocksAt(point.x, point.y + 0.6, point.z, 0.5) ||
-        this.#collision.blocksAt(point.x, point.y + 1.5, point.z, 0.5)
+      this.#collision.blocksAt(point.x, point.y + 0.6, point.z, radius) ||
+        this.#collision.blocksAt(point.x, point.y + 1.5, point.z, radius)
     );
   }
 }

@@ -1,0 +1,404 @@
+{
+  "grid": [
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  ],
+  "heightmap": [
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  ],
+  "tileMeta": [
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {
+        "baseHeight": 2,
+        "renderMode": "SOLID",
+        "surfaceType": "GRASS"
+      },
+      {}
+    ],
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ]
+  ],
+  "cols": 9,
+  "rows": 7,
+  "numPaths": 0,
+  "pipeData": [],
+  "mergeZones": [],
+  "trunkStart": null,
+  "mapName": "test_fill-approaches",
+  "layoutSignature": "test_fill-approaches",
+  "objects": [
+    {
+      "id": "hero-spawn",
+      "object": "SpawnPoint",
+      "position": {
+        "x": 0,
+        "y": 2.14,
+        "z": -0.535
+      }
+    }
+  ],
+  "animationViewport": {
+    "zoom": 5,
+    "rotation": 0,
+    "panX": 0,
+    "panZ": 0
+  },
+  "testControls": {
+    "panels": [
+      {
+        "title": "Fill from different angles",
+        "x": 16,
+        "y": 140,
+        "buttons": [
+          {
+            "label": "Prepare hole",
+            "script": "const field=[...objects].find(o=>o.constructor.name==='BuriedTreasureField');for(let i=0;i<8;i++)field.dig({kind:'dig',id:'3:4',col:4,row:3,x:0,y:2.004,z:0},{x:0,z:1});setTimeout(()=>field.open({kind:'dig',id:'3:4',col:4,row:3,x:0,y:2.004,z:0}),2500);"
+          },
+          {
+            "label": "Approach 0",
+            "script": "for(const hero of objects.getAll('hero'))hero.teleport({x:0,y:2.004,z:-0.535});"
+          },
+          {
+            "label": "Approach 45",
+            "script": "for(const hero of objects.getAll('hero'))hero.teleport({x:-0.3783021279348029,y:2.004,z:-0.378302127934803});"
+          },
+          {
+            "label": "Approach 90",
+            "script": "for(const hero of objects.getAll('hero'))hero.teleport({x:-0.535,y:2.004,z:-3.27593018771917e-17});"
+          },
+          {
+            "label": "Approach 135",
+            "script": "for(const hero of objects.getAll('hero'))hero.teleport({x:-0.378302127934803,y:2.004,z:0.3783021279348029});"
+          },
+          {
+            "label": "Approach 180",
+            "script": "for(const hero of objects.getAll('hero'))hero.teleport({x:-6.55186037543834e-17,y:2.004,z:0.535});"
+          },
+          {
+            "label": "Approach 225",
+            "script": "for(const hero of objects.getAll('hero'))hero.teleport({x:0.3783021279348029,y:2.004,z:0.37830212793480306});"
+          },
+          {
+            "label": "Approach 270",
+            "script": "for(const hero of objects.getAll('hero'))hero.teleport({x:0.535,y:2.004,z:9.827790563157509e-17});"
+          },
+          {
+            "label": "Approach 315",
+            "script": "for(const hero of objects.getAll('hero'))hero.teleport({x:0.37830212793480306,y:2.004,z:-0.37830212793480283});"
+          },
+          {
+            "label": "Fill stored pile",
+            "script": "import('/src/game/objects/treasure/FillHoleInteraction.js').then(({FillHoleInteraction})=>{const field=[...objects].find(o=>o.constructor.name==='BuriedTreasureField');for(const hero of objects.getAll('hero'))new FillHoleInteraction({field,hero,tool:hero.tools.get('ShovelTool'),target:{kind:'dig',id:'3:4',col:4,row:3,x:0,y:2.004,z:0}}).interact();});"
+          }
+        ]
+      }
+    ]
+  },
+  "heroSpawn": {
+    "x": 0,
+    "y": 2.04,
+    "z": -0.535
+  }
+}

@@ -623,6 +623,9 @@ it("reveals the already instantiated chest and spawns its stored contents withou
     z: 0,
   });
   assert.equal(chest.enabled, true, "digging exposes the existing chest");
+  const chestFacing = chest.getRotation().transformVector(new pc.Vec3(0, 0, 1));
+  assert.ok(chestFacing.dot(new pc.Vec3(1, 0, 0)) > 0.999,
+    "the chest appears facing the same direction as the digging hero");
   const pile = models.find(({ url }) => url.includes("excavated-earth.glb")).entity;
   assert.equal(pile.enabled, false, "a cramped single tile cannot put its pile beneath the chest");
   assert.ok(Math.abs(pile.getLocalPosition().x) + 0.34 <= 0.5);
@@ -642,6 +645,8 @@ it("reveals the already instantiated chest and spawns its stored contents withou
     update(0.1);
   }
   assert.equal(field.canOpen(target.id), true);
+  const chestPosition = chest.getPosition().clone();
+  const chestRotation = chest.getRotation().clone();
   for (const [x, z] of [[1, 0], [0, -1], [-1, 0], [0, 1]]) {
     field.applyHeroPosition({
       x: target.x + x,
@@ -649,9 +654,10 @@ it("reveals the already instantiated chest and spawns its stored contents withou
       z: target.z + z,
     });
     update(0.016);
-    const lockDirection = chest.getRotation().transformVector(new pc.Vec3(0, 0, 1));
-    assert.ok(lockDirection.dot(new pc.Vec3(x, 0, z)) > 0.999,
-      "the authored lock side faces the hero from every side");
+    assert.ok(chest.getRotation().equals(chestRotation),
+      "walking around the chest preserves its orientation");
+    assert.ok(chest.getPosition().equals(chestPosition),
+      "walking around the chest preserves its position");
   }
   assert.ok(cutRadius > 0.324 && cutRadius < 0.35,
     "the terrain cut clears the uneven cavity edge while staying beneath its soil rim");
@@ -675,7 +681,14 @@ it("reveals the already instantiated chest and spawns its stored contents withou
   assert.equal(models.filter(({ url }) => url.includes("treasure-chest")).length, 1);
   field.open(target);
   for (let frame = 0; frame < 20; frame += 1) {
+    field.applyHeroPosition({
+      x: target.x + Math.cos(frame),
+      y: target.y,
+      z: target.z + Math.sin(frame),
+    });
     update(0.1);
+    assert.ok(chest.getRotation().equals(chestRotation),
+      "opening and vanishing preserve the chest orientation as the hero moves");
   }
   assert.deepEqual(models.filter(({ url }) => url.includes("/coin.glb")).map(({ entity }) => entity.name),
     ["gold treasure coin", "silver treasure coin", "copper treasure coin"]);

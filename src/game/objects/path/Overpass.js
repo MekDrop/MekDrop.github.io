@@ -5,11 +5,21 @@ import { BridgeRailingKit } from "./BridgeRailingKit.js";
 import { BridgeInteraction } from "./BridgeInteraction.js";
 import { OverpassDeckFragment } from "./OverpassDeckFragment.js";
 import { WalkingPaths } from "../../navigation/WalkingPaths.js";
+import { CastleAudio } from "../../audio/castle/CastleAudio.js";
+import { GameObjectAudio } from "../../audio/GameObjectAudio.js";
 
 /**
  * Owns the raised crossing, its retained stair approaches, and Ammo collapse.
  */
 export class Overpass {
+  /**
+   * @type {GameObjectAudio|undefined}
+   */
+  #audio;
+  /**
+   * @type {import("playcanvas").Entity|undefined}
+   */
+  #audioEntity;
   /**
    * @type {typeof import("playcanvas")}
    */
@@ -59,6 +69,13 @@ export class Overpass {
   }
 
   /**
+   * @returns {string[]}
+   */
+  static get audioUrls() {
+    return [CastleAudio.woodBreak.wavUrl, CastleAudio.land.wavUrl];
+  }
+
+  /**
    * @param {import("../ObjectTypes.js").MapObjectOptions} options
    */
   constructor({ pc, app, modelLibrary, definition, runtime }) {
@@ -68,6 +85,15 @@ export class Overpass {
     this.#runtime = runtime;
     this.definition = definition;
     this.entity = new pc.Entity(definition.id);
+    if (runtime.audioLibrary) {
+      this.#audioEntity = new pc.Entity("Crossing destruction audio");
+      this.entity.addChild(this.#audioEntity);
+      this.#audio = new GameObjectAudio(this.#audioEntity, app, runtime.audioLibrary, {
+        break: CastleAudio.woodBreak,
+        impact: CastleAudio.land,
+      });
+      this.#audio.follow(() => runtime.objects.getOne("hero")?.position ?? null);
+    }
     const { cols, rows } = runtime.mapData;
     this.#buffers = new OverpassStairs({
       pc,
@@ -201,6 +227,10 @@ export class Overpass {
       station >= crossing.row + (crossing.depth ?? 2)) {
       return false;
     }
+    const position = this.stationPosition(station);
+    this.#audioEntity?.setPosition(position.x, position.y, position.z);
+    this.#audio?.play("break");
+    this.#audio?.play("impact");
     const map = this.#runtime.mapData;
     const cells = layout.crossingCells;
     this.#app.fire("bridge:collapsing", {

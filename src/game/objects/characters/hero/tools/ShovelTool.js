@@ -177,14 +177,15 @@ export class ShovelTool extends HeroTool {
 
   /**
    *
-   * @param {{action?: string, oppositeThrow?: boolean}} context
+   * @param {{action?: string, oppositeThrow?: boolean, oppositeFill?: boolean}} context
    */
   useAnimation(context = {}) {
     if (context.action === "level-hole") {
       return HERO_ANIMATION.LEVEL_HOLE;
     }
-    return context.action === "fill"
-      ? HERO_ANIMATION.FILL_HOLE
-      : context.oppositeThrow ? HERO_ANIMATION.DIG_OPPOSITE : HERO_ANIMATION.DIG;
+    if (context.action === "fill") {
+      return context.oppositeFill ? HERO_ANIMATION.FILL_HOLE_OPPOSITE : HERO_ANIMATION.FILL_HOLE;
+    }
+    return context.oppositeThrow ? HERO_ANIMATION.DIG_OPPOSITE : HERO_ANIMATION.DIG;
   }
 }

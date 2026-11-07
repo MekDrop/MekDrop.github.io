@@ -84,12 +84,34 @@ export class FillHoleInteraction {
     if (this.#hero.isUsingTool) {
       return this.#hero.stopUsingTool();
     }
+    const offset = this.#field.fillPileOffsetFor(this.#target.id);
+    const dx = this.#target.x - this.#hero.position.x;
+    const dz = this.#target.z - this.#hero.position.z;
+    const oppositeFill = Boolean(offset &&
+      offset.x * (dz * 0.42 + dx * 0.3) +
+      offset.y * (-dx * 0.42 + dz * 0.3) < 0);
+    const yaw = offset ? Math.atan2(0.3 * offset.x - 0.42 * offset.y,
+      0.42 * offset.x + 0.3 * offset.y) : 0;
+    const leveling = this.#field.isFillRimStage(this.#target.id);
     const accepted = this.#hero.useTool(this.#tool, {
       targetPosition: this.#target,
       maxFacingAdjustment: TREASURE_TOOL_MAX_TURN,
       minimumTargetDistance: TREASURE_TOOL_MIN_DISTANCE,
       targetDistance: TREASURE_TOOL_MIN_DISTANCE,
-      context: { action: this.#field.isFillRimStage(this.#target.id) ? "level-hole" : "fill" },
+      stances: offset && !leveling ? [
+        {
+          yaw,
+          context: { oppositeFill: false },
+        },
+        {
+          yaw: yaw + Math.PI,
+          context: { oppositeFill: true },
+        },
+      ] : null,
+      context: {
+        action: leveling ? "level-hole" : "fill",
+        oppositeFill,
+      },
       onImpact: this.#onImpact.bind(this),
       onScoop: this.#onScoop.bind(this),
       onComplete: this.#complete.bind(this),

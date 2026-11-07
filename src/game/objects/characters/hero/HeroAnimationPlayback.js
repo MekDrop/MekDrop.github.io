@@ -97,6 +97,9 @@ export class HeroAnimationPlayback {
     if (!tracks.has(HERO_ANIMATION.DIG_OPPOSITE)) {
       tracks.set(HERO_ANIMATION.DIG_OPPOSITE, tracks.get(HERO_ANIMATION.DIG));
     }
+    if (!tracks.has(HERO_ANIMATION.FILL_HOLE_OPPOSITE)) {
+      tracks.set(HERO_ANIMATION.FILL_HOLE_OPPOSITE, tracks.get(HERO_ANIMATION.FILL_HOLE));
+    }
     for (const name of RUN_STOP_ANIMATIONS) {
       if (!tracks.has(name)) {
         tracks.set(name, tracks.get(HERO_ANIMATION.IDLE));
@@ -174,6 +177,6 @@ export class HeroAnimationPlayback {
    */
   static #requiredAnimation(name) {
     return !RUN_STOP_ANIMATIONS.has(name) && !OPTIONAL_CHOP_ANIMATIONS.has(name) &&
-      ![HERO_ANIMATION.DIG_OPPOSITE, HERO_ANIMATION.LEVEL_HOLE].includes(name);
+      ![HERO_ANIMATION.DIG_OPPOSITE, HERO_ANIMATION.FILL_HOLE_OPPOSITE, HERO_ANIMATION.LEVEL_HOLE].includes(name);
   }
 }

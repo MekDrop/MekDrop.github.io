@@ -178,6 +178,10 @@ export class CastleEntityBuilder {
    */
   #royal = null;
   /**
+   * @type {number|null}
+   */
+  #residentWallRadius = null;
+  /**
    *
    * @type {import("../../characters/servant/Servant.js").Servant|null}
    */
@@ -316,6 +320,7 @@ export class CastleEntityBuilder {
    */
   attachRoyal(royal) {
     this.#royal = royal;
+    this.#residentWallRadius = null;
     if (this.#audienceRoom) {
       this.#audienceRoom.occupant = royal.audienceActor;
     }
@@ -1233,7 +1238,8 @@ export class CastleEntityBuilder {
    */
   #blocked(point, avoidDoors = false, includeProps = true) {
     this.#npcObstacleProbe ??= new NpcObstacleProbe(this.#app, this.#royal?.audienceActor.entity);
-    const radius = ResidentClearance.wallRadiusAt(this.#residence.layout, point);
+    this.#residentWallRadius ??= this.#royal ? ResidentClearance.modelRadius(this.#royal.audienceActor.entity) : ResidentClearance.wallRadius;
+    const radius = ResidentClearance.wallRadiusAt(this.#residence.layout, point, this.#residentWallRadius);
 
     return (
       (avoidDoors && this.#animatedDoors.some(/**
@@ -1271,7 +1277,8 @@ export class CastleEntityBuilder {
       }
     }
 
-    const radius = ResidentClearance.wallRadiusAt(this.#residence.layout, point);
+    this.#residentWallRadius ??= this.#royal ? ResidentClearance.modelRadius(this.#royal.audienceActor.entity) : ResidentClearance.wallRadius;
+    const radius = ResidentClearance.wallRadiusAt(this.#residence.layout, point, this.#residentWallRadius);
 
     return !this.#animatedDoors.some(/**
            *

@@ -11,6 +11,43 @@ import { SurfaceSpatialIndex } from "../../shared/SurfaceSpatialIndex.js";
  */
 export class ResidentClearance {
   /**
+   * Measure the actor's scaled body instead of assigning every royal one width.
+   * Detached accessories and flowing cloth do not define a walking footprint.
+   * @param {import("playcanvas").Entity} root
+   * @returns {number}
+   */
+  static modelRadius(root) {
+    // Upper-arm joint origins mark the torso's shoulder span. Their world
+    // positions include model normalization and instance scale, without an
+    // extended hand, sword, or seated skirt inflating the walking capsule.
+    const left = root.findByName("Royal left arm rig");
+    const right = root.findByName("Royal right arm rig");
+    if (left && right) {
+      const span = left.getPosition().distance(right.getPosition());
+      if (Number.isFinite(span) && span > 0) {
+        return span / 2 + 0.02;
+      }
+    }
+    let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
+    for (const render of root.findComponents("render")) {
+      for (const mesh of render.meshInstances) {
+        if (/sword|tear|handkerchief|cape|crown|hair|beard/i.test(mesh.node.name)) {
+          continue;
+        }
+        const half = mesh.aabb.halfExtents;
+        const center = mesh.aabb.center;
+        minX = Math.min(minX, center.x - half.x);
+        maxX = Math.max(maxX, center.x + half.x);
+        minZ = Math.min(minZ, center.z - half.z);
+        maxZ = Math.max(maxZ, center.z + half.z);
+      }
+    }
+
+    const radius = Math.max(maxX - minX, maxZ - minZ) / 2;
+
+    return Number.isFinite(radius) && radius > 0 ? radius + 0.02 : this.wallRadius;
+  }
+  /**
    * @type {WeakMap<import("./CastleResidentialLayout.js").CastleResidentialLayout, SurfaceSpatialIndex<ResidentFloorArea>>}
    */
   static #floorIndices = new WeakMap();
@@ -78,9 +115,10 @@ export class ResidentClearance {
    * envelope. Do not inflate their rails or floor apertures into room walls.
    * @param {import("./CastleResidentialLayout.js").CastleResidentialLayout} layout
    * @param {import("playcanvas").Vec3} point
+   * @param {number} bodyRadius
    * @returns {number}
    */
-  static wallRadiusAt(layout, point) {
+  static wallRadiusAt(layout, point, bodyRadius = this.wallRadius) {
     for (const stair of [...layout.authoredStairs, layout.stairs, layout.serviceStair]) {
       if (!stair?.center || point.y < stair.center.y - 0.35 || point.y > stair.center.y + stair.rise + 0.35) {
         continue;
@@ -103,7 +141,7 @@ export class ResidentClearance {
       }
     }
 
-    return this.wallRadius;
+    return bodyRadius;
   }
 
   /**

@@ -52,6 +52,13 @@ WAV conversions of lossy sources do not restore lost recording information.
 All local *.wav and corresponding *.ogg files share the provenance above.
 Volume and small pitch variations are applied during playback.
 
+rubberduck — 100 CC0 metal and wood SFX
+Source and CC0 declaration: https://opengameart.org/content/100-cc0-metal-and-wood-sfx
+bridgeHammer: wood_hammer_01.ogg, pitched down to 78%, high-pass filtered,
+and converted to 48 kHz mono WAV and Ogg Vorbis.
+bridgeCrack1, bridgeCrack2: wood_breaking_01.ogg, wood_breaking_02.ogg.
+bridgeTimbers: wood_falling_01.ogg. Converted to 48 kHz mono WAV and Vorbis.
+
 CogFireStudios — Big Scary Portal Open
 Local basenames: transition, transitionRelease (each with WAV and Ogg copies)
 Source and CC0 declaration: https://freesound.org/people/CogFireStudios/sounds/617761/

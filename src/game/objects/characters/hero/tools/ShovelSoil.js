@@ -154,7 +154,8 @@ export class ShovelSoil {
     }
     const digging = action?.phase === "use" && [HERO_ANIMATION.DIG, HERO_ANIMATION.DIG_OPPOSITE].includes(action.useAnimation) &&
       action.toolContext?.action !== "blocked-dig";
-    const filling = action?.phase === "use" && action.useAnimation === HERO_ANIMATION.FILL_HOLE;
+    const filling = action?.phase === "use" &&
+      [HERO_ANIMATION.FILL_HOLE, HERO_ANIMATION.FILL_HOLE_OPPOSITE].includes(action.useAnimation);
     const leveling = action?.phase === "use" && action.useAnimation === HERO_ANIMATION.LEVEL_HOLE;
     if (!digging && !filling && !leveling) {
       if (this.#load.enabled && !this.#filling) {

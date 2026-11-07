@@ -6,12 +6,26 @@ import { WalkingPaths } from "../../navigation/WalkingPaths.js";
 import { IslandCellOwnership } from "../shared/IslandCellOwnership.js";
 import { BridgeDeckFragment } from "./BridgeDeckFragment.js";
 import { BridgeImpactDebris } from "./BridgeImpactDebris.js";
+import { CastleAudio } from "../../audio/castle/CastleAudio.js";
+import { GameObjectAudio } from "../../audio/GameObjectAudio.js";
 
 /**
  * A destructible span. Deck and railing batches are rebuilt only at impact;
  * released timbers use Ammo bodies and leave no invisible walkable surface.
  */
 export class Bridge {
+  /**
+   * @type {GameObjectAudio|undefined}
+   */
+  #audio;
+  /**
+   * @type {import("playcanvas").Entity|undefined}
+   */
+  #audioEntity;
+  /**
+   * @type {number}
+   */
+  #crackCount = 0;
   /**
    * @type {typeof import("playcanvas")}
    */
@@ -94,6 +108,14 @@ export class Bridge {
   }
 
   /**
+   * @returns {string[]}
+   */
+  static get audioUrls() {
+    return [CastleAudio.bridgeHammer.wavUrl, CastleAudio.bridgeCrack1.wavUrl,
+      CastleAudio.bridgeCrack2.wavUrl, CastleAudio.bridgeTimbers.wavUrl];
+  }
+
+  /**
    * @param {import("../ObjectTypes.js").MapObjectOptions} options
    */
   constructor({ pc, app, modelLibrary, definition, runtime }) {
@@ -107,6 +129,17 @@ export class Bridge {
       this.#anchorDirection = BridgeProfile.anchorDirection(definition, runtime.mapData);
     }
     this.entity = new pc.Entity(definition.id);
+    if (runtime.audioLibrary) {
+      this.#audioEntity = new pc.Entity("Bridge destruction audio");
+      this.entity.addChild(this.#audioEntity);
+      this.#audio = new GameObjectAudio(this.#audioEntity, app, runtime.audioLibrary, {
+        hammer: CastleAudio.bridgeHammer,
+        crack1: CastleAudio.bridgeCrack1,
+        crack2: CastleAudio.bridgeCrack2,
+        impact: CastleAudio.bridgeTimbers,
+      });
+      this.#audio.follow(() => runtime.objects.getOne("hero")?.position ?? null);
+    }
     this.#rebuild();
     // Resume an in-flight collapse after the normal object hot-reload lifecycle.
     for (const cell of definition.span.cells) {
@@ -258,6 +291,10 @@ export class Bridge {
     if (this.#collapsePending.size > 0 || !this.isIntact(station)) {
       return false;
     }
+    const position = this.stationPosition(station);
+    this.#audioEntity?.setPosition(position.x, position.y, position.z);
+    this.#audio?.play("hammer");
+    this.#playCrack();
     const { span } = this.definition;
     for (const cell of span.cells) {
       const metadata = this.#runtime.mapData.tileMeta[cell.row][cell.col];
@@ -408,6 +445,7 @@ export class Bridge {
       if (this.#floating) {
         if (hasNext && front.fragment.age >= 0.16) {
           const next = this.#releaseStation(nextStation);
+          this.#playCrack();
           this.#collapsePending.delete(nextStation);
           this.#addFloatingFront(next, nextStation, front.direction);
         } else if (hasNext) {
@@ -420,6 +458,7 @@ export class Bridge {
       // neighbour loses support. The timeout only releases jammed constraints.
       if (hasNext && (drop > 0.22 || impacts.has(front.fragment) || front.fragment.age > 0.85)) {
         const next = this.#releaseStation(nextStation);
+        this.#playCrack();
         this.#collapsePending.delete(nextStation);
         next.anchor(front.direction);
         if (front.connectPrevious) {
@@ -493,6 +532,7 @@ export class Bridge {
     if (impacts.size === 0) {
       return;
     }
+    this.#audio?.play("impact");
     this.#collapseFronts = this.#collapseFronts.filter(/**
      *
      * @param {{fragment: BridgeDeckFragment, station: number, direction: number, connectPrevious: boolean}} front
@@ -519,6 +559,11 @@ export class Bridge {
       this.entity.addChild(rubble.entity);
       this.#impactDebris.push(rubble);
     }
+  }
+
+  #playCrack() {
+    this.#crackCount += 1;
+    this.#audio?.play(this.#crackCount % 2 ? "crack1" : "crack2", 0.9 + Math.random() * 0.1);
   }
 
   /**

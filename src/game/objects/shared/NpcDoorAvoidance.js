@@ -85,11 +85,24 @@ export class NpcDoorAvoidance {
    */
   #deltaTime = 0;
   /**
+   * @type {number}
+   */
+  #reactionRemaining = 0;
+  /**
+   * @type {number}
+   */
+  #reactionCooldown = 0;
+  /**
+   * @type {(() => boolean)|null}
+   */
+  #doorMoving = null;
+  /**
    * @param {number} deltaTime
    * @type {(deltaTime: number) => void}
    */
   #captureTime = (deltaTime) => {
     this.#deltaTime = deltaTime;
+    this.#reactionCooldown = Math.max(0, this.#reactionCooldown - deltaTime);
   };
   /**
    * @type {() => void}
@@ -203,13 +216,20 @@ export class NpcDoorAvoidance {
    * Reserves the entire swing before a door starts moving. Navigation uses the
    * scene's existing collision queries, sampling the whole proposed sidestep.
    * @param {import("playcanvas").Entity} door
-   * @param {(point: Vector3) => boolean} inSwing
+   * @param {(point: Vector3, radius?: number) => boolean} blocksSwing
    * @param {(point: Vector3) => boolean} canMove
    * @param {import("playcanvas").Entity|null} operator
    * @param {import("playcanvas").Entity|null} recipient
+   * @param {(() => boolean)|null} isMoving
    */
-  static requestClearance(door, inSwing, canMove, recipient = null, operator = null) {
+  static requestClearance(door, blocksSwing, canMove, recipient = null, operator = null, isMoving = null) {
     for (const participant of this.#participants) {
+      const radius = participant.#bodyRadius();
+      /**
+       * @param {Vector3} point
+       * @returns {boolean}
+       */
+      const inSwing = (point) => blocksSwing(point, radius);
       if (operator && (participant.#entity === operator || participant.#entity.isDescendantOf(operator))) {
         continue;
       }
@@ -217,6 +237,9 @@ export class NpcDoorAvoidance {
         continue;
       }
       if (participant.#entity.root !== door.root || !participant.#entity.enabled) {
+        continue;
+      }
+      if (participant.#reactionCooldown > 0) {
         continue;
       }
       // Doors reserve their swing until they stop requesting clearance. Hero
@@ -232,9 +255,13 @@ export class NpcDoorAvoidance {
       if (!participant.#machine.interruptReaction(participant.#reaction)) {
         continue;
       }
-      participant.#home ??= participant.#entity.getLocalPosition().clone();
+      if (!participant.#home) {
+        participant.#reactionRemaining = 2;
+        participant.#home = participant.#entity.getLocalPosition().clone();
+      }
       participant.#homeRotation ??= participant.#entity.getLocalRotation().clone();
       participant.#door = door;
+      participant.#doorMoving = isMoving;
       participant.#hazard = inSwing;
       participant.#remaining = 0.6;
       participant.#canMove = canMove;
@@ -285,12 +312,25 @@ export class NpcDoorAvoidance {
         continue;
       }
       if (participant.#entity.root === door.root && participant.#entity.enabled &&
-        blocks(participant.#entity.getPosition())) {
+        blocks(participant.#entity.getPosition(), participant.#bodyRadius())) {
+
         return true;
       }
     }
 
     return false;
+  }
+
+  /**
+   * Scaled torso span, independent of hand, sword and cape animation.
+   * @returns {number}
+   */
+  #bodyRadius() {
+    const root = this.#entity.parent ?? this.#entity;
+    const left = root.findByName("Royal left arm rig");
+    const right = root.findByName("Royal right arm rig");
+
+    return left && right ? left.getPosition().distance(right.getPosition()) / 2 + 0.02 : 0.22;
   }
 
   /**
@@ -306,6 +346,20 @@ export class NpcDoorAvoidance {
     this.#remaining = Math.max(0, this.#remaining - step);
     this.#retryRemaining = Math.max(0, this.#retryRemaining - step);
     if (!this.#home) {
+      return;
+    }
+    // Door requests refresh the short clearance hold, never this deadline.
+    this.#reactionRemaining = Math.max(0, this.#reactionRemaining - step);
+    if (this.#reactionRemaining === 0 || this.#doorMoving?.() === false) {
+      this.#entity.setLocalRotation(this.#homeRotation);
+      this.#home = null;
+      this.#homeRotation = null;
+      this.#target = null;
+      this.#door = null;
+      this.#doorMoving = null;
+      this.#reactionCooldown = 2;
+      this.#transition(PHASE.IDLE);
+
       return;
     }
     if (this.#remaining === 0 && this.phase !== PHASE.RETURN) {

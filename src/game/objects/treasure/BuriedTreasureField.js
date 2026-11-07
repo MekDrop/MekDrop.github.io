@@ -573,6 +573,8 @@ export class BuriedTreasureField {
         z: target.z,
       });
       site.chest.setLocalPosition(site.x, site.y - CHEST_BURIAL_DEPTH, site.z);
+      // Match the digging direction once; walking around must not turn the chest.
+      site.chest.setLocalEulerAngles(0, site.facingYaw, 0);
       site.chest.enabled = true;
       this.#buriedChests.delete(target.id);
     }
@@ -1094,6 +1096,22 @@ export class BuriedTreasureField {
   }
 
   /**
+   * Use the existing mound, including its supported-side fallback, when refilling.
+   * @param {string} id
+   * @returns {import("playcanvas").Vec2|null}
+   */
+  fillPileOffsetFor(id) {
+    const site = this.#sites.find(
+      /**
+       * @param {TreasureSite} candidate
+       */
+      (candidate) => candidate.id === id,
+    );
+
+    return site?.pileOffset?.clone() ?? null;
+  }
+
+  /**
    *
    * @param {number} col
    * @param {number} row
@@ -1515,14 +1533,6 @@ export class BuriedTreasureField {
         site.state = "filled";
         this.#onTerrainExcavated?.(site, HOLE_SURFACE_CUT_RADIUS, 0, FILLED_EARTH_OUTLINE);
         this.#onInteractionChange?.();
-      }
-    }
-    if (site.chest && this.#heroPosition) {
-      const dx = this.#heroPosition.x - site.x;
-      const dz = this.#heroPosition.z - site.z;
-      if (Math.hypot(dx, dz) > 0.001) {
-        // The authored lock faces +Z; keep that side toward the hero.
-        site.chest.setLocalEulerAngles(0, Math.atan2(dx, dz) * 180 / Math.PI, 0);
       }
     }
     if (site.state === "vanishing") {
