@@ -336,6 +336,27 @@ export class Enemy {
     return true;
   }
 
+  /**
+   * Face a world target without changing the body's position or velocity.
+   * @param {EnemyActor|null} target
+   */
+  faceTarget(target) {
+    const point = this.targetPosition(target);
+    if (!point) {
+      return;
+    }
+    const dx = point.x - this.position.x;
+    const dz = point.z - this.position.z;
+    if (Math.hypot(dx, dz) > 0.0001) {
+      const heading = new this.pc.Vec3(0, Math.atan2(-dx, -dz) * 180 / Math.PI, 0);
+      if (this.entity.rigidbody?.teleport) {
+        this.entity.rigidbody.teleport(this.position, heading);
+      } else {
+        this.entity.setEulerAngles(heading);
+      }
+    }
+  }
+
   stop() {
     const body = this.entity.rigidbody;
     if (body && !this.airborne) {

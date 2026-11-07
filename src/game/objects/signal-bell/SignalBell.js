@@ -11,6 +11,41 @@ import { SignalBellEvent } from "./SignalBellEvent.js";
  */
 export class SignalBell extends AbstractCastleProp {
   /**
+   * @type {number}
+   */
+  #reactionRemaining = 0;
+  /**
+   * @type {number}
+   */
+  #pendingStrike = 0;
+  /**
+   * @type {import("playcanvas").EventHandle|null}
+   */
+  #reactionHandle = null;
+
+  /**
+   * Vibration delays the next contact without preventing the tower from acting.
+   * @param {number} duration
+   * @param {number} delay
+   */
+  slowReaction(duration, delay = 0.5) {
+    this.#reactionRemaining = Math.max(this.#reactionRemaining, duration);
+    this.reactionDelay = delay;
+  }
+
+  /**
+   * @param {number} dt
+   */
+  #advanceReaction(dt) {
+    this.#reactionRemaining = Math.max(0, this.#reactionRemaining - dt);
+    if (this.#pendingStrike > 0) {
+      this.#pendingStrike -= dt;
+      if (this.#pendingStrike <= 0) {
+        this.#soundStrike();
+      }
+    }
+  }
+  /**
    * @type {import("playcanvas").Application}
    */
   #app;
@@ -188,6 +223,17 @@ export class SignalBell extends AbstractCastleProp {
    * Strike only at the downward pull's contact frame.
    */
   strike() {
+    if (this.#reactionRemaining > 0) {
+      if (this.#pendingStrike <= 0) {
+        this.#pendingStrike = this.reactionDelay;
+      }
+
+      return;
+    }
+    this.#soundStrike();
+  }
+
+  #soundStrike() {
     this.#ringCount++;
     this.visualRoots[0].sound.play("ring");
     SignalBellEvent.dispatch(this, this.#runtime.objects ?? []);
@@ -239,9 +285,13 @@ export class SignalBell extends AbstractCastleProp {
   // The fixed frame and animated bell share a model; do not bake it into a batch.
   onSceneReady() {
     this.#rope ??= new SignalBellRope(this.#pc, this.#app, this.#model);
+    this.#reactionHandle ??= this.#app.on("update", this.#advanceReaction, this);
   }
 
   destroy() {
+    this.#reactionHandle?.off();
+    this.#reactionHandle = null;
+    this.#pendingStrike = 0;
     this.#ringing = false;
     this.#rope?.destroy();
     this.#rope = null;

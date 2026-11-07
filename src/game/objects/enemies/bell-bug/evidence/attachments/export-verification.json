@@ -1,0 +1,40 @@
+{
+  "sockets": [
+    {
+      "leg": "L0",
+      "bodySignedDistance": -7.070439345113755e-09,
+      "bodySurfaceDistance": 1.4901161193847656e-08
+    },
+    {
+      "leg": "L1",
+      "bodySignedDistance": -9.758158784484161e-09,
+      "bodySurfaceDistance": 1.666000493116826e-08
+    },
+    {
+      "leg": "L2",
+      "bodySignedDistance": -4.390674623877544e-08,
+      "bodySurfaceDistance": 4.470348358154297e-08
+    },
+    {
+      "leg": "R0",
+      "bodySignedDistance": -1.4501794431964754e-08,
+      "bodySurfaceDistance": 1.4901161193847656e-08
+    },
+    {
+      "leg": "R1",
+      "bodySignedDistance": 0.0,
+      "bodySurfaceDistance": 0.0
+    },
+    {
+      "leg": "R2",
+      "bodySignedDistance": -1.6378146838746943e-08,
+      "bodySurfaceDistance": 2.9802322387695312e-08
+    }
+  ],
+  "samples": 810,
+  "maxBodyEndpointError": 1.2644054553268208e-07,
+  "maxFootEndpointError": 1.4924426096685327e-07,
+  "maxSocketSurfaceDistance": 0.010808597318828106,
+  "maxBodySurfaceDistance": 5.372690026206328e-08,
+  "freshExportImport": true
+}

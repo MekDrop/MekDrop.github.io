@@ -1,0 +1,1505 @@
+{
+  "actions": [
+    {
+      "frame_end": 20.0,
+      "frame_start": 0.8,
+      "name": "airborne_tumble",
+      "users": 2
+    },
+    {
+      "frame_end": 20.0,
+      "frame_start": 0.8,
+      "name": "carried_panic",
+      "users": 1
+    },
+    {
+      "frame_end": 24.8,
+      "frame_start": 0.8,
+      "name": "cower",
+      "users": 1
+    },
+    {
+      "frame_end": 29.6,
+      "frame_start": 0.8,
+      "name": "death",
+      "users": 1
+    },
+    {
+      "frame_end": 7.2,
+      "frame_start": 0.8,
+      "name": "door_scratch_end",
+      "users": 1
+    },
+    {
+      "frame_end": 18.4,
+      "frame_start": 0.8,
+      "name": "door_scratch_loop",
+      "users": 1
+    },
+    {
+      "frame_end": 8.0,
+      "frame_start": 0.8,
+      "name": "door_scratch_start",
+      "users": 1
+    },
+    {
+      "frame_end": 5.6,
+      "frame_start": 0.8,
+      "name": "fear_recoil",
+      "users": 1
+    },
+    {
+      "frame_end": 14.4,
+      "frame_start": 0.0,
+      "name": "hide_end",
+      "users": 1
+    },
+    {
+      "frame_end": 24.0,
+      "frame_start": 0.0,
+      "name": "hide_loop",
+      "users": 1
+    },
+    {
+      "frame_end": 14.4,
+      "frame_start": 0.0,
+      "name": "hide_start",
+      "users": 1
+    },
+    {
+      "frame_end": 8.0,
+      "frame_start": 0.8,
+      "name": "hit",
+      "users": 1
+    },
+    {
+      "frame_end": 39.2,
+      "frame_start": 0.8,
+      "name": "idle_nervous",
+      "users": 1
+    },
+    {
+      "frame_end": 10.4,
+      "frame_start": 0.8,
+      "name": "knockback",
+      "users": 1
+    },
+    {
+      "frame_end": 7.2,
+      "frame_start": 0.8,
+      "name": "land",
+      "users": 1
+    },
+    {
+      "frame_end": 8.8,
+      "frame_start": 0.8,
+      "name": "land_recover",
+      "users": 1
+    },
+    {
+      "frame_end": 8.0,
+      "frame_start": 0.8,
+      "name": "panic_ring_end",
+      "users": 1
+    },
+    {
+      "frame_end": 18.4,
+      "frame_start": 0.8,
+      "name": "panic_ring_loop",
+      "users": 1
+    },
+    {
+      "frame_end": 7.2,
+      "frame_start": 0.8,
+      "name": "panic_ring_start",
+      "users": 1
+    },
+    {
+      "frame_end": 10.4,
+      "frame_start": 0.8,
+      "name": "recover",
+      "users": 1
+    },
+    {
+      "frame_end": 18.4,
+      "frame_start": 0.8,
+      "name": "scratch_attack",
+      "users": 1
+    },
+    {
+      "frame_end": 7.2,
+      "frame_start": 0.0,
+      "name": "scuttle_run",
+      "users": 1
+    },
+    {
+      "frame_end": 11.2,
+      "frame_start": 0.0,
+      "name": "scuttle_walk",
+      "users": 1
+    },
+    {
+      "frame_end": 24.8,
+      "frame_start": 0.8,
+      "name": "stun",
+      "users": 1
+    },
+    {
+      "frame_end": 15.2,
+      "frame_start": 0.8,
+      "name": "turn",
+      "users": 1
+    },
+    {
+      "frame_end": 15.2,
+      "frame_start": 0.8,
+      "name": "turn_left",
+      "users": 1
+    },
+    {
+      "frame_end": 15.2,
+      "frame_start": 0.8,
+      "name": "turn_right",
+      "users": 1
+    }
+  ],
+  "blender": {
+    "background": true,
+    "build_hash": "9e2066aef7ef",
+    "version": "5.2.1 LTS",
+    "version_tuple": [
+      5,
+      2,
+      1
+    ]
+  },
+  "hard_gate_pass": true,
+  "input": "C:\\Users\\mekdr\\Documents\\Projects\\MekDrop.github.io\\src\\game\\models\\enemies\\bell-bug\\bell-bug.glb",
+  "issues": [],
+  "material_details": [
+    {
+      "image_texture_nodes": 0,
+      "images": [],
+      "name": "Bell bug charcoal",
+      "node_count": 2,
+      "use_nodes": true
+    },
+    {
+      "image_texture_nodes": 0,
+      "images": [],
+      "name": "Bell bug warm eyes",
+      "node_count": 2,
+      "use_nodes": true
+    },
+    {
+      "image_texture_nodes": 0,
+      "images": [],
+      "name": "Bell gold panel 0",
+      "node_count": 2,
+      "use_nodes": true
+    },
+    {
+      "image_texture_nodes": 0,
+      "images": [],
+      "name": "Bell gold panel 1",
+      "node_count": 2,
+      "use_nodes": true
+    },
+    {
+      "image_texture_nodes": 0,
+      "images": [],
+      "name": "Bell gold panel 2",
+      "node_count": 2,
+      "use_nodes": true
+    },
+    {
+      "image_texture_nodes": 0,
+      "images": [],
+      "name": "Bell gold panel 3",
+      "node_count": 2,
+      "use_nodes": true
+    },
+    {
+      "image_texture_nodes": 0,
+      "images": [],
+      "name": "Bell leg joint",
+      "node_count": 2,
+      "use_nodes": true
+    },
+    {
+      "image_texture_nodes": 0,
+      "images": [],
+      "name": "Sharp leg brown armor",
+      "node_count": 2,
+      "use_nodes": true
+    },
+    {
+      "image_texture_nodes": 0,
+      "images": [],
+      "name": "Sharp leg dark tip",
+      "node_count": 2,
+      "use_nodes": true
+    }
+  ],
+  "materials": [
+    "Bell bug charcoal",
+    "Bell bug warm eyes",
+    "Bell gold panel 0",
+    "Bell gold panel 1",
+    "Bell gold panel 2",
+    "Bell gold panel 3",
+    "Bell leg joint",
+    "Sharp leg brown armor",
+    "Sharp leg dark tip"
+  ],
+  "meshes": [
+    {
+      "boundary_edges": 126,
+      "connected_components": 1,
+      "data_name": "meshes[0].001",
+      "degenerate_faces": 0,
+      "edges": 1179,
+      "flat_polygons": 0,
+      "invalid_vertices": 0,
+      "isolated_vertices": 0,
+      "material_slots": [
+        "Bell bug charcoal"
+      ],
+      "missing_material_faces": 0,
+      "modifiers": [],
+      "name": "BellBug body",
+      "non_manifold_edges": 126,
+      "polygons": 744,
+      "refinement_modifiers": [],
+      "shape_keys": 0,
+      "smooth_polygon_ratio": 1.0,
+      "smooth_polygons": 744,
+      "source_polygons": 744,
+      "source_vertices": 435,
+      "triangles": 744,
+      "uv_layers": 0,
+      "vertex_groups": 0,
+      "vertices": 435,
+      "weighted_vertices": 0,
+      "wire_edges": 0,
+      "world_bounds": [
+        [
+          -0.383219,
+          -0.218305,
+          0.088651
+        ],
+        [
+          0.356771,
+          0.363269,
+          0.338407
+        ]
+      ],
+      "zero_length_edges": 0
+    },
+    {
+      "boundary_edges": 545,
+      "connected_components": 138,
+      "data_name": "meshes[3]",
+      "degenerate_faces": 0,
+      "edges": 1192,
+      "flat_polygons": 0,
+      "invalid_vertices": 0,
+      "isolated_vertices": 0,
+      "material_slots": [
+        "Bell bug charcoal",
+        "Bell bug warm eyes"
+      ],
+      "missing_material_faces": 0,
+      "modifiers": [],
+      "name": "BellBug head",
+      "non_manifold_edges": 545,
+      "polygons": 613,
+      "refinement_modifiers": [],
+      "shape_keys": 0,
+      "smooth_polygon_ratio": 1.0,
+      "smooth_polygons": 613,
+      "source_polygons": 613,
+      "source_vertices": 715,
+      "triangles": 613,
+      "uv_layers": 0,
+      "vertex_groups": 0,
+      "vertices": 715,
+      "weighted_vertices": 0,
+      "wire_edges": 0,
+      "world_bounds": [
+        [
+          -0.337,
+          -0.356519,
+          0.151425
+        ],
+        [
+          0.342504,
+          -0.046888,
+          0.452527
+        ]
+      ],
+      "zero_length_edges": 0
+    },
+    {
+      "boundary_edges": 64,
+      "connected_components": 10,
+      "data_name": "BellBug anchored hip L0.001",
+      "degenerate_faces": 0,
+      "edges": 98,
+      "flat_polygons": 40,
+      "invalid_vertices": 0,
+      "isolated_vertices": 0,
+      "material_slots": [
+        "Bell leg joint"
+      ],
+      "missing_material_faces": 0,
+      "modifiers": [
+        {
+          "name": "Armature",
+          "type": "ARMATURE"
+        }
+      ],
+      "name": "BellBug hip joint L0",
+      "non_manifold_edges": 64,
+      "polygons": 44,
+      "refinement_modifiers": [],
+      "shape_keys": 0,
+      "smooth_polygon_ratio": 0.090909,
+      "smooth_polygons": 4,
+      "source_polygons": 44,
+      "source_vertices": 64,
+      "triangles": 44,
+      "uv_layers": 0,
+      "vertex_groups": 10,
+      "vertices": 64,
+      "weighted_vertices": 64,
+      "wire_edges": 0,
+      "world_bounds": [
+        [
+          -0.303836,
+          -0.307127,
+          0.152279
+        ],
+        [
+          -0.136393,
+          -0.145724,
+          0.288485
+        ]
+      ],
+      "zero_length_edges": 0
+    },
+    {
+      "boundary_edges": 64,
+      "connected_components": 10,
+      "data_name": "BellBug anchored hip L1.001",
+      "degenerate_faces": 0,
+      "edges": 98,
+      "flat_polygons": 42,
+      "invalid_vertices": 0,
+      "isolated_vertices": 0,
+      "material_slots": [
+        "Bell leg joint"
+      ],
+      "missing_material_faces": 0,
+      "modifiers": [
+        {
+          "name": "Armature",
+          "type": "ARMATURE"
+        }
+      ],
+      "name": "BellBug hip joint L1",
+      "non_manifold_edges": 64,
+      "polygons": 44,
+      "refinement_modifiers": [],
+      "shape_keys": 0,
+      "smooth_polygon_ratio": 0.045455,
+      "smooth_polygons": 2,
+      "source_polygons": 44,
+      "source_vertices": 64,
+      "triangles": 44,
+      "uv_layers": 0,
+      "vertex_groups": 10,
+      "vertices": 64,
+      "weighted_vertices": 64,
+      "wire_edges": 0,
+      "world_bounds": [
+        [
+          -0.322194,
+          0.011832,
+          0.22202
+        ],
+        [
+          -0.26063,
+          0.066144,
+          0.285253
+        ]
+      ],
+      "zero_length_edges": 0
+    },
+    {
+      "boundary_edges": 64,
+      "connected_components": 10,
+      "data_name": "BellBug anchored hip L2.001",
+      "degenerate_faces": 0,
+      "edges": 98,
+      "flat_polygons": 43,
+      "invalid_vertices": 0,
+      "isolated_vertices": 0,
+      "material_slots": [
+        "Bell leg joint"
+      ],
+      "missing_material_faces": 0,
+      "modifiers": [
+        {
+          "name": "Armature",
+          "type": "ARMATURE"
+        }
+      ],
+      "name": "BellBug hip joint L2",
+      "non_manifold_edges": 64,
+      "polygons": 44,
+      "refinement_modifiers": [],
+      "shape_keys": 0,
+      "smooth_polygon_ratio": 0.022727,
+      "smooth_polygons": 1,
+      "source_polygons": 44,
+      "source_vertices": 64,
+      "triangles": 44,
+      "uv_layers": 0,
+      "vertex_groups": 10,
+      "vertices": 64,
+      "weighted_vertices": 64,
+      "wire_edges": 0,
+      "world_bounds": [
+        [
+          -0.303604,
+          0.270608,
+          0.180015
+        ],
+        [
+          -0.177891,
+          0.386671,
+          0.287632
+        ]
+      ],
+      "zero_length_edges": 0
+    },
+    {
+      "boundary_edges": 68,
+      "connected_components": 12,
+      "data_name": "BellBug anchored hip R0.001",
+      "degenerate_faces": 0,
+      "edges": 100,
+      "flat_polygons": 41,
+      "invalid_vertices": 0,
+      "isolated_vertices": 0,
+      "material_slots": [
+        "Bell leg joint"
+      ],
+      "missing_material_faces": 0,
+      "modifiers": [
+        {
+          "name": "Armature",
+          "type": "ARMATURE"
+        }
+      ],
+      "name": "BellBug hip joint R0",
+      "non_manifold_edges": 68,
+      "polygons": 44,
+      "refinement_modifiers": [],
+      "shape_keys": 0,
+      "smooth_polygon_ratio": 0.068182,
+      "smooth_polygons": 3,
+      "source_polygons": 44,
+      "source_vertices": 68,
+      "triangles": 44,
+      "uv_layers": 0,
+      "vertex_groups": 10,
+      "vertices": 68,
+      "weighted_vertices": 68,
+      "wire_edges": 0,
+      "world_bounds": [
+        [
+          0.162201,
+          -0.306434,
+          0.184282
+        ],
+        [
+          0.302438,
+          -0.173212,
+          0.289494
+        ]
+      ],
+      "zero_length_edges": 0
+    },
+    {
+      "boundary_edges": 64,
+      "connected_components": 10,
+      "data_name": "BellBug anchored hip R1.001",
+      "degenerate_faces": 0,
+      "edges": 98,
+      "flat_polygons": 44,
+      "invalid_vertices": 0,
+      "isolated_vertices": 0,
+      "material_slots": [
+        "Bell leg joint"
+      ],
+      "missing_material_faces": 0,
+      "modifiers": [
+        {
+          "name": "Armature",
+          "type": "ARMATURE"
+        }
+      ],
+      "name": "BellBug hip joint R1",
+      "non_manifold_edges": 64,
+      "polygons": 44,
+      "refinement_modifiers": [],
+      "shape_keys": 0,
+      "smooth_polygon_ratio": 0.0,
+      "smooth_polygons": 0,
+      "source_polygons": 44,
+      "source_vertices": 64,
+      "triangles": 44,
+      "uv_layers": 0,
+      "vertex_groups": 10,
+      "vertices": 64,
+      "weighted_vertices": 64,
+      "wire_edges": 0,
+      "world_bounds": [
+        [
+          0.261056,
+          0.012051,
+          0.219023
+        ],
+        [
+          0.325844,
+          0.066119,
+          0.285537
+        ]
+      ],
+      "zero_length_edges": 0
+    },
+    {
+      "boundary_edges": 64,
+      "connected_components": 10,
+      "data_name": "BellBug anchored hip R2.001",
+      "degenerate_faces": 0,
+      "edges": 98,
+      "flat_polygons": 41,
+      "invalid_vertices": 0,
+      "isolated_vertices": 0,
+      "material_slots": [
+        "Bell leg joint"
+      ],
+      "missing_material_faces": 0,
+      "modifiers": [
+        {
+          "name": "Armature",
+          "type": "ARMATURE"
+        }
+      ],
+      "name": "BellBug hip joint R2",
+      "non_manifold_edges": 64,
+      "polygons": 44,
+      "refinement_modifiers": [],
+      "shape_keys": 0,
+      "smooth_polygon_ratio": 0.068182,
+      "smooth_polygons": 3,
+      "source_polygons": 44,
+      "source_vertices": 64,
+      "triangles": 44,
+      "uv_layers": 0,
+      "vertex_groups": 10,
+      "vertices": 64,
+      "weighted_vertices": 64,
+      "wire_edges": 0,
+      "world_bounds": [
+        [
+          0.177354,
+          0.268171,
+          0.180071
+        ],
+        [
+          0.303734,
+          0.386385,
+          0.287791
+        ]
+      ],
+      "zero_length_edges": 0
+    },
+    {
+      "boundary_edges": 1905,
+      "connected_components": 635,
+      "data_name": "BellBug shared segmented sharp leg",
+      "degenerate_faces": 0,
+      "edges": 1905,
+      "flat_polygons": 0,
+      "invalid_vertices": 0,
+      "isolated_vertices": 0,
+      "material_slots": [
+        "Sharp leg brown armor",
+        "Sharp leg dark tip",
+        "Bell leg joint"
+      ],
+      "missing_material_faces": 0,
+      "modifiers": [],
+      "name": "BellBug leg L0",
+      "non_manifold_edges": 1905,
+      "polygons": 635,
+      "refinement_modifiers": [],
+      "shape_keys": 0,
+      "smooth_polygon_ratio": 1.0,
+      "smooth_polygons": 635,
+      "source_polygons": 635,
+      "source_vertices": 1905,
+      "triangles": 635,
+      "uv_layers": 0,
+      "vertex_groups": 0,
+      "vertices": 1905,
+      "weighted_vertices": 0,
+      "wire_edges": 0,
+      "world_bounds": [
+        [
+          -0.385535,
+          -0.445949,
+          0.000744
+        ],
+        [
+          -0.195495,
+          -0.211209,
+          0.289112
+        ]
+      ],
+      "zero_length_edges": 0
+    },
+    {
+      "boundary_edges": 1905,
+      "connected_components": 635,
+      "data_name": "BellBug shared segmented sharp leg",
+      "degenerate_faces": 0,
+      "edges": 1905,
+      "flat_polygons": 0,
+      "invalid_vertices": 0,
+      "isolated_vertices": 0,
+      "material_slots": [
+        "Sharp leg brown armor",
+        "Sharp leg dark tip",
+        "Bell leg joint"
+      ],
+      "missing_material_faces": 0,
+      "modifiers": [],
+      "name": "BellBug leg L1",
+      "non_manifold_edges": 1905,
+      "polygons": 635,
+      "refinement_modifiers": [],
+      "shape_keys": 0,
+      "smooth_polygon_ratio": 1.0,
+      "smooth_polygons": 635,
+      "source_polygons": 635,
+      "source_vertices": 1905,
+      "triangles": 635,
+      "uv_layers": 0,
+      "vertex_groups": 0,
+      "vertices": 1905,
+      "weighted_vertices": 0,
+      "wire_edges": 0,
+      "world_bounds": [
+        [
+          -0.385535,
+          -0.125948,
+          0.000744
+        ],
+        [
+          -0.195495,
+          0.108791,
+          0.289112
+        ]
+      ],
+      "zero_length_edges": 0
+    },
+    {
+      "boundary_edges": 1905,
+      "connected_components": 635,
+      "data_name": "BellBug shared segmented sharp leg",
+      "degenerate_faces": 0,
+      "edges": 1905,
+      "flat_polygons": 0,
+      "invalid_vertices": 0,
+      "isolated_vertices": 0,
+      "material_slots": [
+        "Sharp leg brown armor",
+        "Sharp leg dark tip",
+        "Bell leg joint"
+      ],
+      "missing_material_faces": 0,
+      "modifiers": [],
+      "name": "BellBug leg L2",
+      "non_manifold_edges": 1905,
+      "polygons": 635,
+      "refinement_modifiers": [],
+      "shape_keys": 0,
+      "smooth_polygon_ratio": 1.0,
+      "smooth_polygons": 635,
+      "source_polygons": 635,
+      "source_vertices": 1905,
+      "triangles": 635,
+      "uv_layers": 0,
+      "vertex_groups": 0,
+      "vertices": 1905,
+      "weighted_vertices": 0,
+      "wire_edges": 0,
+      "world_bounds": [
+        [
+          -0.385535,
+          0.194051,
+          0.000744
+        ],
+        [
+          -0.195495,
+          0.428791,
+          0.289112
+        ]
+      ],
+      "zero_length_edges": 0
+    },
+    {
+      "boundary_edges": 1905,
+      "connected_components": 635,
+      "data_name": "BellBug shared segmented sharp leg",
+      "degenerate_faces": 0,
+      "edges": 1905,
+      "flat_polygons": 0,
+      "invalid_vertices": 0,
+      "isolated_vertices": 0,
+      "material_slots": [
+        "Sharp leg brown armor",
+        "Sharp leg dark tip",
+        "Bell leg joint"
+      ],
+      "missing_material_faces": 0,
+      "modifiers": [],
+      "name": "BellBug leg R0",
+      "non_manifold_edges": 1905,
+      "polygons": 635,
+      "refinement_modifiers": [],
+      "shape_keys": 0,
+      "smooth_polygon_ratio": 1.0,
+      "smooth_polygons": 635,
+      "source_polygons": 635,
+      "source_vertices": 1905,
+      "triangles": 635,
+      "uv_layers": 0,
+      "vertex_groups": 0,
+      "vertices": 1905,
+      "weighted_vertices": 0,
+      "wire_edges": 0,
+      "world_bounds": [
+        [
+          0.195495,
+          -0.445948,
+          0.000744
+        ],
+        [
+          0.385535,
+          -0.211209,
+          0.289112
+        ]
+      ],
+      "zero_length_edges": 0
+    },
+    {
+      "boundary_edges": 1905,
+      "connected_components": 635,
+      "data_name": "BellBug shared segmented sharp leg",
+      "degenerate_faces": 0,
+      "edges": 1905,
+      "flat_polygons": 0,
+      "invalid_vertices": 0,
+      "isolated_vertices": 0,
+      "material_slots": [
+        "Sharp leg brown armor",
+        "Sharp leg dark tip",
+        "Bell leg joint"
+      ],
+      "missing_material_faces": 0,
+      "modifiers": [],
+      "name": "BellBug leg R1",
+      "non_manifold_edges": 1905,
+      "polygons": 635,
+      "refinement_modifiers": [],
+      "shape_keys": 0,
+      "smooth_polygon_ratio": 1.0,
+      "smooth_polygons": 635,
+      "source_polygons": 635,
+      "source_vertices": 1905,
+      "triangles": 635,
+      "uv_layers": 0,
+      "vertex_groups": 0,
+      "vertices": 1905,
+      "weighted_vertices": 0,
+      "wire_edges": 0,
+      "world_bounds": [
+        [
+          0.195495,
+          -0.125948,
+          0.000744
+        ],
+        [
+          0.385535,
+          0.108791,
+          0.289112
+        ]
+      ],
+      "zero_length_edges": 0
+    },
+    {
+      "boundary_edges": 1905,
+      "connected_components": 635,
+      "data_name": "BellBug shared segmented sharp leg",
+      "degenerate_faces": 0,
+      "edges": 1905,
+      "flat_polygons": 0,
+      "invalid_vertices": 0,
+      "isolated_vertices": 0,
+      "material_slots": [
+        "Sharp leg brown armor",
+        "Sharp leg dark tip",
+        "Bell leg joint"
+      ],
+      "missing_material_faces": 0,
+      "modifiers": [],
+      "name": "BellBug leg R2",
+      "non_manifold_edges": 1905,
+      "polygons": 635,
+      "refinement_modifiers": [],
+      "shape_keys": 0,
+      "smooth_polygon_ratio": 1.0,
+      "smooth_polygons": 635,
+      "source_polygons": 635,
+      "source_vertices": 1905,
+      "triangles": 635,
+      "uv_layers": 0,
+      "vertex_groups": 0,
+      "vertices": 1905,
+      "weighted_vertices": 0,
+      "wire_edges": 0,
+      "world_bounds": [
+        [
+          0.195495,
+          0.194051,
+          0.000744
+        ],
+        [
+          0.385535,
+          0.428791,
+          0.289112
+        ]
+      ],
+      "zero_length_edges": 0
+    },
+    {
+      "boundary_edges": 19218,
+      "connected_components": 6397,
+      "data_name": "meshes[1]",
+      "degenerate_faces": 0,
+      "edges": 19218,
+      "flat_polygons": 0,
+      "invalid_vertices": 0,
+      "isolated_vertices": 0,
+      "material_slots": [
+        "Bell gold panel 0",
+        "Bell gold panel 2",
+        "Bell gold panel 3",
+        "Bell gold panel 1"
+      ],
+      "missing_material_faces": 0,
+      "modifiers": [],
+      "name": "BellBug shell",
+      "non_manifold_edges": 19218,
+      "polygons": 6406,
+      "refinement_modifiers": [],
+      "shape_keys": 0,
+      "smooth_polygon_ratio": 1.0,
+      "smooth_polygons": 6406,
+      "source_polygons": 6406,
+      "source_vertices": 19209,
+      "triangles": 6406,
+      "uv_layers": 0,
+      "vertex_groups": 0,
+      "vertices": 19209,
+      "weighted_vertices": 0,
+      "wire_edges": 0,
+      "world_bounds": [
+        [
+          -0.5,
+          -0.468966,
+          0.158419
+        ],
+        [
+          0.5,
+          0.468966,
+          0.991147
+        ]
+      ],
+      "zero_length_edges": 0
+    }
+  ],
+  "objects": [
+    {
+      "action": null,
+      "collections": [
+        "Scene Collection"
+      ],
+      "dimensions": [
+        0.73999,
+        0.581574,
+        0.249756
+      ],
+      "hidden_render": false,
+      "location": [
+        0.0,
+        -0.28,
+        0.0
+      ],
+      "name": "BellBug body",
+      "parent": "BellBugRig",
+      "rotation_euler": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "transform_is_finite": true,
+      "type": "MESH"
+    },
+    {
+      "action": null,
+      "collections": [
+        "Scene Collection"
+      ],
+      "dimensions": [
+        0.679504,
+        0.309631,
+        0.301102
+      ],
+      "hidden_render": false,
+      "location": [
+        -0.0,
+        -0.24,
+        -0.22
+      ],
+      "name": "BellBug head",
+      "parent": "BellBugRig",
+      "rotation_euler": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "transform_is_finite": true,
+      "type": "MESH"
+    },
+    {
+      "action": null,
+      "collections": [
+        "Scene Collection"
+      ],
+      "dimensions": [
+        0.167443,
+        0.161404,
+        0.136206
+      ],
+      "hidden_render": false,
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "name": "BellBug hip joint L0",
+      "parent": "BellBugRig",
+      "rotation_euler": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "transform_is_finite": true,
+      "type": "MESH"
+    },
+    {
+      "action": null,
+      "collections": [
+        "Scene Collection"
+      ],
+      "dimensions": [
+        0.061565,
+        0.054313,
+        0.063233
+      ],
+      "hidden_render": false,
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "name": "BellBug hip joint L1",
+      "parent": "BellBugRig",
+      "rotation_euler": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "transform_is_finite": true,
+      "type": "MESH"
+    },
+    {
+      "action": null,
+      "collections": [
+        "Scene Collection"
+      ],
+      "dimensions": [
+        0.125714,
+        0.116063,
+        0.107617
+      ],
+      "hidden_render": false,
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "name": "BellBug hip joint L2",
+      "parent": "BellBugRig",
+      "rotation_euler": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "transform_is_finite": true,
+      "type": "MESH"
+    },
+    {
+      "action": null,
+      "collections": [
+        "Scene Collection"
+      ],
+      "dimensions": [
+        0.140238,
+        0.133222,
+        0.105212
+      ],
+      "hidden_render": false,
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "name": "BellBug hip joint R0",
+      "parent": "BellBugRig",
+      "rotation_euler": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "transform_is_finite": true,
+      "type": "MESH"
+    },
+    {
+      "action": null,
+      "collections": [
+        "Scene Collection"
+      ],
+      "dimensions": [
+        0.064788,
+        0.054068,
+        0.066514
+      ],
+      "hidden_render": false,
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "name": "BellBug hip joint R1",
+      "parent": "BellBugRig",
+      "rotation_euler": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "transform_is_finite": true,
+      "type": "MESH"
+    },
+    {
+      "action": null,
+      "collections": [
+        "Scene Collection"
+      ],
+      "dimensions": [
+        0.126379,
+        0.118214,
+        0.10772
+      ],
+      "hidden_render": false,
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "name": "BellBug hip joint R2",
+      "parent": "BellBugRig",
+      "rotation_euler": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "transform_is_finite": true,
+      "type": "MESH"
+    },
+    {
+      "action": null,
+      "collections": [
+        "Scene Collection"
+      ],
+      "dimensions": [
+        0.19004,
+        0.234739,
+        0.288369
+      ],
+      "hidden_render": false,
+      "location": [
+        0.353034,
+        -0.138897,
+        -0.142472
+      ],
+      "name": "BellBug leg L0",
+      "parent": "BellBugRig",
+      "rotation_euler": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        -1.0,
+        -1.0,
+        -1.0
+      ],
+      "transform_is_finite": true,
+      "type": "MESH"
+    },
+    {
+      "action": null,
+      "collections": [
+        "Scene Collection"
+      ],
+      "dimensions": [
+        0.19004,
+        0.234739,
+        0.288368
+      ],
+      "hidden_render": false,
+      "location": [
+        0.364557,
+        -0.138897,
+        -0.132869
+      ],
+      "name": "BellBug leg L1",
+      "parent": "BellBugRig",
+      "rotation_euler": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        -1.0,
+        -1.0,
+        -1.0
+      ],
+      "transform_is_finite": true,
+      "type": "MESH"
+    },
+    {
+      "action": null,
+      "collections": [
+        "Scene Collection"
+      ],
+      "dimensions": [
+        0.19004,
+        0.234739,
+        0.288368
+      ],
+      "hidden_render": false,
+      "location": [
+        0.399127,
+        -0.138897,
+        -0.104061
+      ],
+      "name": "BellBug leg L2",
+      "parent": "BellBugRig",
+      "rotation_euler": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        -1.0,
+        -1.0,
+        -1.0
+      ],
+      "transform_is_finite": true,
+      "type": "MESH"
+    },
+    {
+      "action": null,
+      "collections": [
+        "Scene Collection"
+      ],
+      "dimensions": [
+        0.19004,
+        0.234739,
+        0.288369
+      ],
+      "hidden_render": false,
+      "location": [
+        -0.353034,
+        -0.138897,
+        -0.142472
+      ],
+      "name": "BellBug leg R0",
+      "parent": "BellBugRig",
+      "rotation_euler": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "transform_is_finite": true,
+      "type": "MESH"
+    },
+    {
+      "action": null,
+      "collections": [
+        "Scene Collection"
+      ],
+      "dimensions": [
+        0.19004,
+        0.234739,
+        0.288368
+      ],
+      "hidden_render": false,
+      "location": [
+        -0.364557,
+        -0.138897,
+        -0.132869
+      ],
+      "name": "BellBug leg R1",
+      "parent": "BellBugRig",
+      "rotation_euler": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "transform_is_finite": true,
+      "type": "MESH"
+    },
+    {
+      "action": null,
+      "collections": [
+        "Scene Collection"
+      ],
+      "dimensions": [
+        0.19004,
+        0.234739,
+        0.288368
+      ],
+      "hidden_render": false,
+      "location": [
+        -0.399127,
+        -0.138897,
+        -0.104061
+      ],
+      "name": "BellBug leg R2",
+      "parent": "BellBugRig",
+      "rotation_euler": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "transform_is_finite": true,
+      "type": "MESH"
+    },
+    {
+      "action": null,
+      "collections": [
+        "Scene Collection"
+      ],
+      "dimensions": [
+        0.999999,
+        0.937932,
+        0.832728
+      ],
+      "hidden_render": false,
+      "location": [
+        0.0,
+        -0.42,
+        0.0
+      ],
+      "name": "BellBug shell",
+      "parent": "BellBugRig",
+      "rotation_euler": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "transform_is_finite": true,
+      "type": "MESH"
+    },
+    {
+      "action": "airborne_tumble",
+      "collections": [
+        "Scene Collection"
+      ],
+      "dimensions": [
+        0.575408,
+        0.626038,
+        0.25495
+      ],
+      "hidden_render": false,
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "name": "BellBugRig",
+      "parent": null,
+      "rotation_euler": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "transform_is_finite": true,
+      "type": "ARMATURE"
+    }
+  ],
+  "scene": {
+    "bounds": {
+      "dimensions": [
+        1.0,
+        0.937932,
+        0.990403
+      ],
+      "max": [
+        0.5,
+        0.468966,
+        0.991147
+      ],
+      "min": [
+        -0.5,
+        -0.468966,
+        0.000744
+      ]
+    },
+    "fps": 24.0,
+    "frame_end": 250,
+    "frame_start": 1,
+    "name": "Scene"
+  },
+  "schema_version": 3,
+  "totals": {
+    "actions": 27,
+    "armatures": 1,
+    "bones": 10,
+    "boundary_edges": 31707,
+    "cameras": 0,
+    "constraints": 0,
+    "degenerate_faces": 0,
+    "edges": 33609,
+    "flat_polygons": 251,
+    "geometry_nodes_modifiers": 0,
+    "images": 0,
+    "invalid_vertices": 0,
+    "isolated_vertices": 0,
+    "lights": 0,
+    "materials": 9,
+    "mesh_objects": 15,
+    "missing_material_faces": 0,
+    "node_materials": 9,
+    "non_manifold_edges": 31707,
+    "objects": 16,
+    "polygons": 11837,
+    "refinement_modifiers": 0,
+    "rigid_body_objects": 0,
+    "shape_keys": 0,
+    "simulation_modifiers": 0,
+    "smooth_polygons": 11586,
+    "textured_materials": 0,
+    "triangles": 11837,
+    "uv_mapped_meshes": 0,
+    "vertices": 32177,
+    "weighted_meshes": 6,
+    "wire_edges": 0,
+    "zero_length_edges": 0
+  }
+}

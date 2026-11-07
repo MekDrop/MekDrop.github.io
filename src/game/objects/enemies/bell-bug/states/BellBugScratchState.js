@@ -12,6 +12,7 @@ export class BellBugScratchState extends State {
     owner.phaseTime = 0;
     this.lastContact = -1;
     owner.stop();
+    owner.faceTarget(owner.scratchTarget);
     owner.playClip("door_scratch_start");
   }
 

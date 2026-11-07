@@ -257,6 +257,15 @@ export class LatchSlugNavigation {
       return true;
     }
     for (const actor of this.#owner.actors) {
+      if (actor.isBellBug && actor.alive && !actor.carrier && actor.entity?.rigidbody && actor.entity.rigidbody.enabled !== false) {
+        const position = this.#owner.targetPosition(actor);
+        const overlapsHeight = position.y < point.y + this.#owner.height &&
+          position.y + actor.height > point.y;
+        const clearance = this.#owner.radius + (actor.footprintRadius ?? actor.radius) + 0.05;
+        if (overlapsHeight && Math.hypot(point.x - position.x, point.z - position.z) < clearance) {
+          return true;
+        }
+      }
       for (const door of actor.destructibleDoors ?? actor.entranceDoors ?? []) {
         if (door !== ignoredDoor && door.blocksCameraAt?.(point.x, point.y + this.#owner.height / 2, point.z, this.#owner.radius + 0.04)) {
           return true;

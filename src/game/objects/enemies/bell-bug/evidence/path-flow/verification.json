@@ -1,0 +1,43 @@
+{
+  "browser": "ChatGPT in-app browser",
+  "testsPassed": 51,
+  "lintPassed": true,
+  "crowd": {
+    "movingBugs": 10,
+    "parkedBlockers": 2,
+    "allPassed": true,
+    "noRiding": true,
+    "maxRootY": 2.008000135421753,
+    "tileFit": true,
+    "video": "crowd.mp4",
+    "telemetry": "crowd.json"
+  },
+  "gatewayRoute": {
+    "completed": true,
+    "points": 65,
+    "royalTarget": null,
+    "includes": [
+      "gateway emergence",
+      "wooden bridge",
+      "two bends",
+      "castle approach"
+    ],
+    "video": "route.mp4",
+    "telemetry": "route.json"
+  },
+  "stairs": {
+    "completed": true,
+    "checkpoints": 6,
+    "duration": 22.81830000001192,
+    "consoleResult": "stairs.json"
+  },
+  "runtimeErrors": [],
+  "sourceSha256": {
+    "src/game/objects/enemies/bell-bug/BellBug.js": "806dcc3cc69c89715c88680f20986009669488963781ff92ebf094e1ea5e21ac",
+    "src/game/objects/enemies/bell-bug/BellBugCrowdMotion.js": "0e02c93051760f0f687d833b9d6a7213e814bea35c292e521dd151af53335eb1",
+    "src/game/objects/enemies/bell-bug/BellBugRoute.js": "d44988eaa87404341fa91ea1da3fa9422eb34010c5906a3bd9d1500b7716fcb7",
+    "src/game/objects/enemies/bell-bug/states/BellBugPursueState.js": "75e4a9b101e33b49febabdd598b42dcf6e0c941bec98952e470dd1f0ab5b4fca",
+    "src/game/maps/tests/enemy-bell-bug-path-flow.json": "f554b8d7734a96e4c565092c28709d342f5377b2b66003fc9b40bae4af391071",
+    "src/game/maps/tests/enemy-bell-bug-route.json": "fd6a60f5acb9730acbbbae32c56ac1c7180ed94f182e0488fd707e1ccafa87c2"
+  }
+}

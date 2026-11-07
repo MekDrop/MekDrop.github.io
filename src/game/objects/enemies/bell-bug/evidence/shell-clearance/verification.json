@@ -1,0 +1,336 @@
+{
+  "correction": "Paired foot stance clears the rim; run swing lift 0.039 m; terrain never pushes feet upward into the bell",
+  "footMeshShared": true,
+  "footShapeUnchanged": true,
+  "stanceOutward": [
+    0.02,
+    0.18,
+    0.24
+  ],
+  "meshClearance": {
+    "intersections": 0,
+    "samples": 21960,
+    "freshImport": true,
+    "failures": []
+  },
+  "terrainDropSamples": [
+    0,
+    0.085,
+    0.17,
+    0.255,
+    0.34
+  ],
+  "excludedFromIntersectionCheck": "Charcoal sockets and hip links intentionally join the body; retraction intentionally enters the shell",
+  "hiddenPose": {
+    "vertices": 1992,
+    "maxHiddenFootDisplacement": 6.664001874625056e-8
+  },
+  "preview": {
+    "margin": 94,
+    "transparentPixels": 224957,
+    "height": 512,
+    "visiblePixels": 37187,
+    "width": 512
+  },
+  "testsPassed": 32,
+  "attachmentFreshImport": {
+    "sockets": [
+      {
+        "leg": "L0",
+        "bone": "head",
+        "bodySurfaceDistance": 3.332000986233652e-8,
+        "overlapDepth": 0.035
+      },
+      {
+        "leg": "L1",
+        "bone": "body",
+        "bodySurfaceDistance": 6.177870659485052e-8,
+        "overlapDepth": 0.035
+      },
+      {
+        "leg": "L2",
+        "bone": "body",
+        "bodySurfaceDistance": 1.4901161193847656e-8,
+        "overlapDepth": 0.035
+      },
+      {
+        "leg": "R0",
+        "bone": "head",
+        "bodySurfaceDistance": 1.4901161193847656e-8,
+        "overlapDepth": 0.035
+      },
+      {
+        "leg": "R1",
+        "bone": "body",
+        "bodySurfaceDistance": 3.725290298461914e-9,
+        "overlapDepth": 0.035
+      },
+      {
+        "leg": "R2",
+        "bone": "body",
+        "bodySurfaceDistance": 4.214684778958144e-8,
+        "overlapDepth": 0.035
+      }
+    ],
+    "samples": 810,
+    "maxBodyEndpointError": 1.2013700229374393e-7,
+    "maxFootEndpointError": 1.7881393432617188e-7,
+    "maxSocketSurfaceDistance": 0.010808607563376427,
+    "maxBodySurfaceDistance": 7.847601324328934e-8,
+    "minBodyOverlapDepth": 0.029753306701768786,
+    "freshExportImport": true
+  },
+  "stairs": {
+    "completed": true,
+    "duration": 22.914600000023842,
+    "checkpoints": 6,
+    "evidence": "stairs.webm"
+  },
+  "runtimePlayback": [
+    {
+      "name": "idle_nervous",
+      "finite": true,
+      "time": 0.2269000000000015,
+      "movingJoints": []
+    },
+    {
+      "name": "scuttle_walk",
+      "finite": true,
+      "time": 0.22689999999999425,
+      "movingJoints": [
+        "shell",
+        "leg_L_0",
+        "leg_L_1",
+        "leg_L_2",
+        "leg_R_0",
+        "leg_R_1",
+        "leg_R_2"
+      ]
+    },
+    {
+      "name": "scuttle_run",
+      "finite": true,
+      "time": 0.22690000000000154,
+      "movingJoints": [
+        "shell",
+        "leg_L_0",
+        "leg_L_1",
+        "leg_L_2",
+        "leg_R_0",
+        "leg_R_1",
+        "leg_R_2"
+      ]
+    },
+    {
+      "name": "turn",
+      "finite": true,
+      "time": 0.22690000000000152,
+      "movingJoints": []
+    },
+    {
+      "name": "turn_left",
+      "finite": true,
+      "time": 0.22690000000000152,
+      "movingJoints": []
+    },
+    {
+      "name": "turn_right",
+      "finite": true,
+      "time": 0.2269000000000015,
+      "movingJoints": []
+    },
+    {
+      "name": "cower",
+      "finite": true,
+      "time": 0.22679999999999573,
+      "movingJoints": [
+        "root"
+      ]
+    },
+    {
+      "name": "hide_start",
+      "finite": true,
+      "time": 0.22690000000000154,
+      "movingJoints": [
+        "head",
+        "leg_L_0",
+        "leg_L_1",
+        "leg_L_2",
+        "leg_R_0",
+        "leg_R_1",
+        "leg_R_2",
+        "root"
+      ]
+    },
+    {
+      "name": "hide_loop",
+      "finite": true,
+      "time": 0.2270000000000001,
+      "movingJoints": []
+    },
+    {
+      "name": "hide_end",
+      "finite": true,
+      "time": 0.22690000000000154,
+      "movingJoints": [
+        "root",
+        "head",
+        "leg_L_0",
+        "leg_L_1",
+        "leg_L_2",
+        "leg_R_0",
+        "leg_R_1",
+        "leg_R_2"
+      ]
+    },
+    {
+      "name": "fear_recoil",
+      "finite": true,
+      "time": 0.2267999999999957,
+      "movingJoints": [
+        "root"
+      ]
+    },
+    {
+      "name": "panic_ring_start",
+      "finite": true,
+      "time": 0.227,
+      "movingJoints": []
+    },
+    {
+      "name": "panic_ring_loop",
+      "finite": true,
+      "time": 0.22680000000000294,
+      "movingJoints": []
+    },
+    {
+      "name": "panic_ring_end",
+      "finite": true,
+      "time": 0.22690000000000154,
+      "movingJoints": []
+    },
+    {
+      "name": "door_scratch_start",
+      "finite": true,
+      "time": 0.227,
+      "movingJoints": [
+        "leg_L_0",
+        "leg_R_0"
+      ]
+    },
+    {
+      "name": "door_scratch_loop",
+      "finite": true,
+      "time": 0.2269000000000015,
+      "movingJoints": [
+        "leg_L_0",
+        "leg_R_0"
+      ]
+    },
+    {
+      "name": "door_scratch_end",
+      "finite": true,
+      "time": 0.22689999999999425,
+      "movingJoints": [
+        "leg_L_0",
+        "leg_R_0"
+      ]
+    },
+    {
+      "name": "scratch_attack",
+      "finite": true,
+      "time": 0.22690000000000154,
+      "movingJoints": []
+    },
+    {
+      "name": "hit",
+      "finite": true,
+      "time": 0.22690000000000154,
+      "movingJoints": [
+        "root"
+      ]
+    },
+    {
+      "name": "stun",
+      "finite": true,
+      "time": 0.226800000000003,
+      "movingJoints": []
+    },
+    {
+      "name": "recover",
+      "finite": true,
+      "time": 0.22700000000000004,
+      "movingJoints": [
+        "root"
+      ]
+    },
+    {
+      "name": "carried_panic",
+      "finite": true,
+      "time": 0.22679999999999573,
+      "movingJoints": []
+    },
+    {
+      "name": "airborne_tumble",
+      "finite": true,
+      "time": 0.22690000000000154,
+      "movingJoints": []
+    },
+    {
+      "name": "land",
+      "finite": true,
+      "time": 0.2270000000000001,
+      "movingJoints": [
+        "root"
+      ]
+    },
+    {
+      "name": "land_recover",
+      "finite": true,
+      "time": 0.226800000000003,
+      "movingJoints": [
+        "root"
+      ]
+    },
+    {
+      "name": "death",
+      "finite": true,
+      "time": 0.2268999999999942,
+      "movingJoints": [
+        "root"
+      ]
+    },
+    {
+      "name": "knockback",
+      "finite": true,
+      "time": 0.226800000000003,
+      "movingJoints": [
+        "root"
+      ]
+    }
+  ],
+  "hideRuntime": {
+    "clips": [
+      "scuttle_run",
+      "door_scratch_loop",
+      "hide_start",
+      "hide_loop",
+      "hide_end",
+      "idle_nervous"
+    ],
+    "states": [
+      "BellBugPlaybackState",
+      "BellBugPanicState",
+      "BellBugPursueState"
+    ],
+    "duration": 2
+  },
+  "runtimeErrors": [],
+  "animationErrors": [],
+  "hashes": {
+    "src/game/models/enemies/bell-bug/bell-bug.blend": "1a51b4b5d8477f017d46de2d99e65ae7475913d99a23a931a26e2e93d60dd33b",
+    "src/game/models/enemies/bell-bug/bell-bug.glb": "c1bd77865fad264982974da3c61e4347f370c8ad6d6fc24138c0ff1054c2569a",
+    "src/game/objects/enemies/bell-bug/BellBugGroundPose.js": "a310415537f2580fee1b12b14ef5633e2f824c7115f5370ca5cb4b8be926f04e",
+    "src/game/objects/enemies/bell-bug/BellBugStepSupport.js": "7f83f43a55f66ab80fef34522245a6e178725ac7585ca83fa7fbab941dcdd2e7"
+  }
+}

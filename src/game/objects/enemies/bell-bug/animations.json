@@ -1,5 +1,5 @@
 {
-  "status": "All 24 clips fresh-import sampled; production playback pending",
+  "status": "Segmented Tripo model: six shared rigid legs, 23% slimmer, ten bones and retract/hold/emerge verified in game",
   "model": "../../../models/enemies/bell-bug/bell-bug.glb",
   "fps": 30,
   "clips": [
@@ -14,21 +14,13 @@
       ],
       "verification": {
         "freshImport": true,
-        "loopSeamResidual": 0,
-        "sampledFractions": [
-          0,
-          0.25,
-          0.5,
-          0.55,
-          0.75,
-          1
-        ],
-        "runtimePlayback": false
+        "runtimePlayback": true,
+        "movingJoints": []
       }
     },
     {
       "name": "scuttle_walk",
-      "duration": 0.8,
+      "duration": 0.4666666666666667,
       "loop": true,
       "events": {},
       "supportedStates": [
@@ -36,21 +28,21 @@
       ],
       "verification": {
         "freshImport": true,
-        "loopSeamResidual": 0,
-        "sampledFractions": [
-          0,
-          0.25,
-          0.5,
-          0.55,
-          0.75,
-          1
-        ],
-        "runtimePlayback": false
+        "runtimePlayback": true,
+        "movingJoints": [
+          "shell",
+          "leg_L_0",
+          "leg_L_1",
+          "leg_L_2",
+          "leg_R_0",
+          "leg_R_1",
+          "leg_R_2"
+        ]
       }
     },
     {
       "name": "scuttle_run",
-      "duration": 0.5,
+      "duration": 0.3,
       "loop": true,
       "events": {},
       "supportedStates": [
@@ -58,16 +50,16 @@
       ],
       "verification": {
         "freshImport": true,
-        "loopSeamResidual": 0,
-        "sampledFractions": [
-          0,
-          0.25,
-          0.5,
-          0.55,
-          0.75,
-          1
-        ],
-        "runtimePlayback": false
+        "runtimePlayback": true,
+        "movingJoints": [
+          "shell",
+          "leg_L_0",
+          "leg_L_1",
+          "leg_L_2",
+          "leg_R_0",
+          "leg_R_1",
+          "leg_R_2"
+        ]
       }
     },
     {
@@ -80,16 +72,8 @@
       ],
       "verification": {
         "freshImport": true,
-        "loopSeamResidual": 0,
-        "sampledFractions": [
-          0,
-          0.25,
-          0.5,
-          0.55,
-          0.75,
-          1
-        ],
-        "runtimePlayback": false
+        "runtimePlayback": true,
+        "movingJoints": []
       }
     },
     {
@@ -102,16 +86,10 @@
       ],
       "verification": {
         "freshImport": true,
-        "loopSeamResidual": 0,
-        "sampledFractions": [
-          0,
-          0.25,
-          0.5,
-          0.55,
-          0.75,
-          1
-        ],
-        "runtimePlayback": false
+        "runtimePlayback": true,
+        "movingJoints": [
+          "root"
+        ]
       }
     },
     {
@@ -124,16 +102,10 @@
       ],
       "verification": {
         "freshImport": true,
-        "loopSeamResidual": 0,
-        "sampledFractions": [
-          0,
-          0.25,
-          0.5,
-          0.55,
-          0.75,
-          1
-        ],
-        "runtimePlayback": false
+        "runtimePlayback": true,
+        "movingJoints": [
+          "root"
+        ]
       }
     },
     {
@@ -146,16 +118,8 @@
       ],
       "verification": {
         "freshImport": true,
-        "loopSeamResidual": 0.05742900000000006,
-        "sampledFractions": [
-          0,
-          0.25,
-          0.5,
-          0.55,
-          0.75,
-          1
-        ],
-        "runtimePlayback": false
+        "runtimePlayback": true,
+        "movingJoints": []
       }
     },
     {
@@ -168,16 +132,8 @@
       ],
       "verification": {
         "freshImport": true,
-        "loopSeamResidual": 0,
-        "sampledFractions": [
-          0,
-          0.25,
-          0.5,
-          0.55,
-          0.75,
-          1
-        ],
-        "runtimePlayback": false
+        "runtimePlayback": true,
+        "movingJoints": []
       }
     },
     {
@@ -190,16 +146,8 @@
       ],
       "verification": {
         "freshImport": true,
-        "loopSeamResidual": 0.05742900000000006,
-        "sampledFractions": [
-          0,
-          0.25,
-          0.5,
-          0.55,
-          0.75,
-          1
-        ],
-        "runtimePlayback": false
+        "runtimePlayback": true,
+        "movingJoints": []
       }
     },
     {
@@ -212,16 +160,11 @@
       ],
       "verification": {
         "freshImport": true,
-        "loopSeamResidual": 0.295887,
-        "sampledFractions": [
-          0,
-          0.25,
-          0.5,
-          0.55,
-          0.75,
-          1
-        ],
-        "runtimePlayback": false
+        "runtimePlayback": true,
+        "movingJoints": [
+          "leg_L_0",
+          "leg_R_0"
+        ]
       }
     },
     {
@@ -236,16 +179,11 @@
       ],
       "verification": {
         "freshImport": true,
-        "loopSeamResidual": 0,
-        "sampledFractions": [
-          0,
-          0.25,
-          0.5,
-          0.55,
-          0.75,
-          1
-        ],
-        "runtimePlayback": false
+        "runtimePlayback": true,
+        "movingJoints": [
+          "leg_L_0",
+          "leg_R_0"
+        ]
       }
     },
     {
@@ -258,16 +196,11 @@
       ],
       "verification": {
         "freshImport": true,
-        "loopSeamResidual": 0.295887,
-        "sampledFractions": [
-          0,
-          0.25,
-          0.5,
-          0.55,
-          0.75,
-          1
-        ],
-        "runtimePlayback": false
+        "runtimePlayback": true,
+        "movingJoints": [
+          "leg_L_0",
+          "leg_R_0"
+        ]
       }
     },
     {
@@ -282,16 +215,8 @@
       ],
       "verification": {
         "freshImport": true,
-        "loopSeamResidual": 0,
-        "sampledFractions": [
-          0,
-          0.25,
-          0.5,
-          0.55,
-          0.75,
-          1
-        ],
-        "runtimePlayback": false
+        "runtimePlayback": true,
+        "movingJoints": []
       }
     },
     {
@@ -304,16 +229,10 @@
       ],
       "verification": {
         "freshImport": true,
-        "loopSeamResidual": 0,
-        "sampledFractions": [
-          0,
-          0.25,
-          0.5,
-          0.55,
-          0.75,
-          1
-        ],
-        "runtimePlayback": false
+        "runtimePlayback": true,
+        "movingJoints": [
+          "root"
+        ]
       }
     },
     {
@@ -326,16 +245,8 @@
       ],
       "verification": {
         "freshImport": true,
-        "loopSeamResidual": 0,
-        "sampledFractions": [
-          0,
-          0.25,
-          0.5,
-          0.55,
-          0.75,
-          1
-        ],
-        "runtimePlayback": false
+        "runtimePlayback": true,
+        "movingJoints": []
       }
     },
     {
@@ -348,16 +259,10 @@
       ],
       "verification": {
         "freshImport": true,
-        "loopSeamResidual": 0.119712,
-        "sampledFractions": [
-          0,
-          0.25,
-          0.5,
-          0.55,
-          0.75,
-          1
-        ],
-        "runtimePlayback": false
+        "runtimePlayback": true,
+        "movingJoints": [
+          "root"
+        ]
       }
     },
     {
@@ -370,16 +275,8 @@
       ],
       "verification": {
         "freshImport": true,
-        "loopSeamResidual": 0,
-        "sampledFractions": [
-          0,
-          0.25,
-          0.5,
-          0.55,
-          0.75,
-          1
-        ],
-        "runtimePlayback": false
+        "runtimePlayback": true,
+        "movingJoints": []
       }
     },
     {
@@ -392,16 +289,8 @@
       ],
       "verification": {
         "freshImport": true,
-        "loopSeamResidual": 0.0000010000000000287557,
-        "sampledFractions": [
-          0,
-          0.25,
-          0.5,
-          0.55,
-          0.75,
-          1
-        ],
-        "runtimePlayback": false
+        "runtimePlayback": true,
+        "movingJoints": []
       }
     },
     {
@@ -414,16 +303,10 @@
       ],
       "verification": {
         "freshImport": true,
-        "loopSeamResidual": 0,
-        "sampledFractions": [
-          0,
-          0.25,
-          0.5,
-          0.55,
-          0.75,
-          1
-        ],
-        "runtimePlayback": false
+        "runtimePlayback": true,
+        "movingJoints": [
+          "root"
+        ]
       }
     },
     {
@@ -436,16 +319,10 @@
       ],
       "verification": {
         "freshImport": true,
-        "loopSeamResidual": 0.025000000000000022,
-        "sampledFractions": [
-          0,
-          0.25,
-          0.5,
-          0.55,
-          0.75,
-          1
-        ],
-        "runtimePlayback": false
+        "runtimePlayback": true,
+        "movingJoints": [
+          "root"
+        ]
       }
     },
     {
@@ -458,16 +335,10 @@
       ],
       "verification": {
         "freshImport": true,
-        "loopSeamResidual": 1.475464,
-        "sampledFractions": [
-          0,
-          0.25,
-          0.5,
-          0.55,
-          0.75,
-          1
-        ],
-        "runtimePlayback": false
+        "runtimePlayback": true,
+        "movingJoints": [
+          "root"
+        ]
       }
     },
     {
@@ -480,16 +351,10 @@
       ],
       "verification": {
         "freshImport": true,
-        "loopSeamResidual": 0,
-        "sampledFractions": [
-          0,
-          0.25,
-          0.5,
-          0.55,
-          0.75,
-          1
-        ],
-        "runtimePlayback": false
+        "runtimePlayback": true,
+        "movingJoints": [
+          "root"
+        ]
       }
     },
     {
@@ -502,16 +367,8 @@
       ],
       "verification": {
         "freshImport": true,
-        "loopSeamResidual": 0,
-        "sampledFractions": [
-          0,
-          0.25,
-          0.5,
-          0.55,
-          0.75,
-          1
-        ],
-        "runtimePlayback": false
+        "runtimePlayback": true,
+        "movingJoints": []
       }
     },
     {
@@ -524,28 +381,82 @@
       ],
       "verification": {
         "freshImport": true,
-        "loopSeamResidual": 0,
-        "sampledFractions": [
-          0,
-          0.25,
-          0.5,
-          0.55,
-          0.75,
-          1
-        ],
-        "runtimePlayback": false
+        "runtimePlayback": true,
+        "movingJoints": []
+      }
+    },
+    {
+      "name": "hide_start",
+      "duration": 0.6,
+      "loop": false,
+      "events": {},
+      "supportedStates": [
+        "BellBugPanicState",
+        "BellBugPlaybackState"
+      ],
+      "verification": {
+        "freshImport": true,
+        "runtimePlayback": true,
+        "movingJoints": [
+          "head",
+          "leg_L_0",
+          "leg_L_1",
+          "leg_L_2",
+          "leg_R_0",
+          "leg_R_1",
+          "leg_R_2",
+          "root"
+        ]
+      }
+    },
+    {
+      "name": "hide_loop",
+      "duration": 1,
+      "loop": true,
+      "events": {},
+      "supportedStates": [
+        "BellBugPanicState",
+        "BellBugPlaybackState"
+      ],
+      "verification": {
+        "freshImport": true,
+        "runtimePlayback": true,
+        "movingJoints": []
+      }
+    },
+    {
+      "name": "hide_end",
+      "duration": 0.6,
+      "loop": false,
+      "events": {},
+      "supportedStates": [
+        "BellBugPanicState",
+        "BellBugPlaybackState"
+      ],
+      "verification": {
+        "freshImport": true,
+        "runtimePlayback": true,
+        "movingJoints": [
+          "root",
+          "head",
+          "leg_L_0",
+          "leg_L_1",
+          "leg_L_2",
+          "leg_R_0",
+          "leg_R_1",
+          "leg_R_2"
+        ]
       }
     }
   ],
   "evidence": "verification.json",
   "stateEvents": {
     "BellBugPanicState": {
-      "fearRecoil": 0,
-      "ringStart": 0.2,
-      "ringContact": 0.45,
-      "ringEnd": 1.2,
-      "cower": 1.5,
-      "resume": 1.8
+      "ringContact": 0,
+      "retractStart": 0,
+      "retractEnd": 0.6,
+      "emergeStart": "panicDuration - 0.6",
+      "resume": "panicDuration"
     },
     "BellBugScratchState": {
       "windup": 0,

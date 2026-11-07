@@ -2,6 +2,10 @@ import { BellBugScratchRecoverState } from "./states/BellBugScratchRecoverState.
 import { BellBugPlaybackVerification } from "./BellBugPlaybackVerification.js";
 import { BellBugPreview } from "./BellBugPreview.js";
 import { BellBugModel } from "./BellBugModel.js";
+import { BellBugCalibration } from "./BellBugCalibration.js";
+import { BellBugCrowdMotion } from "./BellBugCrowdMotion.js";
+import { BellBugRoute } from "./BellBugRoute.js";
+import { BellBugStepSupport } from "./BellBugStepSupport.js";
 import { BellBugPlaybackState } from "./states/BellBugPlaybackState.js";
 import { Enemy } from "../shared/Enemy.js";
 import { BellBugPursueState } from "./states/BellBugPursueState.js";
@@ -13,6 +17,13 @@ import { BellBugReactionState } from "./states/BellBugReactionState.js";
  * Cowardly bell beetle. The royal remains its goal; towers are never targets.
  */
 export class BellBug extends Enemy {
+  /**
+   * Foot room used by nearby creatures, separate from the body collider.
+   * @returns {number}
+   */
+  get footprintRadius() {
+    return BellBugCalibration.spacingRadius;
+  }
   /**
    * @type {Set<string|number>}
    */
@@ -37,10 +48,14 @@ export class BellBug extends Enemy {
       this.entity.setPosition(position.x, position.y, position.z);
     }
     this.isBellBug = true;
-    this.radius = 0.42;
-    this.height = 0.85;
+    this.radius = BellBugCalibration.radius;
+    this.height = BellBugCalibration.height;
+    this.stepSupport = new BellBugStepSupport(this);
+    this.crowdMotion = new BellBugCrowdMotion(this);
+    this.route = new BellBugRoute(this);
     this.walkSpeed = 1.15;
-    this.ringRadius = 5;
+    this.ringRadius = 1;
+    this.panicDuration = 2;
     this.ringCount = 0;
     this.clip = "idle_nervous";
     this.phaseTime = 0;
@@ -79,10 +94,70 @@ export class BellBug extends Enemy {
   }
 
   /**
+   * @param {import("../shared/Enemy.js").EnemyActor|null} target
+   * @param {number} speed
+   * @param {number} arrivalRadius
+   */
+  moveToward(target, speed = this.walkSpeed, arrivalRadius = 0.05) {
+    const previousYaw = this.entity.getEulerAngles().y;
+    const moving = super.moveToward(target, speed, arrivalRadius);
+    if (moving) {
+      if (!this.crowdMotion.constrain()) {
+        this.stop();
+
+        return false;
+      }
+      const velocity = this.entity.rigidbody.linearVelocity;
+      this.stepSupport.advance(velocity);
+      this.entity.setEulerAngles(0, Math.atan2(-velocity.x, -velocity.z) * 180 / Math.PI, 0);
+      const difference = (this.entity.getEulerAngles().y - previousYaw + 540) % 360 - 180;
+      // Sync deliberate turns, not every frame: teleporting an interpolated
+      // dynamic body's position continuously discards part of its travel.
+      if (Math.abs(difference) > 2) {
+        this.faceTarget({ position: this.position.clone().add(velocity.clone().mulScalar(0.1)) });
+      }
+    }
+    return moving;
+  }
+
+  /**
    * @returns {string}
    */
   get testStatus() {
     return `${super.testStatus} | ${this.clip} | rings ${this.ringCount} | stun ${(this.statuses.get("stun")?.remaining ?? 0).toFixed(2)}s`;
+  }
+
+  /**
+   * Scratch living actors only while grounded and actively pursuing.
+   * @param {number} dt
+   */
+  update(dt) {
+    super.update(dt);
+    if (!Number.isFinite(dt) || dt <= 0 || !this.alive || this.carrier || this.airborne ||
+      this.statuses.has("stun") || this.stateName !== BellBugPursueState.name) {
+      return;
+    }
+    for (const actor of this.actors) {
+      if (actor === this || actor.isEnemy || typeof actor.receiveDamage !== "function" ||
+        this.distanceTo(actor) > this.radius + (actor.radius ?? 0.3) + 0.15) {
+        continue;
+      }
+      const point = this.targetPosition(actor);
+      const start = this.position.clone().add(new this.pc.Vec3(0, 0.4, 0));
+      const end = point.clone().add(new this.pc.Vec3(0, 0.4, 0));
+      const hits = this.app.systems?.rigidbody?.raycastAll(start, end) ?? [];
+      const blocked = hits.some(/**
+       *
+       * @param {import("playcanvas").RaycastResult} hit
+       */
+        (hit) => hit.entity !== this.entity &&
+        !hit.entity.isDescendantOf(this.entity) && hit.entity !== actor.entity &&
+        !hit.entity.isDescendantOf(actor.entity));
+      if (!blocked) {
+        this.playClip("scratch_attack");
+        actor.receiveDamage(dt / 10, this, "scratch");
+      }
+    }
   }
 
   /**
@@ -116,6 +191,14 @@ export class BellBug extends Enemy {
     if (this.#seenRings.size > 128) {
       this.#seenRings.delete(this.#seenRings.values().next().value);
     }
+    this.panicDuration = 2;
+    let bonus = 0.2;
+    for (const actor of this.actors) {
+      if (actor !== this && actor.isBellBug && actor.alive && this.distanceTo(actor) <= this.ringRadius) {
+        this.panicDuration += bonus;
+        bonus *= 0.1;
+      }
+    }
     this.fearEvent = {
       ...event,
       eventId,
@@ -132,8 +215,7 @@ export class BellBug extends Enemy {
   }
 
   /**
-   * Extend only existing allied stun; never create confusion or a rally buff.
-   * Each original event extends a given ally at most once across all bugs.
+   * One tile of vibration applies a shared, nonrecursive stun per bell event.
    */
   ringInFear() {
     if (!this.alive || !this.fearEvent) {
@@ -144,7 +226,11 @@ export class BellBug extends Enemy {
     this.ringCount++;
     this.entity.sound?.play("fearRing");
     for (const actor of this.actors) {
-      if (actor === this || !actor.isEnemy || !actor.alive || this.distanceTo(actor) > this.ringRadius) {
+      if (actor === this || this.distanceTo(actor) > this.ringRadius) {
+        continue;
+      }
+      actor.slowReaction?.(this.panicDuration, 0.5);
+      if (!actor.isEnemy || !actor.alive || actor.isBellBug) {
         continue;
       }
       // Noise irritation is a capability; immune species never receive a status.
@@ -157,7 +243,7 @@ export class BellBug extends Enemy {
         continue;
       }
       const stun = actor.statuses?.get("stun");
-      if (!(stun?.remaining > 0) || stun.bellAmplifiedEvent === event.eventId) {
+      if (stun?.bellAmplifiedEvent === event.eventId && stun.remaining >= this.panicDuration) {
         continue;
       }
       const previous = this.#amplified.get(actor);
@@ -165,7 +251,7 @@ export class BellBug extends Enemy {
         continue;
       }
       if (actor.applyStatus?.("stun", {
-        duration: Math.min(8, stun.remaining + 1.5),
+        duration: this.panicDuration,
         source: this,
         kind: "bell",
         bellEventId: event.eventId,
@@ -250,7 +336,7 @@ export class BellBug extends Enemy {
      *
      * @param {import("../../castle/Castle.js").Castle} actor
      */
-      (actor) => actor.entranceDoors ?? []);
+      (actor) => actor.destructibleDoors ?? actor.entranceDoors ?? []);
     for (const hit of hits) {
       if (hit.entity === this.entity || hit.entity.isDescendantOf(this.entity)) {
         continue;
@@ -260,7 +346,67 @@ export class BellBug extends Enemy {
        * @param {import("../../architecture/door/Door.js").Door} door
        */
         (door) => door.openAmount < 0.15 &&
-        (door.entity === hit.entity || hit.entity.isDescendantOf(door.entity))) ?? null;
+        (door.isLeafCollider?.(hit.entity) || door.entity === hit.entity || hit.entity.isDescendantOf(door.entity))) ?? null;
+    }
+
+    return null;
+  }
+
+  /**
+   * Goo cleanup targets the nearby door itself, independently of the royal's
+   * sightline. Batched door colliders need the owning door's identity query.
+   * @returns {import("../../architecture/door/Door.js").Door|null}
+   */
+  findGluedDoor() {
+    let nearest = null;
+    let distance = 3;
+    for (const actor of this.actors) {
+      for (const door of actor.destructibleDoors ?? actor.entranceDoors ?? []) {
+        if (!door.jammed || door.broken || door.openAmount >= 0.15) {
+          continue;
+        }
+        const point = this.#doorSurface(door);
+        const candidate = point ? this.position.distance(point) : Infinity;
+        if (candidate < distance) {
+          nearest = door;
+          distance = candidate;
+        }
+      }
+    }
+
+    return nearest;
+  }
+
+  /**
+   * Sample beside a double door's empty center seam and reject intervening walls.
+   * @param {import("../../architecture/door/Door.js").Door} door
+   * @returns {import("playcanvas").Vec3|null}
+   */
+  #doorSurface(door) {
+    const center = door.entity.getPosition();
+    if (Math.abs(center.y - this.position.y) > 1.25) {
+      return null;
+    }
+    const start = this.position.clone().add(new this.pc.Vec3(0, 0.4, 0));
+    for (const offset of [0.25, -0.25, 0]) {
+      const end = center.clone().add(new this.pc.Vec3(0, 0.4, 0))
+        .add(door.entity.right.clone().mulScalar(offset));
+      end.add(end.clone().sub(start).normalize().mulScalar(0.25));
+      const surface = door.getHit?.(start, end);
+      if (door.getHit && !surface) {
+        continue;
+      }
+      const point = surface ? start.clone().lerp(start, end, surface.distance) : end;
+      const hits = this.app.systems?.rigidbody?.raycastAll(start, point) ?? [];
+      const blocked = hits.some(/**
+       * @param {import("playcanvas").RaycastResult} hit
+       */
+        (hit) => hit.entity !== this.entity && !hit.entity.isDescendantOf(this.entity) &&
+          hit.entity.rigidbody?.type !== "dynamic" &&
+          !door.isLeafCollider?.(hit.entity) && hit.entity !== door.entity && !hit.entity.isDescendantOf(door.entity));
+      if (!blocked) {
+        return point;
+      }
     }
 
     return null;
@@ -271,10 +417,14 @@ export class BellBug extends Enemy {
    * @returns {boolean}
    */
   scratchDoor() {
-    const royal = this.resolveRoyalTarget();
-    const door = royal && this.findClosedDoor(royal);
-    if (!door || door !== this.scratchTarget || !this.canScratchDoor) {
+    const door = this.scratchTarget;
+    if (!door || !this.canScratchDoor) {
       return false;
+    }
+    if (door.jammed) {
+      door.clearGlue();
+
+      return true;
     }
     // Door destruction requires the owning door's damage capability. Do not
     // destroy its root: it also owns the masonry frame and castle update hooks.
@@ -287,8 +437,14 @@ export class BellBug extends Enemy {
   get canScratchDoor() {
     const door = this.scratchTarget;
 
-    return !!door && door.openAmount < 0.15 &&
-      door.intersectsFootprint(this.position.x, this.position.z, this.radius + 0.4);
+    if (!door || door.broken || door.openAmount >= 0.15) {
+      return false;
+    }
+    const point = this.#doorSurface(door);
+
+    return !!point && this.position.distance(point) <= this.radius + 0.65 &&
+      (door.blocksCameraAt?.(this.position.x, this.position.y + 0.4, this.position.z, this.radius + 0.4) ??
+        door.intersectsFootprint(this.position.x, this.position.z, this.radius + 0.4));
   }
 
   /**

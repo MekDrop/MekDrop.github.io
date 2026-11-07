@@ -1,0 +1,47 @@
+{
+  "sockets": [
+    {
+      "leg": "L0",
+      "bone": "head",
+      "bodySurfaceDistance": 3.332000986233652e-08,
+      "overlapDepth": 0.035
+    },
+    {
+      "leg": "L1",
+      "bone": "body",
+      "bodySurfaceDistance": 6.177870659485052e-08,
+      "overlapDepth": 0.035
+    },
+    {
+      "leg": "L2",
+      "bone": "body",
+      "bodySurfaceDistance": 1.4901161193847656e-08,
+      "overlapDepth": 0.035
+    },
+    {
+      "leg": "R0",
+      "bone": "head",
+      "bodySurfaceDistance": 1.4901161193847656e-08,
+      "overlapDepth": 0.035
+    },
+    {
+      "leg": "R1",
+      "bone": "body",
+      "bodySurfaceDistance": 3.725290298461914e-09,
+      "overlapDepth": 0.035
+    },
+    {
+      "leg": "R2",
+      "bone": "body",
+      "bodySurfaceDistance": 4.214684778958144e-08,
+      "overlapDepth": 0.035
+    }
+  ],
+  "samples": 810,
+  "maxBodyEndpointError": 1.2013700229374393e-07,
+  "maxFootEndpointError": 1.7881393432617188e-07,
+  "maxSocketSurfaceDistance": 0.010808607563376427,
+  "maxBodySurfaceDistance": 7.847601324328934e-08,
+  "minBodyOverlapDepth": 0.029753306701768786,
+  "freshExportImport": true
+}

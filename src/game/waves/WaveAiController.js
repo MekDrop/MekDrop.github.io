@@ -13,6 +13,10 @@ export class WaveAiController {
    */
   #gateCursor = 0;
   /**
+   * @type {number}
+   */
+  #offerCursor = 0;
+  /**
    * @type {typeof WAVE_CONFIG}
    */
   #config;
@@ -35,7 +39,7 @@ export class WaveAiController {
       return [];
     }
     this.#nextWave = state.clock + this.#config.waveInterval;
-    const offer = state.offers[0];
+    const offer = state.offers[this.#offerCursor++ % state.offers.length];
     const count = Math.min(this.#config.waveSize, Math.floor(state.coins / offer.cost), state.maxQueued, state.maxActive - state.active);
 
     return Array.from({length: count}, /**

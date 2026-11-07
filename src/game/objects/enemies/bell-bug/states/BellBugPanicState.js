@@ -1,8 +1,12 @@
 import { State } from "yuka";
 import { BellBugPursueState } from "./BellBugPursueState.js";
+import { BELL_BUG_ANIMATION } from "../BellBugAnimation.js";
+import { BellBugCalibration } from "../BellBugCalibration.js";
+
+const HIDE_TRANSITION_SECONDS = 0.6;
 
 /**
- * Involuntary fear recoil, ringing contact, then cowering recovery.
+ * Stationary bell vibration; the visual root shakes without moving its collider.
  */
 export class BellBugPanicState extends State {
   /**
@@ -11,7 +15,8 @@ export class BellBugPanicState extends State {
   enter(owner) {
     owner.phaseTime = 0;
     owner.stop();
-    owner.playClip("fear_recoil");
+    owner.playClip(BELL_BUG_ANIMATION.HIDE_START);
+    owner.ringInFear();
   }
 
   /**
@@ -20,14 +25,20 @@ export class BellBugPanicState extends State {
   execute(owner) {
     owner.phaseTime += owner.deltaTime;
     owner.stop();
-    if (owner.phaseTime >= 0.45 && owner.fearEvent) {
-      owner.ringInFear();
-    }
     const time = owner.phaseTime;
-    owner.playClip(time < 0.2 ? "fear_recoil" : time < 0.45 ? "panic_ring_start" :
-      time < 1.2 ? "panic_ring_loop" : time < 1.5 ? "panic_ring_end" : "cower");
-    if (time >= 1.8) {
+    owner.playClip(time < HIDE_TRANSITION_SECONDS ? BELL_BUG_ANIMATION.HIDE_START :
+      time < owner.panicDuration - HIDE_TRANSITION_SECONDS ? BELL_BUG_ANIMATION.HIDE_LOOP :
+        BELL_BUG_ANIMATION.HIDE_END);
+    owner.animationPlayback?.model.setLocalPosition(Math.sin(time * 95) * 0.035 * BellBugCalibration.scale, BellBugCalibration.y, BellBugCalibration.z);
+    if (time >= owner.panicDuration) {
       owner.transition(BellBugPursueState.name);
     }
+  }
+
+  /**
+   * @param {import("../BellBug.js").BellBug} owner
+   */
+  exit(owner) {
+    owner.animationPlayback?.model.setLocalPosition(0, BellBugCalibration.y, BellBugCalibration.z);
   }
 }

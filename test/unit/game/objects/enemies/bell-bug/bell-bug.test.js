@@ -7,6 +7,7 @@ import { State, StateMachine } from 'yuka';
 import { Enemy } from '../../../../../../src/game/objects/enemies/shared/Enemy.js';
 import { BellBug } from '../../../../../../src/game/objects/enemies/bell-bug/BellBug.js';
 import { SignalBellEvent } from '../../../../../../src/game/objects/signal-bell/SignalBellEvent.js';
+import { LatchGlue } from '../../../../../../src/game/objects/enemies/latch-slug/LatchGlue.js';
 
 function fixture() {
   const actors=[];
@@ -29,7 +30,12 @@ function fixture() {
   bug.entity.rigidbody={
     enabled:true,
     linearVelocity:new Vec3(),
-    teleport:()=>{},
+    teleport:(position,heading)=>{
+      bug.entity.setPosition(position);
+      if (heading) {
+        bug.entity.setEulerAngles(heading);
+      }
+    },
   };
   const ally=new Enemy({
     ...options,
@@ -52,7 +58,171 @@ function fixture() {
   };
 }
 
-test('tower strike -> Yuka fear -> real allied stun extension; no unstunned buff',()=>{
+test('walking syncs a physical turn once without repeatedly teleporting straight travel', () => {
+  const {bug, royal}=fixture();
+  const teleport=bug.entity.rigidbody.teleport;
+  let turns=0;
+  bug.entity.rigidbody.teleport=(...args)=>{
+    turns++;
+    teleport(...args);
+  };
+  bug.moveToward(royal);
+  bug.moveToward(royal);
+  assert.equal(turns,0);
+  royal.entity.setPosition(3,0,0);
+  bug.moveToward(royal);
+  bug.moveToward(royal);
+  assert.equal(turns,1);
+  assert.ok(bug.entity.rigidbody.linearVelocity.x>0);
+});
+
+
+test('nearby bugs add diminishing ten-percent bonuses and stop vibrating on time', () => {
+  const {bug,actors,options}=fixture();
+  actors.push(new BellBug({
+    ...options,
+    definition:{id:'second'},
+  }));
+  actors.push(new BellBug({
+    ...options,
+    definition:{id:'third'},
+  }));
+  bug.onBellRung({eventId:'cluster'});
+  assert.ok(Math.abs(bug.panicDuration-2.22)<1e-9);
+  bug.update(2.21);
+  assert.equal(bug.stateName,'BellBugPanicState');
+  bug.update(.02);
+  assert.equal(bug.stateName,'BellBugPursueState');
+});
+
+test('bell panic retracts, stays hidden, and emerges before pursuit resumes', () => {
+  const {bug}=fixture();
+  bug.onBellRung({eventId:'hide'});
+  assert.equal(bug.clip,'hide_start');
+  bug.update(.61);
+  assert.equal(bug.clip,'hide_loop');
+  bug.update(.80);
+  assert.equal(bug.clip,'hide_end');
+  bug.update(.60);
+  assert.equal(bug.stateName,'BellBugPursueState');
+});
+
+test('one tile is inclusive and vibration slows nearby tower reaction', () => {
+  const {bug,ally,actors}=fixture();let slowed;
+  ally.entity.setPosition(1,0,0);
+  actors.push({
+    position:new Vec3(.5,0,0),
+    slowReaction:(duration,delay)=>{
+      slowed={
+        duration,
+        delay,
+      };
+    },
+  });
+  bug.onBellRung({eventId:'range'});
+  assert.equal(ally.statuses.get('stun').remaining,2);
+  assert.deepEqual(slowed,{
+    duration:2,
+    delay:.5,
+  });
+});
+
+test('scratching cleans a jammed door before damaging its leaf', () => {
+  const {bug,royal}=fixture();let cleared=0,damage=0;
+  const door={
+    entity:new Entity('glued door'),
+    openAmount:0,
+    jammed:true,
+    intersectsFootprint:()=>true,
+    clearGlue:()=>cleared++,
+    receiveDamage:()=>damage++,
+  };
+  bug.scratchTarget=door;
+  bug.findClosedDoor=()=>door;
+  assert.equal(bug.scratchDoor(),true);
+  assert.equal(cleared,1);assert.equal(damage,0);
+  assert.equal(bug.resolveRoyalTarget(),royal);
+});
+
+test('goo cleanup finds a batched door off the royal sightline and clears real glue at scratch contact', () => {
+  const {bug,actors,physics}=fixture();
+  const root=new Entity('door'), hinge=new Entity('moving leaf hinge'), leaf=new Entity('detached Ammo leaf');
+  root.addChild(hinge);root.setPosition(.7,0,0);
+  root.addComponent=()=>{
+    root.anim={
+      baseLayer:{play:()=>{}},
+      addAnimationState:()=>{},
+      update:()=>{},
+    };
+  };
+  const door=new Door({
+    entity:root,
+    hingeName:'moving leaf hinge',
+    modelLibrary:{getAnimationTracks:()=>new Map([['Open',{duration:1}]])},
+    modelUrl:'door.glb',
+    animationName:'Open',
+    automatic:false,
+    collision:{
+      raycast:()=>.65,
+      blocksAt:()=>true,
+      ownsLeaf:entity=>entity===leaf,
+      destroy:()=>{},
+    },
+  });
+  actors.push({destructibleDoors:[door]});
+  const wall=new Entity('wall between bug and royal');
+  physics.raycastAll=(_start,end)=>[{
+    entity:end.z<-.5?wall:leaf,
+    hitFraction:.6,
+  }];
+  const goo=new LatchGlue(door,20);
+  assert.equal(door.jammed,true);
+  assert.equal(bug.findClosedDoor(bug.resolveRoyalTarget()),null);
+  bug.update(.01);
+  assert.equal(bug.stateName,'BellBugScratchState');
+  assert.ok(bug.entity.forward.x>.99,'the body faces the goo-covered door');
+  bug.update(.3);assert.equal(goo.active,true);
+  bug.update(.56);
+  assert.equal(goo.active,false);assert.equal(door.jammed,false);assert.equal(door.health,48);
+  door.destroy();root.destroy();leaf.destroy();
+});
+
+test('goo cleanup cannot reach through a wall', () => {
+  const {bug,actors,physics}=fixture();
+  const door={
+    entity:new Entity('glued door'),
+    jammed:true,
+    openAmount:0,
+    getHit:()=>({distance:.5}),
+    intersectsFootprint:()=>true,
+  };
+  actors.push({destructibleDoors:[door]});
+  physics.hits=[{
+    entity:new Entity('intervening wall'),
+    hitFraction:.1,
+  }];
+  assert.equal(bug.findGluedDoor(),null);
+  bug.scratchTarget=door;
+  assert.equal(bug.canScratchDoor,false);
+});
+
+test('living contact loses one heart per ten seconds and walls block scratches', () => {
+  const {bug,royal,physics}=fixture();
+  royal.entity.setPosition(0,0,-.6);
+  bug.update(1);
+  assert.equal(royal.health,99.9);
+  physics.hits=[{
+    entity:new Entity('wall'),
+    hitFraction:.5,
+  }];
+  bug.update(1);
+  assert.equal(royal.health,99.9);
+  physics.hits=[];
+  bug.onBellRung({eventId:'pause-contact'});bug.update(1);
+  assert.equal(royal.health,99.9);
+});
+
+test('tower strike immediately vibrates and stuns for two seconds',()=>{
   const {bug,ally,royal,actors}=fixture();
   ally.applyStatus('stun',{duration:2});
   assert.ok(bug.stateMachine instanceof StateMachine);
@@ -63,9 +233,9 @@ test('tower strike -> Yuka fear -> real allied stun extension; no unstunned buff
   };
   const id=SignalBellEvent.dispatch(bell,actors);
   assert.equal(bug.stateName,'BellBugPanicState');
-  assert.equal(bug.clip,'fear_recoil');
+  assert.equal(bug.clip,'hide_start');
   bug.update(.44);assert.equal(ally.statuses.get('stun').remaining,2);
-  bug.update(.02);assert.equal(ally.statuses.get('stun').remaining,3.5);
+  bug.update(.02);assert.equal(ally.statuses.get('stun').remaining,2);
   assert.equal(ally.statuses.get('stun').bellEventId,id);
   assert.equal(royal.statuses.size,0);
   assert.equal(bug.ringCount,1);
@@ -84,7 +254,7 @@ test('secondary rings and repeated primary identities cannot cause ring chains',
     actor.onBellRung({eventId:'same'});
   }
   bug.update(.5);second.update(.5);
-  assert.equal(ally.statuses.get('stun').remaining,2.5);
+  assert.equal(ally.statuses.get('stun').remaining,2.2);
   assert.equal(bug.onBellRung({eventId:'same'}),false);
   assert.equal(bug.onBellRung({
     eventId:'secondary',
@@ -166,17 +336,17 @@ test('death cancels pending rings, cannot heal, and uses death state before clea
   const {bug,ally}=fixture();ally.applyStatus('stun',{duration:1});
   bug.onBellRung({eventId:'die'});bug.receiveDamage(1000);
   assert.equal(bug.clip,'death');assert.equal(bug.alive,false);
-  bug.update(.5);assert.equal(bug.ringCount,0);
+  bug.update(.5);assert.equal(bug.ringCount,1);
   assert.equal(bug.receiveHealing(10),0);assert.equal(bug.onBellRung(),false);
 });
 
-test('outside radius or no preexisting stun receives no amplification',()=>{
+test('outside radius is unaffected; nearby unstunned enemies receive stun',()=>{
   const {bug,ally}=fixture();ally.entity.setPosition(20,0,0);ally.applyStatus('stun',{duration:1});
   bug.onBellRung({eventId:1});bug.update(.5);
   assert.equal(ally.statuses.get('stun').remaining,1);
   ally.entity.setPosition(0,0,0);ally.statuses.clear();
   bug.onBellRung({eventId:2});bug.update(.5);
-  assert.equal(ally.statuses.has('stun'),false);
+  assert.equal(ally.statuses.get('stun').remaining,2);
 });
 
 test('actual Horned Wrecker reacts with anger and never bell confusion or amplified stun', () => {

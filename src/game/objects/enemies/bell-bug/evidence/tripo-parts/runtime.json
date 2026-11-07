@@ -1,0 +1,22 @@
+[
+  {
+    "level": "info",
+    "message": "BELL_PARTS_PREVIEW {\"visiblePixels\":42494,\"transparentPixels\":219650,\"margin\":80}",
+    "timestamp": "2026-11-04T19:37:52.371Z"
+  },
+  {
+    "level": "info",
+    "message": "BELL_PARTS_PLAYBACK [{\"name\":\"idle_nervous\",\"finite\":true,\"time\":0.2267999999999993,\"movingJoints\":[]},{\"name\":\"scuttle_walk\",\"finite\":true,\"time\":0.2268999999999979,\"movingJoints\":[\"shell\",\"leg_L_0\",\"leg_L_1\",\"leg_L_2\",\"leg_R_0\",\"leg_R_1\",\"leg_R_2\"]},{\"name\":\"scuttle_run\",\"finite\":true,\"time\":0.22690000000000154,\"movingJoints\":[\"shell\",\"leg_L_0\",\"leg_L_1\",\"leg_L_2\",\"leg_R_0\",\"leg_R_1\",\"leg_R_2\"]},{\"name\":\"turn\",\"finite\":true,\"time\":0.22690000000000152,\"movingJoints\":[]},{\"name\":\"turn_left\",\"finite\":true,\"time\":0.22700000000000006,\"movingJoints\":[]},{\"name\":\"turn_right\",\"finite\":true,\"time\":0.2268999999999979,\"movingJoints\":[]},{\"name\":\"cower\",\"finite\":true,\"time\":0.22690000000000152,\"movingJoints\":[\"root\"]},{\"name\":\"hide_start\",\"finite\":true,\"time\":0.22689999999999788,\"movingJoints\":[\"head\",\"leg_L_0\",\"leg_L_1\",\"leg_L_2\",\"leg_R_0\",\"leg_R_1\",\"leg_R_2\",\"root\"]},{\"name\":\"hide_loop\",\"finite\":true,\"time\":0.226800000000003,\"movingJoints\":[]},{\"name\":\"hide_end\",\"finite\":true,\"time\":0.22700000000000006,\"movingJoints\":[\"root\",\"head\",\"leg_L_0\",\"leg_L_1\",\"leg_L_2\",\"leg_R_0\",\"leg_R_1\",\"leg_R_2\"]},{\"name\":\"fear_recoil\",\"finite\":true,\"time\":0.22689999999999788,\"movingJoints\":[\"root\"]},{\"name\":\"panic_ring_start\",\"finite\":true,\"time\":0.22700000000000004,\"movingJoints\":[]},{\"name\":\"panic_ring_loop\",\"finite\":true,\"time\":0.2267000000000008,\"movingJoints\":[]},{\"name\":\"panic_ring_end\",\"finite\":true,\"time\":0.22690000000000154,\"movingJoints\":[]},{\"name\":\"door_scratch_start\",\"finite\":true,\"time\":0.22700000000000006,\"movingJoints\":[\"leg_L_0\",\"leg_R_0\"]},{\"name\":\"door_scratch_loop\",\"finite\":true,\"time\":0.22679999999999567,\"movingJoints\":[\"leg_L_0\",\"leg_R_0\"]},{\"name\":\"door_scratch_end\",\"finite\":true,\"time\":0.2270000000000001,\"movingJoints\":[\"leg_L_0\",\"leg_R_0\"]},{\"name\":\"scratch_attack\",\"finite\":true,\"time\":0.22680000000000297,\"movingJoints\":[]},{\"name\":\"hit\",\"finite\":true,\"time\":0.22700000000000004,\"movingJoints\":[\"root\"]},{\"name\":\"stun\",\"finite\":true,\"time\":0.22690000000000154,\"movingJoints\":[]},{\"name\":\"recover\",\"finite\":true,\"time\":0.22700000000000004,\"movingJoints\":[\"root\"]},{\"name\":\"carried_panic\",\"finite\":true,\"time\":0.22669999999999718,\"movingJoints\":[]},{\"name\":\"airborne_tumble\",\"finite\":true,\"time\":0.22690000000000154,\"movingJoints\":[]},{\"name\":\"land\",\"finite\":true,\"time\":0.2269000000000015,\"movingJoints\":[\"root\"]},{\"name\":\"land_recover\",\"finite\":true,\"time\":0.22690000000000154,\"movingJoints\":[\"root\"]},{\"name\":\"death\",\"finite\":true,\"time\":0.22689999999999427,\"movingJoints\":[\"root\"]},{\"name\":\"knockback\",\"finite\":true,\"time\":0.22680000000000294,\"movingJoints\":[\"root\"]}]",
+    "timestamp": "2026-11-04T19:37:58.488Z"
+  },
+  {
+    "level": "info",
+    "message": "BELL_PARTS_RIG {\"legs\":6,\"allPresent\":true,\"body\":true,\"shell\":true}",
+    "timestamp": "2026-11-04T19:37:58.488Z"
+  },
+  {
+    "level": "info",
+    "message": "BELL_PARTS_HIDE {\"clips\":[\"hide_start\",\"hide_loop\",\"hide_end\",\"idle_nervous\"],\"states\":[\"BellBugPanicState\",\"BellBugPursueState\"],\"duration\":2}",
+    "timestamp": "2026-11-04T19:38:02.122Z"
+  }
+]

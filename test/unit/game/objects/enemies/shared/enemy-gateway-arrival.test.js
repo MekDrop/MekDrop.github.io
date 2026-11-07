@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import * as pc from "playcanvas";
 import { EnemyGatewayArrival } from "../../../../../../src/game/objects/enemies/shared/EnemyGatewayArrival.js";
+import { BellBug } from "../../../../../../src/game/objects/enemies/bell-bug/BellBug.js";
 
 function fixture() {
   const app = new pc.AppBase({id:"gate-clip-test"});
@@ -75,6 +76,36 @@ function fixture() {
     arrival,
   };
 }
+
+test("a production bell bug faces the gateway exit and completes arrival without a species override", () => {
+  const f = fixture();
+  const bug = new BellBug({
+    pc,
+    app: f.owner.app,
+    definition: {id: "gateway-bell-bug"},
+  });
+  f.root.addChild(bug.entity);
+  bug.entity.rigidbody = f.body;
+  f.body.teleport = (position, heading) => {
+    bug.entity.setPosition(position);
+    if (heading) {
+      bug.entity.setEulerAngles(heading);
+    }
+  };
+  const arrival = bug.gatewayArrival;
+  assert.equal(arrival.start(f.gateway), true);
+  assert.ok(bug.entity.forward.dot(new pc.Vec3(-1, 0, 0)) > 0.999);
+  arrival.update(0.7);
+  assert.equal(f.body.linearVelocity.x, -1.2);
+  f.body.teleport(new pc.Vec3(-1.2, 2.03, 0));
+  arrival.update(0.02);
+  assert.equal(arrival.active, false);
+  assert.equal(f.body.linearFactor.y, 1);
+  assert.equal(f.tracked.size, 0);
+  f.original.destroy();
+  f.root.destroy();
+  f.owner.app.destroy();
+});
 
 test("entrance anticipates behind the membrane, lets Ammo move, and crosses exactly once", () => {
   const f = fixture();

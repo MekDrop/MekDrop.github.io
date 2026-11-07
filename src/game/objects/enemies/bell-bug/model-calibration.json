@@ -1,0 +1,18 @@
+{
+  "boundsSource": "evaluated vertices",
+  "sampledPoses": 375,
+  "unscaledMaximumGroundRadius": 0.7428749531434108,
+  "scale": 0.605,
+  "y": 0.007018,
+  "z": 0.0042955,
+  "yaw": 180,
+  "groundClearance": 0.00726,
+  "tileSize": 1,
+  "footprintDiameter": 0.898878693303527,
+  "spacingRadius": 0.45,
+  "collider": {
+    "radius": 0.2541,
+    "height": 0.51425
+  },
+  "assetSha256": "c1bd77865fad264982974da3c61e4347f370c8ad6d6fc24138c0ff1054c2569a"
+}

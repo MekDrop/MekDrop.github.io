@@ -23,22 +23,24 @@ export class BellBugPursueState extends State {
       return;
     }
     const royal = owner.resolveRoyalTarget();
-    if (!royal) {
-      owner.stop();
-      owner.playClip("idle_nervous");
-
-      return;
-    }
-    owner.scratchTarget = owner.findClosedDoor(royal);
+    owner.scratchTarget = owner.findGluedDoor() ?? (royal && owner.findClosedDoor(royal));
     if (owner.canScratchDoor) {
       owner.transition(BellBugScratchState.name);
 
       return;
     }
-    owner.playClip(owner.moveToward(royal, owner.walkSpeed) ? "scuttle_walk" : "idle_nervous");
-    if (owner.distanceTo(royal) < 0.7) {
+    const destination = owner.scratchTarget?.jammed ? owner.scratchTarget : owner.route.next() ?? royal;
+    if (!destination) {
       owner.stop();
-      royal.beginGameOver?.(() => owner.position);
+      owner.playClip("idle_nervous");
+
+      return;
+    }
+    owner.playClip(owner.moveToward(destination, owner.walkSpeed) ? "scuttle_walk" : "idle_nervous");
+    if (royal && owner.distanceTo(royal) < 0.7) {
+      owner.stop();
+      owner.faceTarget(royal);
+      owner.playClip("scratch_attack");
     }
   }
 }

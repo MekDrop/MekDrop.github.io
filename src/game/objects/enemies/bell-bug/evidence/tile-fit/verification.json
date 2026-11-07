@@ -1,0 +1,63 @@
+{
+  "uniformScale": 0.605,
+  "reductionPercent": 39.5,
+  "modelCalibration": {
+    "boundsSource": "evaluated vertices",
+    "sampledPoses": 375,
+    "unscaledMaximumGroundRadius": 0.7428749531434108,
+    "scale": 0.605,
+    "y": 0.007018,
+    "z": 0.0042955,
+    "yaw": 180,
+    "groundClearance": 0.00726,
+    "tileSize": 1,
+    "footprintDiameter": 0.898878693303527,
+    "spacingRadius": 0.45,
+    "collider": {
+      "radius": 0.2541,
+      "height": 0.51425
+    },
+    "assetSha256": "c1bd77865fad264982974da3c61e4347f370c8ad6d6fc24138c0ff1054c2569a"
+  },
+  "preview": {
+    "visiblePixels": 39438,
+    "width": 512,
+    "margin": 94,
+    "transparentPixels": 222706,
+    "height": 512
+  },
+  "testsPassed": 37,
+  "runtime": {
+    "tileFit": true,
+    "maximumFootprintWidth": 0.9435055471282205,
+    "maximumFootprintDepth": 0.9440534867068846,
+    "crowdBugs": 8,
+    "blockingSlugs": 2,
+    "maxRootY": 2.0006630420684814,
+    "noRiding": true,
+    "releasedWhenClear": true,
+    "stairCheckpoints": 6,
+    "stairsCompleted": true,
+    "stairDuration": 22.9935
+  },
+  "scenario": "Animated bug turns on a single path tile; eight bugs queue behind two slugs; blockers are moved aside at ten seconds and traffic resumes",
+  "evidence": [
+    "review.mp4",
+    "one-tile.png",
+    "crowd-runtime.json",
+    "stairs.webm",
+    "stairs-runtime.json"
+  ],
+  "runtimeErrors": {
+    "crowd": [],
+    "stairs": []
+  },
+  "sourceSha256": {
+    "BellBug.js": "1a39eef389d1effa80d003d15907560827879d8e777b6fd59901e48b1256542f",
+    "BellBugModel.js": "b8019ed40e0bf3d41ad35953516040898fd7a0e87221566079c12a89978991c7",
+    "BellBugGroundPose.js": "4ec5fc4ab59486a3182254cba5db56a391bce63aeca88b6955b5a726fccaeb52",
+    "BellBugCalibration.js": "b8f115b8fcb04b4e2fc2129f2300c5e5016a4a3219e8aeca8aafd4875afc7b0d",
+    "BellBugCrowdMotion.js": "15aa2c078ec08f44dda97cc7a150a444cbc3a3f9c3db2fbd08f95a6de02d2799",
+    "states/BellBugPanicState.js": "2bd9757e71e64c07331f7c40e9632b583d72405ccffff0a84ac91121e18ae016"
+  }
+}

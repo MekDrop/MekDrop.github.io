@@ -1,0 +1,36 @@
+{
+  "boundsSource": "evaluated vertices",
+  "samples": 375,
+  "clips": [
+    "idle_nervous",
+    "scuttle_walk",
+    "scuttle_run",
+    "turn",
+    "turn_left",
+    "turn_right",
+    "door_scratch_start",
+    "door_scratch_loop",
+    "door_scratch_end",
+    "scratch_attack",
+    "recover",
+    "stun",
+    "hide_start",
+    "hide_loop",
+    "hide_end"
+  ],
+  "blenderMin": [
+    -0.6255348324775696,
+    -0.5459485054016113,
+    -0.024256201460957527
+  ],
+  "blenderMax": [
+    0.6255349516868591,
+    0.5218279361724854,
+    0.991371214389801
+  ],
+  "maximumGroundRadius": 0.7428749531434108,
+  "scale": 0.605,
+  "maximumScaledDiameter": 0.898878693303527,
+  "tileSize": 1,
+  "targetFootprint": 0.9
+}

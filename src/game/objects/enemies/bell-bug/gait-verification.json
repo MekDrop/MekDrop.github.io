@@ -1,0 +1,83 @@
+{
+  "binding": "six rigid bone-parented instances sharing one provider-made mesh",
+  "tripods": [
+    [
+      "L0",
+      "L2",
+      "R1"
+    ],
+    [
+      "R0",
+      "R2",
+      "L1"
+    ]
+  ],
+  "clips": {
+    "scuttle_walk": {
+      "frames": [
+        0,
+        14
+      ],
+      "stride": 0.16,
+      "stanceFraction": 0.62,
+      "referenceSpeed": 0.5529953917050692
+    },
+    "scuttle_run": {
+      "frames": [
+        0,
+        9
+      ],
+      "stride": 0.2,
+      "stanceFraction": 0.62,
+      "referenceSpeed": 1.0752688172043012
+    }
+  },
+  "minimumPlantedFeet": 3,
+  "inspectionPassed": true,
+  "inspectionIssues": [],
+  "runtimeErrors": [],
+  "preview": {
+    "visiblePixels": 39438,
+    "width": 512,
+    "margin": 94,
+    "transparentPixels": 222706,
+    "height": 512
+  },
+  "evidence": "evidence/body-sockets",
+  "testsPassed": 37,
+  "latestVisualCheck": {
+    "browser": "ChatGPT in-app browser",
+    "runtimeErrors": [],
+    "preview": {
+      "visiblePixels": 43694,
+      "transparentPixels": 218450,
+      "margin": 91
+    },
+    "evidence": "evidence/repeated-leg/in-app-browser.jpg"
+  },
+  "sourceJob": "dc6e9cd2-5deb-48d3-8e5f-d90c709a1d4a",
+  "hideVerified": true,
+  "attachmentsVerified": true,
+  "stairContacts": {
+    "sixRigidFeet": true,
+    "uphillFeetNeverRaisedIntoShell": true,
+    "evidence": "evidence/shell-clearance"
+  },
+  "runLift": 0.039,
+  "shellClearance": {
+    "intersections": 0,
+    "samples": 21960,
+    "evidence": "evidence/shell-clearance/verification.json"
+  },
+  "uniformScale": 0.605,
+  "scaledStridePlayback": true,
+  "tileFit": {
+    "passed": true,
+    "evidence": "evidence/tile-fit/verification.json"
+  },
+  "crowdSpacing": {
+    "noRiding": true,
+    "releasedWhenClear": true,
+    "evidence": "evidence/tile-fit/crowd-runtime.json"
+  }
+}

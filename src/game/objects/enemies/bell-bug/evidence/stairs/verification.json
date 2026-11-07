@@ -1,0 +1,41 @@
+{
+  "route": "http://localhost:9000/map/test_enemy-bell-bug-stairs",
+  "browser": "ChatGPT in-app browser",
+  "authoredRise": 2.4,
+  "maximumAutomaticStep": 0.32,
+  "completed": true,
+  "checkpoints": 6,
+  "duration": 25.063099999964237,
+  "minY": 2.0092287063598633,
+  "maxY": 4.426002502441406,
+  "course": "Two production staircase flights, standard turning landing, upper floor, then return down both flights",
+  "movement": "Normal BellBug pursuit and dynamic Ammo capsule; the fixture changes royal target waypoints to define the course",
+  "visualReview": [
+    "ascending.png",
+    "landing.png",
+    "descending.png"
+  ],
+  "reviewed": [
+    "Six rigid feet retain the shared mesh and individual tread contacts",
+    "Hip links remain attached",
+    "Body settles between tread heights",
+    "Both flights and landing turn complete without sticking"
+  ],
+  "video": "climb-and-descent.mp4",
+  "originalCapture": "climb-and-descent.webm",
+  "runtimeErrors": [],
+  "preview": {
+    "margin": 103,
+    "width": 512,
+    "height": 512,
+    "transparentPixels": 219050,
+    "visiblePixels": 43094
+  },
+  "testsPassed": 31,
+  "sourceSha256": {
+    "BellBug.js": "323b4e8f0eccd6e44983ecb14b72ff4c9572e894ed2db71d4c1ced7b8d34b103",
+    "BellBugModel.js": "163c7f4d5226035d88f0ac5f4578b9bb499fb67d6568cbc97e842e26cc221ce8",
+    "BellBugStepSupport.js": "40d2e608a843e1b67f00dc6ab94585e590bf9d0353d408b5febb3fa9407e22e1",
+    "BellBugGroundPose.js": "1ee5c4c736bfe560488ddcf29acf344ddb58196a4fd85bb34edfec6c1cd762e2"
+  }
+}

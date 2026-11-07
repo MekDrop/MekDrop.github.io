@@ -1,0 +1,1530 @@
+{
+  "setup": {
+    "began": true,
+    "splat": true,
+    "door": {
+      "x": 0,
+      "y": 3,
+      "z": -8.399999618530273
+    },
+    "impact": {
+      "x": -0.2101820009685936,
+      "y": 4.227903697755246,
+      "z": -8.815000146627426
+    },
+    "jammed": true,
+    "goo": true
+  },
+  "result": {
+    "jammed": false,
+    "goo": false,
+    "health": 40,
+    "position": {
+      "x": 0.024294791743159294,
+      "y": 3.0039801597595215,
+      "z": -9.295121192932129
+    },
+    "state": "BellBugScratchState",
+    "samples": [
+      {
+        "time": 0.880699999999999,
+        "position": {
+          "x": 0,
+          "y": 3.0199999809265137,
+          "z": -9.199999809265137
+        },
+        "state": "BellBugPlaybackState",
+        "clip": "idle_nervous",
+        "jammed": true,
+        "goo": true,
+        "health": 48,
+        "canScratch": false
+      },
+      {
+        "time": 0.980699999999999,
+        "position": {
+          "x": -0.0007428480312228203,
+          "y": 3.0039854049682617,
+          "z": -9.244677543640137
+        },
+        "state": "BellBugPlaybackState",
+        "clip": "idle_nervous",
+        "jammed": true,
+        "goo": true,
+        "health": 48,
+        "canScratch": false
+      },
+      {
+        "time": 1.0207999999999995,
+        "position": {
+          "x": -0.0006548194796778262,
+          "y": 3.003985643386841,
+          "z": -9.249029159545898
+        },
+        "state": "BellBugPlaybackState",
+        "clip": "idle_nervous",
+        "jammed": true,
+        "goo": true,
+        "health": 48,
+        "canScratch": false
+      },
+      {
+        "time": 1.0875000000000001,
+        "position": {
+          "x": -0.000508410797920078,
+          "y": 3.003986358642578,
+          "z": -9.256265640258789
+        },
+        "state": "BellBugPlaybackState",
+        "clip": "idle_nervous",
+        "jammed": true,
+        "goo": true,
+        "health": 48,
+        "canScratch": false
+      },
+      {
+        "time": 1.154199999999999,
+        "position": {
+          "x": -0.00036203121999278665,
+          "y": 3.0039865970611572,
+          "z": -9.263500213623047
+        },
+        "state": "BellBugPlaybackState",
+        "clip": "idle_nervous",
+        "jammed": true,
+        "goo": true,
+        "health": 48,
+        "canScratch": false
+      },
+      {
+        "time": 1.221,
+        "position": {
+          "x": -0.00021541770547628403,
+          "y": 3.0039870738983154,
+          "z": -9.270744323730469
+        },
+        "state": "BellBugPlaybackState",
+        "clip": "idle_nervous",
+        "jammed": true,
+        "goo": true,
+        "health": 48,
+        "canScratch": false
+      },
+      {
+        "time": 1.2342999999999993,
+        "position": {
+          "x": -0.00018622503557708114,
+          "y": 3.0039873123168945,
+          "z": -9.272186279296875
+        },
+        "state": "BellBugPlaybackState",
+        "clip": "idle_nervous",
+        "jammed": true,
+        "goo": true,
+        "health": 48,
+        "canScratch": false
+      },
+      {
+        "time": 1.2610000000000001,
+        "position": {
+          "x": -0.000127613588119857,
+          "y": 3.0039875507354736,
+          "z": -9.275081634521484
+        },
+        "state": "BellBugPlaybackState",
+        "clip": "idle_nervous",
+        "jammed": true,
+        "goo": true,
+        "health": 48,
+        "canScratch": false
+      },
+      {
+        "time": 1.327699999999999,
+        "position": {
+          "x": 0.00001883767981780693,
+          "y": 3.003988265991211,
+          "z": -9.282312393188477
+        },
+        "state": "BellBugPlaybackState",
+        "clip": "idle_nervous",
+        "jammed": true,
+        "goo": true,
+        "health": 48,
+        "canScratch": false
+      },
+      {
+        "time": 1.381199999999999,
+        "position": {
+          "x": 0.00013631289766635746,
+          "y": 3.00398850440979,
+          "z": -9.288110733032227
+        },
+        "state": "BellBugPlaybackState",
+        "clip": "idle_nervous",
+        "jammed": true,
+        "goo": true,
+        "health": 48,
+        "canScratch": false
+      },
+      {
+        "time": 1.4478999999999997,
+        "position": {
+          "x": 0.0002827816060744226,
+          "y": 3.0039889812469482,
+          "z": -9.295337677001953
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_start",
+        "jammed": true,
+        "goo": true,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 1.4745000000000001,
+        "position": {
+          "x": 0.00028673987253569067,
+          "y": 3.0039889812469482,
+          "z": -9.295337677001953
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_start",
+        "jammed": true,
+        "goo": true,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 1.4878999999999998,
+        "position": {
+          "x": 0.00028973197913728654,
+          "y": 3.0039889812469482,
+          "z": -9.295337677001953
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_start",
+        "jammed": true,
+        "goo": true,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 1.5280000000000002,
+        "position": {
+          "x": 0.00029998624813742936,
+          "y": 3.0039889812469482,
+          "z": -9.295337677001953
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_start",
+        "jammed": true,
+        "goo": true,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 1.5815999999999988,
+        "position": {
+          "x": 0.00033382081892341375,
+          "y": 3.0039889812469482,
+          "z": -9.295337677001953
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_start",
+        "jammed": true,
+        "goo": true,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 1.6480999999999988,
+        "position": {
+          "x": 0.00045356425107456744,
+          "y": 3.003988742828369,
+          "z": -9.295337677001953
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_start",
+        "jammed": true,
+        "goo": true,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 1.7147999999999994,
+        "position": {
+          "x": 0.0008018850348889828,
+          "y": 3.003986120223999,
+          "z": -9.295336723327637
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_start",
+        "jammed": true,
+        "goo": true,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 1.7282000000000008,
+        "position": {
+          "x": 0.0008783506928011775,
+          "y": 3.0039849281311035,
+          "z": -9.295336723327637
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_start",
+        "jammed": true,
+        "goo": true,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 1.754899999999998,
+        "position": {
+          "x": 0.001062039053067565,
+          "y": 3.003981828689575,
+          "z": -9.295336723327637
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": true,
+        "goo": true,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 1.8082999999999994,
+        "position": {
+          "x": 0.0017262942856177688,
+          "y": 3.0039710998535156,
+          "z": -9.295348167419434
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": true,
+        "goo": true,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 1.875,
+        "position": {
+          "x": 0.003692617639899254,
+          "y": 3.003890037536621,
+          "z": -9.29531478881836
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": true,
+        "goo": true,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 1.9417999999999993,
+        "position": {
+          "x": 0.00598541647195816,
+          "y": 3.003803253173828,
+          "z": -9.295251846313477
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": true,
+        "goo": true,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 1.955,
+        "position": {
+          "x": 0.006548499222844839,
+          "y": 3.0037808418273926,
+          "z": -9.295235633850098
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": true,
+        "goo": true,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 1.968399999999998,
+        "position": {
+          "x": 0.006834333762526512,
+          "y": 3.0037691593170166,
+          "z": -9.295233726501465
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": true,
+        "goo": true,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 1.981700000000001,
+        "position": {
+          "x": 0.007019431795924902,
+          "y": 3.003774642944336,
+          "z": -9.295232772827148
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": true,
+        "goo": true,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 1.9950999999999988,
+        "position": {
+          "x": 0.007119248155504465,
+          "y": 3.003770112991333,
+          "z": -9.295231819152832
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": true,
+        "goo": true,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.0217999999999994,
+        "position": {
+          "x": 0.007345530670136213,
+          "y": 3.0037620067596436,
+          "z": -9.295232772827148
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": true,
+        "goo": true,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.0355999999999987,
+        "position": {
+          "x": 0.007535764016211033,
+          "y": 3.0037567615509033,
+          "z": -9.295236587524414
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": true,
+        "goo": true,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.0617999999999994,
+        "position": {
+          "x": 0.007774559780955315,
+          "y": 3.0037460327148438,
+          "z": -9.295238494873047
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": true,
+        "goo": true,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.075200000000001,
+        "position": {
+          "x": 0.00790806207805872,
+          "y": 3.0037403106689453,
+          "z": -9.29524040222168
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": true,
+        "goo": true,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.0885999999999987,
+        "position": {
+          "x": 0.008049304597079754,
+          "y": 3.0037341117858887,
+          "z": -9.29524040222168
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": true,
+        "goo": true,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.115200000000001,
+        "position": {
+          "x": 0.008355172351002693,
+          "y": 3.0037198066711426,
+          "z": -9.295242309570312
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": true,
+        "goo": true,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.1285000000000003,
+        "position": {
+          "x": 0.008523473516106606,
+          "y": 3.0037107467651367,
+          "z": -9.295242309570312
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": true,
+        "goo": true,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.141899999999998,
+        "position": {
+          "x": 0.008702769875526428,
+          "y": 3.0037007331848145,
+          "z": -9.295242309570312
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": true,
+        "goo": true,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.1552999999999995,
+        "position": {
+          "x": 0.008892345242202282,
+          "y": 3.003689765930176,
+          "z": -9.295241355895996
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": true,
+        "goo": true,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.1685000000000003,
+        "position": {
+          "x": 0.009089489467442036,
+          "y": 3.0036776065826416,
+          "z": -9.295241355895996
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": true,
+        "goo": true,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.1820000000000004,
+        "position": {
+          "x": 0.009304201230406761,
+          "y": 3.003664016723633,
+          "z": -9.29524040222168
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": true,
+        "goo": true,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.1952999999999996,
+        "position": {
+          "x": 0.009530073031783104,
+          "y": 3.003648281097412,
+          "z": -9.295239448547363
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": true,
+        "goo": true,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.2220000000000004,
+        "position": {
+          "x": 0.010120590217411518,
+          "y": 3.003606081008911,
+          "z": -9.29523754119873
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": true,
+        "goo": true,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.2352999999999996,
+        "position": {
+          "x": 0.010597447864711285,
+          "y": 3.0035717487335205,
+          "z": -9.295235633850098
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": true,
+        "goo": true,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.2487000000000013,
+        "position": {
+          "x": 0.010901415720582008,
+          "y": 3.0035359859466553,
+          "z": -9.295232772827148
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": true,
+        "goo": true,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.2620000000000005,
+        "position": {
+          "x": 0.011223938316106796,
+          "y": 3.0035035610198975,
+          "z": -9.2952299118042
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": true,
+        "goo": true,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.2752999999999997,
+        "position": {
+          "x": 0.011564328335225582,
+          "y": 3.0034682750701904,
+          "z": -9.29522705078125
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": true,
+        "goo": true,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.288599999999999,
+        "position": {
+          "x": 0.011923554353415966,
+          "y": 3.0034291744232178,
+          "z": -9.2952241897583
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": true,
+        "goo": true,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.3020000000000005,
+        "position": {
+          "x": 0.012305710464715958,
+          "y": 3.003385305404663,
+          "z": -9.295221328735352
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.315399999999998,
+        "position": {
+          "x": 0.012712102383375168,
+          "y": 3.00333571434021,
+          "z": -9.29521656036377
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.328700000000001,
+        "position": {
+          "x": 0.012949449941515923,
+          "y": 3.003347396850586,
+          "z": -9.295215606689453
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.3420999999999985,
+        "position": {
+          "x": 0.013174079358577728,
+          "y": 3.0033605098724365,
+          "z": -9.29521369934082
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.3555,
+        "position": {
+          "x": 0.013403747230768204,
+          "y": 3.003368377685547,
+          "z": -9.29521369934082
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.3687999999999994,
+        "position": {
+          "x": 0.013637936674058437,
+          "y": 3.003371477127075,
+          "z": -9.295212745666504
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.3820999999999986,
+        "position": {
+          "x": 0.01387941837310791,
+          "y": 3.0033698081970215,
+          "z": -9.295211791992188
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.3955,
+        "position": {
+          "x": 0.014130963012576103,
+          "y": 3.003363609313965,
+          "z": -9.295209884643555
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.408899999999998,
+        "position": {
+          "x": 0.014389450661838055,
+          "y": 3.00335431098938,
+          "z": -9.295209884643555
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.4222000000000006,
+        "position": {
+          "x": 0.014653077349066734,
+          "y": 3.0033421516418457,
+          "z": -9.295208930969238
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.4354999999999998,
+        "position": {
+          "x": 0.014923878014087677,
+          "y": 3.003325939178467,
+          "z": -9.295207977294922
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.448799999999999,
+        "position": {
+          "x": 0.0152026591822505,
+          "y": 3.003300189971924,
+          "z": -9.295206069946289
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.4622000000000006,
+        "position": {
+          "x": 0.015493404120206833,
+          "y": 3.0032706260681152,
+          "z": -9.295205116271973
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.4755999999999982,
+        "position": {
+          "x": 0.01579231768846512,
+          "y": 3.003239631652832,
+          "z": -9.295202255249023
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.4888999999999974,
+        "position": {
+          "x": 0.016097217798233032,
+          "y": 3.003206968307495,
+          "z": -9.29520034790039
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.5022,
+        "position": {
+          "x": 0.016410483047366142,
+          "y": 3.0031721591949463,
+          "z": -9.295197486877441
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.5154999999999994,
+        "position": {
+          "x": 0.016733374446630478,
+          "y": 3.0031354427337646,
+          "z": -9.295195579528809
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.528899999999997,
+        "position": {
+          "x": 0.017069652676582336,
+          "y": 3.003096580505371,
+          "z": -9.29519271850586
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.5422999999999987,
+        "position": {
+          "x": 0.01741521991789341,
+          "y": 3.0030550956726074,
+          "z": -9.29518985748291
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.555599999999998,
+        "position": {
+          "x": 0.01776762492954731,
+          "y": 3.003011465072632,
+          "z": -9.295186996459961
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.5689999999999995,
+        "position": {
+          "x": 0.018132420256733894,
+          "y": 3.002965211868286,
+          "z": -9.295184135437012
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.582399999999997,
+        "position": {
+          "x": 0.01850811019539833,
+          "y": 3.002915859222412,
+          "z": -9.295180320739746
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.5957,
+        "position": {
+          "x": 0.01889367774128914,
+          "y": 3.002864122390747,
+          "z": -9.29517650604248
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.608999999999999,
+        "position": {
+          "x": 0.019289622083306313,
+          "y": 3.002809524536133,
+          "z": -9.295172691345215
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.6223999999999967,
+        "position": {
+          "x": 0.019699376076459885,
+          "y": 3.002751111984253,
+          "z": -9.295169830322266
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.6356999999999995,
+        "position": {
+          "x": 0.020116621628403664,
+          "y": 3.0026912689208984,
+          "z": -9.295165061950684
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.6489999999999987,
+        "position": {
+          "x": 0.020543988794088364,
+          "y": 3.0026333332061768,
+          "z": -9.295160293579102
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.662299999999998,
+        "position": {
+          "x": 0.02097201533615589,
+          "y": 3.0025947093963623,
+          "z": -9.29515552520752
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.675799999999998,
+        "position": {
+          "x": 0.021404707804322243,
+          "y": 3.0025575160980225,
+          "z": -9.295151710510254
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.689099999999997,
+        "position": {
+          "x": 0.021829746663570404,
+          "y": 3.00252103805542,
+          "z": -9.295146942138672
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.7031999999999994,
+        "position": {
+          "x": 0.022279610857367516,
+          "y": 3.0024828910827637,
+          "z": -9.29514217376709
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.7164999999999986,
+        "position": {
+          "x": 0.022703275084495544,
+          "y": 3.0024471282958984,
+          "z": -9.295137405395508
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.729599999999997,
+        "position": {
+          "x": 0.023119725286960602,
+          "y": 3.0024123191833496,
+          "z": -9.295133590698242
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.7429999999999986,
+        "position": {
+          "x": 0.023545093834400177,
+          "y": 3.0023767948150635,
+          "z": -9.29512882232666
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.7561999999999993,
+        "position": {
+          "x": 0.023963483050465584,
+          "y": 3.0023419857025146,
+          "z": -9.295124053955078
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.7690999999999972,
+        "position": {
+          "x": 0.024294888600707054,
+          "y": 3.002363443374634,
+          "z": -9.295121192932129
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.782499999999999,
+        "position": {
+          "x": 0.024294888600707054,
+          "y": 3.0026328563690186,
+          "z": -9.295121192932129
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.795799999999998,
+        "position": {
+          "x": 0.024294884875416756,
+          "y": 3.00285005569458,
+          "z": -9.295121192932129
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.8091999999999997,
+        "position": {
+          "x": 0.024294883012771606,
+          "y": 3.0030357837677,
+          "z": -9.295121192932129
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.8225999999999973,
+        "position": {
+          "x": 0.024294879287481308,
+          "y": 3.003192901611328,
+          "z": -9.295121192932129
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.8358999999999965,
+        "position": {
+          "x": 0.02429487742483616,
+          "y": 3.003324270248413,
+          "z": -9.295121192932129
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.8491999999999993,
+        "position": {
+          "x": 0.02429487369954586,
+          "y": 3.0034337043762207,
+          "z": -9.295121192932129
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.862599999999997,
+        "position": {
+          "x": 0.02429487183690071,
+          "y": 3.003523349761963,
+          "z": -9.295121192932129
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.875899999999996,
+        "position": {
+          "x": 0.024294868111610413,
+          "y": 3.003598690032959,
+          "z": -9.295121192932129
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.8892999999999978,
+        "position": {
+          "x": 0.024294866248965263,
+          "y": 3.0036630630493164,
+          "z": -9.295121192932129
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.9026999999999994,
+        "position": {
+          "x": 0.024294866248965263,
+          "y": 3.0037171840667725,
+          "z": -9.295121192932129
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.9159999999999986,
+        "position": {
+          "x": 0.024294862523674965,
+          "y": 3.0037622451782227,
+          "z": -9.295121192932129
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.929299999999998,
+        "position": {
+          "x": 0.024294858798384666,
+          "y": 3.003798484802246,
+          "z": -9.295121192932129
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.9426999999999994,
+        "position": {
+          "x": 0.024294855073094368,
+          "y": 3.0038297176361084,
+          "z": -9.295121192932129
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.956099999999997,
+        "position": {
+          "x": 0.02429485134780407,
+          "y": 3.0038561820983887,
+          "z": -9.295121192932129
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.9693999999999963,
+        "position": {
+          "x": 0.024294845759868622,
+          "y": 3.003877878189087,
+          "z": -9.295121192932129
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.982699999999999,
+        "position": {
+          "x": 0.024294842034578323,
+          "y": 3.0038962364196777,
+          "z": -9.295121192932129
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 2.9960999999999967,
+        "position": {
+          "x": 0.024294838309288025,
+          "y": 3.003911256790161,
+          "z": -9.295121192932129
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 3.0094999999999983,
+        "position": {
+          "x": 0.024294832721352577,
+          "y": 3.0039238929748535,
+          "z": -9.295121192932129
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 3.0227999999999975,
+        "position": {
+          "x": 0.02429482899606228,
+          "y": 3.003934621810913,
+          "z": -9.295121192932129
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 3.0364999999999984,
+        "position": {
+          "x": 0.02429482527077198,
+          "y": 3.003943920135498,
+          "z": -9.295121192932129
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 48,
+        "canScratch": true
+      },
+      {
+        "time": 3.049899999999996,
+        "position": {
+          "x": 0.024294821545481682,
+          "y": 3.0039515495300293,
+          "z": -9.295121192932129
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 40,
+        "canScratch": true
+      },
+      {
+        "time": 3.063099999999997,
+        "position": {
+          "x": 0.024294817820191383,
+          "y": 3.003957509994507,
+          "z": -9.295121192932129
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 40,
+        "canScratch": true
+      },
+      {
+        "time": 3.0764999999999985,
+        "position": {
+          "x": 0.024294812232255936,
+          "y": 3.003962755203247,
+          "z": -9.295121192932129
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 40,
+        "canScratch": true
+      },
+      {
+        "time": 3.1032999999999977,
+        "position": {
+          "x": 0.02429480291903019,
+          "y": 3.0039706230163574,
+          "z": -9.295121192932129
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 40,
+        "canScratch": true
+      },
+      {
+        "time": 3.116599999999997,
+        "position": {
+          "x": 0.024294797331094742,
+          "y": 3.0039737224578857,
+          "z": -9.295121192932129
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 40,
+        "canScratch": true
+      },
+      {
+        "time": 3.129599999999997,
+        "position": {
+          "x": 0.02429479919373989,
+          "y": 3.0039761066436768,
+          "z": -9.295121192932129
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 40,
+        "canScratch": true
+      },
+      {
+        "time": 3.156699999999999,
+        "position": {
+          "x": 0.024294791743159294,
+          "y": 3.0039801597595215,
+          "z": -9.295121192932129
+        },
+        "state": "BellBugScratchState",
+        "clip": "door_scratch_loop",
+        "jammed": false,
+        "goo": false,
+        "health": 40,
+        "canScratch": true
+      }
+    ]
+  },
+  "errors": []
+}

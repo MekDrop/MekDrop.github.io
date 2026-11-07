@@ -1,0 +1,31 @@
+{
+  "scenario": "A normal walking slug crosses two idle Bell Bugs, then returns and requests an idle hop nearby",
+  "route": "http://localhost:9000/map/test_enemy-bell-bug-crossing",
+  "browser": "ChatGPT in-app browser",
+  "before": {
+    "maximumBugDisplacement": 3.2250984025651035,
+    "hopAllowed": true,
+    "hopDistance": 0.656406798039594
+  },
+  "after": {
+    "maximumBugDisplacement": 2.398566801587595e-7,
+    "crossed": true,
+    "maximumWalkingSlugHeight": 2.0047073364257812,
+    "hopAllowed": true,
+    "hopDistance": 1.0492053995922925
+  },
+  "changed": [
+    "Slug route look-ahead reserves Bell Bug foot room and chooses a passing side",
+    "Idle hop clearance checks nearby dynamic bodies as well as Ammo ground and ceiling rays",
+    "Static floors remain support surfaces rather than neighbours"
+  ],
+  "testsPassed": 45,
+  "runtimeErrors": [],
+  "video": "passing-fixed.mp4",
+  "sourceSha256": {
+    "src/game/objects/enemies/bell-bug/BellBug.js": "6e695ed330db8130481d0b8890d3e4219e89b91153a3f341c83cd8b9c738f5c0",
+    "src/game/objects/enemies/latch-slug/LatchSlugNavigation.js": "560fabaa5a1b150f42aee39951d3ec7c626390f70fff4392240f0e75d9278f75",
+    "src/game/objects/enemies/latch-slug/LatchIdleHop.js": "090b8fc4897ad3ab5589343d8d2e7c8fb83c0ee7d1bbc0f1714cd155152dfff5",
+    "src/game/maps/tests/enemy-bell-bug-crossing.json": "b17f08bb33e8e858d8cbc80ea48888676036461a68f2745129f829cf06237379"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "hide_start": {
+    "frames": [
+      0,
+      18
+    ],
+    "duration": 0.6,
+    "loop": false,
+    "legs": 6,
+    "shellMoves": false
+  },
+  "hide_loop": {
+    "frames": [
+      0,
+      30
+    ],
+    "duration": 1.0,
+    "loop": true,
+    "legs": 6,
+    "shellMoves": false
+  },
+  "hide_end": {
+    "frames": [
+      0,
+      18
+    ],
+    "duration": 0.6,
+    "loop": false,
+    "legs": 6,
+    "shellMoves": false
+  }
+}

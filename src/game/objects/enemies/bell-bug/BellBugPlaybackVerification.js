@@ -17,7 +17,7 @@ export class BellBugPlaybackVerification {
   async run() {
     const owner = this.owner;
     const model = owner.animationPlayback.model;
-    const names = ["shell", "head", "leg_L_0", "leg_L_1", "leg_R_0", "leg_R_1"];
+    const names = ["root", "shell", "head", "leg_L_0", "leg_L_1", "leg_L_2", "leg_R_0", "leg_R_1", "leg_R_2"];
     const records = [];
     for (const name of Object.values(BELL_BUG_ANIMATION)) {
       owner.inspectClip(name);

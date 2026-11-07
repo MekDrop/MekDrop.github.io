@@ -5080,9 +5080,9 @@
       "id": "bell-bug",
       "object": "BellBug",
       "position": {
-        "x": 0,
+        "x": -3,
         "y": 3.04,
-        "z": 13
+        "z": 15
       },
       "inspection": true
     },
@@ -5090,9 +5090,9 @@
       "id": "bell-bug-ally",
       "object": "BellBug",
       "position": {
-        "x": 2,
+        "x": -2.1,
         "y": 3.04,
-        "z": 13
+        "z": 15
       },
       "inspection": true
     },
@@ -5102,15 +5102,25 @@
       "position": {
         "x": -3,
         "y": 3.004,
-        "z": 13
+        "z": 14
       }
+    },
+    {
+      "id": "bell-bug-victim",
+      "object": "LatchSlug",
+      "position": {
+        "x": -3,
+        "y": 3.04,
+        "z": 15.95
+      },
+      "inspection": true
     }
   ],
   "animationViewport": {
     "zoom": 4,
-    "rotation": 2,
-    "panX": 0,
-    "panZ": 13
+    "rotation": 0,
+    "panX": -2,
+    "panZ": 15
   },
   "testControls": {
     "panels": [
@@ -5232,8 +5242,8 @@
         "y": 410,
         "buttons": [
           {
-            "label": "Tower fear + allied stun",
-            "script": "const all=[...objects];const ally=all.find(o=>o.definition?.id==='bell-bug-ally');ally.applyStatus('stun',{duration:3});all.find(o=>o.definition?.id==='bell-bug-tower-bell').strike();"
+            "label": "Reset + cluster ring",
+            "script": "const all=[...objects];const bug=all.find(o=>o.definition?.id==='bell-bug');const ally=all.find(o=>o.definition?.id==='bell-bug-ally');const victim=all.find(o=>o.definition?.id==='bell-bug-victim');bug.entity.rigidbody.teleport(-3,3.004,14.95);ally.entity.rigidbody.teleport(-2.1,3.004,14.95);victim.entity.rigidbody.teleport(-3,3.004,15.85);all.find(o=>o.definition?.id==='bell-bug-tower-bell').strike();console.info('BELL_BUG_RING',JSON.stringify(all.filter(o=>o.isEnemy).map(o=>({id:o.definition.id,position:o.position,duration:o.panicDuration,state:o.stateName,stun:o.statuses.get('stun')?.remaining}))));"
           },
           {
             "label": "Royal pursuit / doors",
@@ -5252,10 +5262,15 @@
             "script": "const bug=[...objects].find(o=>o.definition?.id==='bell-bug'); bug.receiveDamage(35);"
           },
           {
-            "label": "Verify all 24 clips",
+            "label": "Verify all 27 clips",
             "script": "const bug=[...objects].find(o=>o.definition?.id==='bell-bug');bug.verifyPlayback().then(report=>console.info('BELL_BUG_PLAYBACK',JSON.stringify(report)));"
+          },
+          {
+            "label": "Tower reaction delay",
+            "script": "const bell=[...objects].find(o=>o.definition?.id==='bell-bug-tower-bell');bell.slowReaction(2,0.5);const before=bell.testStatus;bell.strike();console.info('BELL_BUG_TOWER',JSON.stringify({before,immediate:bell.testStatus}));setTimeout(()=>console.info('BELL_BUG_TOWER_DELAYED',bell.testStatus),650);"
           }
-        ]
+        ],
+        "statusTargetId": "bell-bug"
       },
       {
         "title": "Door checks",
@@ -5272,7 +5287,44 @@
           },
           {
             "label": "Bug at main entrance",
-            "script": "const bug=[...objects].find(o=>o.definition?.id==='bell-bug');const door=objects.getAll('castle')[0].entranceDoors[0];const p=door.entity.getPosition();const r=bug.targetPosition(bug.resolveRoyalTarget());const d=new bug.pc.Vec3(p.x-r.x,0,p.z-r.z).normalize().mulScalar(1);bug.entity.rigidbody.teleport(p.x+d.x,p.y+0.1,p.z+d.z);bug.transition('BellBugPursueState');camera.setViewport({zoom:3,rotation:2,panX:p.x,panZ:p.z});"
+            "script": "const bug=[...objects].find(o=>o.definition?.id==='bell-bug');const door=objects.getAll('castle')[0].entranceDoors[0];const p=door.entity.getPosition();const r=bug.targetPosition(bug.resolveRoyalTarget())??objects.getAll('castle')[0].entity.getPosition();const d=new bug.pc.Vec3(p.x-r.x,0,p.z-r.z).normalize().mulScalar(1);bug.entity.rigidbody.teleport(p.x+d.x,p.y+0.1,p.z+d.z);bug.transition('BellBugPursueState');camera.setViewport({zoom:3,rotation:2,panX:p.x,panZ:p.z});"
+          },
+          {
+            "label": "Slime + scratch closed door",
+            "script": "const all=[...objects],b=all.find(o=>o.definition?.id==='bell-bug'),s=all.find(o=>o.definition?.id==='bell-bug-victim'),c=objects.getAll('castle')[0],d=c.entranceDoors[0],p=d.entity.getPosition(),r=b.targetPosition(b.resolveRoyalTarget())??c.entity.getPosition(),n=p.clone().sub(r);n.y=0;n.normalize();const start=p.clone().add(n.mulScalar(0.8)).add(new b.pc.Vec3(0,0.02,0));s.entity.rigidbody.teleport(start);s.doorTarget=d;if(s.beginDoorLeap()){s.splat(s.leapTarget);b.entity.rigidbody.teleport(start);b.transition('BellBugPursueState');camera.setViewport({zoom:3,rotation:0,panX:p.x,panZ:p.z});}"
+          }
+        ],
+        "statusTargetId": "bell-bug"
+      },
+      {
+        "title": "Bell Bug shell",
+        "x": 16,
+        "y": 140,
+        "statusTargetId": "bell-bug",
+        "buttons": [
+          {
+            "label": "idle_nervous",
+            "script": "const b=[...objects].find(o=>o.definition?.id==='bell-bug');b.inspectClip('idle_nervous');"
+          },
+          {
+            "label": "hide_start",
+            "script": "const b=[...objects].find(o=>o.definition?.id==='bell-bug');b.inspectClip('hide_start');"
+          },
+          {
+            "label": "hide_loop",
+            "script": "const b=[...objects].find(o=>o.definition?.id==='bell-bug');b.inspectClip('hide_loop');"
+          },
+          {
+            "label": "hide_end",
+            "script": "const b=[...objects].find(o=>o.definition?.id==='bell-bug');b.inspectClip('hide_end');"
+          },
+          {
+            "label": "Ring + hide + emerge",
+            "script": "const b=[...objects].find(o=>o.definition?.id==='bell-bug');b.onBellRung({eventId:'shell-check-'+Date.now()});"
+          },
+          {
+            "label": "Capture RGBA preview",
+            "script": "const b=[...objects].find(o=>o.definition?.id==='bell-bug');b.inspectClip('idle_nervous');b.capturePreview().then(r=>console.info('BELL_BUG_PREVIEW',JSON.stringify(r)));"
           }
         ]
       }

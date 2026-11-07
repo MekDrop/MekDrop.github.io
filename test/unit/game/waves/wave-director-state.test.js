@@ -17,6 +17,26 @@ function fixture(config = {}) {
   return state;
 }
 
+test("bell bugs cost more than slime and the AI includes them in later waves", () => {
+  const state=fixture();
+  const offers=state.snapshot.offers;
+  assert.ok(offers.find(o=>o.creature==='BellBug').cost>offers.find(o=>o.creature==='LatchSlug').cost);
+  assert.equal(state.submit({
+    ...buy(1),
+    creature:'BellBug',
+  },'ai').accepted,true);
+  assert.equal(state.snapshot.coins,4975);
+  const ai=new WaveAiController({firstWaveDelay:0});
+  const snapshot={
+    ...state.snapshot,
+    queue:[],
+    clock:0,
+  };
+  assert.equal(ai.commands(snapshot)[0].creature,'LatchSlug');
+  snapshot.clock=20;
+  assert.equal(ai.commands(snapshot)[0].creature,'BellBug');
+});
+
 test("5000-coin authority charges 15 once, rejects invalid commands and isolates snapshots", () => {
   const state = fixture();
   assert.equal(state.snapshot.coins, 5000);

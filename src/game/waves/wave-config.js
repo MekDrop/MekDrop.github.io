@@ -14,5 +14,9 @@ export const WAVE_CONFIG = {
     creature: "LatchSlug",
     cost: 15,
     spawnSeconds: 3,
+  }, {
+    creature: "BellBug",
+    cost: 25,
+    spawnSeconds: 4,
   }],
 };

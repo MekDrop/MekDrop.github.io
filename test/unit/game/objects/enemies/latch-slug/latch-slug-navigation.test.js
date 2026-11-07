@@ -88,3 +88,22 @@ test("uses the same slow contact motor when descending a low tread", () => {
   assert.ok(owner.entity.rigidbody.linearVelocity.y < 0);
   assert.ok(owner.entity.rigidbody.linearVelocity.y >= -0.6);
 });
+
+test("steers around an idle Bell Bug's complete footprint instead of driving into its collider", () => {
+  const {owner,navigation}=fixture(0);
+  const bug={
+    isBellBug:true,
+    alive:true,
+    footprintRadius:.45,
+    height:.515,
+    position:new pc.Vec3(0,0,1.3),
+    entity:new pc.Entity(),
+  };
+  bug.entity.rigidbody={enabled:true};
+  owner.actors=[bug];owner.targetPosition=actor=>actor.position;
+  const next=navigation.next({position:new pc.Vec3(0,0,-3)});
+  assert.ok(Math.abs(next.position.x)>.1, 'an available passing side is used');
+  assert.ok(Math.hypot(next.position.x-bug.position.x,next.position.z-bug.position.z)>.9);
+  bug.position.y=2;
+  assert.ok(Math.abs(navigation.next({position:new pc.Vec3(0,0,-3)}).position.x)<.01, 'another floor is not an obstruction');
+});
