@@ -22,7 +22,7 @@ import { HeroPatGesture } from "./controls/HeroPatGesture.js";
 import { KnifeTool, ShovelTool } from "./objects/characters/hero/tools/index.js";
 import { Overpass } from "./objects/path/Overpass.js";
 import { GroundCover } from "./objects/ground-cover/index.js";
-import { CubeCloudField, IslandConnectorMotion } from "./objects/scenery/index.js";
+import { SkyboxCloudField, IslandConnectorMotion } from "./objects/scenery/index.js";
 import { BuriedTreasureField } from "./objects/treasure/index.js";
 import { ScenePointerInteraction } from "./objects/shared/ScenePointerInteraction.js";
 import { TileType } from "./generator/map/MapGenerator.js";
@@ -310,7 +310,7 @@ export class PlayCanvasRenderer {
   #interactionProviders = [];
   /**
    *
-   * @type {CubeCloudField|null}
+   * @type {SkyboxCloudField|null}
    */
   #cloudField = null;
   /**
@@ -1970,11 +1970,10 @@ export class PlayCanvasRenderer {
     if (this.#cloudField) {
       return;
     }
-    this.#cloudField = new CubeCloudField({
+    this.#cloudField = new SkyboxCloudField({
       pc: this.#pc,
       app: this.#app,
       camera: this.#camera.camera,
-      mapData: this.#mapData,
       layerId: this.#cloudLayer.id,
     });
     this.#app.root.addChild(this.#cloudField.entity);
@@ -2775,12 +2774,6 @@ export class PlayCanvasRenderer {
       for (const object of this.#sceneObjects.getAll(SCENE_OBJECT_TYPE.MAP_OBJECT)) {
         object.onCameraChanged?.();
       }
-      this.#cloudField?.setCameraState({
-        rotation: this.#camera.rotation,
-        panX: this.#camera.panX,
-        panZ: this.#camera.panZ,
-        zoom: this.#camera.zoom,
-      });
     }
     this.#updateHeroIdleLookTarget();
     this.#notifyViewportChange();

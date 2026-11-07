@@ -1,0 +1,19 @@
+{
+  "upper": {
+    "height": 30,
+    "spacing": 32,
+    "scale": 2.4,
+    "coverage": 0.36,
+    "seed": [0, 0]
+  },
+  "lower": {
+    "height": 42,
+    "spacing": 44,
+    "scale": 3,
+    "coverage": 0.27,
+    "seed": [71, -83]
+  },
+  "zenith": [0.1, 0.35, 0.6],
+  "horizon": [0.53, 0.73, 0.85],
+  "below": [0.18, 0.44, 0.64]
+}
