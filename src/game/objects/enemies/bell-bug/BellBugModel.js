@@ -51,6 +51,7 @@ export class BellBugModel {
       this.#model.anim.addAnimationState(name, tracks.get(name), 1, loops.has(name));
     }
     this.scoopPose = new BellBugScoopPose(owner, this.#model);
+    owner.doorScratch.attach();
     this.play(owner.clip);
     this.#updateHandle = owner.app.on("update", this.#updateSpeed, this);
   }

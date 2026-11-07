@@ -1,6 +1,8 @@
 import { NpcDoorAvoidance } from "../../shared/NpcDoorAvoidance.js";
 import { DoorLeafQueries } from "./DoorLeafQueries.js";
 import { DoorJam } from "./DoorJam.js";
+import { DoorScratchSurface } from "./DoorScratchSurface.js";
+import { DoorBreakup } from "./DoorBreakup.js";
 
 const SWING_SAMPLE_STEP = 1 / 360;
 const OPEN_DISTANCE = 1.8;
@@ -13,6 +15,39 @@ const CLICK_OPEN_SECONDS = 1;
  * Animated door behavior configured independently of its building and model.
  */
 export class Door {
+  /**
+   * @type {typeof import("playcanvas")|undefined}
+   */
+  #pc;
+  /**
+   * @type {DoorScratchSurface|null}
+   */
+  #scratches = null;
+  /**
+   * @type {DoorBreakup|null}
+   */
+  #breakup = null;
+  /**
+   * @type {import("playcanvas").Application|undefined}
+   */
+  #effectApp;
+
+  /**
+   * @param {import("playcanvas").Application} app
+   */
+  attachEffects(app) {
+    this.#effectApp = app;
+  }
+
+  /**
+   * @returns {{pieces:number,age:number}}
+   */
+  get breakupMetrics() {
+    return {
+      pieces: this.#breakup?.pieces.length ?? 0,
+      age: this.#breakup?.age ?? 0,
+    };
+  }
   /**
    * @type {import("../../../audio/GameObjectAudio.js").GameObjectAudio|undefined}
    */
@@ -98,19 +133,117 @@ export class Door {
   }
 
   /**
+   * Native leaf contact gates lasting geometric wood removal.
+   * @param {import("playcanvas").Vec3} start
+   * @param {import("playcanvas").Vec3} end
+   * @param {import("../../enemies/shared/Enemy.js").Enemy|null} source
+   * @param {number} width Full claw contact width in metres.
+   * @param {boolean} playContactSound False when the claw already sounded at drag onset.
+   * @returns {number}
+   */
+  scratchSurface(start, end, source = null, width = 0.045, playContactSound = true) {
+    const pc = source?.pc ?? this.#pc;
+    if (!pc || !this.#entity || this.#broken || this.#openAmount >= 0.15) {
+      return 0;
+    }
+    const origin = source?.position?.clone() ?? start.clone().sub(this.#entity.forward.clone().mulScalar(0.3));
+    if (source?.position) {
+      origin.y += 0.35;
+    }
+    if (!this.#scratchContact(start, origin, source) || !this.#scratchContact(end, origin, source)) {
+      return 0;
+    }
+    this.#scratches ??= new DoorScratchSurface(this, pc);
+    if (!this.#scratches.scratch(start, end, origin, {
+      width,
+      damageRatio: Math.min(1, (this.maxHealth - this.#health + 8) / this.maxHealth),
+    })) {
+      return 0;
+    }
+
+    if (playContactSound) {
+      this.audio?.play("scratch");
+    }
+
+    return this.receiveDamage(8, source, "scratch", false);
+  }
+
+  /**
+   * Project a conservative collider hit onto the actual current wooden skin.
+   * @param {import("playcanvas").Vec3} aim
+   * @param {import("playcanvas").Vec3} origin
+   * @param {import("../../enemies/shared/Enemy.js").Enemy|null} source
+   * @returns {import("playcanvas").Vec3|null}
+   */
+  getScratchPoint(aim, origin, source = null) {
+    const pc = source?.pc ?? this.#pc;
+    if (!pc || !this.#entity || this.#broken || this.#openAmount >= 0.15 || !this.#scratchContact(aim, origin, source)) {
+      return null;
+    }
+    this.#scratches ??= new DoorScratchSurface(this, pc);
+
+    return this.#scratches.point(aim, origin);
+  }
+
+  /**
+   * @returns {{surfaces:number,strokes:number,maximumDepth:number,vertices:number}}
+   */
+  get scratchMetrics() {
+    return this.#scratches?.metrics ?? {
+      surfaces: 0,
+      strokes: 0,
+      maximumDepth: 0,
+      vertices: 0,
+    };
+  }
+
+  /**
+   * @param {import("playcanvas").Vec3} point
+   * @param {import("playcanvas").Vec3} origin
+   * @param {import("../../enemies/shared/Enemy.js").Enemy|null} source
+   * @returns {boolean}
+   */
+  #scratchContact(point, origin, source) {
+    const end = point.clone().add(point.clone().sub(origin).normalize().mulScalar(0.08));
+    const hit = this.getHit(origin, end);
+    if (!hit || !Number.isFinite(hit.distance) || origin.clone().lerp(origin, end, hit.distance).distance(point) > 0.16) {
+      return false;
+    }
+    const hits = source?.app?.systems?.rigidbody?.raycastAll(origin, end) ?? [];
+    for (const candidate of hits) {
+      if (candidate.entity === source?.entity || candidate.entity.isDescendantOf?.(source?.entity) || this.isLeafCollider(candidate.entity)) {
+        continue;
+      }
+
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
    * Remove only moving leaves; the frame and its Ammo bodies stay castle-owned.
    * @param {number} amount
    * @param {import("../../enemies/shared/Enemy.js").Enemy|null} source
+   * @param {"hit"|"scratch"} kind
+   * @param {boolean} playHitSound The final collapse always sounds.
    * @returns {number}
    */
-  receiveDamage(amount, source = null) {
+  receiveDamage(amount, source = null, kind = "hit", playHitSound = true) {
     if (!this.#entity || this.#broken || !Number.isFinite(amount) || amount <= 0) {
       return 0;
     }
     const applied = Math.min(amount, this.#health);
     this.#health -= applied;
-    this.audio?.play(this.#health === 0 ? "break" : "hit");
+    if (this.#health === 0 || playHitSound) {
+      this.audio?.play(this.#health === 0 ? "break" : kind);
+    }
     if (this.#health === 0) {
+      const app = source?.app ?? this.#effectApp;
+      const pc = source?.pc ?? this.#pc;
+      if (pc && app) {
+        this.#breakup = new DoorBreakup(pc, app, this, source);
+      }
       this.#broken = true;
       source?.onTargetDefeated?.(this, "break");
       this.clearGlue?.();
@@ -369,6 +502,7 @@ export class Door {
     hingeName = null,
     handleName = null,
   }) {
+    this.#pc = pc;
     this.#entity = entity;
     this.#ownedMaterials = ownedMaterials;
     this.#animationEntity = animationEntity;
@@ -556,6 +690,7 @@ export class Door {
    * @param {number} [speed] Opening speed override.
    */
   update(deltaTime, open, speed = this.#openSpeed) {
+    this.#breakup?.update(deltaTime);
     this.#soundCooldown = Math.max(0, this.#soundCooldown - deltaTime);
     if (this.#broken) {
       this.#collision.syncFrameBodies?.();
@@ -664,6 +799,10 @@ export class Door {
 
   destroy() {
     this.clearGlue();
+    this.#breakup?.destroy();
+    this.#breakup = null;
+    this.#scratches?.destroy();
+    this.#scratches = null;
     this.#collision?.destroy();
     this.#entity?.destroy();
     for (const material of this.#ownedMaterials) {

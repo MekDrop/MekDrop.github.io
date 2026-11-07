@@ -1,0 +1,155 @@
+{
+  "stance": "rear pair planted; front and middle pairs raised; torso pitched 55 degrees about rear-hip line",
+  "clips": {
+    "door_scratch_start": {
+      "frames": [
+        1,
+        10
+      ]
+    },
+    "door_scratch_loop": {
+      "frames": [
+        1,
+        23
+      ]
+    },
+    "door_scratch_end": {
+      "frames": [
+        1,
+        9
+      ]
+    }
+  },
+  "fps": 30,
+  "native": {
+    "maxRearDisplacement": 0.0011426600065661302,
+    "frontClearance": 0.5747465491294861,
+    "middleClearance": 0.34972161054611206,
+    "lowestShell": 0.05650590360164642,
+    "frontReachHeight": {
+      "L": 0.7454315822737648,
+      "R": 0.7398683043070972
+    },
+    "samples": 123
+  },
+  "freshImport": {
+    "maxRearDisplacement": 0.001142601711423618,
+    "frontClearance": 0.5747464299201965,
+    "middleClearance": 0.3497214913368225,
+    "lowestShell": 0.056505925953388214,
+    "frontReachHeight": {
+      "L": 0.7454315009776927,
+      "R": 0.7398684210083561
+    },
+    "samples": 123
+  },
+  "unchangedOtherActions": 24,
+  "sharedRigidFootMeshes": 1,
+  "sourceInspection": {
+    "hardGatePass": true,
+    "triangles": 11837,
+    "armatures": 1,
+    "bones": 10,
+    "actions": 27,
+    "invalidVertices": 0,
+    "degenerateFaces": 0
+  },
+  "attachments": {
+    "native": {
+      "sockets": [
+        {
+          "leg": "L0",
+          "bone": "head",
+          "bodySurfaceDistance": 0,
+          "overlapDepth": 0.035
+        },
+        {
+          "leg": "L1",
+          "bone": "body",
+          "bodySurfaceDistance": 0,
+          "overlapDepth": 0.035
+        },
+        {
+          "leg": "L2",
+          "bone": "body",
+          "bodySurfaceDistance": 0,
+          "overlapDepth": 0.035
+        },
+        {
+          "leg": "R0",
+          "bone": "head",
+          "bodySurfaceDistance": 0,
+          "overlapDepth": 0.035
+        },
+        {
+          "leg": "R1",
+          "bone": "body",
+          "bodySurfaceDistance": 0,
+          "overlapDepth": 0.035
+        },
+        {
+          "leg": "R2",
+          "bone": "body",
+          "bodySurfaceDistance": 0,
+          "overlapDepth": 0.035
+        }
+      ],
+      "samples": 90,
+      "maxBodyEndpointError": 1.197320124506071e-7,
+      "maxFootEndpointError": 1.4919776018337002e-7,
+      "maxSocketSurfaceDistance": 0.010808579623699188,
+      "maxBodySurfaceDistance": 6.143906006172983e-8,
+      "minBodyOverlapDepth": 0.03499998108217248,
+      "freshExportImport": false
+    },
+    "freshImport": {
+      "sockets": [
+        {
+          "leg": "L0",
+          "bone": "head",
+          "bodySurfaceDistance": 3.332000986233652e-8,
+          "overlapDepth": 0.035
+        },
+        {
+          "leg": "L1",
+          "bone": "body",
+          "bodySurfaceDistance": 6.177870659485052e-8,
+          "overlapDepth": 0.035
+        },
+        {
+          "leg": "L2",
+          "bone": "body",
+          "bodySurfaceDistance": 1.4901161193847656e-8,
+          "overlapDepth": 0.035
+        },
+        {
+          "leg": "R0",
+          "bone": "head",
+          "bodySurfaceDistance": 1.4901161193847656e-8,
+          "overlapDepth": 0.035
+        },
+        {
+          "leg": "R1",
+          "bone": "body",
+          "bodySurfaceDistance": 3.725290298461914e-9,
+          "overlapDepth": 0.035
+        },
+        {
+          "leg": "R2",
+          "bone": "body",
+          "bodySurfaceDistance": 4.214684778958144e-8,
+          "overlapDepth": 0.035
+        }
+      ],
+      "samples": 90,
+      "maxBodyEndpointError": 1.5269146510898468e-7,
+      "maxFootEndpointError": 2.1126042125758269e-7,
+      "maxSocketSurfaceDistance": 0.010808654129505157,
+      "maxBodySurfaceDistance": 8.429369557916289e-8,
+      "minBodyOverlapDepth": 0.034999981913710926,
+      "freshExportImport": true
+    }
+  },
+  "reviewEvidence": "tmp/bell-rear-scratch/renders and rear-scratch-review.mp4; two native cameras inspected",
+  "runtimeConfirmation": "Required from the owning integration task; the offline asset check does not verify in-game contact."
+}

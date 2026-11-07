@@ -1,3 +1,5 @@
+import { BellBugDoorScratch } from "./BellBugDoorScratch.js";
+import { LatchSlugAudio } from "../../../audio/latch-slug/LatchSlugAudio.js";
 import { BellBugScoop } from "./BellBugScoop.js";
 import { BellBugScratchRecoverState } from "./states/BellBugScratchRecoverState.js";
 import { BellBugPlaybackVerification } from "./BellBugPlaybackVerification.js";
@@ -50,6 +52,7 @@ export class BellBug extends Enemy {
     }
     this.isBellBug = true;
     this.scoop = new BellBugScoop(this);
+    this.doorScratch = new BellBugDoorScratch(this);
     this.radius = BellBugCalibration.radius;
     this.height = BellBugCalibration.height;
     this.stepSupport = new BellBugStepSupport(this);
@@ -92,6 +95,27 @@ export class BellBug extends Enemy {
           },
         },
       });
+      for (const [name, source] of [["gooPress", LatchSlugAudio.scoopPress], ["gooPull", LatchSlugAudio.scoopPull], ["gooSwallow", LatchSlugAudio.scoopTaste]]) {
+        this.entity.sound.addSlot(name, {
+          asset: this.runtime.audioLibrary.get(source.wavUrl).id,
+          volume: 0.6,
+          overlap: false,
+          loop: false,
+        });
+      }
+    }
+  }
+
+  /**
+   * @param {string} name
+   * @param {number} pitch
+   */
+  playGooSound(name, pitch = 1) {
+    const sound = this.entity.sound;
+    const slot = sound?.slot(name);
+    if (slot) {
+      slot.pitch = pitch;
+      sound.play(name);
     }
   }
 
@@ -126,7 +150,7 @@ export class BellBug extends Enemy {
    * @returns {string}
    */
   get testStatus() {
-    return `${super.testStatus} | ${this.clip} | rings ${this.ringCount} | stun ${(this.statuses.get("stun")?.remaining ?? 0).toFixed(2)}s`;
+    return `${super.testStatus} | ${this.clip} | goo ${this.doorScratch.gooStrokes} | gouges ${this.doorScratch.woodStrokes} | rings ${this.ringCount} | stun ${(this.statuses.get("stun")?.remaining ?? 0).toFixed(2)}s`;
   }
 
   /**
@@ -430,14 +454,7 @@ export class BellBug extends Enemy {
     if (!door || !this.canScratchDoor) {
       return false;
     }
-    if (door.jammed) {
-      door.clearGlue();
-
-      return true;
-    }
-    // Door destruction requires the owning door's damage capability. Do not
-    // destroy its root: it also owns the masonry frame and castle update hooks.
-    return (door.receiveDamage?.(8, this, "scratch") ?? 0) > 0;
+    return this.doorScratch.apply();
   }
 
   /**
@@ -451,7 +468,7 @@ export class BellBug extends Enemy {
     }
     const point = this.#doorSurface(door);
 
-    return !!point && this.position.distance(point) <= this.radius + 0.65 &&
+    return !!point && this.position.distance(point) <= this.radius + 0.4 &&
       (door.blocksCameraAt?.(this.position.x, this.position.y + 0.4, this.position.z, this.radius + 0.4) ??
         door.intersectsFootprint(this.position.x, this.position.z, this.radius + 0.4));
   }
@@ -481,6 +498,7 @@ export class BellBug extends Enemy {
 
   destroy() {
     this.scoop.reset();
+    this.doorScratch.destroy();
     this.animationPlayback?.destroy();
     super.destroy();
   }

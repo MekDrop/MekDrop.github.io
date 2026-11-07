@@ -179,6 +179,15 @@ export function createDoorCollision(pc, door) {
       (part) => part.entity === entity),
     breakLeaves: () => {
       for (const leaf of leafRoots) {
+        for (const render of leaf.findComponents("render")) {
+          // Unregister while ancestors are enabled; otherwise a generated
+          // static batch can retain the standing door over its falling pieces.
+          render.batchGroupId = -1;
+          for (const instance of render.meshInstances) {
+            instance.visible = false;
+          }
+          render.enabled = false;
+        }
         leaf.enabled = false;
       }
       for (const { entity } of parts) {

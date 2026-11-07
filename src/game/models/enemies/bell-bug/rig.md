@@ -40,7 +40,7 @@ visibility toggles; the feet retain unit scale.
 Walk/run retain alternating tripods: L0 + L2 + R1, then R0 + R2 + L1.
 Feet spend 62% of a cycle planted. Walk is 14/30 s with a 0.16 m stride; run
 is 9/30 s with a 0.20 m stride. Playback follows horizontal travel speed.
-The front pair retain their embedded door-scraping motion.
+The three `door_scratch_*` clips now rear the body by 55 degrees about the rear-hip line. Only the rear pair stays planted; the middle and front pairs lift, with alternating vertical front-foot strokes. Runtime surface targeting can refine those strokes without changing the authored support stance. Start/loop/end keep their existing frame ranges and export timestamps.
 
 Brown foot armor clears the bell rim in the standing and locomotion poses.
 The paired stance moves the front, middle and rear feet outward by 0.02,
@@ -65,3 +65,5 @@ or trigger the full response. Focused checks verify six shared rigid feet,
 grounded tripods and continuous retract/hold/emerge poses. Clip inspection
 resets the animation layer before restarting, preventing stale crossfade
 clips from crashing the Engine controller.
+
+Rear-stance validation: 123 native and fresh-import fractional-frame samples keep rear-foot drift below 0.00115 model units (0.70 mm at gameplay scale), front-foot clearance above 0.5747, and middle-foot clearance above 0.3497. The shell remains above 0.0565. All six hip connectors retain their 0.035 m buried body anchors; sampled endpoint error stays below 0.000001. The six feet still share one rigid mesh, all 27 clips remain, and the other 24 native actions retain unchanged keyframe hashes. Metrics are recorded in `door-scratch-stance.json`.

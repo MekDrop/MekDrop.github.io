@@ -21,6 +21,7 @@ it("matches tripod steps to travel speed and preserves action and inspection pla
   };
   const owner = {
     app,
+    doorScratch: { attach: () => {} },
     clip: "scuttle_walk",
     stateName: "BellBugPursueState",
     entity: {
@@ -79,6 +80,7 @@ it("restarts inspection clips during a real Engine crossfade without losing prev
   const tracks = new Map(names.map(name => [name, new AnimTrack(name, 1, [], [], [])]));
   const owner = {
     app,
+    doorScratch: { attach: () => {} },
     clip: names[0],
     stateName: "BellBugPlaybackState",
     entity: { addChild: () => {} },

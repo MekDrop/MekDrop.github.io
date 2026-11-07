@@ -44,6 +44,7 @@ it("loses only gel that crosses the floor, never refills drained volume, and fin
     finishSplatTransition: () => {},
   });
   Object.assign(surface, {
+    filmEnabled: false,
     original,
     basis: shape.positions,
     indices: shape.indices,

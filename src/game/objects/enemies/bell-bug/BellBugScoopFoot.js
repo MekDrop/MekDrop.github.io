@@ -11,33 +11,49 @@ export class BellBugScoopFoot {
   constructor(owner, model, side) {
     this.owner = owner;
     this.bone = model.findByName(`leg_${side ? "R" : "L"}_0`);
-    this.instance = model.findByName(`BellBug leg ${side ? "R" : "L"}0`)?.findComponents("render")[0]?.meshInstances[0];
+    this.instances = [];
+    const renders = model.findByName(`BellBug leg ${side ? "R" : "L"}0`)?.findComponents("render") ?? [];
+    for (const render of renders) {
+      this.instances.push(...render.meshInstances);
+    }
+    this.instance = this.instances[0];
     this.original = null;
     this.mesh = null;
     if (!this.bone || !this.instance) {
       return;
     }
     const { pc } = owner;
-    this.source = this.instance.mesh;
-    this.positions = [];
-    this.indices = [];
-    this.uvs = [];
-    this.source.getPositions(this.positions);
-    this.source.getIndices(this.indices);
-    this.source.getUvs(0, this.uvs);
-    const inverse = this.instance.node.getWorldTransform().clone().invert();
-    this.socket = inverse.transformPoint(this.bone.getPosition());
+    this.parts = [];
     this.tip = new pc.Vec3();
     const point = new pc.Vec3();
     let farthest = 0;
-    for (let i = 0; i < this.positions.length; i += 3) {
-      point.set(this.positions[i], this.positions[i + 1], this.positions[i + 2]);
-      if (point.distance(this.socket) > farthest) {
-        farthest = point.distance(this.socket);
-        this.tip.copy(point);
-        this.tipIndex = i;
+    for (const instance of this.instances) {
+      const part = {
+        instance,
+        source: instance.mesh,
+        positions: [],
+        indices: [],
+        uvs: [],
+        mesh: null,
+      };
+      part.source.getPositions(part.positions);
+      part.source.getIndices(part.indices);
+      part.source.getUvs(0, part.uvs);
+      part.socket = instance.node.getWorldTransform().clone().invert().transformPoint(this.bone.getPosition());
+      this.parts.push(part);
+      for (let i = 0; i < part.positions.length; i += 3) {
+        point.set(part.positions[i], part.positions[i + 1], part.positions[i + 2]);
+        const distance = instance.node.getWorldTransform().transformPoint(point).distance(this.bone.getPosition());
+        if (distance > farthest) {
+          farthest = distance;
+          this.tipPart = part;
+          this.tip.copy(point);
+          this.tipIndex = i;
+        }
       }
     }
+    // Material primitives include separate armor, distal claw and hip joint.
+    Object.assign(this, this.tipPart);
     this.length = this.point.distance(this.bone.getPosition());
   }
 
@@ -70,39 +86,48 @@ export class BellBugScoopFoot {
     const to = goal.clone().sub(pivot).normalize();
     const rotation = new pc.Quat().setFromDirections(from, to);
     this.bone.setRotation(rotation.mul(this.bone.getRotation().clone()));
-    const inverse = this.instance.node.getWorldTransform().clone().invert();
-    const delta = inverse.transformVector(goal.clone().sub(this.point));
-    const positions = new Float32Array(this.positions);
-    const point = new pc.Vec3();
-    const length = this.tip.distance(this.socket);
-    for (let i = 0; i < positions.length; i += 3) {
-      point.set(positions[i], positions[i + 1], positions[i + 2]);
-      const weight = Math.max(0, Math.min(1, (point.distance(this.socket) / length - 0.3) / 0.7));
-      point.add(delta.clone().mulScalar(weight * weight));
-      positions.set([point.x, point.y, point.z], i);
+    const correction = goal.clone().sub(this.point);
+    for (const part of this.parts) {
+      const delta = part.instance.node.getWorldTransform().clone().invert().transformVector(correction);
+      const positions = new Float32Array(part.positions);
+      const point = new pc.Vec3();
+      for (let i = 0; i < positions.length; i += 3) {
+        point.set(positions[i], positions[i + 1], positions[i + 2]);
+        const distance = part.instance.node.getWorldTransform().transformPoint(point).distance(pivot);
+        const weight = Math.max(0, Math.min(1, (distance / this.length - 0.3) / 0.7));
+        point.add(delta.clone().mulScalar(weight * weight));
+        positions.set([point.x, point.y, point.z], i);
+      }
+      part.mesh ??= new pc.Mesh(this.owner.app.graphicsDevice);
+      part.mesh.setPositions(positions);
+      part.mesh.setIndices(part.indices);
+      part.mesh.setNormals(pc.calculateNormals(positions, part.indices));
+      if (part.uvs.length) {
+        part.mesh.setUvs(0, part.uvs);
+      }
+      part.mesh.update();
+      part.instance.mesh = part.mesh;
+      if (part === this.tipPart) {
+        this.mesh = part.mesh;
+        this.contactPoint = part.instance.node.getWorldTransform().transformPoint(new pc.Vec3(positions[this.tipIndex], positions[this.tipIndex + 1], positions[this.tipIndex + 2]));
+      }
     }
-    this.mesh ??= new pc.Mesh(this.owner.app.graphicsDevice);
-    this.mesh.setPositions(positions);
-    this.mesh.setIndices(this.indices);
-    this.mesh.setNormals(pc.calculateNormals(positions, this.indices));
-    if (this.uvs.length) {
-      this.mesh.setUvs(0, this.uvs);
-    }
-    this.mesh.update();
-    this.instance.mesh = this.mesh;
-    this.contactPoint = this.instance.node.getWorldTransform().transformPoint(new pc.Vec3(positions[this.tipIndex], positions[this.tipIndex + 1], positions[this.tipIndex + 2]));
   }
 
   restore() {
     if (this.original) {
       this.bone.setLocalRotation(this.original);
       this.original = null;
-      this.instance.mesh = this.source;
+      for (const part of this.parts) {
+        part.instance.mesh = part.source;
+      }
     }
   }
 
   destroy() {
     this.restore();
-    this.mesh?.destroy();
+    for (const part of this.parts ?? []) {
+      part.mesh?.destroy();
+    }
   }
 }

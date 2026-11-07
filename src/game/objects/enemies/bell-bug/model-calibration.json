@@ -1,18 +1,132 @@
 {
   "boundsSource": "evaluated vertices",
-  "sampledPoses": 375,
-  "unscaledMaximumGroundRadius": 0.7428749531434108,
+  "sampledPoses": 675,
+  "unscaledMaximumGroundRadius": 0.7963487804833712,
   "scale": 0.605,
   "y": 0.007018,
   "z": 0.0042955,
   "yaw": 180,
   "groundClearance": 0.00726,
   "tileSize": 1,
-  "footprintDiameter": 0.898878693303527,
+  "footprintDiameter": 0.9635820243848792,
   "spacingRadius": 0.45,
   "collider": {
     "radius": 0.2541,
     "height": 0.51425
   },
-  "assetSha256": "c1bd77865fad264982974da3c61e4347f370c8ad6d6fc24138c0ff1054c2569a"
+  "assetSha256": "e42f8401e7bcf3d8d20be7ce8de192e12adb2c851b6f307deed575140cd5ddce",
+  "measurement": {
+    "asset": "fresh-imported GLB",
+    "method": "25 evenly spaced evaluated mesh poses per action, including endpoints; maximum X/Y radius about Blender (0, 0.0071) semantic ground-plane center",
+    "sampledActions": [
+      "airborne_tumble",
+      "carried_panic",
+      "cower",
+      "death",
+      "door_scratch_end",
+      "door_scratch_loop",
+      "door_scratch_start",
+      "fear_recoil",
+      "hide_end",
+      "hide_loop",
+      "hide_start",
+      "hit",
+      "idle_nervous",
+      "knockback",
+      "land",
+      "land_recover",
+      "panic_ring_end",
+      "panic_ring_loop",
+      "panic_ring_start",
+      "recover",
+      "scratch_attack",
+      "scuttle_run",
+      "scuttle_walk",
+      "stun",
+      "turn",
+      "turn_left",
+      "turn_right"
+    ],
+    "perActionMaximumGroundRadius": {
+      "airborne_tumble": 0.6846356220603903,
+      "carried_panic": 0.6846356220603903,
+      "cower": 0.6846356220603903,
+      "death": 0.6846356569087423,
+      "door_scratch_end": 0.7882742002521411,
+      "door_scratch_loop": 0.7963487804833712,
+      "door_scratch_start": 0.7882742002521411,
+      "fear_recoil": 0.6846356220603903,
+      "hide_end": 0.6846356220603903,
+      "hide_loop": 0.5005096453272481,
+      "hide_start": 0.6846356220603903,
+      "hit": 0.6846356220603903,
+      "idle_nervous": 0.6846356220603903,
+      "knockback": 0.6846356220603903,
+      "land": 0.6846356220603903,
+      "land_recover": 0.6846356569087423,
+      "panic_ring_end": 0.6846356220603903,
+      "panic_ring_loop": 0.6846356220603903,
+      "panic_ring_start": 0.6846356220603903,
+      "recover": 0.6846356569087423,
+      "scratch_attack": 0.6846356220603903,
+      "scuttle_run": 0.7428749531434108,
+      "scuttle_walk": 0.7314223520439741,
+      "stun": 0.6846356569087423,
+      "turn": 0.6846356220603903,
+      "turn_left": 0.6846356220603903,
+      "turn_right": 0.6846356220603903
+    },
+    "blenderMin": [
+      -0.6255349516868591,
+      -0.5459485054016113,
+      -0.05425621569156647
+    ],
+    "blenderMax": [
+      0.6255349516868591,
+      0.798879861831665,
+      1.0444910526275635
+    ],
+    "locomotion": {
+      "clips": [
+        "idle_nervous",
+        "scuttle_walk",
+        "scuttle_run",
+        "turn",
+        "turn_left",
+        "turn_right"
+      ],
+      "unscaledMaximumGroundRadius": 0.7428749531434108,
+      "footprintDiameter": 0.898878693303527,
+      "clearanceTargetDiameter": 0.9
+    },
+    "rearScratch": {
+      "unscaledMaximumGroundRadius": 0.7963487804833712,
+      "footprintDiameter": 0.9635820243848792,
+      "maximumAllowedDiameter": 1
+    },
+    "previousReceipt": {
+      "assetSha256": "c1bd77865fad264982974da3c61e4347f370c8ad6d6fc24138c0ff1054c2569a",
+      "sampledPoses": 375,
+      "unscaledMaximumGroundRadius": 0.7428749531434108,
+      "footprintDiameter": 0.898878693303527,
+      "scope": "15 grounded-reference clips; superseded by the all-27-action measurement",
+      "sampledActions": [
+        "idle_nervous",
+        "scuttle_walk",
+        "scuttle_run",
+        "turn",
+        "turn_left",
+        "turn_right",
+        "door_scratch_start",
+        "door_scratch_loop",
+        "door_scratch_end",
+        "scratch_attack",
+        "recover",
+        "stun",
+        "hide_start",
+        "hide_loop",
+        "hide_end"
+      ]
+    }
+  }
 }

@@ -127,27 +127,33 @@ test('one tile is inclusive and vibration slows nearby tower reaction', () => {
   });
 });
 
-test('scratching cleans a jammed door before damaging its leaf', () => {
-  const {bug,royal}=fixture();let cleared=0,damage=0;
+test('scratch contact uses the reached surface without globally clearing a jam', () => {
+  const {bug,royal}=fixture();let strokes=0;
   const door={
     entity:new Entity('glued door'),
     openAmount:0,
     jammed:true,
     intersectsFootprint:()=>true,
-    clearGlue:()=>cleared++,
-    receiveDamage:()=>damage++,
+    clearGlue:()=>assert.fail('scratching must not clear all door mass'),
   };
   bug.scratchTarget=door;
-  bug.findClosedDoor=()=>door;
+  bug.doorScratch.apply=()=>{
+    strokes++;
+
+    return true;
+  };
   assert.equal(bug.scratchDoor(),true);
-  assert.equal(cleared,1);assert.equal(damage,0);
+  assert.equal(strokes,1);
+  door.openAmount=1;
+  assert.equal(bug.scratchDoor(),false);
+  assert.equal(strokes,1);
   assert.equal(bug.resolveRoyalTarget(),royal);
 });
 
-test('goo cleanup finds a batched door off the royal sightline and clears real glue at scratch contact', () => {
+test('goo cleanup finds a batched door off the royal sightline without blindly clearing its mass', () => {
   const {bug,actors,physics}=fixture();
   const root=new Entity('door'), hinge=new Entity('moving leaf hinge'), leaf=new Entity('detached Ammo leaf');
-  root.addChild(hinge);root.setPosition(.7,0,0);
+  root.addChild(hinge);root.setPosition(.4,0,0);root.setEulerAngles(0,90,0);
   root.addComponent=()=>{
     root.anim={
       baseLayer:{play:()=>{}},
@@ -163,7 +169,11 @@ test('goo cleanup finds a batched door off the royal sightline and clears real g
     animationName:'Open',
     automatic:false,
     collision:{
-      raycast:()=>.65,
+      raycast:(start,end)=>{
+        const distance=(.4-start.x)/(end.x-start.x);
+
+        return distance>=0&&distance<=1?distance:null;
+      },
       blocksAt:()=>true,
       ownsLeaf:entity=>entity===leaf,
       destroy:()=>{},
@@ -183,7 +193,7 @@ test('goo cleanup finds a batched door off the royal sightline and clears real g
   assert.ok(bug.entity.forward.x>.99,'the body faces the goo-covered door');
   bug.update(.3);assert.equal(goo.active,true);
   bug.update(.56);
-  assert.equal(goo.active,false);assert.equal(door.jammed,false);assert.equal(door.health,48);
+  assert.equal(goo.active,true);assert.equal(door.jammed,true);assert.equal(door.health,48);
   door.destroy();root.destroy();leaf.destroy();
 });
 
@@ -294,15 +304,23 @@ test('grabbing panics once; launching keeps engine velocity; landing recovers',(
 
 test('closed main door has contact damage after windup, opening cancels it',()=>{
   const {bug,royal,actors,physics}=fixture();let health=16;
-  const root=new Entity('door');const leaf=new Entity('leaf');root.addChild(leaf);
+  const sounds=[];
+  bug.doorScratch.random=()=>.5;
+  const root=new Entity('door');root.setPosition(0,0,-.45);const leaf=new Entity('leaf');root.addChild(leaf);
   const door={
     entity:root,
+    audio:{play:name=>sounds.push(name)},
     openAmount:0,
     intersectsFootprint:()=>true,
-    receiveDamage:(amount)=>{
-      health-=amount;
+    getHit:(start,end)=>{
+      const distance=(-.45-start.z)/(end.z-start.z);
 
-      return amount;
+      return distance>=0&&distance<=1?{distance}:null;
+    },
+    scratchSurface:()=>{
+      health-=8;
+
+      return 8;
     },
   };
   actors.push({entranceDoors:[door]});physics.hits=[{
@@ -311,8 +329,12 @@ test('closed main door has contact damage after windup, opening cancels it',()=>
   }];
   bug.update(.01);assert.equal(bug.stateName,'BellBugScratchState');
   bug.update(.3);assert.equal(health,16);
-  bug.update(.6);assert.equal(health,8);
+  assert.equal(sounds.length,0);
+  bug.update(.2);assert.deepEqual(sounds,['scratch']);assert.equal(health,16);
+  bug.update(.4);assert.equal(health,8);
+  assert.deepEqual(sounds,['scratch']);
   door.openAmount=1;bug.update(.8);assert.equal(health,8);
+  assert.deepEqual(sounds,['scratch']);
   assert.equal(bug.stateName,'BellBugScratchRecoverState');
   bug.update(.3);assert.equal(bug.stateName,'BellBugPursueState');
   assert.equal(bug.resolveRoyalTarget(),royal);
@@ -423,7 +445,7 @@ test('physics wall hit before door blocks finding or scratching the leaf', () =>
 
 test('six contact scratches break the actual Door API and resume royal pursuit', () => {
   const {bug,royal,actors,physics}=fixture();
-  const root=new Entity('main door');
+  const root=new Entity('main door');root.setPosition(0,0,-.45);
   const hinge=new Entity('moving leaf hinge');root.addChild(hinge);
   const activeRoot=new Entity('active scene');activeRoot._enabledInHierarchy=true;activeRoot.addChild(root);
   root.addComponent=()=>{
@@ -441,11 +463,19 @@ test('six contact scratches break the actual Door API and resume royal pursuit',
     animationName:'Open',
     automatic:false,
     collision:{
-      raycast:()=>.1,
+      raycast:(start,end)=>{
+        const distance=(-.45-start.z)/(end.z-start.z);
+
+        return distance>=0&&distance<=1?distance:null;
+      },
       blocksAt:()=>true,
       destroy:()=>{},
     },
   });
+  // The geometric scratch capability has its own native mesh tests.
+  door.scratchSurface=(_start,_end,source)=>door.receiveDamage(8,source);
+  door.getScratchPoint=point=>point;
+  bug.doorScratch.random=()=>.5;
   actors.push({entranceDoors:[door]});
   physics.raycastAll=()=>door.broken?[]:[{
     entity:root,

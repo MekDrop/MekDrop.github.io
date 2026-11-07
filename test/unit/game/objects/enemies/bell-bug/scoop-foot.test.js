@@ -17,7 +17,15 @@ test("bends the toe onto contact while retaining the socket and shared source me
     mesh: source,
     node,
   };
-  node.findComponents = () => [{ meshInstances: [instance] }];
+  const armorSource = {
+    ...source,
+    getPositions: output => output.push(0, 0, 0, 0, 0, -0.1, 0.02, 0, -0.05),
+  };
+  const armor = {
+    mesh: armorSource,
+    node,
+  };
+  node.findComponents = () => [{ meshInstances: [armor, instance] }];
   const model = { findByName: name => name === "leg_L_0" ? bone : node };
   class CaptureMesh {
     setPositions(positions) {
@@ -36,15 +44,19 @@ test("bends the toe onto contact while retaining the socket and shared source me
     app: { graphicsDevice: {} },
   };
   const foot = new BellBugScoopFoot(owner, model, 0);
+  assert.equal(foot.length, 0.3);
+  assert.equal(foot.instance, instance);
   const goal = new pc.Vec3(0.2, 0.1, -0.25);
   assert.equal(foot.canReach(goal), true);
   assert.equal(foot.canReach(new pc.Vec3(2, 0, 0)), false);
   foot.pose(goal);
+  assert.notEqual(armor.mesh, armorSource);
   assert.ok(foot.contactPoint.distance(goal) < 1e-6);
   assert.deepEqual(Array.from(foot.mesh.positions.slice(0, 3)), [0, 0, 0]);
   assert.deepEqual(original, [0, 0, 0, 0, 0, -0.3, 0.05, 0, -0.1]);
   foot.restore();
   assert.equal(instance.mesh, source);
+  assert.equal(armor.mesh, armorSource);
   assert.ok(bone.getLocalRotation().equals(pc.Quat.IDENTITY));
   foot.destroy();
 });

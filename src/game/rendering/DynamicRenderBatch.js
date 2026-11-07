@@ -67,6 +67,13 @@ export class DynamicRenderBatch {
     this.#groupId = group.id;
     group.members += 1;
     for (const render of root.findComponents("render")) {
+      let owner = render.entity;
+      while (owner && owner !== root && !owner.tags.has("batch-ignore")) {
+        owner = owner.parent;
+      }
+      if (owner?.tags.has("batch-ignore")) {
+        continue;
+      }
       // Skinning, instancing and CPU-deformed cloth already own their vertex updates.
       /**
        * @param {import("playcanvas").MeshInstance} mesh

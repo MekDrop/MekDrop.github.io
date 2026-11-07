@@ -1,0 +1,199 @@
+{
+  "license": "CC0-1.0",
+  "created": "2026-11-07",
+  "purpose": "Short playful fantasy door claw-rake and timber collapse cues",
+  "sourceNotice": "../castle/copyrights.txt",
+  "sources": [
+    {
+      "path": "src/game/audio/castle/bridgeTimbers.wav",
+      "sha256": "039909e8684e6157397edb6cafd7b8766a5fa65375c8d847c6be6c1fc9584d9d"
+    },
+    {
+      "path": "src/game/audio/door/door-claws-source.mp3",
+      "sha256": "8c0b3d4a5abf24c341601ff200cabda632c2d54894c4ba91ef6fd8d41facb890",
+      "author": "moxobna",
+      "title": "scratch_door.wav",
+      "sourceUrl": "https://freesound.org/people/moxobna/sounds/109969/",
+      "downloadUrl": "https://cdn.freesound.org/previews/109/109969_43834-hq.mp3",
+      "license": "CC0-1.0",
+      "description": "Claws scratching on a wooden door; public HQ MP3 preview retained."
+    },
+    {
+      "path": "src/game/audio/door/door-breaking-source.mp3",
+      "sha256": "db5a74bf533557eec536dc5a3333bd8a51e1c094296353a8c82c9f63aab6ca3f",
+      "license": "CC0-1.0",
+      "author": "qubodup",
+      "sourceUrl": "https://freesound.org/people/qubodup/sounds/160213/",
+      "downloadUrl": "https://cdn.freesound.org/previews/160/160213_71257-hq.mp3",
+      "description": "Kicking/Forcing/Breaking Wooden Door; public HQ preview of CC0 designed door-breaking effect."
+    },
+    {
+      "path": "src/game/audio/castle/doorClose.wav",
+      "sha256": "26f24ec168c5a7eb1bb42001176a5dd24ca58754252d662355d8fbdfb01b8f75",
+      "license": "CC0-1.0",
+      "sourceNotice": "../castle/copyrights.txt"
+    },
+    {
+      "path": "src/game/audio/castle/latch.wav",
+      "sha256": "73dc52ec9a12b651be97d57ab79567e8b9cbe3c0fe8eb7d717400f31837170d4",
+      "license": "CC0-1.0",
+      "sourceNotice": "../castle/copyrights.txt"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "src/game/audio/door/doorClawScratch.wav",
+      "sha256": "b6ed6cece279f1fd676ad6282996979d65beb8226718a669f6194e7ee14413ab"
+    },
+    {
+      "path": "src/game/audio/door/doorClawScratch.ogg",
+      "sha256": "09bd3d83700e2a0339e28648799e8bdd1733ab7ddf5e9ac0111aa12fbcf84838"
+    },
+    {
+      "path": "src/game/audio/door/doorTimberCollapse.wav",
+      "sha256": "b158b9d147657135f147d61a7fecde29e56567bf5bd258c19f0927d051e21dd1"
+    },
+    {
+      "path": "src/game/audio/door/doorTimberCollapse.ogg",
+      "sha256": "d71eb060ac5d9fef48d1a84b1b7146d000492dd312db6ff04195d2e83265af7c"
+    }
+  ],
+  "processing": [
+    {
+      "executable": "ffmpeg",
+      "arguments": [
+        "-y",
+        "-hide_banner",
+        "-i",
+        "src/game/audio/door/door-claws-source.mp3",
+        "-af",
+        "atrim=start=2.38:duration=0.39,asetpts=PTS-STARTPTS,aformat=channel_layouts=mono,highpass=f=110,lowpass=f=7500,afade=t=in:d=0.008,afade=t=out:st=0.34:d=0.05",
+        "-ar",
+        "48000",
+        "-ac",
+        "1",
+        "-map_metadata",
+        "-1",
+        "-c:a",
+        "pcm_s16le",
+        "tmp/doorClawScratch-raw.wav"
+      ]
+    },
+    {
+      "executable": "ffmpeg",
+      "arguments": [
+        "-y",
+        "-hide_banner",
+        "-i",
+        "tmp/doorClawScratch-raw.wav",
+        "-af",
+        "volume=31.80dB",
+        "-map_metadata",
+        "-1",
+        "-c:a",
+        "pcm_s16le",
+        "src/game/audio/door/doorClawScratch.wav"
+      ]
+    },
+    {
+      "executable": "ffmpeg",
+      "arguments": [
+        "-y",
+        "-hide_banner",
+        "-i",
+        "src/game/audio/door/doorClawScratch.wav",
+        "-c:a",
+        "libvorbis",
+        "-b:a",
+        "192k",
+        "src/game/audio/door/doorClawScratch.ogg"
+      ]
+    },
+    {
+      "executable": "ffmpeg",
+      "arguments": [
+        "-y",
+        "-hide_banner",
+        "-i",
+        "src/game/audio/door/door-breaking-source.mp3",
+        "-i",
+        "src/game/audio/castle/bridgeTimbers.wav",
+        "-i",
+        "src/game/audio/castle/doorClose.wav",
+        "-i",
+        "src/game/audio/castle/latch.wav",
+        "-filter_complex",
+        "[0:a]aformat=channel_layouts=mono,atrim=duration=1,asetpts=PTS-STARTPTS,asetrate=41895,aresample=48000,highpass=f=80,lowpass=f=6000[a];[1:a]aformat=channel_layouts=mono,atrim=duration=1.25,asetpts=PTS-STARTPTS,highpass=f=140,lowpass=f=6200,adelay=220,volume=0.65[b];[2:a]aformat=channel_layouts=mono,atrim=duration=0.32,asetpts=PTS-STARTPTS,highpass=f=55,lowpass=f=450,adelay=420,volume=0.6[c];[3:a]aformat=channel_layouts=mono,atrim=duration=0.14,asetpts=PTS-STARTPTS,highpass=f=350,asplit=2[d0][d1];[d0]adelay=650,volume=0.28[d];[d1]adelay=1120,volume=0.16[e];[a][b][c][d][e]amix=inputs=5:normalize=0,volume=0.25,apad,atrim=duration=1.8,afade=t=in:d=0.004,afade=t=out:st=1.48:d=0.32[out]",
+        "-map",
+        "[out]",
+        "-ar",
+        "48000",
+        "-ac",
+        "1",
+        "-map_metadata",
+        "-1",
+        "-c:a",
+        "pcm_s16le",
+        "tmp/doorTimberCollapse-raw.wav"
+      ]
+    },
+    {
+      "executable": "ffmpeg",
+      "arguments": [
+        "-y",
+        "-hide_banner",
+        "-i",
+        "tmp/doorTimberCollapse-raw.wav",
+        "-af",
+        "volume=7.70dB",
+        "-map_metadata",
+        "-1",
+        "-c:a",
+        "pcm_s16le",
+        "src/game/audio/door/doorTimberCollapse.wav"
+      ]
+    },
+    {
+      "executable": "ffmpeg",
+      "arguments": [
+        "-y",
+        "-hide_banner",
+        "-i",
+        "src/game/audio/door/doorTimberCollapse.wav",
+        "-c:a",
+        "libvorbis",
+        "-b:a",
+        "192k",
+        "src/game/audio/door/doorTimberCollapse.ogg"
+      ]
+    }
+  ],
+  "validation": {
+    "collapseUnmodified": true
+  },
+  "toolVersion": "ffmpeg version 8.0-full_build-www.gyan.dev Copyright (c) 2000-2025 the FFmpeg developers\r",
+  "scratch": {
+    "source": "src/game/audio/door/door-claws-source.mp3",
+    "startSeconds": 2.38,
+    "durationSeconds": 0.39,
+    "pitch": "unchanged",
+    "layers": "actual claws on door only",
+    "peakTargetDbfs": -2.5,
+    "normalizationGainDb": 31.799999999999997,
+    "measuredWavPeakDbfs": -2.5,
+    "measuredOggPeakDbfs": -2.4
+  },
+  "collapse": {
+    "durationSeconds": 1.8,
+    "description": "Door-breaking crash, overlapping falling timbers, low wooden landing and two settling hardware rattles.",
+    "wav": {
+      "peak": -2.5,
+      "mean": -24
+    },
+    "ogg": {
+      "peak": -2.5,
+      "mean": -24
+    },
+    "normalizationGainDb": 7.699999999999999
+  }
+}

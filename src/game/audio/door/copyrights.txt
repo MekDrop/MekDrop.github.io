@@ -1,0 +1,26 @@
+Door claw scratching and collapse cues
+
+License: CC0-1.0. Commercial use, modification and redistribution allowed.
+Full license: ../castle/CC0-1.0.txt
+
+Door claw scratching:
+Author: moxobna
+Title: scratch_door.wav
+Recording: claws scratching on a wooden door, recorded as audiodrama foley.
+Source and CC0 declaration: https://freesound.org/people/moxobna/sounds/109969/
+Public HQ preview: https://cdn.freesound.org/previews/109/109969_43834-hq.mp3
+Preserved source: door-claws-source.mp3 (HQ preview, not the original WAV).
+One stroke at 2.38s, duration0.39s; original pitch, mono48000Hz, light110-7500Hz
+filtering, endpoint fades, peak normalization to -2.5dBFS. No plank scraping,
+creak, impact or liquid layers. New asset filename prevents stale decoded cache.
+
+Door timber collapse:
+Main CC0 door-breaking effect: qubodup, Kicking/Forcing/Breaking Wooden Door.
+Source/license: https://freesound.org/people/qubodup/sounds/160213/
+Public HQ preview: https://cdn.freesound.org/previews/160/160213_71257-hq.mp3
+Preserved preview: door-breaking-source.mp3 (not original FLAC).
+Layered with licensed bridgeTimbers, doorClose and latch recordings from the
+castle audio folder (../castle/copyrights.txt). Duration1.8s, mono48000Hz,
+PCM16 WAV and nominal192kbps Vorbis, normalized to -2.5dBFS peak.
+Fresh asset name: doorTimberCollapse. Original scratch and goo cues unchanged.
+Exact mix timing, filters and hashes: provenance.json.

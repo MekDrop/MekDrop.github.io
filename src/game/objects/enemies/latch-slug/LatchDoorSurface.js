@@ -5,6 +5,10 @@
  */
 export class LatchDoorSurface {
   /**
+   * @type {((x:number,y:number)=>number|null)|undefined}
+   */
+  support;
+  /**
    * @param {number} size Metres covered around the impact.
    * @param {number} resolution Samples on each axis.
    */
@@ -14,6 +18,7 @@ export class LatchDoorSurface {
     this.step = size / (resolution - 1);
     this.depth = new Float32Array(resolution * resolution).fill(-Infinity);
     this.arc = new Float32Array(resolution * resolution);
+    this.coverage = new Float32Array(resolution * resolution);
     this.triangles = 0;
   }
 
@@ -40,6 +45,7 @@ export class LatchDoorSurface {
         const v = ((c[1] - a[1]) * (px - c[0]) + (a[0] - c[0]) * (py - c[1])) / area;
         if (u >= -1e-5 && v >= -1e-5 && u + v <= 1.00001) {
           const index = y * n + x;
+          this.coverage[index] = 1;
           this.depth[index] = Math.max(this.depth[index], u * a[2] + v * b[2] + (1 - u - v) * c[2]);
         }
       }
@@ -122,5 +128,14 @@ export class LatchDoorSurface {
    */
   height(x, y) {
     return this.sample(this.depth, x, y) - this.baseline;
+  }
+
+  /**
+   * @param {number} x
+   * @param {number} y
+   * @returns {boolean}
+   */
+  contains(x,y) {
+    return Math.abs(x) < this.size/2 && Math.abs(y) < this.size/2 && this.sample(this.coverage,x,y) > 0.5;
   }
 }

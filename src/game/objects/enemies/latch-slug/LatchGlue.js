@@ -24,6 +24,10 @@ export class LatchGlue {
    * @type {import("playcanvas").Vec3|null}
    */
   #anchor = null;
+  /**
+   * @type {import("./LatchSlug.js").LatchSlug|null}
+   */
+  #owner = null;
 
   /**
    * @param {import("../../architecture/door/Door.js").Door|null} door
@@ -33,6 +37,7 @@ export class LatchGlue {
    */
   constructor(door, duration = null, owner = null, impact = null) {
     this.#door = door;
+    this.#owner = owner;
     this.#remaining = duration === null ? Infinity : Number.isFinite(duration) ? Math.max(0, duration) : 0;
     if (!this.active) {
       this.#door = null;
@@ -81,6 +86,79 @@ export class LatchGlue {
     this.#visual.setPosition(surface);
     this.#visual.setRotation(frame.getRotation());
     this.#splash.play(owner.position.clone().sub(surface).dot(frame.forward), surface.y - frame.getPosition().y, this.#door);
+  }
+
+  /**
+   * Lowest physically reachable goo, preferring thicker points in that band.
+   * @param {import("../../architecture/door/Door.js").Door} door
+   * @param {import("playcanvas").Vec3} origin
+   * @param {number} maxReach
+   * @returns {{point:import("playcanvas").Vec3 & {gooThickness:number},mass:LatchGlue}|null}
+   */
+  static scrapeTarget(door, origin, maxReach) {
+    if (!Number.isFinite(maxReach) || maxReach <= 0) {
+      return null;
+    }
+    let target = null;
+    for (const mass of doorMasses.get(door) ?? []) {
+      if (!mass.active || !mass.#splash?.surface || mass.#visual?.enabled === false) {
+        continue;
+      }
+      const points = mass.#splash.surface.scrapeCandidates(origin, maxReach);
+      for (const point of points) {
+        const hits = mass.#owner?.app.systems?.rigidbody?.raycastAll(origin, point) ?? [];
+        const length = point.distance(origin);
+        if (hits.some(LatchGlue.#blocksScrape.bind(null, origin, length))) {
+          continue;
+        }
+        if (!target || Math.floor(point.y/0.08) < Math.floor(target.point.y/0.08) ||
+          (Math.floor(point.y/0.08) === Math.floor(target.point.y/0.08) &&
+          (point.gooThickness ?? 0) > (target.point.gooThickness ?? 0))) {
+          target = {
+            point,
+            mass,
+          };
+        }
+        break;
+      }
+    }
+
+    return target;
+  }
+
+  /**
+   * @param {import("playcanvas").Vec3} origin
+   * @param {number} length
+   * @param {import("playcanvas").RaycastResult} hit
+   * @returns {boolean}
+   */
+  static #blocksScrape(origin, length, hit) {
+    if (hit.entity.rigidbody?.type === "dynamic") {
+      return false;
+    }
+    const distance = hit.point ? hit.point.distance(origin) : Number.isFinite(hit.hitFraction) ? hit.hitFraction * length : 0;
+
+    return distance < length - 0.025;
+  }
+
+  /**
+   * The controller supplies a native-ray-confirmed foot stroke on this skin.
+   * @param {import("playcanvas").Vec3} start
+   * @param {import("playcanvas").Vec3} end
+   * @param {number} radius
+   * @param {(data: { positions: number[], material: import("playcanvas").StandardMaterial, volume: number }) => void} [onCollect]
+   * @returns {number} Actual removed gel volume in world units cubed.
+   */
+  scrapeAt(start, end, radius, onCollect) {
+    if (!this.active || !this.#splash?.surface) {
+      return 0;
+    }
+    const removed = this.#splash.surface.scrapeAt(start, end, radius, onCollect);
+    if (this.#splash.surface.drained) {
+      this.clear();
+    }
+
+    return removed;
   }
 
   /**

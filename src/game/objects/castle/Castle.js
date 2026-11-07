@@ -10,6 +10,7 @@ import { FireplaceChimneySightline } from "../castle-props/fireplace/FireplaceCh
 import { IslandCellOwnership } from "../shared/IslandCellOwnership.js";
 import { SCENE_OBJECT_TYPE } from "../../enum/SceneObjectType.js";
 import { CastleAudio } from "../../audio/castle/CastleAudio.js";
+import { DoorAudio } from "../../audio/door/DoorAudio.js";
 import { GameObjectAudio } from "../../audio/GameObjectAudio.js";
 
 export { isCastleUpperFloorRoomVoid } from "../../generator/castle/CastleGeometry.js";
@@ -21,7 +22,7 @@ export class Castle extends CastleEntityBuilder {
   static get audioUrls() {
     return [CastleAudio.transition, CastleAudio.transitionRelease, CastleAudio.doorOpen,
       CastleAudio.doorClose, CastleAudio.creak, CastleAudio.chop,
-      CastleAudio.woodBreak].map(/**
+      CastleAudio.woodBreak, DoorAudio.scratch, DoorAudio.collapse].map(/**
        *
        * @param {{wavUrl:string,oggUrl:string}} source
        */
@@ -141,14 +142,27 @@ export class Castle extends CastleEntityBuilder {
     this.entity.tags.add("map-object", definition.id, this.constructor.name);
     FireplaceChimneySightline.add(pc, app, this.entity, definition.buildPlan);
     for (const door of this.destructibleDoors) {
+      door.attachEffects(app);
       door.audio = new GameObjectAudio(door.entity, app, runtime.audioLibrary, {
         open: CastleAudio.doorOpen,
         close: CastleAudio.doorClose,
         creak: CastleAudio.creak,
         hit: CastleAudio.chop,
-        break: CastleAudio.woodBreak,
+        scratch: DoorAudio.scratch,
+        break: DoorAudio.collapse,
       }, 0.45);
-      door.audio.follow(() => runtime.objects.getOne("hero")?.position ?? null);
+      const soundFocus = new pc.Vec3();
+      door.audio.follow(() => {
+        const hero = runtime.objects.getOne("hero")?.position;
+        const camera = runtime.camera;
+        if (!camera) {
+          return hero ?? null;
+        }
+        soundFocus.set(camera.panX, camera.targetY, camera.panZ);
+        const origin = door.entity.getPosition();
+
+        return hero && origin.distance(hero) < origin.distance(soundFocus) ? hero : soundFocus;
+      });
     }
   }
 

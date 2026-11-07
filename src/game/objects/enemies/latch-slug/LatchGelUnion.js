@@ -91,6 +91,10 @@ export class LatchGelUnion {
     }
   }
 
+  invalidate() {
+    this.#nextUpdate = 0;
+  }
+
   update() {
     if (!this.active) {
       return;
@@ -106,7 +110,9 @@ export class LatchGelUnion {
     const inverse = this.entity.getWorldTransform().clone().invert();
     const point = new pc.Vec3();
     const patches = [];
+    let scraped = false;
     for (const surface of this.members) {
+      scraped ||= surface.hasScrapes;
       const transform = new pc.Mat4().mul2(inverse, surface.splash.entity.getWorldTransform());
       const positions = new Float32Array(surface.positions.length);
       for (let i = 0; i < positions.length; i += 3) {
@@ -115,7 +121,7 @@ export class LatchGelUnion {
       }
       patches.push({
         positions,
-        indices: surface.indices,
+        indices: surface.renderIndices ?? surface.indices,
         volume: surface.sourceVolume,
       });
     }
@@ -139,7 +145,7 @@ export class LatchGelUnion {
           return sample.z * this.#normalSign + 0.004;
         };
     }
-    const coverage = new LatchCoverage(patches, true, support);
+    const coverage = new LatchCoverage(patches, !scraped, support);
     this.metrics = {
       preparationMs: performance.now() - started,
       patches: patches.length,
