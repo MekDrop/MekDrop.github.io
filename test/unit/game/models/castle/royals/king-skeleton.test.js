@@ -190,3 +190,43 @@ it("the walking clips articulate knees and elbows instead of rigid limb objects"
     }
   }
 });
+it("keeps lower fur on the cloak perimeter and off the front trousers", () => {
+  let hemVertices = 0;
+  const cornerBridges = new Set();
+  for (const node of gltf.nodes) {
+    if (node.mesh === undefined || node.skin === undefined || !/Dynasty (ivory ermine|fur tips|ink)$/.test(node.name)) {
+      continue;
+    }
+    const skin = gltf.skins[node.skin];
+    for (const primitive of gltf.meshes[node.mesh].primitives) {
+      const positions = values(primitive.attributes.POSITION);
+      const joints = values(primitive.attributes.JOINTS_0);
+      const weights = values(primitive.attributes.WEIGHTS_0);
+      for (let vertex = 0; vertex < positions.length / 3; vertex++) {
+        const [x, y, z] = positions.slice(vertex * 3, vertex * 3 + 3);
+        assert.ok(!(Math.abs(x) < 0.36 && y > 0.24 && y < 0.4 && z > 0.25),
+          "fur must not cross the exposed front trouser panels");
+        if (y < 0.21 && Math.abs(x) > 0.4) {
+          hemVertices++;
+          for (let influence = 0; influence < 4; influence++) {
+            if (weights[vertex * 4 + influence] > 0.0001) {
+              assert.equal(gltf.nodes[skin.joints[joints[vertex * 4 + influence]]].name, "King cape 2",
+                "lower side and corner fur must follow the cloak instead of the lap/trousers");
+            }
+          }
+        }
+      }
+      const indices = values(primitive.indices);
+      for (let face = 0; face < indices.length; face += 3) {
+        const points = indices.slice(face, face + 3).map(index => positions.slice(index * 3, index * 3 + 3));
+        const corner = points.every(([x, , z]) => Math.abs(x) > 0.39 && Math.abs(x) < 0.51 && z > 0.04);
+        const heights = points.map(point => point[1]);
+        if (corner && Math.min(...heights) < 0.21 && Math.max(...heights) > 0.25) {
+          cornerBridges.add(Math.sign(points[0][0]));
+        }
+      }
+    }
+  }
+  assert.ok(hemVertices > 100, "the lower cloak corners must retain real fur geometry");
+  assert.equal(cornerBridges.size, 2, "both front corners need fur between the vertical opening trim and bottom hem");
+});

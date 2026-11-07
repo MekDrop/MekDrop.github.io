@@ -112,7 +112,8 @@ it("advances three alternating steps and retreats without dragging the support f
       const pose = walkingPose(model, "SwordTrainingDrill", time);
       assert.ok(pose.get(support).getTranslation().distance(anchor) < 0.002,
         `${support} drags at ${time}`);
-      assert.ok(pose.get("Royal head rig").getTranslation().y > 1.2, "upright stepping stance");
+      assert.ok(pose.get("Royal head rig").getTranslation().y >
+        start.get("Royal head rig").getTranslation().y - 0.12, "balanced stepping stance allows knee flexion");
     }
   }
   const advanced = walkingPose(model, "SwordTrainingDrill", 8.8);
@@ -130,12 +131,12 @@ it("turns to face behind and completes its full spin while airborne", () => {
   assert.ok(forward(12.4).dot(forward(13.6)) < -0.95, "half turn faces behind");
   assert.ok(forward(12.4).dot(forward(15)) > 0.95, "returns to opening direction");
   for (const [support, from, to] of [["right", 12.65, 13.05], ["left", 13.1, 13.5],
-    ["right", 14, 14.4], ["left", 14.45, 14.85]]) {
+    ["left", 14, 14.4], ["right", 14.45, 14.85]]) {
     const name = `King ${support} foot`;
     const anchor = walkingPose(model, "SwordTrainingDrill", from).get(name).getTranslation();
     for (let time = from; time <= to; time += 1 / 120) {
       assert.ok(walkingPose(model, "SwordTrainingDrill", time).get(name)
-        .getTranslation().distance(anchor) < 0.004, `${name} drags during turn`);
+        .getTranslation().distance(anchor) < 0.004, `${name} drags during turn at ${time}: ${walkingPose(model, "SwordTrainingDrill", time).get(name).getTranslation().distance(anchor)}`);
     }
   }
   let total = 0;
@@ -166,7 +167,19 @@ it("sits low on the ground, keeps the boots supported, and stands back into guar
   const rest = walkingPose(model, "GroundRest", 0);
   const up = walkingPose(model, "GroundStandUp", 1.5);
   const guard = walkingPose(model, "SwordTrainingDrill", 0);
-  assert.ok(rest.get("Royal hips").getTranslation().y < 0.3, "pelvis reaches a ground-seated height");
+  const hips = rest.get("Royal hips").getTranslation();
+  assert.ok(hips.y < 0.2, "pelvis reaches a ground-seated height");
+  for (const side of ["left", "right"]) {
+    assert.ok(rest.get(`King ${side} foot`).getTranslation().z - hips.z > 0.5,
+      `${side} leg extends forward instead of remaining in a squat`);
+    assert.ok(rest.get(`Royal ${side} knee`).getTranslation().y < 0.3,
+      `${side} knee relaxes below the chest`);
+  }
+  assert.ok(rest.get("Royal right hand").getTranslation().y < 0.06,
+    "supporting palm reaches the ground");
+  const blade = rest.get("King sword tip").getTranslation()
+    .sub(rest.get("King sword grip").getTranslation()).normalize();
+  assert.ok(Math.abs(blade.y) < 0.05, "resting sword lies low across the legs");
   for (const name of ["Royal hips", "Royal chest", "King left foot", "King right foot"]) {
     assert.ok(down.get(name).getTranslation().distance(rest.get(name).getTranslation()) < 0.001,
       `${name} jumps when settling into rest`);
@@ -231,6 +244,10 @@ it("embeds every terrace animation in the editable king model export", () => {
     animation.name,
     animation,
   ]));
+  assert.equal(animations.size, gltf.animations.length, "animation names must remain unique");
+  assert.deepEqual([...animations.keys()].sort(),
+    [...Object.values(KING_ANIMATION), "RoyalSit", "WalkOut", "Cry"].sort(),
+    "importing garment meshes must not add duplicate action variants to the runtime state paths");
   for (const name of Object.values(KING_ANIMATION)) {
     const animation = animations.get(name);
     assert.ok(animation, `missing embedded animation ${name}`);

@@ -368,6 +368,11 @@ it("both complete shoulder cross-sections stay sewn into the chest at five poses
       const time = duration * fraction;
       const matrices = pose(animation.name, time);
       const parts = islands(animation.name, time, selection);
+      for (const part of parts) {
+        if (/boot|trousers/.test(part.name)) {
+          assert.ok(part.minimum.y >= 0.018, `${animation.name} ${time.toFixed(4)}s: ${part.name} penetrates the floor (${part.minimum.y})`);
+        }
+      }
       const torso = parts.filter((part) => part.name === "Royal animation rig - Dynasty midnight wool");
       const inverse = matrices[chest].clone().invert();
       for (const side of ["left", "right"]) {
@@ -470,3 +475,73 @@ for (const [clip, time] of contactPoses) {
     }
   });
 }
+/**
+ * Test actual surface crossings rather than treating overlapping bounds as a collision.
+ * @param {AttachmentIsland} a
+ * @param {AttachmentIsland} b
+ * @returns {boolean}
+ */
+function surfacesCross(a, b) {
+  for (const axis of ["x", "y", "z"]) {
+    if (a.maximum[axis] <= b.minimum[axis] || b.maximum[axis] <= a.minimum[axis]) {
+      return false;
+    }
+  }
+  const ray = new Ray(), hit = new Vec3();
+  for (const [source, target] of [[a, b], [b, a]]) {
+    for (const face of source.triangles) {
+      for (let edge = 0; edge < 3; edge++) {
+        const start = source.points[face[edge]], end = source.points[face[(edge + 1) % 3]];
+        const length = start.distance(end);
+        if (length < 0.000001) {
+          continue;
+        }
+        ray.origin.copy(start);
+        ray.direction.sub2(end, start).normalize();
+        for (const targetFace of target.triangles) {
+          const triangle = new Tri(...targetFace.map(index => target.points[index]));
+          if (triangle.intersectsRay(ray, hit) && start.distance(hit) > 0.00001 && start.distance(hit) < length - 0.00001) {
+            return true;
+          }
+        }
+      }
+    }
+  }
+
+  return false;
+}
+
+it("keeps the blade, hands, boots, and opposite legs clear throughout every exported animation", () => {
+  const pairs = [
+    ["King sword blade", "Royal face"],
+    ["King sword blade", "King connected neck"],
+    ["King sword blade", "Indigo bodice front"],
+    ["King sword blade", "Royal animation rig - Dynasty midnight wool"],
+    ["Royal left hand surface", "Royal face"],
+    ["Royal right hand surface", "Royal face"],
+    ["Royal left hand surface", "Indigo bodice front"],
+    ["Royal right hand surface", "Indigo bodice front"],
+    ["Royal left hand surface", "Royal animation rig - Dynasty midnight wool"],
+    ["Royal right hand surface", "Royal animation rig - Dynasty midnight wool"],
+    ["left fitted leather boot", "right fitted leather boot"],
+    ["left articulated trousers", "right articulated trousers"],
+    ["left fitted leather boot", "Royal animation rig - Dynasty midnight wool"],
+    ["right fitted leather boot", "Royal animation rig - Dynasty midnight wool"],
+  ];
+  const selection = new Set(pairs.flat());
+  for (const animation of gltf.animations) {
+    const duration = Math.max(...animation.samplers.flatMap(sampler => values(sampler.input)));
+    // Authored frames and their interpolated midpoints, including the final pose.
+    for (let frame = 0; frame <= Math.ceil(duration * 96); frame++) {
+      const time = Math.min(duration, frame / 96);
+      const parts = islands(animation.name, time, selection);
+      for (const [first, second] of pairs) {
+        for (const a of parts.filter(part => part.name === first)) {
+          for (const b of parts.filter(part => part.name === second)) {
+            assert.equal(surfacesCross(a, b), false, `${animation.name} ${time.toFixed(4)}s: ${first} crosses ${second}`);
+          }
+        }
+      }
+    }
+  }
+});

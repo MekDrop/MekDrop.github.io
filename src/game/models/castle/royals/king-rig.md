@@ -1,7 +1,7 @@
 # King humanoid rig
 
 `king.blend` is the editable source for `king.glb`. The king uses one real
-armature, **King skeleton**, exported as one glTF skin with 45 joints. Preserve
+armature, **King skeleton**, exported as one glTF skin with 46 joints. Preserve
 his faceted face, silver hair and beard, jeweled crown, navy coat, gold details,
 ermine trim, cape, and sword when editing the rig.
 
@@ -61,14 +61,16 @@ above the walking surface. The cape mesh is cloned per king; instances never sha
 deformation buffers. Destroying the owner restores the original mesh and skin
 and releases its physics resources.
 
-The live profile uses Bullet structural stiffness 0.99, bending stiffness 0.55,
-mass 0.3, damping 0.22, and 28 position / 14 velocity iterations. It steps at
+The live profile uses Bullet structural stiffness 0.99, bending stiffness 0.08,
+mass 0.3, damping 0.22 while moving (0.85 during seated rest), and 28 position / 14 velocity iterations. It steps at
 120 Hz with at most six catch-up steps per render, using a consistent 20× physics
 scale for the small character. The top 4% height band includes the complete
 slightly sloping collar and leaves the next cloth row free. Normal animation
 changes retain momentum; teleporting or resuming a hidden king resets safely.
 These are runtime settings in `KingCapePhysics.js`; no Blender cloth cache is
 required by the game.
+
+Link and bending rest lengths come from the authored bind geometry; live node positions start in the current animation pose. The lower-coat collision proxy is calibrated with the hips' inverse bind matrix, so initializing in a seated pose cannot raise the proxy or bake a seated fold into later standing motion.
 
 The lower-coat proxy includes the fixed gold frame, not just the navy fabric.
 Its authored half-width is 0.35 and its depth spans -0.25 to +0.25 in model
@@ -123,9 +125,11 @@ node --test test/unit/game/models/castle/royals/king-skeleton.test.js test/unit/
 
 The simulated mantle carries an additional 0.15 mass budget distributed over fur attachment nodes. Nearby fur vertices follow those same simulated nodes, while unrelated collar/coat trim retains normal skinning. Teardown restores both cloth and trim meshes.
 
-Fur and dark hem details are attached per connected component (including duplicated shading seams), preserving each piece’s shape while following the simulated cloth. The torso collider is measured from the complete navy torso mesh, excluding the separately hinged lap panels, so a seated fold cannot enter the back of the body.
+Fur and dark hem details are attached per connected component (including duplicated shading seams). Only cape-weighted components bind to the live cloth; coat and chest components retain their authored skinning. Spots share their parent fur block's cloth anchor. Rigid frames follow the live cloth tangent and normal, preserving each original block's dimensions while rotating with the fold. Floor clearance is measured from those rotated vertices, so the full piece remains above the support surface. The torso collider is measured from the complete navy torso mesh, excluding the separately hinged lap panels, so a seated fold cannot enter the back of the body.
 
-The continuous mantle is sewn along the collar and the front opening edges, matching its original body-attached side panels. Rear panels and hem remain simulated. Training root turns are limited to 90 degrees per second to avoid impulsively winding the cloth around the torso.
+The lower fur follows the actual boundary segments of the live Ammo drape. It does not jump onto an interior fold. Bullet distance constraints reinforce the lowest fifth of the mantle, representing the thick fur seam while the fabric above remains flexible. Chunky blocks follow rigid outward ribbon frames with twenty percent tangent overlap between neighbors; spots share their parent block's attachment. A shallow backing overlap of at most 0.023 model units sews the fur into the cloth instead of floating the whole block outside it. Opening trim receives the same outward-facing attachment treatment. Whole-component floor clearance keeps the trim above the support plane. The front trousers receive no trim.
+
+The continuous mantle is sewn along the collar and the front opening edges, matching its original body-attached side panels. Rear panels and hem remain simulated. Actor-level yaw changes remain bounded; the authored training pivots play from the embedded clips.
 
 The terrace routine uses separate Yuka exercise states: `KingSwordCombinationState`, `KingAdvanceRetreatState`, `KingHalfTurnState`, `KingJumpSpinState`, and `KingGuardPracticeState`. Each plays its own nonlooping, guard-ended clip from the editable model. Completion randomly selects any other exercise with equal probability; no immediate repeats or mid-exercise random interruptions. `SwordTrainingDrill` remains the continuous 19.958-second authoring reference. It advances into an overhead cut, recovers to guard, thrusts, then withdraws. A second footwork passage takes three alternating steps forward, thrusts from guard, and takes three steps backward to the opening stance. Foot contacts are baked in Blender; the runtime adds no translation or random pose changes. The rear ankle stays planted during the opening sword exercise, and both feet return to their starting contacts. Air swings are silent. Stone footsteps play at the baked landings at 1.55, 5.15, 7.2, 8, 8.8, 10.2, 11 and 11.8 seconds; planted feet produce no repeated steps. The terrace has a stone floor.
 
@@ -133,6 +137,30 @@ The routine occasionally adds two quick 180-degree step turns (12.65–14.85 s),
 
 Training stamina drains over 65 seconds of active exercise and scales drill playback continuously from full speed to 45%. Exhaustion waits for the completed exercise before the 1.5-second `GroundSitDown`. Only the seated `GroundRest` loop recovers stamina, over 6 seconds; `GroundStandUp` finishes before full-speed training resumes. Cancellation uses the stand-up before departure. Paused reactions do not advance fatigue or recovery.
 
-The lower front coat and its gold ornaments share `King lap cloth`, hinged at the rear waist for the ground-seated lap. Every standing exercise explicitly keeps that joint neutral. The torso and shoulder seams retain their original binding. Ground contact limits sewn mantle edges at floor level while the remaining cloth settles through the existing simulation.
+The lower front coat and its gold ornaments share `King lap cloth`. Standing exercises fold that joint only where leg clearance requires it, with anticipation and settling around the contact. Ground recovery gathers the thick lower panels around the front waist, compressing their empty depth into a seated fold. The torso and shoulder seams retain their original binding. Ground contact limits sewn mantle edges at floor level while the remaining cloth settles through the existing simulation.
+
+Ground recovery lowers the pelvis to 0.16 model units, extends both legs forward with supported heels, and plants the open right palm behind the body. The sword hand rests ahead of the folded coat with the blade horizontal. The descent and rise use outward stepping arcs to clear the robe; the resting hips, heels, and supporting palm stay fixed while the chest breathes. Half-open eyes reinforce fatigue during descent and rest. The six-second stamina recovery and existing clip durations remain unchanged.
 
 For seated hems, the cloth world uses a convex floor box. Moving zero-mass seams can exceed Bullet's contact tolerance, so a narrowly bounded post-step floor projection resolves remaining penetration and removes only downward contact velocity. Gravity, inertia, links, and body collision remain Ammo-driven. The seated-recovery regression checks floor support through descent and rise.
+
+During `GroundRest`, slow fur-bearing hem nodes within 0.012 model units of the floor receive temporary zero-mass supports in Bullet, compensating for missing static friction at shallow SDF contacts. Intermediate cloth stays free to drape before settling. Supports preserve the small folds' settled height rather than flattening them. The upper mantle continues simulating with increased damping to suppress residual vibration. Supports preserve each node's mass and release before standing, root movement, teleport, or resume; the cape is never reset to its authored pose to stop motion.
+
+After one continuous second below the mass-weighted resting velocity threshold, Bullet puts the settled cloth to sleep. Lower side seams hold their settled positions; the collar still follows breathing. Standing, root motion, or live seam movement exceeding 0.006 model units wakes the cloth and restores its dynamic masses before solving.
+
+The cloak hem repeats the original character's chunky fur components: thirteen alternating ivory-ermine/fur-tip blocks continue around the rear, with four original black-spot meshes. These copy the original vertices, faces, and materials, preserving their shapes and dimensions. Lower side and front-corner pieces bind to `King cape 2`, not the lap/trousers, so the opening corners stay with the cloak. The exposed front trousers have no added fur. The experimental flat and extruded continuous bands are removed. Floor support includes the measured downward extent of each attached piece, keeping the complete fur blocks above the floor.
+
+The front opening fur includes one matching bridging block at each lower corner, extended vertically to overlap its neighbors during motion, closing the authored gap between the vertical trim and the bottom row. Both bridge blocks bind to `King cape 2`; no fur is added over the trousers.
+
+The collision review covers six engine-rendered views per action and checks the
+exported mesh surfaces at authored frames and interpolated midpoints. Sword-hand
+clearance is baked into the arm chain; the blade no longer passes through the
+face or bodice. The front coat and its ornaments fold together clear of the
+boots, including the ground-seated pose.
+
+Half turns use an outside stepping arc, a lowered weight-transfer stance, and
+an anatomical two-bone leg solve. The second half turn leads with the right
+foot. Support contacts remain fixed while the other foot steps. The source and
+export use 48 fps sampling, with continuous quaternion signs and linear baked
+channels to preserve the fast turns between frames.
+
+The front hem and its gold details share an affine height adjustment so the trim remains on the cloth surface. Leg chains keep boots and seated knees above the bind-pose sole plane. The mantle physics measures that same plane from the unskinned boot vertices, including model scaling; animated foot lifts do not move its floor.

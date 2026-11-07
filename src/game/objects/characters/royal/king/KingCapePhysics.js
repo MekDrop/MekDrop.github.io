@@ -1,5 +1,10 @@
+import { reinforceKingHem, measureKingHemExterior, findKingHemAttachment, findKingHemEdges, sampleKingHemAttachment } from "./KingCapeHem.js";
+import { KingCapeTrimSupport } from "./KingCapeTrimSupport.js";
+
 /**
- * @typedef {{instance: import("playcanvas").MeshInstance, originalMesh: import("playcanvas").Mesh, originalMaterial: import("playcanvas").Material, originalSkin: import("playcanvas").SkinInstance|null, mesh: import("playcanvas").Mesh, material: import("playcanvas").Material, source: number[], positions: number[], indices: number[], joints: number[], weights: number[], mapping: number[], trimOffsets?: import("playcanvas").Vec3[]}} KingCapeBinding
+ * @typedef {{a:number,b:number,amount:number,sign:number,lift:number}} KingHemAttachment
+ * @typedef {{instance: import("playcanvas").MeshInstance, originalMesh: import("playcanvas").Mesh, originalMaterial: import("playcanvas").Material, originalSkin: import("playcanvas").SkinInstance|null, mesh: import("playcanvas").Mesh, material: import("playcanvas").Material, source: number[], positions: number[], indices: number[], joints: number[], weights: number[], mapping: number[], trimOffsets?: import("playcanvas").Vec3[],trimEdges?:Array<KingHemAttachment|null>}} KingCapeBinding
+ * @typedef {{tangent:import("playcanvas").Vec3,bitangent:import("playcanvas").Vec3,normal:import("playcanvas").Vec3}} KingCapeFrame
  * @typedef {{index: number, local: import("playcanvas").Vec3, previous: import("playcanvas").Vec3, target: import("playcanvas").Vec3}} KingCapePin
  * @typedef {{entity: import("playcanvas").Entity, localCenter: import("playcanvas").Vec3, floor: boolean, previousPosition: import("playcanvas").Vec3, targetPosition: import("playcanvas").Vec3, previousRotation: import("playcanvas").Quat, targetRotation: import("playcanvas").Quat, body: import("sync-ammo/dist/ammo").btRigidBody, motion: import("sync-ammo/dist/ammo").btDefaultMotionState, transform: import("sync-ammo/dist/ammo").btTransform, position: import("sync-ammo/dist/ammo").btVector3, rotation: import("sync-ammo/dist/ammo").btQuaternion}} KingCapeCollider
  */
@@ -52,6 +57,62 @@ export class KingCapePhysics {
    */
   #nodes = [];
   /**
+   * @type {number[]}
+   */
+  #surfaceTriangles = [];
+  /**
+   * @type {Array<{index:number,sign:number}>}
+   */
+  #frameNeighbors = [];
+  /**
+   * @type {KingCapeFrame[]}
+   */
+  #trimFrames = [];
+  /**
+   * @type {import("playcanvas").Vec3[]}
+   */
+  #clothPoints = [];
+  /**
+   * @type {number[]}
+   */
+  #clothPositions = [];
+  /**
+   * @type {import("playcanvas").Vec3}
+   */
+  #frameTangent;
+  /**
+   * @type {import("playcanvas").Vec3}
+   */
+  #frameNormal;
+  /**
+   * @type {import("playcanvas").Vec3}
+   */
+  #frameBitangent;
+  /**
+   * @type {import("playcanvas").Vec3}
+   */
+  #frameOutward;
+  /**
+   * @type {import("playcanvas").Vec3}
+   */
+  #sourcePosition;
+  /**
+   * @type {import("playcanvas").Vec3}
+   */
+  #sourceTransformed;
+  /**
+   * @type {Map<import("playcanvas").SkinInstance, import("playcanvas").Mat4[]>}
+   */
+  #skinPalettes = new Map();
+  /**
+   * @type {Array<[number,number]>}
+   */
+  #hemEdges = [];
+  /**
+   * @type {Map<KingHemAttachment,{point:import("playcanvas").Vec3,frame:KingCapeFrame}>}
+   */
+  #hemFrames = new Map();
+  /**
    * @type {KingCapePin[]}
    */
   #pins = [];
@@ -92,6 +153,44 @@ export class KingCapePhysics {
    */
   #scale = 1;
   /**
+   * Bind-pose sole height in model-root space, independent of animated feet.
+   * @type {number}
+   */
+  #groundOffset = 0;
+  /**
+   * Downward extent of attached fur below each cloth node, in world units.
+   * @type {number[]}
+   */
+  #furFloorClearance = [];
+  /**
+   * @type {KingCapeTrimSupport|null}
+   */
+  #trimSupport = null;
+  /**
+   * Settled floor supports use Bullet's zero-mass nodes, not a frozen cape.
+   * @type {Map<number,{mass:number,point:import("playcanvas").Vec3}>}
+   */
+  #floorContacts = new Map();
+  /**
+   * @type {import("playcanvas").Mat4|null}
+   */
+  #seatedRoot = null;
+  /**
+   * @type {number}
+   */
+  #restQuietTime = 0;
+  /**
+   * @type {import("playcanvas").Vec3[]|null}
+   */
+  #sleepPins = null;
+
+  /**
+   * @returns {number}
+   */
+  get #groundY() {
+    return this.#root.getPosition().y + this.#groundOffset * this.#scale;
+  }
+  /**
    * @type {boolean}
    */
   #bodyRegistered = false;
@@ -113,6 +212,12 @@ export class KingCapePhysics {
    */
   constructor({ pc, app, modelRoot }) {
     this.#pc = pc;
+    this.#frameTangent = new pc.Vec3();
+    this.#frameNormal = new pc.Vec3();
+    this.#frameBitangent = new pc.Vec3();
+    this.#frameOutward = new pc.Vec3();
+    this.#sourcePosition = new pc.Vec3();
+    this.#sourceTransformed = new pc.Vec3();
     this.#root = modelRoot;
     this.#previousPosition = modelRoot.getPosition().clone();
     this.#updateHandle = app?.on?.("update", this.#queueUpdate.bind(this)) ?? null;
@@ -150,28 +255,36 @@ export class KingCapePhysics {
       return null;
     }
 
-    return skin.bones.map(/**
+    if (this.#skinPalettes.has(skin)) {
+      return this.#skinPalettes.get(skin);
+    }
+    const matrices = skin.bones.map(/**
      * @param {import("playcanvas").GraphNode} bone
      * @param {number} index
      */
       (bone, index) => new this.#pc.Mat4().mul2(
         bone.getWorldTransform(), skin.skin.inverseBindPose[index],
       ));
+    this.#skinPalettes.set(skin, matrices);
+
+    return matrices;
   }
 
   /**
    * @param {KingCapeBinding} binding
    * @param {number} vertex
    * @param {import("playcanvas").Mat4[]|null} matrices
+   * @param {import("playcanvas").Vec3} result
    * @returns {import("playcanvas").Vec3}
    */
-  #sourceWorld(binding, vertex, matrices) {
-    const position = new this.#pc.Vec3(...binding.source.slice(vertex * 3, vertex * 3 + 3));
+  #sourceWorld(binding, vertex, matrices, result = new this.#pc.Vec3()) {
+    const position = this.#sourcePosition.set(binding.source[vertex * 3],
+      binding.source[vertex * 3 + 1], binding.source[vertex * 3 + 2]);
     if (!matrices) {
-      return binding.instance.node.getWorldTransform().transformPoint(position);
+      return binding.instance.node.getWorldTransform().transformPoint(position, result);
     }
-    const result = new this.#pc.Vec3();
-    const transformed = new this.#pc.Vec3();
+    result.set(0, 0, 0);
+    const transformed = this.#sourceTransformed;
     for (let influence = 0; influence < 4; influence++) {
       const offset = vertex * 4 + influence;
       const weight = binding.weights[offset];
@@ -257,9 +370,24 @@ export class KingCapePhysics {
     this.#ammo = ammo;
     this.#scale = Math.max(0.001, this.#root.getWorldTransform().getScale().y);
     const rootInverse = this.#root.getWorldTransform().clone().invert();
+    let sole = Infinity;
+    for (const side of ["left", "right"]) {
+      const boot = this.#root.findByName(`${side} fitted leather boot`);
+      for (const instance of boot?.render?.meshInstances ?? []) {
+        const positions = [];
+        instance.mesh.getPositions(positions);
+        const matrix = rootInverse.clone().mul(instance.node.getWorldTransform());
+        for (let index = 0; index < positions.length; index += 3) {
+          const point = matrix.transformPoint(new this.#pc.Vec3(...positions.slice(index, index + 3)));
+          sole = Math.min(sole, point.y);
+        }
+      }
+    }
+    this.#groundOffset = Number.isFinite(sole) ? sole : 0;
     const chestInverse = this.#chest.getWorldTransform().clone().invert();
     const unique = new Map();
     const triangles = [];
+    const bindPoints = [];
     const frontSeams = new Set();
     this.#bindings = instances.map(this.#readBinding.bind(this));
     let top = -Infinity, bottom = Infinity;
@@ -267,12 +395,15 @@ export class KingCapePhysics {
       const matrices = this.#skinMatrices(binding);
       for (let vertex = 0; vertex < binding.source.length / 3; vertex++) {
         const point = this.#sourceWorld(binding, vertex, matrices);
+        const bindPoint = binding.instance.node.getWorldTransform().transformPoint(
+          new this.#pc.Vec3(...binding.source.slice(vertex * 3, vertex * 3 + 3)));
         const key = `${point.x.toFixed(5)},${point.y.toFixed(5)},${point.z.toFixed(5)}`;
         let index = unique.get(key);
         if (index === undefined) {
           index = this.#nodes.length;
           unique.set(key, index);
           this.#nodes.push(point);
+          bindPoints.push(bindPoint);
           const local = rootInverse.transformPoint(point);
           top = Math.max(top, local.y);
           bottom = Math.min(bottom, local.y);
@@ -291,6 +422,42 @@ export class KingCapePhysics {
     // The folded shoulder seam slopes slightly in animated poses. Four percent
     // captures its corner vertices while leaving the next cloth row unpinned.
     const threshold = top - (top - bottom) * 0.04;
+    this.#surfaceTriangles = triangles;
+    this.#hemEdges = findKingHemEdges(triangles, bindPoints.map(/**
+     * @param {import("playcanvas").Vec3} point
+     */
+      point => rootInverse.transformPoint(point).y));
+    const right = this.#root.getWorldTransform().transformVector(new this.#pc.Vec3(1, 0, 0)).normalize();
+    this.#frameNeighbors = this.#nodes.map(/**
+     *
+     * @param {import("playcanvas").Vec3} point
+     * @param {number} index
+     */
+      (point, index) => {
+        let nearest = index, score = -1, sign = 1;
+        for (let face = 0; face < triangles.length; face += 3) {
+          if (!triangles.slice(face, face + 3).includes(index)) {
+            continue;
+          }
+          for (const neighbor of triangles.slice(face, face + 3)) {
+            if (neighbor === index) {
+              continue;
+            }
+            const delta = this.#nodes[neighbor].clone().sub(point).normalize();
+            const alignment = delta.dot(right);
+            if (Math.abs(alignment) > score) {
+              nearest = neighbor;
+              sign = alignment < 0 ? -1 : 1;
+              score = Math.abs(alignment);
+            }
+          }
+        }
+
+        return {
+          index: nearest,
+          sign,
+        };
+      });
     for (let index = 0; index < this.#nodes.length; index++) {
       const point = this.#nodes[index];
       if (rootInverse.transformPoint(point).y >= threshold - 0.0001 || frontSeams.has(index)) {
@@ -313,7 +480,7 @@ export class KingCapePhysics {
     this.#world.getWorldInfo().set_m_gravity(gravity);
     this.#body = new ammo.btSoftBody(this.#world.getWorldInfo());
     const vector = new ammo.btVector3(0, 0, 0);
-    for (const point of this.#nodes) {
+    for (const point of bindPoints) {
       vector.setValue(point.x * PHYSICS_SCALE, point.y * PHYSICS_SCALE, point.z * PHYSICS_SCALE);
       this.#body.appendNode(vector, 1);
     }
@@ -333,11 +500,22 @@ export class KingCapePhysics {
       this.#addLink(c, a, structural, links);
     }
     const bending = this.#body.appendMaterial();
-    bending.set_m_kLST(0.55);
-    bending.set_m_kAST(0.55);
+    reinforceKingHem(this.#body, triangles, bindPoints);
+    bending.set_m_kLST(0.08);
+    bending.set_m_kAST(0.08);
     this.#body.generateBendingConstraints(2, bending);
     this.#body.setTotalMass(0.3, false);
+    // Constraints describe the garment's authored shape, independent of which
+    // animation happens to be active on its first visible frame.
+    const bodyNodes = this.#body.get_m_nodes();
+    for (let index = 0; index < this.#nodes.length; index++) {
+      const point = this.#nodes[index].clone().mulScalar(PHYSICS_SCALE);
+      bodyNodes.at(index).get_m_x().setValue(point.x, point.y, point.z);
+      bodyNodes.at(index).get_m_q().setValue(point.x, point.y, point.z);
+    }
+    this.#updateTrimFrames();
     this.#attachTrim();
+    this.#trimSupport = new KingCapeTrimSupport(this.#bindings);
     for (const pin of this.#pins) {
       this.#body.setMass(pin.index, 0);
     }
@@ -432,7 +610,23 @@ export class KingCapePhysics {
     const worldCenter = this.#root.getWorldTransform().transformPoint(
       new this.#pc.Vec3(0, 0.43, 0),
     );
-    const center = hips.getWorldTransform().clone().invert().transformPoint(worldCenter);
+    let bindWorld = hips.getWorldTransform();
+    for (const binding of this.#bindings) {
+      const skin = binding.originalSkin;
+      const index = skin?.bones.findIndex(/**
+       *
+       * @param {import("playcanvas").GraphNode} bone
+       */
+        bone => bone === hips) ?? -1;
+      if (index >= 0) {
+        bindWorld = binding.instance.node.getWorldTransform().clone()
+          .mul(skin.skin.inverseBindPose[index].clone().invert());
+        break;
+      }
+    }
+    // The offset belongs to the authored bind pose. Measuring it from a seated
+    // startup pose raises the proxy after standing and rolls the hem upward.
+    const center = bindWorld.clone().invert().transformPoint(worldCenter);
     const half = this.#own(new this.#ammo.btVector3(
       0.35 * this.#scale * PHYSICS_SCALE,
       0.32 * this.#scale * PHYSICS_SCALE,
@@ -499,7 +693,7 @@ export class KingCapePhysics {
   #targetCollider(collider) {
     if (collider.floor) {
       collider.targetPosition.copy(this.#root.getPosition());
-      collider.targetPosition.y += collider.localCenter.y * this.#scale;
+      collider.targetPosition.y = this.#groundY + collider.localCenter.y * this.#scale;
       collider.targetRotation.set(0, 0, 0, 1);
     } else {
       const matrix = collider.entity.getWorldTransform();
@@ -564,9 +758,9 @@ export class KingCapePhysics {
    * Ammo still owns gravity, inertia, links, friction, and all body collisions.
    */
   #resolveFloorContact() {
-    const floor = (this.#root.getPosition().y + 0.012 * this.#scale) * PHYSICS_SCALE;
     const nodes = this.#body.get_m_nodes();
     for (let index = 0; index < this.#nodes.length; index++) {
+      const floor = (this.#groundY + 0.012 * this.#scale + this.#furFloorClearance[index]) * PHYSICS_SCALE;
       const node = nodes.at(index);
       const point = node.get_m_x();
       if (point.y() >= floor) {
@@ -580,6 +774,103 @@ export class KingCapePhysics {
     }
   }
 
+  /**
+   * The sparse SDF misses static friction on the same shallow contacts handled
+   * by the floor projection. Give settled hem nodes floor supports in Bullet;
+   * upper cloth stays dynamic. Standing or root motion releases every support
+   * before solving, preserving the seated shape and avoiding a reset impulse.
+   * @param {boolean} seated
+   */
+  #supportSeatedHem(seated) {
+    const nodes = this.#body.get_m_nodes();
+    if (!seated) {
+      for (const [index, contact] of this.#floorContacts) {
+        this.#body.setMass(index, contact.mass);
+      }
+      this.#floorContacts.clear();
+
+      return;
+    }
+    for (let index = 0; index < this.#nodes.length; index++) {
+      const floor = (this.#groundY + 0.012 * this.#scale + this.#furFloorClearance[index]) * PHYSICS_SCALE;
+      const node = nodes.at(index);
+      const point = node.get_m_x();
+      const velocity = node.get_m_v();
+      if (!this.#floorContacts.has(index) && this.#furFloorClearance[index] > 0 && node.get_m_im() > 0 &&
+        point.y() <= floor + 0.012 * this.#scale * PHYSICS_SCALE &&
+        Math.hypot(velocity.x(), velocity.y(), velocity.z()) < 0.08 * this.#scale * PHYSICS_SCALE) {
+        this.#floorContacts.set(index, {
+          mass: 1 / node.get_m_im(),
+          point: new this.#pc.Vec3(point.x(), Math.max(floor, point.y()), point.z()),
+        });
+        this.#body.setMass(index, 0);
+      }
+      const contact = this.#floorContacts.get(index);
+      if (contact) {
+        contact.point.y = floor;
+        const { x, y, z } = contact.point;
+        point.setValue(x, y, z);
+        node.get_m_q().setValue(x, y, z);
+        velocity.setValue(0, 0, 0);
+      }
+    }
+  }
+
+  /**
+   * Let heavy fabric sleep after it settles. Breathing must not keep exciting
+   * sub-pixel solver vibration; a meaningful seam movement wakes Bullet again.
+   * @param {boolean} seated
+   */
+  #settleRestingCloth(seated) {
+    const moved = this.#sleepPins?.some(/**
+     *
+     * @param {import("playcanvas").Vec3} point
+     * @param {number} index
+     */
+      (point, index) =>
+        point.distance(this.#pins[index].target) > 0.006 * this.#scale);
+    if (!seated || moved) {
+      this.#restQuietTime = 0;
+      this.#sleepPins = null;
+      this.#body.forceActivationState(4);
+
+      return;
+    }
+    if (!this.#sleepPins) {
+      const nodes = this.#body.get_m_nodes();
+      let energy = 0, mass = 0;
+      for (let index = 0; index < this.#nodes.length; index++) {
+        const node = nodes.at(index);
+        if (node.get_m_im() > 0) {
+          const nodeMass = 1 / node.get_m_im();
+          const velocity = node.get_m_v();
+          energy += nodeMass * (velocity.x() ** 2 + velocity.y() ** 2 + velocity.z() ** 2);
+          mass += nodeMass;
+        }
+      }
+      const speed = mass > 0 ? Math.sqrt(energy / mass) / PHYSICS_SCALE : 0;
+      this.#restQuietTime = speed < 0.08 * this.#scale ? this.#restQuietTime + this.#pendingDelta : 0;
+      if (this.#restQuietTime < 1) {
+        return;
+      }
+      this.#sleepPins = this.#pins.map(/**
+       *
+       * @param {KingCapePin} pin
+       */
+        pin => pin.target.clone());
+    }
+    // The hanging side seams must settle with the heavy lower cloth too.
+    // Keep the collar responsive to breathing; wake checks above still use
+    // every live seam target before applying this resting support.
+    const lowerSeamHeight = this.#chest.getPosition().y - 0.15 * this.#scale;
+    for (let index = 0; index < this.#pins.length; index++) {
+      if (this.#sleepPins[index].y < lowerSeamHeight) {
+        this.#pins[index].target.copy(this.#sleepPins[index]);
+      }
+    }
+    this.#body.forceActivationState(2);
+  }
+
   #beforeRender() {
     if (this.#destroyed || this.#initializationFailed) {
       return;
@@ -590,6 +881,7 @@ export class KingCapePhysics {
 
       return;
     }
+    this.#skinPalettes.clear();
     if (!this.#world) {
       try {
         if (!this.#initialize()) {
@@ -604,13 +896,23 @@ export class KingCapePhysics {
       }
     }
     const reset = this.#resume || this.#previousPosition.distance(this.#root.getPosition()) > 1;
+    this.#updateTrimFrames();
+    const resting = this.#root.anim?.baseLayer?.activeState === "GroundRest";
+    const transform = this.#root.getWorldTransform();
+    const seated = resting && !reset && (!this.#seatedRoot || this.#seatedRoot.equals(transform));
+    this.#body.get_m_cfg().set_kDP(seated ? 0.85 : 0.22);
+    this.#seatedRoot = resting ? transform.clone() : null;
+    if (!seated) {
+      this.#supportSeatedHem(false);
+    }
     this.#resume = false;
     this.#previousPosition.copy(this.#root.getPosition());
     for (const pin of this.#pins) {
       this.#chest.getWorldTransform().transformPoint(pin.local, pin.target);
       // A ground-seated hem rests on the floor instead of pulling sewn edges
       // through it when the chest descends. Collar anchors remain unaffected.
-      pin.target.y = Math.max(pin.target.y, this.#root.getPosition().y + 0.012 * this.#scale);
+      pin.target.y = Math.max(pin.target.y,
+        this.#groundY + 0.012 * this.#scale + this.#furFloorClearance[pin.index]);
       if (reset) {
         pin.previous.copy(pin.target);
       }
@@ -625,6 +927,7 @@ export class KingCapePhysics {
     if (reset) {
       this.#reset();
     }
+    this.#settleRestingCloth(seated);
     this.#accumulator = Math.min(MAX_DELTA, this.#accumulator + this.#pendingDelta);
     this.#pendingDelta = 0;
     this.#substeps = Math.min(MAX_SUBSTEPS, Math.floor((this.#accumulator + 1e-9) / FIXED_STEP));
@@ -635,7 +938,9 @@ export class KingCapePhysics {
       }
       this.#syncPins(amount);
       this.#world.stepSimulation(FIXED_STEP, 0);
+      this.#updateTrimFrames();
       this.#resolveFloorContact();
+      this.#supportSeatedHem(seated);
     }
     this.#accumulator -= this.#substeps * FIXED_STEP;
     // Bullet can move even mass-zero nodes during contact resolution; enforce
@@ -651,7 +956,92 @@ export class KingCapePhysics {
     this.#writeMeshes();
   }
 
+  /**
+   * @param {KingHemAttachment} edge
+   * @returns {{point:import("playcanvas").Vec3,frame:KingCapeFrame}}
+   */
+  #sampleHem(edge) {
+    if (this.#hemFrames.has(edge)) {
+      return this.#hemFrames.get(edge);
+    }
+    const result = sampleKingHemAttachment({
+      pc: this.#pc,
+      edge,
+      points: this.#clothPoints,
+      frames: this.#trimFrames,
+      root: this.#root.getPosition(),
+      upright: true,
+      bodyCenter: this.#chest.getPosition(),
+    });
+    this.#hemFrames.set(edge, result);
+
+    return result;
+  }
+
+  /**
+   * @param {import("playcanvas").Vec3} center
+   * @returns {KingHemAttachment|null}
+   */
+  #nearestHem(center) {
+    return findKingHemAttachment({
+      pc: this.#pc,
+      center,
+      scale: this.#scale,
+      points: this.#clothPoints,
+      edges: this.#hemEdges,
+      frames: this.#trimFrames,
+      root: this.#root.getPosition(),
+    });
+  }
+
+  /**
+   * Rigid trim frames come from the live cloth tangent and normal. This keeps
+   * each original block's volume while turning it with the fold beneath it.
+   */
+  #updateTrimFrames() {
+    this.#hemFrames.clear();
+    const nodes = this.#body.get_m_nodes();
+    const points = this.#clothPoints;
+    for (let index = 0; index < this.#nodes.length; index++) {
+      const source = nodes.at(index).get_m_x();
+      const point = points[index] ??= new this.#pc.Vec3();
+      point.set(source.x(), source.y(), source.z()).mulScalar(1 / PHYSICS_SCALE);
+      this.#clothPositions[index * 3] = point.x;
+      this.#clothPositions[index * 3 + 1] = point.y;
+      this.#clothPositions[index * 3 + 2] = point.z;
+    }
+    const normals = this.#pc.calculateNormals(this.#clothPositions, this.#surfaceTriangles);
+    const chest = this.#chest.getPosition();
+    for (let index = 0; index < points.length; index++) {
+      const point = points[index];
+      const neighbor = this.#frameNeighbors[index];
+      const tangent = this.#frameTangent.sub2(points[neighbor.index], point).mulScalar(neighbor.sign).normalize();
+      const normal = this.#frameNormal.set(normals[index * 3], normals[index * 3 + 1], normals[index * 3 + 2]);
+      const bitangent = this.#frameBitangent.cross(normal, tangent);
+      if (bitangent.lengthSq() < 0.000001 && this.#trimFrames[index]) {
+        continue;
+      }
+      bitangent.normalize();
+      normal.cross(tangent, bitangent).normalize();
+      if (normal.dot(this.#frameOutward.sub2(point, chest)) < 0) {
+        normal.mulScalar(-1);
+        bitangent.mulScalar(-1);
+      }
+      const frame = this.#trimFrames[index] ??= {
+        tangent: new this.#pc.Vec3(),
+        bitangent: new this.#pc.Vec3(),
+        normal: new this.#pc.Vec3(),
+      };
+      frame.tangent.copy(tangent);
+      frame.bitangent.copy(bitangent);
+      frame.normal.copy(normal);
+    }
+    this.#trimSupport?.update(this.#trimFrames, this.#sampleHem.bind(this),
+      this.#groundY + 0.012 * this.#scale, this.#furFloorClearance);
+  }
+
   #writeMeshes() {
+    this.#updateTrimFrames();
     const nodes = this.#body.get_m_nodes();
     const point = new this.#pc.Vec3();
     for (const binding of this.#bindings) {
@@ -660,12 +1050,18 @@ export class KingCapePhysics {
       for (let vertex = 0; vertex < binding.mapping.length; vertex++) {
         const index = binding.mapping[vertex];
         if (index < 0) {
-          point.copy(this.#sourceWorld(binding, vertex, matrices));
+          this.#sourceWorld(binding, vertex, matrices, point);
         } else {
           const position = nodes.at(index).get_m_x();
           point.set(position.x() / PHYSICS_SCALE, position.y() / PHYSICS_SCALE, position.z() / PHYSICS_SCALE);
           if (binding.trimOffsets) {
-            point.add(this.#root.getWorldTransform().transformVector(binding.trimOffsets[vertex]));
+            const edge = binding.trimEdges?.[vertex];
+            const sample = edge ? this.#sampleHem(edge) : null;
+            const frame = sample?.frame ?? this.#trimFrames[index], offset = binding.trimOffsets[vertex];
+            if (sample) {
+              point.copy(sample.point);
+            }
+            point.addScaled(frame.tangent, offset.x).addScaled(frame.bitangent, offset.y).addScaled(frame.normal, offset.z);
           }
         }
         inverse.transformPoint(point, point);
@@ -683,10 +1079,18 @@ export class KingCapePhysics {
    * Sew nearby fur vertices to the cloth nodes and distribute their hem mass.
    */
   #attachTrim() {
-    const inverse = this.#root.getWorldTransform().clone().invert();
     const counts = new Array(this.#nodes.length).fill(0);
+    this.#furFloorClearance = new Array(this.#nodes.length).fill(0);
     let total = 0;
-    for (const render of this.#root.findComponents("render")) {
+    const anchors = [];
+    const renders = this.#root.findComponents("render").sort(/**
+     *
+     * @param {import("playcanvas").RenderComponent} a
+     * @param {import("playcanvas").RenderComponent} b
+     */
+      (a, b) =>
+        Number(/Dynasty ink/.test(a.meshInstances[0]?.node.name)) - Number(/Dynasty ink/.test(b.meshInstances[0]?.node.name)));
+    for (const render of renders) {
       for (const instance of render.meshInstances) {
         if (!/Dynasty (fur tips|ivory ermine|ink)/.test(instance.node.name)) {
           continue;
@@ -694,6 +1098,7 @@ export class KingCapePhysics {
         const binding = this.#readBinding(instance);
         const matrices = this.#skinMatrices(binding);
         binding.trimOffsets = [];
+        binding.trimEdges = [];
         const sources = [];
         const parents = [];
         const seams = new Map();
@@ -726,32 +1131,108 @@ export class KingCapePhysics {
             centers.set(group, {
               point: new this.#pc.Vec3(),
               count: 0,
+              cape: !binding.originalSkin,
+              nearest: -1,
+              edge: null,
             });
           }
           const center = centers.get(group);
           center.point.add(sources[vertex]);
           center.count++;
+          for (let influence = 0; influence < 4; influence++) {
+            const offset = vertex * 4 + influence;
+            const bone = binding.originalSkin?.bones[binding.joints[offset]];
+            if (binding.weights[offset] > 0 && /^King cape [012]$/.test(bone?.name ?? "")) {
+              center.cape = true;
+            }
+          }
         }
         for (const center of centers.values()) {
           center.point.mulScalar(1 / center.count);
+          if (!center.cape) {
+            continue;
+          }
+          let distance = 0.1 * this.#scale;
+          for (let index = 0; index < this.#nodes.length; index++) {
+            const separation = center.point.distance(this.#nodes[index]);
+            if (separation < distance) {
+              center.nearest = index;
+              distance = separation;
+            }
+          }
+          center.edge = this.#nearestHem(center.point);
+          if (center.edge) {
+            center.nearest = center.edge.amount < 0.5 ? center.edge.a : center.edge.b;
+          }
+          if (/Dynasty ink/.test(instance.node.name)) {
+            let nearest = null, separation = 0.09 * this.#scale;
+            for (const anchor of anchors) {
+              const gap = center.point.distance(anchor.point);
+              if (gap < separation) {
+                nearest = anchor;
+                separation = gap;
+              }
+            }
+            if (nearest) {
+              center.nearest = nearest.nearest;
+              center.edge = nearest.edge;
+              center.lift = nearest.lift;
+            }
+          } else {
+            anchors.push(center);
+          }
+        }
+        if (!/Dynasty ink/.test(instance.node.name)) {
+          for (const [group, center] of centers) {
+            if (center.nearest < 0) {
+              continue;
+            }
+            const sample = center.edge ? this.#sampleHem(center.edge) : {
+              point: this.#nodes[center.nearest],
+              frame: this.#trimFrames[center.nearest],
+            };
+            let minimum = Infinity;
+            for (let vertex = 0; vertex < sources.length; vertex++) {
+              if (find(vertex) === group) {
+                minimum = Math.min(minimum, sources[vertex].clone().sub(sample.point).dot(sample.frame.normal));
+              }
+            }
+            // Fur is sewn into the cloth: retain a shallow overlap rather
+            // than floating the complete rigid block clear of the surface.
+            center.lift = Math.max(0, -0.023 * this.#scale - minimum);
+            if (center.edge) {
+              center.edge.lift = center.lift;
+            }
+          }
         }
         let attached = false;
         for (let vertex = 0; vertex < binding.source.length / 3; vertex++) {
           const source = sources[vertex];
-          const center = centers.get(find(vertex)).point;
-          let nearest = -1, distance = 0.22 * this.#scale;
-          for (let index = 0; index < this.#nodes.length; index++) {
-            const separation = center.distance(this.#nodes[index]);
-            if (separation < distance) {
-              nearest = index;
-              distance = separation;
-            }
-          }
+          const center = centers.get(find(vertex));
+          const nearest = center.nearest;
           binding.mapping.push(nearest);
-          binding.trimOffsets.push(nearest < 0 ? new this.#pc.Vec3()
-            : inverse.transformVector(source.clone().sub(this.#nodes[nearest])));
+          const edge = nearest < 0 ? null : center.edge;
+          binding.trimEdges.push(edge);
+          const sample = edge ? this.#sampleHem(edge) : null;
+          const delta = nearest < 0 ? new this.#pc.Vec3() : source.clone().sub(sample?.point ?? this.#nodes[nearest]);
+          const frame = sample?.frame ?? this.#trimFrames[nearest];
+          const offset = nearest < 0 ? delta : new this.#pc.Vec3(
+            delta.dot(frame.tangent), delta.dot(frame.bitangent), delta.dot(frame.normal),
+          );
+          offset.x *= edge ? 1.2 : 1;
+          offset.z += center.lift ?? 0;
+          binding.trimOffsets.push(offset);
           if (nearest >= 0) {
-            counts[nearest]++;
+            const downward = -(frame.tangent.y * offset.x + frame.bitangent.y * offset.y + frame.normal.y * offset.z);
+            for (const anchor of edge ? [edge.a, edge.b] : [nearest]) {
+              this.#furFloorClearance[anchor] = Math.max(this.#furFloorClearance[anchor], downward);
+            }
+            if (edge) {
+              counts[edge.a] += 1 - edge.amount;
+              counts[edge.b] += edge.amount;
+            } else {
+              counts[nearest]++;
+            }
             total++;
             attached = true;
           }
@@ -770,7 +1251,7 @@ export class KingCapePhysics {
 
   /**
    * World-space diagnostics do not alter the solver or expose Ammo ownership.
-   * @returns {{initialized: boolean, enabled: boolean, nodes: number[][], pins: Array<{index: number, target: number[]}>, maxPinError: number, maxSpeed: number, resets: number, substeps: number}}
+   * @returns {{initialized: boolean, enabled: boolean, nodes: number[][], pins: Array<{index: number, target: number[]}>, maxPinError: number, maxSpeed: number, resets: number, substeps: number,minHemExteriorDistance:number|null}}
    */
   get testState() {
     const positions = [], pins = [];
@@ -794,6 +1275,12 @@ export class KingCapePhysics {
       }
     }
 
+    const minHemExteriorDistance = measureKingHemExterior(this.#pc, this.#bindings, /**
+     *
+     * @param {KingHemAttachment} edge
+     */
+      edge => this.#sampleHem(edge));
+
     return {
       initialized: Boolean(this.#world),
       enabled: this.#root.enabled,
@@ -803,6 +1290,7 @@ export class KingCapePhysics {
       maxSpeed,
       resets: this.#resets,
       substeps: this.#substeps,
+      minHemExteriorDistance: Number.isFinite(minHemExteriorDistance) ? minHemExteriorDistance : null,
     };
   }
 
@@ -833,7 +1321,21 @@ export class KingCapePhysics {
     this.#colliders = [];
     this.#owned = [];
     this.#nodes = [];
+    this.#surfaceTriangles = [];
+    this.#frameNeighbors = [];
+    this.#trimFrames = [];
+    this.#clothPoints = [];
+    this.#clothPositions = [];
+    this.#skinPalettes.clear();
+    this.#hemEdges = [];
+    this.#hemFrames.clear();
+    this.#furFloorClearance = [];
+    this.#trimSupport = null;
     this.#pins = [];
+    this.#floorContacts.clear();
+    this.#seatedRoot = null;
+    this.#restQuietTime = 0;
+    this.#sleepPins = null;
   }
 
   destroy() {

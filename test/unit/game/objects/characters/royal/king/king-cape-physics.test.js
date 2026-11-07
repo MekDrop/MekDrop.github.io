@@ -286,6 +286,140 @@ it("root motion generates cape inertia while the seam follows same-frame movemen
   }
 });
 
+it("supports the complete fur blocks above the floor, including their depth below the cloth", () => {
+  const scene = fixture();
+  const fur = new scene.pc.Entity("Royal animation rig - Dynasty ivory ermine");
+  scene.root.addChild(fur);
+  const mesh = new TestMesh();
+  const positions = [];
+  for (const y of [0.09, 0.21]) {
+    for (const z of [-0.49, -0.41]) {
+      for (const x of [-0.04, 0.04]) {
+        positions.push(x, y, z);
+      }
+    }
+  }
+  mesh.setPositions(positions);
+  mesh.setIndices([0, 1, 3, 0, 3, 2, 4, 6, 7, 4, 7, 5,
+    0, 4, 5, 0, 5, 1, 2, 3, 7, 2, 7, 6,
+    0, 2, 6, 0, 6, 4, 1, 5, 7, 1, 7, 3]);
+  const upper = positions.map((value, index) => value + (index % 3 === 1 ? 1.05 : index % 3 === 2 ? 0.09 : 0));
+  mesh.setPositions([...positions, ...upper]);
+  mesh.setIndices([...mesh.indices, ...mesh.indices.map(index => index + 8)]);
+  fur.render = {
+    meshInstances: [{
+      mesh,
+      material: new TestMaterial(),
+      node: fur,
+      skinInstance: null,
+    }],
+  };
+  fur.c.render = fur.render;
+  try {
+    scene.frame();
+    scene.root.anim.baseLayer.activeState = "GroundRest";
+    scene.chest.setLocalPosition(0, 0.67, 0);
+    for (let frame = 0; frame < 300; frame++) {
+      scene.frame();
+      const current = [];
+      fur.render.meshInstances[0].mesh.getPositions(current);
+      assert.ok(current.filter((_, index) => index % 3 === 1).every(y => y >= -0.0001),
+        "fur must rest on the floor instead of being buried below its supported cloth node");
+      const exterior = scene.physics.testState.minHemExteriorDistance;
+      assert.ok(exterior !== null && exterior >= -0.024,
+        `the sewn backing may overlap the cloth, but the fur must not sink deeper: ${exterior}`);
+    }
+    scene.chest.setLocalEulerAngles(0, 0, 45);
+    for (let frame = 0; frame < 90; frame++) {
+      scene.frame();
+    }
+    const bent = [];
+    fur.render.meshInstances[0].mesh.getPositions(bent);
+    const depth = new scene.pc.Vec3(...bent.slice(27, 30)).sub(new scene.pc.Vec3(...bent.slice(24, 27)));
+    assert.ok(Math.abs(depth.length() - 0.08) < 0.0001, "fur blocks retain their original depth while bending");
+    assert.ok(Math.abs(depth.y) > 0.02, "fur must turn with the cape instead of keeping a fixed upright orientation");
+  } finally {
+    scene.physics.destroy();
+  }
+});
+
+it("settles the grounded hem during breathing and releases it before standing", () => {
+  const scene = fixture({ frontSeams: true });
+  try {
+    scene.frame();
+    scene.root.anim.baseLayer.activeState = "GroundRest";
+    for (let frame = 0; frame < 240; frame++) {
+      scene.chest.setLocalPosition(0, 0.67 + 0.002 * Math.sin(frame / 24), 0);
+      scene.frame();
+    }
+    const initial = scene.physics.testState.nodes;
+    const sewn = new Set(scene.physics.testState.pins.map(pin => pin.index));
+    const grounded = initial.map((point, index) => point[1] < 0.35 ? index : -1).filter(index => index >= 0);
+    assert.ok(initial.filter(point => point[1] < 0.026).length > 7,
+      "free hem nodes must actually settle onto the floor");
+    let displacement = 0;
+    let freeClothDisplacement = 0;
+    for (let frame = 0; frame < 180; frame++) {
+      scene.chest.setLocalPosition(0, 0.67 + 0.002 * Math.sin((frame + 240) / 24), 0);
+      scene.frame();
+      const current = scene.physics.testState.nodes;
+      for (const index of grounded) {
+        displacement = Math.max(displacement, Math.hypot(...current[index].map((value, axis) => value - initial[index][axis])));
+      }
+      for (let index = 0; index < current.length; index++) {
+        if (!sewn.has(index)) {
+          freeClothDisplacement = Math.max(freeClothDisplacement,
+            Math.hypot(...current[index].map((value, axis) => value - initial[index][axis])));
+        }
+      }
+    }
+    assert.ok(displacement < 0.001, `grounded hem and nearby folds twitch while resting: ${displacement}`);
+    assert.ok(freeClothDisplacement < 0.0001, `settled fabric keeps vibrating: ${freeClothDisplacement}`);
+    scene.root.anim.baseLayer.activeState = "GroundStandUp";
+    for (let frame = 0; frame < 120; frame++) {
+      scene.chest.setLocalPosition(0, 0.67 + Math.min(1, frame / 90) * 0.43, 0);
+      scene.frame();
+    }
+    const raised = scene.physics.testState.nodes;
+    assert.ok(grounded.some(index => raised[index][1] > initial[index][1] + 0.05),
+      "standing must lift the hem without leaving floor anchors behind");
+  } finally {
+    scene.physics.destroy();
+  }
+});
+
+it("keeps lap-coat fur on its authored skin even when it is close to cape nodes", () => {
+  const scene = fixture();
+  const lap = new scene.pc.Entity("King lap cloth");
+  const fur = new scene.pc.Entity("Royal animation rig - Dynasty ivory ermine");
+  scene.root.addChild(lap);
+  scene.root.addChild(fur);
+  const mesh = new TestMesh();
+  mesh.setPositions([0, 0.15, -0.45, 0.04, 0.15, -0.45, 0, 0.2, -0.45]);
+  mesh.setIndices([0, 1, 2]);
+  mesh.joints = new Array(12).fill(0);
+  mesh.weights = [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0];
+  const skin = {
+    bones: [lap],
+    skin: { inverseBindPose: [new scene.pc.Mat4()] },
+  };
+  const instance = {
+    mesh,
+    material: new TestMaterial(),
+    node: fur,
+    skinInstance: skin,
+  };
+  fur.render = { meshInstances: [instance] };
+  fur.c.render = fur.render;
+  try {
+    scene.frame();
+    assert.equal(instance.mesh, mesh, "a nearby coat component must not be captured by cape simulation");
+    assert.equal(instance.skinInstance, skin, "lap animation must retain ownership of its fur");
+  } finally {
+    scene.physics.destroy();
+  }
+});
+
 it("clamps catch-up work, resets teleports and resumes, and preserves momentum across clip changes", () => {
   const scene = fixture();
   try {
@@ -345,6 +479,38 @@ it("failed initialization restores every shared asset and does not resume a part
     }
     assert.doesNotThrow(() => scene.frame(), "later frames must not access partially cloned cape meshes");
     assert.equal(clones, 2, "failed initialization must not allocate repeatedly each render");
+  } finally {
+    scene.physics.destroy();
+  }
+});
+it("measures the cloth floor from bind soles and keeps it stable when feet animate", () => {
+  const scene = fixture({ frontSeams: true });
+  const boot = new scene.pc.Entity("left fitted leather boot");
+  scene.root.addChild(boot);
+  boot.setLocalPosition(0, 0.2, 0);
+  const mesh = new TestMesh();
+  mesh.setPositions([0, 0.15, 0, 0.1, 0.25, 0.1]);
+  boot.render = {
+    meshInstances: [{
+      mesh,
+      node: boot,
+    }],
+  };
+  scene.root.setLocalScale(1.7, 1.7, 1.7);
+  scene.root.setLocalPosition(0, 2.25, 0);
+  try {
+    scene.frame();
+    boot.setLocalPosition(0, 1.2, 0);
+    scene.chest.setLocalPosition(0, 0.67, 0);
+    for (let frame = 0; frame < 90; frame++) {
+      scene.frame();
+    }
+    const floor = 2.25 + 0.35 * 1.7;
+    const state = scene.physics.testState;
+    assert.ok(state.nodes.every(point => point[1] >= floor - 0.0001));
+    assert.ok(state.pins.every(pin => pin.target[1] >= floor + 0.012 * 1.7 - 0.0001));
+    assert.ok(Math.min(...state.nodes.map(point => point[1])) < floor + 0.08,
+      "moving a foot must not move the cloth floor upward");
   } finally {
     scene.physics.destroy();
   }
