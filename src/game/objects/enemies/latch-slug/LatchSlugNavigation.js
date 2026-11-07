@@ -1,5 +1,6 @@
 import { CastleResidentMotion } from "../../castle/residents/CastleResidentMotion.js";
 import { NpcObstacleProbe } from "../../shared/NpcObstacleProbe.js";
+import { LatchCompanionRoute } from "./LatchCompanionRoute.js";
 
 /**
  * Reuses the production castle floor/stair planner as a look-ahead cursor.
@@ -46,6 +47,10 @@ export class LatchSlugNavigation {
    */
   #probe;
   /**
+   * @type {LatchCompanionRoute}
+   */
+  #companionRoute;
+  /**
    * @type {import("playcanvas").Entity|null}
    */
   #royalSeat = null;
@@ -65,13 +70,38 @@ export class LatchSlugNavigation {
     this.#owner = owner;
     this.#cursor = new owner.pc.Entity("Latch Slug route cursor (not rendered)");
     this.#probe = new NpcObstacleProbe(owner.app);
+    this.#companionRoute = new LatchCompanionRoute(owner, this.#blocked.bind(this));
   }
 
   /**
    * @param {import("../shared/Enemy.js").EnemyActor} target
-   * @returns {{position:import("playcanvas").Vec3}|null}
+   * @returns {boolean}
+   */
+  canApproachCompanion(target) {
+    return this.#companionRoute.next(target) !== null;
+  }
+
+  /**
+   * @param {import("../shared/Enemy.js").EnemyActor} target
+   * @returns {boolean}
+   */
+  canCloseCompanionGap(target) {
+    const next = this.#companionRoute.next(target);
+
+    return Boolean(next && next.distance(this.#owner.position) > 0.025);
+  }
+
+  /**
+   * @param {import("../shared/Enemy.js").EnemyActor} target
+   * @returns {{position:import("playcanvas").Vec3, crowdChecked?: boolean}|null}
    */
   next(target) {
+    if (this.#companionRoute.active) {
+      return {
+        position: this.#companionRoute.next(target) ?? this.#owner.position.clone(),
+        crowdChecked: true,
+      };
+    }
     if (!this.#owner.app?.systems?.rigidbody) {
       return null;
     }

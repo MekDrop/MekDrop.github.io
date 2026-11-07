@@ -1,5 +1,8 @@
 import { MAP_TILE_TYPE } from "../../../enum/MapTileType.js";
 
+const NOTICE_DISTANCE = 2;
+const FOLLOW_DISTANCE = 3;
+
 /**
  * Nearby people are companions; other enemies and props are never pack leaders.
  */
@@ -41,7 +44,7 @@ export class LatchPack {
      *
      * @param {import("../shared/Enemy.js").EnemyActor} actor
      */
-      actor => owner.distanceTo(actor) <= 6 && this.canSee(actor));
+      actor => owner.distanceTo(actor) <= NOTICE_DISTANCE && this.canSee(actor));
     // A companion stays interesting until it leaves the safe social area or range.
     // This avoids oscillating between people crossing each other in a corridor.
     if (!this.leader && nearest) {
@@ -67,7 +70,7 @@ export class LatchPack {
    */
   #eligible(actor) {
     if (!actor.entity || (actor.entity.parent && actor.entity.enabled === false) || actor.alive === false || actor.isDying
-      || this.owner.distanceTo(actor) > 8) {
+      || this.owner.distanceTo(actor) > FOLLOW_DISTANCE) {
       return false;
     }
     const p = this.owner.targetPosition(actor);
@@ -121,5 +124,34 @@ export class LatchPack {
         && entity !== actor.entity && !entity.isDescendantOf(actor.entity)
         && entity !== targetEntity && !entity.isDescendantOf(targetEntity),
     });
+  }
+
+  /**
+   * Yield before Ammo contact so following slugs cannot drive a queue into a person.
+   * This is a steering decision; collision response remains owned by Ammo.
+   * @param {import("playcanvas").Vec3} destination
+   * @returns {boolean}
+   */
+  isCrowdedToward(destination) {
+    const owner = this.owner;
+    const direction = destination.clone().sub(owner.position);
+    direction.y = 0;
+    direction.normalize();
+    for (const actor of owner.actors) {
+      if (actor === owner || !(actor.pack instanceof LatchPack) || !actor.alive || actor.carrier || actor.airborne) {
+        continue;
+      }
+      const offset = actor.position.clone().sub(owner.position);
+      if (Math.abs(offset.y) > 0.6) {
+        continue;
+      }
+      offset.y = 0;
+      const clearance = owner.radius + actor.radius + 0.3;
+      if (offset.length() < clearance && offset.dot(direction) > 0) {
+        return true;
+      }
+    }
+
+    return false;
   }
 }

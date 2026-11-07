@@ -3811,10 +3811,6 @@
             "script": "const s=[...objects].find(o=>o.definition?.id==='latch-slug');s.runtime.getHero().entity.rigidbody.teleport(.5,2.04,-5);"
           },
           {
-            "label": "Pat slime",
-            "script": "const s=[...objects].find(o=>o.definition?.id==='latch-slug');s.pat();"
-          },
-          {
             "label": "Leader leaves grass",
             "script": "const s=[...objects].find(o=>o.definition?.id==='latch-slug');s.runtime.getHero().entity.rigidbody.teleport(-7,2.04,-12);"
           },

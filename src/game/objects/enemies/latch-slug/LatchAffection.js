@@ -1,5 +1,7 @@
 import { HERO_BUFF } from "../../../enum/HeroBuff.js";
 
+const SOCIAL_DISTANCE = 1.6;
+
 /**
  * Three calm seconds establish affection; pats express happiness without skipping it.
  */
@@ -52,6 +54,99 @@ export class LatchAffection {
   /**
    * @returns {boolean}
    */
+  get nearCompanion() {
+    const owner = this.owner;
+    const person = owner.pack.leader ?? owner.pack.resolve?.();
+
+    return Boolean(this.available && this.#nearHuman(person) && owner.pack.canSee(person)
+      && (owner.nearbyDoor?.openAmount ?? 1) > 0.001
+      && !owner.canCloseCompanionGap?.(person));
+  }
+
+  /**
+   * @returns {boolean}
+   */
+  get settling() {
+    if (this.nearCompanion) {
+      return true;
+    }
+    const relay = this.#relay();
+
+    return Boolean(relay && !this.owner.canApproachCompanion?.(relay.person));
+  }
+
+  /**
+   * @param {import("../shared/Enemy.js").EnemyActor|null} person
+   * @returns {boolean}
+   */
+  #nearHuman(person) {
+    const owner = this.owner;
+
+    return Boolean(owner.alive && person && person.alive !== false && !person.isDying
+      && owner.distanceTo(person) <= SOCIAL_DISTANCE
+      && Math.abs(owner.targetPosition(person).y - owner.position.y) < 0.6);
+  }
+
+  /**
+   * @returns {import("../shared/Enemy.js").EnemyActor|null}
+   */
+  get approachCompanion() {
+    const relay = this.#relay();
+
+    return relay && this.owner.canApproachCompanion?.(relay.person) ? relay.person : null;
+  }
+
+  /**
+   * Find a live chain back to a human rather than letting affectionate slugs
+   * sustain one another forever after their human leaves.
+   * @returns {{person: import("../shared/Enemy.js").EnemyActor, rate: number}|null}
+   */
+  #relay() {
+    const owner = this.owner;
+    if (!this.available) {
+      return null;
+    }
+    const human = owner.pack.leader;
+    if (this.#nearHuman(human)) {
+      return null;
+    }
+    const visited = new Set([owner]);
+    const queue = [{
+      slug: owner,
+      depth: 0,
+    }];
+    for (let index = 0; index < queue.length; index++) {
+      const { slug, depth } = queue[index];
+      if (depth > 0) {
+        const person = slug.affection.companion;
+        if (slug.affection.#nearHuman(person)) {
+          return {
+            person,
+            rate: 0.5 ** depth,
+          };
+        }
+      }
+      for (const actor of owner.actors ?? []) {
+        if (visited.has(actor) || !(actor.affection instanceof LatchAffection)
+          || !actor.affection.available || !actor.statuses.has("affection")
+          || slug.distanceTo(actor) > 1.35 || Math.abs(actor.position.y - slug.position.y) >= 0.6
+          || !slug.pack.canSee(actor)) {
+          continue;
+        }
+        visited.add(actor);
+        queue.push({
+          slug: actor,
+          depth: depth + 1,
+        });
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * @returns {boolean}
+   */
   beginPat() {
     if (!this.canPat) {
       return false;
@@ -84,23 +179,45 @@ export class LatchAffection {
     if (!this.available) {
       this.patRemaining = 0;
     }
+    const relay = this.#relay();
+    if (relay && !this.owner.canApproachCompanion?.(relay.person)) {
+      if (this.companion !== relay.person) {
+        this.charge = 0;
+      }
+      this.companion = relay.person;
+      this.charge = Math.min(3, this.charge + dt * relay.rate);
+      this.owner.stop();
+      if (this.charge >= 3) {
+        this.owner.applyStatus("affection", {
+          duration: 0.6,
+          source: relay.person,
+        });
+      }
+
+      return;
+    }
     const s = this.owner, person = s.pack.leader;
     const p = person ? s.targetPosition(person) : null;
     const moved = p && this.lastPosition && this.companion === person
       && p.distance(this.lastPosition) > Math.max(0.002, dt * 0.35);
     const velocity = s.entity.rigidbody?.linearVelocity;
     const still = !velocity || Math.hypot(velocity.x, velocity.z) < 0.15;
-    const calm = still && this.available && s.stateName === "LatchDogState" && person
-      && person.alive !== false && s.distanceTo(person) <= 1.2 && !moved && s.pack.canSee(person);
-    if (!calm || this.companion !== person) {
+    const nearby = this.#nearHuman(person);
+    const established = (this.charge >= 3 && this.companion === person)
+      || s.statuses.has("affection");
+    const calm = nearby && this.available && s.stateName === "LatchDogState"
+      && still && !moved && s.pack.canSee(person);
+    // Proximity keeps earned affection alive; its grace period runs only after separation.
+    const maintain = nearby && established;
+    if ((!calm && !maintain) || this.companion !== person) {
       this.charge = 0;
     }
     this.companion = person;
     this.lastPosition = p?.clone() ?? null;
-    if (!calm) {
+    if (!calm && !maintain) {
       return;
     }
-    this.charge = Math.min(3, this.charge + dt);
+    this.charge = maintain ? 3 : Math.min(3, this.charge + dt);
     if (this.charge < 3) {
       return;
     }

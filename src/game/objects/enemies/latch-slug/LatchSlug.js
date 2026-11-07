@@ -1,6 +1,5 @@
 import { LatchAffection } from "./LatchAffection.js";
 import { LatchPatPresentation } from "./LatchPatPresentation.js";
-import { LatchPatInteraction } from "./LatchPatInteraction.js";
 import { LATCH_SLUG_ANIMATION as ANIMATION } from "./LatchSlugAnimation.js";
 import { Enemy } from "../shared/Enemy.js";
 import { LatchGlue } from "./LatchGlue.js";
@@ -215,7 +214,23 @@ export class LatchSlug extends Enemy {
    * @returns {import("../shared/Enemy.js").EnemyActor|null}
    */
   resolvePackTarget() {
-    return this.pack.resolve();
+    return this.pack.resolve() ?? this.affection.approachCompanion;
+  }
+
+  /**
+   * @param {import("../shared/Enemy.js").EnemyActor} human
+   * @returns {boolean}
+   */
+  canApproachCompanion(human) {
+    return this.#navigation.canApproachCompanion(human);
+  }
+
+  /**
+   * @param {import("../shared/Enemy.js").EnemyActor} human
+   * @returns {boolean}
+   */
+  canCloseCompanionGap(human) {
+    return this.#navigation.canCloseCompanionGap(human);
   }
 
   onSceneReady() {
@@ -343,6 +358,11 @@ export class LatchSlug extends Enemy {
    */
   followTarget(target, speed) {
     const next = this.#navigation.next(target);
+    if (this.distanceTo(target) <= 0.95 || (!next?.crowdChecked && this.pack.isCrowdedToward(this.targetPosition(next ?? target)))) {
+      this.stop();
+
+      return true;
+    }
 
     return this.moveToward(next ?? target, speed, 0.025);
   }
@@ -564,12 +584,10 @@ export class LatchSlug extends Enemy {
   }
 
   /**
-   * @param {{onComplete?:()=>void}} options
+   * @returns {null}
    */
-  findInteraction({ onComplete }) {
-    const interaction = new LatchPatInteraction(this, onComplete);
-
-    return interaction.canInteract ? interaction : null;
+  findInteraction() {
+    return null;
   }
 
   clearGlue() {

@@ -359,13 +359,13 @@ it("stands before following a departing royal, sits on arrival, and idles withou
     slug.update(2.1);
   }
   assert.equal(slug.requestedClip, "sit_loop");
-  royal.entity.setPosition(0, 0, -4);
+  royal.entity.setPosition(0, 0, -2.5);
   slug.update(0.1);
   assert.equal(slug.requestedClip, "stand_up");
   assert.equal(slug.entity.rigidbody.linearVelocity.length(), 0);
   slug.update(0.7);
   slug.update(0.1);
-  assert.equal(slug.requestedClip, "waddle_run");
+  assert.equal(slug.requestedClip, "follow");
   assert.ok(slug.entity.rigidbody.linearVelocity.z < 0);
   royal.entity.setPosition(0, 0, -0.5);
   slug.update(0.1);
@@ -515,13 +515,72 @@ it("gets underfoot during pursuit and suspends its ground restriction while carr
 it("initial pursuit reaches the same sitting distance as later follow behavior", () => {
   const { slug, royal, door } = fixture(1);
   door.entity.setPosition(20, 0, 0);
-  royal.entity.setPosition(0, 0, -1.18);
+  royal.entity.setPosition(0, 0, -1.8);
   slug.update(0.1);
   assert.equal(slug.stateName, "LatchSeekState");
   royal.entity.setPosition(0, 0, -0.94);
   slug.update(0.1);
   assert.equal(slug.stateName, "LatchDogState");
   assert.equal(royal.slows.at(-1).factor, 0.65);
+});
+
+it("stays in its lane and builds affection without repositioning or hopping beside a human", () => {
+  const { slug, royal, door } = fixture(1);
+  door.entity.setPosition(20, 0, 0);
+  royal.entity.setPosition(1.5, 0, 0);
+  slug.followTarget = () => assert.fail("a nearby slime must not reposition to gain affection");
+  slug.advanceToPack = () => assert.fail("a nearby slime must not continue toward the castle");
+  slug.update(0.1);
+  assert.equal(slug.stateName, "LatchDogState");
+  assert.equal(slug.idleHop.eligible, false);
+  for (let frame = 0; frame < 190; frame++) {
+    slug.update(1 / 60);
+  }
+  assert.equal(slug.affection.charge, 3);
+  assert.ok(slug.statuses.has("affection"));
+  assert.equal(slug.entity.rigidbody.linearVelocity.length(), 0);
+});
+
+it("stops following before pushing a slug ahead toward the human", () => {
+  const { slug, royal, door } = fixture(1);
+  door.entity.setPosition(20, 0, 0);
+  royal.entity.setPosition(0, 0, -2);
+  const front = new LatchSlug({
+    pc,
+    definition: { id: "front-slug" },
+    runtime: slug.runtime,
+  });
+  front.entity.setPosition(0, 0, -1);
+  slug.runtime.objects.push(front);
+  slug.entity.rigidbody.linearVelocity.set(0, 0, -0.9);
+  slug.followTarget(royal, 0.9);
+  assert.equal(slug.entity.rigidbody.linearVelocity.length(), 0);
+  front.entity.setPosition(0, 0, 1);
+  slug.followTarget(royal, 0.9);
+  assert.ok(slug.entity.rigidbody.linearVelocity.z < 0);
+});
+
+it("sits while relay affection grows instead of following a human or advancing to the castle", () => {
+  const { slug: first, royal, door } = fixture(1);
+  door.entity.setPosition(20, 0, 0);
+  royal.entity.setPosition(0.9, 0, 0);
+  first.affection.companion = royal;
+  first.affection.charge = 3;
+  first.applyStatus("affection", { duration: 0.6 });
+  const follower = new LatchSlug({
+    pc,
+    definition: { id: "relay-slug" },
+    runtime: first.runtime,
+  });
+  follower.entity.setPosition(-1.2, 0, 0);
+  follower.entity.rigidbody = { linearVelocity: new pc.Vec3(0.9, 0, 0) };
+  first.runtime.objects.push(follower);
+  follower.advanceToPack = () => assert.fail("affection buildup must stop castle travel");
+  follower.followTarget = () => assert.fail("affection buildup must stop human pursuit");
+  follower.update(0.1);
+  assert.equal(follower.requestedClip, "sit_loop");
+  assert.equal(follower.entity.rigidbody.linearVelocity.length(), 0);
+  assert.equal(follower.affection.charge, 0.05);
 });
 
 it("sees a closed door from leap distance and selects different leaf heights and offsets", () => {
@@ -783,6 +842,7 @@ it("advances affection through the real slug update and routes live clicks to pa
   slug.update(0.21);
   assert.ok(buffs.includes("slime-affection"));
   assert.ok(slug.statuses.has("affection"));
+  assert.equal(slug.findInteraction(), null, "slimes must not offer a Pat slime action");
   let pats = 0;
   slug.patPresentation = {
     pat: () => {
@@ -913,7 +973,8 @@ it("boosts actual slime movement near a bell bug and drops back to normal when s
 });
 
 it("performs an idle twirl hop with native takeoff and waits for supporting contact before landing", () => {
-  const { slug } = fixture(1);
+  const { slug, royal } = fixture(1);
+  royal.alive = false;
   const sounds = [];
   slug.audio = { play: (name) => sounds.push(name) };
   slug.app = { systems: { rigidbody: { raycastFirst: (from, to) => from.y > to.y ? { normal: pc.Vec3.UP } : null } } };
@@ -943,7 +1004,8 @@ it("performs an idle twirl hop with native takeoff and waits for supporting cont
 });
 
 it("cancels an idle hop if headroom closes during anticipation or stun interrupts it", () => {
-  const { slug } = fixture(1);
+  const { slug, royal } = fixture(1);
+  royal.alive = false;
   const sounds = [];
   slug.audio = { play: (name) => sounds.push(name) };
   let ceiling = false;

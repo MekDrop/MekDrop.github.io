@@ -28,6 +28,12 @@ export class LatchDogState extends State {
    */
   execute(owner) {
     this.#age += owner.deltaTime;
+    if (owner.affection.settling && !owner.affection.nearCompanion) {
+      owner.stop();
+      owner.playClip(ANIMATION.SIT_LOOP);
+
+      return;
+    }
     const door = owner.nearbyDoor;
     if (door && door.openAmount <= 0.001) {
       if (owner.approachDoor(door)) {
@@ -54,15 +60,16 @@ export class LatchDogState extends State {
       return;
     }
     const distance = owner.distanceTo(companion);
+    const sittingDistance = owner.affection.nearCompanion ? 1.6 : 1.2;
     if (this.#phase === ANIMATION.FOLLOW) {
-      if (distance > 0.95) {
+      if (distance > sittingDistance) {
         owner.followTarget(companion, distance > 3 ? 1.35 : 0.9);
         owner.playClip(distance > 3 ? ANIMATION.WADDLE_RUN : ANIMATION.FOLLOW);
 
         return;
       }
       this.#setPhase(owner, ANIMATION.SIT_DOWN);
-    } else if (distance > 1.6 && this.#phase !== ANIMATION.STAND_UP) {
+    } else if (distance > sittingDistance && this.#phase !== ANIMATION.STAND_UP) {
       this.#setPhase(owner, ANIMATION.STAND_UP);
     }
     owner.stop();

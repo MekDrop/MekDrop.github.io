@@ -59,6 +59,7 @@ export class LatchPatPresentation {
       this.hand.entity.enabled = false;
     }
     this.hand.update(dt);
+    this.hud.update(dt);
   }
   render() {
     if (this.destroyed) {

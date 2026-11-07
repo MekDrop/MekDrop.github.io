@@ -74,6 +74,29 @@ it("requires three uninterrupted calm seconds and resets on movement, lost sight
   assert.equal(buffs.has(HERO_BUFF.SLIME_AFFECTION), false);
 });
 
+it("keeps earned affection while following a nearby human, then resets when separated", () => {
+  const { owner, hero, buffs, affection } = fixture();
+  affection.update(3);
+  owner.entity = {
+    rigidbody: {
+      linearVelocity: new pc.Vec3(0.5, 0, 0),
+    },
+  };
+  hero.entity.setPosition(1.3, 0, 0);
+  owner.stateName = "LatchIdleState";
+  owner.pack.canSee = () => false;
+  owner.statuses.clear();
+  buffs.advance(2.1);
+  affection.update(0.7);
+  assert.equal(affection.charge, 3);
+  assert.ok(owner.statuses.has("affection"));
+  assert.equal(buffs.has(HERO_BUFF.SLIME_AFFECTION), true);
+  hero.entity.setPosition(2, 0, 0);
+  affection.update(0.1);
+  assert.equal(affection.charge, 0);
+  assert.ok(owner.statuses.has("affection"), "separation starts the grace period rather than clearing affection");
+});
+
 it("pat contact is happy immediately but never bypasses the affection wait or reach checks", ()=>{
   const {owner, hero, buffs, affection: a} = fixture();
   assert.equal(a.beginPat(), true);
@@ -94,4 +117,55 @@ it("pat contact is happy immediately but never bypasses the affection wait or re
   assert.equal(a.beginPat(), false);
   a.contact();
   assert.equal(a.contacts, 1);
+});
+
+it("spreads affection at half rate per link, stops movement, and cannot sustain a human-free cycle", () => {
+  const first = fixture();
+  const second = fixture();
+  const third = fixture();
+  const group = [first, second, third];
+  let stops = 0;
+  for (const [index, member] of group.entries()) {
+    const owner = member.owner;
+    owner.position.set(-index * 1.2, 0, 0);
+    owner.entity.setPosition(owner.position);
+    owner.affection = member.affection;
+    owner.actors = group.map(item => item.owner);
+    owner.pack.leader = first.hero;
+    owner.distanceTo = actor => owner.position.distance(actor.entity.getPosition());
+    owner.stop = () => {
+      stops++;
+    };
+  }
+  first.affection.update(3);
+  assert.equal(second.affection.settling, true);
+  assert.equal(third.affection.settling, false, "an unfinished link cannot spread affection");
+  second.affection.update(3);
+  assert.equal(second.affection.charge, 1.5);
+  assert.equal(second.owner.statuses.has("affection"), false);
+  second.affection.update(3);
+  assert.equal(second.owner.statuses.has("affection"), true);
+  third.affection.update(6);
+  assert.equal(third.affection.charge, 1.5);
+  third.affection.update(6);
+  assert.equal(third.owner.statuses.has("affection"), true);
+  assert.equal(stops, 4);
+  assert.equal(third.buffs.has(HERO_BUFF.SLIME_AFFECTION), false, "relay does not grant a remote human buff");
+  first.hero.entity.setPosition(20, 0, 0);
+  assert.equal(second.affection.settling, false);
+  assert.equal(third.affection.settling, false);
+  second.affection.update(0.1);
+  third.affection.update(0.1);
+  assert.equal(second.affection.charge, 0);
+  assert.equal(third.affection.charge, 0);
+});
+
+it("does not settle early when there is still an open gap in the same lane", () => {
+  const { owner, affection } = fixture();
+  owner.canCloseCompanionGap = () => true;
+  assert.equal(affection.nearCompanion, false);
+  assert.equal(affection.settling, false);
+  owner.canCloseCompanionGap = () => false;
+  assert.equal(affection.nearCompanion, true);
+  assert.equal(affection.settling, true);
 });

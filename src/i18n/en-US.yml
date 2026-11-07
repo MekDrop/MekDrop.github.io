@@ -90,7 +90,6 @@ game:
   graphics:
     webgl_fallback: WebGPU is unavailable. Using WebGL 2 compatibility rendering.
   interaction:
-    pat_slime: Pat slime
     ring_bell: Ring bell
     smash_bridge: Smash bridge
     collect_flower: Collect flowers

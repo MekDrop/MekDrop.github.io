@@ -8,6 +8,13 @@ export class LatchSeekState extends State {
    * @param {import("../LatchSlug.js").LatchSlug} owner
    */
   execute(owner) {
+    if (owner.affection.settling) {
+      owner.behavior.changeTo(LatchDogState.name);
+      owner.stop();
+      owner.playClip(ANIMATION.SIT_LOOP);
+
+      return;
+    }
     const door = owner.nearbyDoor;
     if (door && door.openAmount <= 0.001) {
       if (owner.approachDoor(door)) {
@@ -32,7 +39,7 @@ export class LatchSeekState extends State {
 
       return;
     }
-    if (owner.distanceTo(companion) <= 0.95 || door?.openAmount > 0.001) {
+    if (owner.distanceTo(companion) <= 1.2 || door?.openAmount > 0.001) {
       owner.behavior.changeTo(LatchDogState.name);
 
       return;
