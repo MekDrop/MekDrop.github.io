@@ -48,7 +48,7 @@ test('six rigid feet follow separate tread heights without accumulating offsets 
   };
   const pose = new BellBugGroundPose(owner, model);
   for (let frame = 0; frame < 20; frame++) {
-    app.fire('postupdate', 1 / 60);
+    app.fire('prerender', 1 / 60);
     for (const bone of bones) {
       const world = bone.getPosition();
       const ground = world.z < 0 ? 0.3 : 0;
@@ -63,7 +63,7 @@ test('six rigid feet follow separate tread heights without accumulating offsets 
   }
   owner.stateName = 'BellBugPanicState';
   owner.clip = 'hide_loop';
-  app.fire('postupdate', 1 / 60);
+  app.fire('prerender', 1 / 60);
   assert.ok(Math.abs(model.getLocalPosition().y - BellBugCalibration.y) < 1e-6);
   pose.destroy();
 });

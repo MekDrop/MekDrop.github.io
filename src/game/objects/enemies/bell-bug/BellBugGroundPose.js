@@ -1,5 +1,5 @@
 /**
- * Render-only tread contacts. Ammo owns the capsule; the authored rigid feet
+ * Tread contacts and quiet footfalls. Ammo owns the capsule; the rigid feet
  * follow its measured support without changing their shape or tripod timing.
  */
 import { BellBugCalibration } from "./BellBugCalibration.js";
@@ -18,7 +18,7 @@ export class BellBugGroundPose {
    */
   height;
   /**
-   * @type {Array<{bone:import("playcanvas").GraphNode,mesh:import("playcanvas").MeshInstance,original:import("playcanvas").Vec3|null}>}
+   * @type {Array<{bone:import("playcanvas").GraphNode,mesh:import("playcanvas").MeshInstance,original:import("playcanvas").Vec3|null,index:number,restHeight:number,lifted:boolean}>}
    */
   legs;
   /**
@@ -47,11 +47,16 @@ export class BellBugGroundPose {
             bone,
             mesh,
             original: null,
+            index:this.legs.length,
+            restHeight:bone.getLocalPosition().y,
+            lifted:false,
           });
         }
       }
     }
-    this.poseHandle = owner.app.on("postupdate", this.#pose, this);
+    // Application emits prerender, not postupdate. Animation and Ammo have
+    // finished here, so both the feet and their sound use the rendered contact.
+    this.poseHandle = owner.app.on("prerender", this.#pose, this);
     this.restoreHandle = owner.app.on("postrender", this.#restore, this);
   }
 
@@ -77,6 +82,9 @@ export class BellBugGroundPose {
       (b.clip === "scuttle_walk" || b.clip === "scuttle_run") &&
       b.grounded && !b.airborne && !b.carrier;
     if (!walking) {
+      for (const leg of this.legs) {
+        leg.lifted = false;
+      }
       this.model.setLocalPosition(this.model.getLocalPosition().x, BellBugCalibration.y, BellBugCalibration.z);
       this.height = null;
 
@@ -88,6 +96,16 @@ export class BellBugGroundPose {
     for (const leg of this.legs) {
       const center = leg.mesh.aabb.center;
       const hit = b.stepSupport.surface(center.x, center.z, p.y + 0.34, p.y - 0.65);
+      const clearance = leg.bone.getLocalPosition().y-leg.restHeight;
+      if (clearance>0.006) {
+        leg.lifted = true;
+      } else if (clearance<=0.001 && leg.lifted) {
+        leg.lifted = false;
+        const velocity = b.entity.rigidbody?.linearVelocity;
+        if (hit && b.alive && velocity && Math.hypot(velocity.x,velocity.z)>0.025) {
+          b.playFootstep?.(leg.index,hit.point);
+        }
+      }
       const height = hit?.point.y ?? p.y - BellBugCalibration.groundClearance;
       contacts.push({
         leg,

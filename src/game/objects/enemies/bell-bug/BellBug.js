@@ -1,5 +1,6 @@
 import { BellBugDoorScratch } from "./BellBugDoorScratch.js";
 import { LatchSlugAudio } from "../../../audio/latch-slug/LatchSlugAudio.js";
+import { CastleAudio } from "../../../audio/castle/CastleAudio.js";
 import { BellBugScoop } from "./BellBugScoop.js";
 import { BellBugScratchRecoverState } from "./states/BellBugScratchRecoverState.js";
 import { BellBugPlaybackVerification } from "./BellBugPlaybackVerification.js";
@@ -103,6 +104,15 @@ export class BellBug extends Enemy {
           loop: false,
         });
       }
+      for (let foot=0;foot<6;foot++) {
+        const source = foot%2 ? CastleAudio.stoneStep2 : CastleAudio.stoneStep1;
+        this.entity.sound.addSlot(`foot${foot}`, {
+          asset:this.runtime.audioLibrary.get(source.wavUrl).id,
+          volume:0.025,
+          overlap:false,
+          loop:false,
+        });
+      }
     }
   }
 
@@ -117,6 +127,30 @@ export class BellBug extends Enemy {
       slot.pitch = pitch;
       sound.play(name);
     }
+  }
+
+  /**
+   * Quiet, separate taps for the six actual planted feet. Attenuate each slot
+   * without changing the bell or eating sounds on the shared component.
+   * @param {number} foot
+   * @param {import("playcanvas").Vec3} point
+   */
+  playFootstep(foot,point) {
+    const sound = this.entity.sound, slot = sound?.slot(`foot${foot}`);
+    if (!slot) {
+      return;
+    }
+    const hero = this.runtime.getHero?.()?.position ?? this.runtime.objects?.getOne("hero")?.position;
+    const camera = this.runtime.camera;
+    const heroDistance = hero ? point.distance(hero) : Infinity;
+    const cameraDistance = camera ? Math.hypot(point.x-camera.panX,point.y-camera.targetY,point.z-camera.panZ) : Infinity;
+    const gain = Math.max(0,1-Math.min(heroDistance,cameraDistance)/10)**2;
+    if (!gain) {
+      return;
+    }
+    slot.volume = 0.025*gain;
+    slot.pitch = 1.5+foot*0.025;
+    sound.play(`foot${foot}`);
   }
 
   /**
