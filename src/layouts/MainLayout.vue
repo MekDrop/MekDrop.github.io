@@ -339,7 +339,6 @@
 <script>
 import { useOtherLinksStore } from "stores/other-links-store";
 import { storeToRefs } from "pinia";
-import GameCanvas from "components/GameCanvas.vue";
 import LanguageSwitcher from "components/LanguageSwitcher.vue";
 import ShaderDropTitle from "components/ShaderDropTitle.vue";
 import getMetaConfig from "src/assets/config/meta";
@@ -347,11 +346,11 @@ import getMainMenu from "src/assets/config/main_menu";
 import { useMeta } from "quasar";
 import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
-import { computed, ref, useSSRContext, watch } from "vue";
+import { computed, defineAsyncComponent, ref, useSSRContext, watch } from "vue";
 
 export default {
   components: {
-    GameCanvas,
+    GameCanvas: defineAsyncComponent(() => import("components/GameCanvas.vue")),
     LanguageSwitcher,
     ShaderDropTitle,
   },

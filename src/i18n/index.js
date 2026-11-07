@@ -1,8 +1,7 @@
-import yaml from "yaml";
-import enUS from "./en-US.yml?raw";
-import ltLT from "./lt.yml?raw";
+import enUS from "./en-US.yml";
+import ltLT from "./lt.yml";
 
 export default {
-  "en-US": yaml.parse(enUS),
-  lt: yaml.parse(ltLT),
+  "en-US": enUS,
+  lt: ltLT,
 };
