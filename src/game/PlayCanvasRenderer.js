@@ -2148,9 +2148,10 @@ export class PlayCanvasRenderer {
       getRotation: this.#getRotation.bind(this),
       /**
        *
-       * @param {pc.Vec3} rotation
+       * @param {number} rotation
+       * @param {boolean} temporary
        */
-      setRotation: (rotation) => {
+      setRotation: (rotation, temporary = false) => {
         if (
           this.#cameraLocked ||
           hero.isDying ||
@@ -2160,6 +2161,17 @@ export class PlayCanvasRenderer {
           return;
         }
         this.#camera.rotation = rotation;
+        if (temporary) {
+          // Visibility probes must not constrain pan, persist the viewport, or
+          // change scene objects while trying an angle that may be rejected.
+          this.#camera.update({
+            cameraDistance: CAMERA_DISTANCE,
+            cameraPitch: CAMERA_PITCH,
+            hero,
+          });
+
+          return;
+        }
         this.#updateCamera();
       },
       shouldPreserveRotation: () => {

@@ -1,8 +1,5 @@
 const CHECK_INTERVAL = 180;
 const PICKER_SCALE = 0.25;
-const SAMPLE_WIDTH = 18;
-const SAMPLE_HEIGHT = 28;
-const HERO_CENTER_HEIGHT = 0.85;
 const ROTATION_COUNT = 4;
 const ALTERNATE_ROTATIONS = [-1, 1, 2];
 
@@ -39,7 +36,7 @@ export class HeroVisibilityController {
   #getRotation;
   /**
    *
-   * @type {(rotation: number) => void}
+   * @type {(rotation: number, temporary?: boolean) => void}
    */
   #setRotation;
   /**
@@ -87,7 +84,7 @@ export class HeroVisibilityController {
    * @param {pc.Entity} options.camera
    * @param {{entity: pc.Entity, position?: pc.Vec3, visible?: boolean}} options.hero
    * @param {() => number} options.getRotation
-   * @param {(rotation: number) => void} options.setRotation
+   * @param {(rotation: number, temporary?: boolean) => void} options.setRotation
    * @param {boolean} options.shouldPreserveRotation
    */
   constructor({
@@ -258,40 +255,29 @@ export class HeroVisibilityController {
     const previousRotation = this.#getRotation();
     let selectionPromise;
     try {
-      this.#setRotation(rotation);
+      this.#setRotation(rotation, true);
 
       const width = Math.max(1, this.#canvas.clientWidth);
       const height = Math.max(1, this.#canvas.clientHeight);
       const pickerWidth = Math.max(1, Math.round(width * PICKER_SCALE));
       const pickerHeight = Math.max(1, Math.round(height * PICKER_SCALE));
-      const heroPosition = this.#hero.getPosition();
-      const screenPosition = this.#camera.worldToScreen(
-        new this.#pc.Vec3(
-          heroPosition.x,
-          heroPosition.y + HERO_CENTER_HEIGHT,
-          heroPosition.z,
-        ),
-      );
-      const sampleWidth = Math.max(1, Math.round(SAMPLE_WIDTH * PICKER_SCALE));
-      const sampleHeight = Math.max(
-        1,
-        Math.round(SAMPLE_HEIGHT * PICKER_SCALE),
-      );
-      const sampleX = screenPosition.x * PICKER_SCALE - sampleWidth / 2;
-      const sampleY = screenPosition.y * PICKER_SCALE - sampleHeight / 2;
+      const sample = this.#heroScreenBounds(width, height);
+      if (!sample) {
+        return null;
+      }
 
       this.#picker.resize(pickerWidth, pickerHeight);
       this.#picker.prepare(this.#camera, this.#app.scene);
       selectionPromise = this.#picker.getSelectionAsync(
-        sampleX,
-        sampleY,
-        sampleWidth,
-        sampleHeight,
+        sample.x,
+        sample.y,
+        sample.width,
+        sample.height,
       );
     } catch {
       return null;
     } finally {
-      this.#setRotation(previousRotation);
+      this.#setRotation(previousRotation, true);
     }
 
     try {
@@ -303,6 +289,59 @@ export class HeroVisibilityController {
     } catch {
       return null;
     }
+  }
+
+  /**
+   * Sample the complete rendered hero: a covered torso does not mean a hidden hero.
+   * @param {number} width
+   * @param {number} height
+   * @returns {{x: number, y: number, width: number, height: number}|null}
+   */
+  #heroScreenBounds(width, height) {
+    let left = Infinity;
+    let top = Infinity;
+    let right = -Infinity;
+    let bottom = -Infinity;
+    for (const render of this.#hero.findComponents("render")) {
+      if (!render.enabled || !render.entity.enabled) {
+        continue;
+      }
+      for (const mesh of render.meshInstances) {
+        if (!mesh.visible || mesh.pick === false) {
+          continue;
+        }
+        const { center, halfExtents } = mesh.aabb;
+        for (const x of [-1, 1]) {
+          for (const y of [-1, 1]) {
+            for (const z of [-1, 1]) {
+              const screen = this.#camera.worldToScreen(new this.#pc.Vec3(
+                center.x + x * halfExtents.x,
+                center.y + y * halfExtents.y,
+                center.z + z * halfExtents.z,
+              ));
+              left = Math.min(left, screen.x);
+              top = Math.min(top, screen.y);
+              right = Math.max(right, screen.x);
+              bottom = Math.max(bottom, screen.y);
+            }
+          }
+        }
+      }
+    }
+    left = Math.max(0, Math.floor(left * PICKER_SCALE));
+    top = Math.max(0, Math.floor(top * PICKER_SCALE));
+    right = Math.min(Math.round(width * PICKER_SCALE), Math.ceil(right * PICKER_SCALE));
+    bottom = Math.min(Math.round(height * PICKER_SCALE), Math.ceil(bottom * PICKER_SCALE));
+    if (right <= left || bottom <= top) {
+      return null;
+    }
+
+    return {
+      x: left,
+      y: top,
+      width: right - left,
+      height: bottom - top,
+    };
   }
 
   /**
