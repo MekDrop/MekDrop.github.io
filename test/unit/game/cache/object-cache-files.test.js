@@ -87,14 +87,64 @@ test("files contain one variant, stay bounded, reassemble large variants, and re
       addWatchFile: () => {},
       warn: (message) => warnings.push(message),
     };
+    const loaderPath = join(root, "src/game/cache/ObjectCacheFiles.js").replaceAll("\\", "/");
+    const cachePlugin = plugin(root);
+    assert.equal(cachePlugin.transform.call(context, "original loader", loaderPath), undefined,
+      "valid cache retains the lazy shard imports");
     const id = join(directory, metadata.files[0]).replaceAll("\\", "/");
     assert.deepEqual(JSON.parse(plugin(root).load.call(context, id)),
       JSON.parse(await readFile(id, "utf8")));
     await writeFile(join(root, "generator.js"), "changed");
+    const stalePlugin = plugin(root);
+    const skipped = stalePlugin.transform.call(context, "original loader", loaderPath);
+    assert.deepEqual((await import(`data:text/javascript,${encodeURIComponent(skipped.code)}`)).default, {},
+      "stale cache issues no shard requests");
+    assert.equal(stalePlugin.transform.call(context, "unrelated", join(root, "other.js")), undefined);
+    warnings.length = 0;
     assert.deepEqual(JSON.parse(plugin(root).load.call(context, id)).entries, {});
     assert.equal(warnings.length, 1);
   } finally {
     // This directory was created by this test, immediately below the project scratch directory.
+    assert.equal(dirname(root), scratch);
+    await rm(root, {
+      recursive: true,
+      force: true,
+      maxRetries: 5,
+      retryDelay: 50,
+    });
+  }
+});
+
+test("Vite removes stale cache imports before expanding the shard glob", async () => {
+  const root = await mkdtemp(join(scratch, "object-cache-stale-"));
+  const { createServer } = await import("vite");
+  let server;
+  try {
+    const directory = join(root, "src/game/cache");
+    await mkdir(join(directory, "generated/books"), { recursive: true });
+    await copyFile(new URL("../../../../src/game/cache/ObjectCacheFiles.js", import.meta.url),
+      join(directory, "ObjectCacheFiles.js"));
+    await writeFile(join(directory, "generated/manifest.json"), JSON.stringify({
+      version: 1,
+      sources: ["missing-source.js"],
+      sourceStamp: "stale",
+      files: ["books/example.json"],
+    }));
+    await writeFile(join(directory, "generated/books/example.json"), "{}");
+    server = await createServer({
+      root,
+      configFile: false,
+      logLevel: "silent",
+      plugins: [plugin(root)],
+      optimizeDeps: { disabled: true },
+      server: { middlewareMode: "ssr" },
+    });
+    const transformed = await server.transformRequest("/src/game/cache/ObjectCacheFiles.js");
+    assert.doesNotMatch(transformed.code, /generated|import\(/);
+    const module = await import(`data:text/javascript;base64,${Buffer.from(transformed.code).toString("base64")}`);
+    assert.deepEqual(module.default, {});
+  } finally {
+    await server?.close();
     assert.equal(dirname(root), scratch);
     await rm(root, {
       recursive: true,

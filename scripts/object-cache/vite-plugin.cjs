@@ -13,30 +13,50 @@ module.exports = (root) => {
   let valid = null;
   let manifest = null;
 
+  /**
+   * @param {import("rollup").PluginContext} context
+   */
+  const validate = (context) => {
+    if (valid === null) {
+      try {
+        manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
+        valid = manifest.version === 1 && manifest.sources?.length > 0 &&
+            sourceStamp(root, manifest.sources) === manifest.sourceStamp;
+        context.addWatchFile(manifestPath);
+        for (const file of manifest.sources ?? []) {
+          context.addWatchFile(resolve(root, file));
+        }
+      } catch {
+        valid = false;
+      }
+      if (!valid) {
+        context.warn("Object data cache is stale; using generators. Run npm run cache:objects to refresh it.");
+      }
+    }
+  };
+  const loaderPath = resolve(root, "src/game/cache/ObjectCacheFiles.js").replaceAll("\\", "/");
+
   return {
     name: "object-data-cache",
     enforce: "pre",
+    transform: function (_code, id) {
+      if (id.split("?")[0] !== loaderPath) {
+        return;
+      }
+      validate(this);
+      if (!valid) {
+        return {
+          code: "export default {};",
+          map: null,
+        };
+      }
+    },
     load: function (id) {
       const path = id.split("?")[0];
       if (!path.startsWith(directory + "/") || !path.endsWith(".json") || path === manifestPath) {
         return;
       }
-      if (valid === null) {
-        try {
-          manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
-          valid = manifest.version === 1 && manifest.sources?.length > 0 &&
-            sourceStamp(root, manifest.sources) === manifest.sourceStamp;
-          this.addWatchFile(manifestPath);
-          for (const file of manifest.sources ?? []) {
-            this.addWatchFile(resolve(root, file));
-          }
-        } catch {
-          valid = false;
-        }
-        if (!valid) {
-          this.warn("Object data cache is stale; using generators. Run npm run cache:objects to refresh it.");
-        }
-      }
+      validate(this);
       let shard = null;
       if (valid && manifest.files.includes(path.slice(directory.length + 1))) {
         try {
@@ -60,8 +80,8 @@ module.exports = (root) => {
       if (changed === manifestPath || (metadata.sources ?? []).some(isSource)) {
         valid = null;
         const modules = [...context.modules];
-        for (const file of metadata.files ?? []) {
-          const module = context.server.moduleGraph.getModuleById(directory + "/" + file);
+        for (const file of ["../ObjectCacheFiles.js", ...(metadata.files ?? [])]) {
+          const module = context.server.moduleGraph.getModuleById(resolve(directory, file).replaceAll("\\", "/"));
           if (module) {
             context.server.moduleGraph.invalidateModule(module);
             modules.push(module);
