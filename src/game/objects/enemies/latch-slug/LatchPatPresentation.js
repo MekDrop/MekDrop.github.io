@@ -1,5 +1,6 @@
 import { HeroPatHand } from "../../characters/hero/HeroPatHand.js";
-import { LatchAffectionHud } from "../../../ui/LatchAffectionHud.js";
+import { LatchMoodHud } from "../../../ui/LatchMoodHud.js";
+import { HERO_MOOD } from "../../../enum/HeroMood.js";
 
 /**
  * Reuses the production patting hand; the slug owns its presentation and lifecycle.
@@ -24,7 +25,8 @@ export class LatchPatPresentation {
     });
     this.hand.entity.name = "Slime patting hand";
     owner.app.root.addChild(this.hand.entity);
-    this.hud = new LatchAffectionHud(owner);
+    this.hud = new LatchMoodHud(owner, HERO_MOOD.HAPPY);
+    this.annoyanceHud = new LatchMoodHud(owner, HERO_MOOD.AGITATED);
     this.updateHandle = owner.app.on("update", this.update, this);
     this.renderHandle = owner.app.on("prerender", this.render, this);
   }
@@ -60,12 +62,14 @@ export class LatchPatPresentation {
     }
     this.hand.update(dt);
     this.hud.update(dt);
+    this.annoyanceHud.update(dt);
   }
   render() {
     if (this.destroyed) {
       return;
     }
     this.hud.update();
+    this.annoyanceHud.update();
   }
   destroy() {
     if (this.destroyed) {
@@ -77,5 +81,6 @@ export class LatchPatPresentation {
     this.renderHandle.off();
     this.hand.destroy();
     this.hud.destroy();
+    this.annoyanceHud.destroy();
   }
 }

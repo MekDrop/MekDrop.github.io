@@ -1,0 +1,37 @@
+{
+  "author": "rubberduck",
+  "title": "40 CC0 water / splash / slime SFX",
+  "sourceUrl": "https://opengameart.org/content/40-cc0-water-splash-slime-sfx",
+  "downloadUrl": "https://opengameart.org/sites/default/files/water-splash-slime-sfx.zip",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "retrieved": "2026-11-07",
+  "archiveSha256": "7cd39abb49d4362a37ba18dc0e454c7dc1d08029d4e5b683149046bc237b2eba",
+  "processing": "Short excerpts, high-pass 140 Hz, low-pass 6500 Hz, 40 ms fade-out, gain 0.7. Stereo 48 kHz PCM16 WAV masters and nominal 192 kbps Vorbis. Light upward pitch variation during playback.",
+  "files": [
+    {
+      "cue": "scoop-press",
+      "source": "sources/slime_01.ogg",
+      "durationSeconds": 0.32,
+      "sourceSha256": "4273c9510b03c3cc6b2d901fbd20de62ff4f537e4077a368355039c3081099a1",
+      "wavSha256": "642388a4f5434ddc0b27f976f62a779786eaa683481bd9562b4e637d9d055f97",
+      "oggSha256": "ac3cdf0f8ef4449887704783e44ca26cbe0982fcd6b3f59f9e4382e05a44eec8"
+    },
+    {
+      "cue": "scoop-pull",
+      "source": "sources/slime_04.ogg",
+      "durationSeconds": 0.4,
+      "sourceSha256": "56f914928bf8f81662a1c4f354ef690600abd5172bb1cf259f55cb38ed7e4a1d",
+      "wavSha256": "e7529cf42fd08acd1b6eaf87dca00e7001164db7d0a8b1351d6545845e5b081e",
+      "oggSha256": "7e4d83dc6c676ff963b50ee625a6ee01cfa0e50211d04b0a08c9f455bd8aac96"
+    },
+    {
+      "cue": "scoop-taste",
+      "source": "sources/slime_12.ogg",
+      "durationSeconds": 0.2298125,
+      "sourceSha256": "de5437b5ad2af49f6914679011bb212934986c1e13e9a4c9cf45537490f66f6e",
+      "wavSha256": "8d3182f5ff694d703aacffc5bad991cbb4ead8506445376055a578d73650feaa",
+      "oggSha256": "137b976b041dbe599c50789ab72bafea7157f3b9f53f33fdedae180df79c34cd"
+    }
+  ]
+}

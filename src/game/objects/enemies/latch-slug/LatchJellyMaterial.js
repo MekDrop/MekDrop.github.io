@@ -46,6 +46,7 @@ export class LatchJellyMaterial {
         // Keep the silhouette readable even when a cloudy region drifts away.
         material.opacity = 0.82;
         material.blendType = pc.BLEND_NORMAL;
+        material.opacityShadowDither = pc.DITHER_BAYER8;
         // The closed outer skin must occlude grass drawn in a later pass.
         material.depthWrite = true;
         material.cull = pc.CULLFACE_BACK;
@@ -127,6 +128,7 @@ export class LatchJellyMaterial {
     this.motion[1] = Math.cos(this.landingAge * 15) * Math.exp(-this.landingAge * 5);
     for (const { instance } of this.instances) {
       // Mesh parameters survive the gate's temporary material clones.
+      instance.setParameter("material_opacity", this.owner.gelMass?.opacity ?? 0.82);
       instance.setParameter("uWorldToJelly", this.inverse.data);
       instance.setParameter("uJellyCenter", [this.center.x, this.center.y, this.center.z]);
       instance.setParameter("uJellyRadius", [this.radius.x, this.radius.y, this.radius.z]);

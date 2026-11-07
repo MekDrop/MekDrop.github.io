@@ -67,6 +67,7 @@ test('pursuit follows its route even when there is no royal target yet',()=>{
   const target={position:new Vec3(0,2,2)},moves=[],clips=[];
   const owner={
     route:{next:()=>target},
+    scoop:{target:null},
     resolveRoyalTarget:()=>null,
     findGluedDoor:()=>null,
     canScratchDoor:false,

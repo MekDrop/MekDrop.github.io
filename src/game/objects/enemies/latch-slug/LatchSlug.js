@@ -1,3 +1,8 @@
+import { LatchGelMass } from "./LatchGelMass.js";
+import { LatchFloorPuddle } from "./LatchFloorPuddle.js";
+import { LatchScoopGel } from "./LatchScoopGel.js";
+import { LatchAnnoyance } from "./LatchAnnoyance.js";
+import { LatchAnnoyedState } from "./states/LatchAnnoyedState.js";
 import { LatchAffection } from "./LatchAffection.js";
 import { LatchPatPresentation } from "./LatchPatPresentation.js";
 import { LATCH_SLUG_ANIMATION as ANIMATION } from "./LatchSlugAnimation.js";
@@ -112,7 +117,7 @@ export class LatchSlug extends Enemy {
    * @returns {string[]}
    */
   static get audioUrls() {
-    return [LatchSlugAudio.jump.wavUrl, LatchSlugAudio.splash.wavUrl, LatchSlugAudio.idleHop.wavUrl];
+    return [LatchSlugAudio.jump.wavUrl, LatchSlugAudio.splash.wavUrl, LatchSlugAudio.idleHop.wavUrl, LatchSlugAudio.scoopPress.wavUrl, LatchSlugAudio.scoopPull.wavUrl, LatchSlugAudio.scoopTaste.wavUrl];
   }
   /**
    * @type {GameObjectAudio|null}
@@ -147,6 +152,8 @@ export class LatchSlug extends Enemy {
 
     this.pack = new LatchPack(this);
     this.affection = new LatchAffection(this);
+    this.annoyance = new LatchAnnoyance(this);
+    this.gelMass = new LatchGelMass(this);
     this.hurry = new LatchHurry(this);
     this.idleHop = new LatchIdleHop(this);
     this.radius = 0.42;
@@ -159,7 +166,7 @@ export class LatchSlug extends Enemy {
     if (position) {
       this.entity.setPosition(position.x, position.y ?? 0, position.z);
     }
-    for (const StateClass of [LatchSeekState, LatchDogState, LatchPressState, LatchLeapState, LatchIdleHopState, LatchReactionState, LatchDeadState, LatchClipState]) {
+    for (const StateClass of [LatchAnnoyedState, LatchSeekState, LatchDogState, LatchPressState, LatchLeapState, LatchIdleHopState, LatchReactionState, LatchDeadState, LatchClipState]) {
       this.behavior.add(StateClass.name, new StateClass());
     }
     this.behavior.changeTo(LatchSeekState.name);
@@ -263,6 +270,9 @@ export class LatchSlug extends Enemy {
           jump: LatchSlugAudio.jump,
           splash: LatchSlugAudio.splash,
           idleHop: LatchSlugAudio.idleHop,
+          scoopPress: LatchSlugAudio.scoopPress,
+          scoopPull: LatchSlugAudio.scoopPull,
+          scoopTaste: LatchSlugAudio.scoopTaste,
         }, 0.6);
       this.audio.follow(() => this.runtime.getHero()?.position ?? null, 14);
     }
@@ -281,7 +291,7 @@ export class LatchSlug extends Enemy {
   get testStatus() {
     const layer = this.#model?.anim?.baseLayer;
 
-    return this.#playbackCheck?.status || `${super.testStatus}\n${this.requestedClip} ${(layer?.activeStateCurrentTime ?? 0).toFixed(2)}s\nAffection ${this.affection.charge.toFixed(1)}/3s`;
+    return this.#playbackCheck?.status || `${super.testStatus}\n${this.requestedClip} ${(layer?.activeStateCurrentTime ?? 0).toFixed(2)}s\nAffection ${this.affection.charge.toFixed(1)}/3s | Annoyance ${this.annoyance.level}/5`;
   }
 
   verifyPlayback() {
@@ -401,6 +411,12 @@ export class LatchSlug extends Enemy {
     if (!Number.isFinite(dt) || dt <= 0) {
       return;
     }
+    if (this.alive && this.annoyance.active && !this.carrier && !this.airborne
+      && !this.gatewayArrival.active && !this.statuses.has("stun") && !this.statuses.has("confused")
+      && [LatchSeekState.name, LatchDogState.name].includes(this.stateName)) {
+      this.behavior.changeTo(LatchAnnoyedState.name);
+    }
+    this.gelMass.update(dt);
     this.hurry.update(dt);
     this.crawlTime += dt * this.hurry.speedFactor;
     if (this.gatewayArrival.active) {
@@ -410,6 +426,14 @@ export class LatchSlug extends Enemy {
     }
     this.stateAge += dt;
     if (!this.alive) {
+      if (this.floorPuddle) {
+        this.floorPuddle.update(dt);
+        if (!this.floorPuddle.active) {
+          this.destroy();
+        }
+
+        return;
+      }
       this.residue?.update(dt);
       if (this.residue?.active) {
         this.limitNearbyMovement(0.45);
@@ -523,6 +547,20 @@ export class LatchSlug extends Enemy {
      * @param {import("playcanvas").RenderComponent} render
      */
       (render) => render.meshInstances) ?? [];
+  }
+
+  /**
+   * @param {import("../bell-bug/BellBug.js").BellBug} bug
+   * @param {number} side
+   * @returns {LatchScoopGel|null}
+   */
+  beginScoop(bug, side) {
+    if (this.scoopGel?.active) {
+      return null;
+    }
+    this.scoopGel = new LatchScoopGel(this, bug, side);
+
+    return this.scoopGel.active ? this.scoopGel : null;
   }
 
   finishSplatTransition() {
@@ -724,19 +762,42 @@ export class LatchSlug extends Enemy {
     return true;
   }
 
-  onDamaged() {
+  /**
+   * @param {{kind: string}} event
+   */
+  onDamaged(event) {
+    if (event?.kind === "scoop") {
+      if (this.alive && this.annoyance.active
+        && [LatchSeekState.name, LatchDogState.name].includes(this.stateName)) {
+        this.behavior.changeTo(LatchAnnoyedState.name);
+      }
+
+      return;
+    }
     if (this.alive) {
       this.behavior.changeTo(LatchReactionState.name);
       this.playClip(ANIMATION.HIT);
     }
   }
 
-  onDeath() {
+  /**
+   * @param {{kind: string}} event
+   */
+  onDeath(event) {
     this.#doorLeap.cancel();
+    if (event?.kind === "scoop") {
+      this.scoopGel?.destroy();
+      const puddle = new LatchFloorPuddle(this);
+      if (puddle.active) {
+        this.floorPuddle = puddle;
+      }
+    }
     this.behavior.changeTo(LatchDeadState.name);
   }
 
   destroy() {
+    this.scoopGel?.destroy();
+    this.floorPuddle?.destroy();
     this.gatewayArrival.finish();
     this.#stairSurface?.destroy();
     this.#groundCrawl?.destroy();

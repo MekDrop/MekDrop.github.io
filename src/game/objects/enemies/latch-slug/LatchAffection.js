@@ -27,7 +27,7 @@ export class LatchAffection {
   get available() {
     const s = this.owner;
 
-    return s.alive && !s.carrier && !s.airborne && !s.gatewayArrival.active
+    return !s.annoyance?.level && s.alive && !s.carrier && !s.airborne && !s.gatewayArrival.active
       && !s.statuses.has("stun") && !s.statuses.has("confused")
       && s.stateName !== "LatchPressState" && s.stateName !== "LatchLeapState";
   }
@@ -187,6 +187,12 @@ export class LatchAffection {
     this.happyRemaining = Math.max(0, this.happyRemaining - dt);
     if (!this.available) {
       this.patRemaining = 0;
+    }
+    if (this.owner.annoyance?.level > 0) {
+      this.charge = Math.max(0, this.charge - dt * this.owner.annoyance.level / 5);
+      this.owner.statuses.delete("affection");
+
+      return;
     }
     const relay = this.#relay();
     if (relay && !this.owner.canApproachCompanion?.(relay.person)) {

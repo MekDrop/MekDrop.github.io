@@ -22,6 +22,11 @@ export class BellBugPursueState extends State {
 
       return;
     }
+    if (owner.scoop.target) {
+      owner.stop();
+
+      return;
+    }
     const royal = owner.resolveRoyalTarget();
     owner.scratchTarget = owner.findGluedDoor() ?? (royal && owner.findClosedDoor(royal));
     if (owner.canScratchDoor) {

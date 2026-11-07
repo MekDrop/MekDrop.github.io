@@ -10,7 +10,7 @@ export class LatchDeadState extends State {
     owner.stop();
     // A contact captures the current 3D pose for the continuous wall morph.
     // Changing its bones to another clip here would introduce a visible pop.
-    if (!owner.residue) {
+    if (!owner.residue && !owner.floorPuddle) {
       owner.playClip(ANIMATION.DEATH);
     }
     // No living body survives a fatal splat. Residue owns only the door effect.

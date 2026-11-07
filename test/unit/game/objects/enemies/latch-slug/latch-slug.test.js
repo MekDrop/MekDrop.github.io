@@ -982,7 +982,7 @@ it("a second slug commits and splats even when the first impact has jammed the l
   assert.equal(first.door.jammed, false);
 });
 
-it("boosts actual slime movement near a bell bug and drops back to normal when stamina runs out", () => {
+it("boosts actual slime movement only after five scoops and drops back to normal when stamina runs out", () => {
   const { slug } = fixture(1);
   const bug = {
     entity: {
@@ -998,6 +998,11 @@ it("boosts actual slime movement near a bell bug and drops back to normal when s
   const target = { position: new pc.Vec3(10, 0, 0) };
   slug.moveToward(target, 0.8);
   const ordinarySpeed = slug.entity.rigidbody.linearVelocity.length();
+  slug.hurry.update(0.1);
+  assert.equal(slug.hurry.active, false);
+  for (let i = 0; i < 5; i++) {
+    slug.annoyance.scoop(bug);
+  }
   slug.hurry.update(0.1);
   slug.moveToward(target, 0.8);
   assert.ok(Math.abs(slug.entity.rigidbody.linearVelocity.length() / ordinarySpeed - 1.8) < 1e-6);
@@ -1058,4 +1063,40 @@ it("cancels an idle hop if headroom closes during anticipation or stun interrupt
   assert.equal(slug.airborne, false);
   assert.equal(slug.requestedClip, "stun");
   assert.deepEqual(sounds, [], "cancelled hops stay silent");
+});
+
+
+it("scoops lower affection, trigger survival at five and kill exactly at ten", () => {
+  const { slug } = fixture(1);
+  slug.affection.charge = 3;
+  slug.statuses.set("affection", { remaining: 1 });
+  const source = { isBellBug: true };
+  for (let i = 1; i <= 10; i++) {
+    assert.equal(slug.annoyance.scoop(source), true);
+    assert.equal(slug.annoyance.active, i >= 5);
+    assert.equal(slug.alive, i < 10);
+    assert.ok(Math.abs(slug.health - slug.maxHealth * (10 - i) / 10) < 1e-7);
+    assert.equal(slug.statuses.has("affection"), false);
+    assert.ok(slug.affection.charge <= Math.max(0, 3 - i * 0.6) + 1e-8);
+  }
+  assert.equal(slug.annoyance.scoop(source), false);
+});
+
+it("annoyance follows the default route without settling beside a companion", () => {
+  const { slug } = fixture(1);
+  for (let i = 0; i < 5; i++) {
+    slug.annoyance.scoop(null);
+  }
+  let routed = 0;
+  slug.advanceToPack = () => {
+    routed++;
+
+    return true;
+  };
+  slug.resolvePackTarget = () => assert.fail("annoyance must not follow companions");
+  slug.affection.charge = 2;
+  slug.update(0.1);
+  assert.equal(slug.stateName, "LatchAnnoyedState");
+  assert.equal(routed, 1);
+  assert.ok(slug.affection.charge < 2);
 });

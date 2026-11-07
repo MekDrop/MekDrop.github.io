@@ -15,7 +15,7 @@ hooks.deregister();
 it("ignores callbacks already queued when the slug presentation is destroyed", () => {
   const app = new EventHandler();
   const presentation = Object.create(LatchPatPresentation.prototype);
-  let handDestroyed = 0, hudDestroyed = 0;
+  let handDestroyed = 0, hudDestroyed = 0, annoyanceDestroyed = 0;
   presentation.owner = {
     affection: {
       available: false,
@@ -36,6 +36,12 @@ it("ignores callbacks already queued when the slug presentation is destroyed", (
       hudDestroyed++;
     },
   };
+  presentation.annoyanceHud = {
+    update: () => assert.fail("Destroyed annoyance HUD rendered"),
+    destroy: () => {
+      annoyanceDestroyed++;
+    },
+  };
   app.on("update", () => presentation.destroy());
   presentation.updateHandle = app.on("update", presentation.update, presentation);
   presentation.renderHandle = app.on("prerender", presentation.render, presentation);
@@ -47,4 +53,5 @@ it("ignores callbacks already queued when the slug presentation is destroyed", (
   app.fire("prerender");
   assert.equal(handDestroyed, 1);
   assert.equal(hudDestroyed, 1);
+  assert.equal(annoyanceDestroyed, 1);
 });

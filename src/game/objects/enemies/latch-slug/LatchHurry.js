@@ -1,8 +1,7 @@
-import { LatchSeekState } from "./states/LatchSeekState.js";
-import { LatchDogState } from "./states/LatchDogState.js";
+import { LatchAnnoyedState } from "./states/LatchAnnoyedState.js";
 
 /**
- * A nearby bell bug prompts a brief effort along the slime's normal route.
+ * Annoyance prompts a stamina-limited effort along the slime's normal route.
  */
 export class LatchHurry {
   /**
@@ -49,8 +48,8 @@ export class LatchHurry {
     const moving = velocity && Math.hypot(velocity.x, velocity.z) > 0.04;
     const eligible = owner.alive && !owner.carrier && !owner.airborne && !owner.gatewayArrival.active
       && !owner.stairCrawl?.active && !owner.statuses.has("stun") && !owner.statuses.has("confused")
-      && [LatchSeekState.name, LatchDogState.name].includes(owner.stateName);
-    this.active = !!(eligible && moving && !this.exhausted && this.#nearBellBug());
+      && owner.stateName === LatchAnnoyedState.name;
+    this.active = !!(eligible && moving && !this.exhausted && owner.annoyance?.active);
     if (this.active) {
       this.stamina = Math.max(0, this.stamina - dt);
       if (this.stamina === 0) {
@@ -63,28 +62,5 @@ export class LatchHurry {
         this.exhausted = false;
       }
     }
-  }
-
-  /**
-   * @returns {boolean}
-   */
-  #nearBellBug() {
-    const actors = this.#owner.runtime?.objects?.getMatching?.(LatchHurry.#isBellBug) ?? this.#owner.actors;
-    for (const actor of actors) {
-      if (actor.isBellBug && actor.alive && !actor.carrier && !actor.airborne && actor.entity?.enabled !== false
-        && this.#owner.distanceTo(actor) <= 3 && this.#owner.pack.canSee(actor)) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  /**
-   * @param {import("../shared/Enemy.js").EnemyActor & {isBellBug?: boolean}} actor
-   * @returns {boolean}
-   */
-  static #isBellBug(actor) {
-    return Boolean(actor.isBellBug);
   }
 }

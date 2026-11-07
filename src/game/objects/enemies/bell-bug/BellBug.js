@@ -1,3 +1,4 @@
+import { BellBugScoop } from "./BellBugScoop.js";
 import { BellBugScratchRecoverState } from "./states/BellBugScratchRecoverState.js";
 import { BellBugPlaybackVerification } from "./BellBugPlaybackVerification.js";
 import { BellBugPreview } from "./BellBugPreview.js";
@@ -48,6 +49,7 @@ export class BellBug extends Enemy {
       this.entity.setPosition(position.x, position.y, position.z);
     }
     this.isBellBug = true;
+    this.scoop = new BellBugScoop(this);
     this.radius = BellBugCalibration.radius;
     this.height = BellBugCalibration.height;
     this.stepSupport = new BellBugStepSupport(this);
@@ -132,8 +134,15 @@ export class BellBug extends Enemy {
    * @param {number} dt
    */
   update(dt) {
+    if (!Number.isFinite(dt) || dt <= 0) {
+      return;
+    }
     super.update(dt);
-    if (!Number.isFinite(dt) || dt <= 0 || !this.alive || this.carrier || this.airborne ||
+    this.scoop.update(dt, this.stateName === BellBugPursueState.name);
+    if (this.scoop.target) {
+      return;
+    }
+    if (!this.alive || this.carrier || this.airborne ||
       this.statuses.has("stun") || this.stateName !== BellBugPursueState.name) {
       return;
     }
@@ -471,6 +480,7 @@ export class BellBug extends Enemy {
   }
 
   destroy() {
+    this.scoop.reset();
     this.animationPlayback?.destroy();
     super.destroy();
   }

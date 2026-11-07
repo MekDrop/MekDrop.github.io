@@ -1,3 +1,4 @@
+import { BellBugScoopPose } from "./BellBugScoopPose.js";
 import { BELL_BUG_ANIMATION } from "./BellBugAnimation.js";
 import { BellBugPursueState } from "./states/BellBugPursueState.js";
 import { BellBugGroundPose } from "./BellBugGroundPose.js";
@@ -49,6 +50,7 @@ export class BellBugModel {
     for (const name of names) {
       this.#model.anim.addAnimationState(name, tracks.get(name), 1, loops.has(name));
     }
+    this.scoopPose = new BellBugScoopPose(owner, this.#model);
     this.play(owner.clip);
     this.#updateHandle = owner.app.on("update", this.#updateSpeed, this);
   }
@@ -106,6 +108,7 @@ export class BellBugModel {
   }
 
   destroy() {
+    this.scoopPose.destroy();
     this.groundPose.destroy();
     this.#updateHandle.off();
     this.#model.destroy();

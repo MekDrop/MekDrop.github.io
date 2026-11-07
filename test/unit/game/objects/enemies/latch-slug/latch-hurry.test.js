@@ -11,7 +11,8 @@ const fixture = () => {
   };
   const owner = {
     alive: true,
-    stateName: "LatchSeekState",
+    annoyance: { active: true },
+    stateName: "LatchAnnoyedState",
     entity: { rigidbody: { linearVelocity: new Vec3(0, 0, 0.8) } },
     gatewayArrival: { active: false },
     statuses: new Map(),
@@ -27,7 +28,7 @@ const fixture = () => {
   };
 };
 
-it("gives a moving slime a short burst near a bell bug and requires full recovery after exhaustion", () => {
+it("gives an annoyed moving slime a short burst and requires full recovery after exhaustion", () => {
   const { hurry } = fixture();
   hurry.update(0.5);
   assert.equal(hurry.speedFactor, 1.8);
@@ -45,37 +46,12 @@ it("gives a moving slime a short burst near a bell bug and requires full recover
   assert.equal(hurry.speedFactor, 1.8);
 });
 
-it("ignores distant, hidden, dead, carried, airborne and disabled bugs and other enemies", () => {
-  for (const change of [
-    bug => {
-      bug.distance = 3.01;
-    },
-    bug => {
-      bug.alive = false;
-    },
-    bug => {
-      bug.carrier = {};
-    },
-    bug => {
-      bug.airborne = true;
-    },
-    bug => {
-      bug.entity = { enabled: false };
-    },
-    bug => {
-      bug.isBellBug = false;
-    },
-  ]) {
-    const { hurry, bug } = fixture();
-    change(bug);
-    hurry.update(0.5);
-    assert.equal(hurry.speedFactor, 1);
-    assert.equal(hurry.stamina, 2);
-  }
+it("does not hurry before annoyance reaches its threshold", () => {
   const { hurry, owner } = fixture();
-  owner.pack.canSee = () => false;
+  owner.annoyance.active = false;
   hurry.update(0.5);
   assert.equal(hurry.active, false);
+  assert.equal(hurry.stamina, 2);
 });
 
 it("preserves stamina while stationary, stunned, carried, airborne, on stairs or in an action", () => {
@@ -116,12 +92,12 @@ it("preserves stamina while stationary, stunned, carried, airborne, on stairs or
   }
 });
 
-it("ends the burst and recovers when clear of bugs, without spending stamina on invalid timesteps", () => {
-  const { hurry, bug } = fixture();
+it("ends the burst and recovers when no longer annoyed, without spending stamina on invalid timesteps", () => {
+  const { hurry, bug, owner: hurryOwner } = fixture();
   bug.distance = 3;
   hurry.update(0.5);
   assert.equal(hurry.active, true, "the proximity boundary is inclusive");
-  bug.distance = 4;
+  hurryOwner.annoyance.active = false;
   hurry.update(0.5);
   assert.equal(hurry.active, false);
   assert.equal(hurry.stamina, 1.7);
