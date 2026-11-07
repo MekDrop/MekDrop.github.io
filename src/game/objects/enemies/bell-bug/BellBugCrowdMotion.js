@@ -75,6 +75,8 @@ export class BellBugCrowdMotion {
     const following = peerVelocity && peerVelocity.x * forwardX + peerVelocity.z * forwardZ > 0.15;
     if (allowed < speed * 0.8 && !following) {
       this.#blockedAge += b.deltaTime ?? 1 / 60;
+      // Local passing must stay within the authored path, including when
+      // close route waypoints bypass the shared lane planner.
       if (this.#blockedAge >= 0.45) {
         const passing = this.#passingVelocity(forwardX, forwardZ, speed, neighbours);
         if (passing) {
@@ -93,6 +95,36 @@ export class BellBugCrowdMotion {
   }
 
   /**
+   * Check the path corridor at the actor's floor.
+   * @param {number} x
+   * @param {number} z
+   * @returns {boolean}
+   */
+  #onPath(x = this.owner.position.x, z = this.owner.position.z) {
+    const b = this.owner, map = b.runtime?.mapData, position = b.position;
+    for (const path of map?.paths ?? []) {
+      for (let index = 1; index < path.route.length; index++) {
+        const first = path.route[index - 1], second = path.route[index];
+        const dx = second.col - first.col, dz = second.row - first.row;
+        const lengthSq = dx * dx + dz * dz;
+        if (!lengthSq) {
+          continue;
+        }
+        const startX = first.col - (map.cols - 1) / 2, startZ = first.row - (map.rows - 1) / 2;
+        const fraction = Math.max(0, Math.min(1,
+          ((x - startX) * dx + (z - startZ) * dz) / lengthSq));
+        const elevation = first.elevation + (second.elevation - first.elevation) * fraction;
+        if (Math.abs(position.y - elevation) < 0.6 &&
+          Math.hypot(x - startX - dx * fraction, z - startZ - dz * fraction) <= 1 - BellBugCalibration.spacingRadius) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  /**
    * A stopped actor must not become a permanent roadblock. Commit to one
    * passing side, checking both creature footprints and real Ammo clearance.
    * @param {number} forwardX
@@ -105,7 +137,7 @@ export class BellBugCrowdMotion {
     const b = this.owner;
     const sides = this.#passingSide ? [this.#passingSide, -this.#passingSide] : [1, -1];
     for (const side of sides) {
-      for (const degrees of [30, 60, 90, 120]) {
+      for (const degrees of this.#onPath() ? [30, 60, 90] : [30, 60, 90, 120]) {
         const angle = side * degrees * Math.PI / 180;
         const dx = forwardX * Math.cos(angle) - forwardZ * Math.sin(angle);
         const dz = forwardX * Math.sin(angle) + forwardZ * Math.cos(angle);
@@ -128,9 +160,19 @@ export class BellBugCrowdMotion {
    */
   #clearPassingDirection(dx, dz, neighbours) {
     const b = this.owner, origin = b.position;
+    const onPath = this.#onPath();
     for (const distance of [0.35, 0.7]) {
       const x = origin.x + dx * distance, z = origin.z + dz * distance;
+      if (onPath && !this.#onPath(x, z)) {
+        return false;
+      }
       for (const neighbour of neighbours) {
+        // Existing contact must allow movement away from a peer. Rejecting
+        // every overlapping starting footprint locks a whole cluster in place.
+        const separating = (origin.x - neighbour.position.x) * dx + (origin.z - neighbour.position.z) * dz >= -0.0001;
+        if (separating && Math.hypot(origin.x - neighbour.position.x, origin.z - neighbour.position.z) < neighbour.clearance) {
+          continue;
+        }
         if (Math.hypot(x - neighbour.position.x, z - neighbour.position.z) < neighbour.clearance) {
           return false;
         }

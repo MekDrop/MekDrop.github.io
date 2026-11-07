@@ -107,6 +107,68 @@ test('a moving leader is followed instead of repeatedly overtaken',()=>{
   assert.ok(Math.abs(body.linearVelocity.z)<1.15);
 });
 
+test('blocked path lanes remain queued beyond the local passing delay and resume when clear', () => {
+  for (const vertical of [false, true]) {
+    const {body,peer,motion}=fixture(vertical ? 0 : .7,vertical ? -.7 : 0);
+    const owner=motion.owner;
+    owner.deltaTime=.2;
+    owner.position.set(vertical ? -.5 : 0,0,vertical ? 0 : -.5);
+    peer.position.set(vertical ? -.5 : .7,0,vertical ? -.7 : -.5);
+    owner.actors.push({
+      ...peer,
+      position:peer.position.clone().add(new Vec3(vertical ? 1 : 0,0,vertical ? 0 : 1)),
+    });
+    owner.runtime={
+      mapData:{
+        cols:1,
+        rows:1,
+        paths:[{
+          route:vertical ? [
+            {
+              col:0,
+              row:-4,
+              elevation:0,
+            },
+            {
+              col:0,
+              row:4,
+              elevation:0,
+            },
+          ] : [
+            {
+              col:-4,
+              row:0,
+              elevation:0,
+            },
+            {
+              col:4,
+              row:0,
+              elevation:0,
+            },
+          ],
+        }],
+      },
+    };
+    for (let frame=0;frame<30;frame++) {
+      body.linearVelocity.set(vertical ? 0 : 1.15,-.5,vertical ? -1.15 : 0);
+      assert.equal(motion.constrain(),false);
+      assert.equal(Math.hypot(body.linearVelocity.x,body.linearVelocity.z),0);
+      assert.equal(body.linearVelocity.y,-.5);
+    }
+    owner.actors=[peer];
+    body.linearVelocity.set(vertical ? 0 : 1.15,-.5,vertical ? -1.15 : 0);
+    assert.equal(motion.constrain(),true,'an open adjacent lane releases the queue');
+    const lateral=vertical ? body.linearVelocity.x : body.linearVelocity.z;
+    assert.ok(lateral>0,'passing moves into the free lane rather than onto grass');
+    const lateralPosition=(vertical ? owner.position.x : owner.position.z)+lateral*.7;
+    assert.ok(Math.abs(lateralPosition)<=.55,'the complete foot room remains on the path');
+    owner.actors=[];
+    body.linearVelocity.set(vertical ? 0 : 1.15,-.5,vertical ? -1.15 : 0);
+    assert.equal(motion.constrain(),true);
+    assert.equal(body.linearVelocity.y,-.5);
+  }
+});
+
 test('a yielding slug still blocks the Bell Bug until it clears the way', () => {
   const { body, peer, motion } = fixture(0, -0.7);
   motion.owner.isBellBug = true;
