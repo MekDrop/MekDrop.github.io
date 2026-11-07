@@ -1156,7 +1156,8 @@ export class PlayCanvasRenderer {
   teleportHeroAtPointer(event) {
     const hero = this.hero;
     if (
-      !hero || this.inventoryVisible || hero.isGameOver
+      !hero || !hero.entity?.enabled || this.#replacingScene ||
+      this.inventoryVisible || hero.isGameOver || hero.isDying || hero.isRespawning
     ) {
       return false;
     }
