@@ -231,15 +231,16 @@ export class LatchCompanionRoute {
    * @returns {boolean}
    */
   #clear(point, human) {
-    return this.#onPath(point) && !this.#occupied(point, human) && !this.blocked(point);
+    return this.#onPath(point) && !this.#occupied(point, human, true) && !this.blocked(point);
   }
 
   /**
    * @param {import("playcanvas").Vec3} point
    * @param {import("../shared/Enemy.js").EnemyActor} human
+   * @param {boolean} allowSeparation
    * @returns {boolean}
    */
-  #occupied(point, human) {
+  #occupied(point, human, allowSeparation = false) {
     const owner = this.owner;
     for (const actor of new Set([...this.#socialActors, human])) {
       if (actor === owner || actor.alive === false || actor.carrier || actor.airborne ||
@@ -250,6 +251,16 @@ export class LatchCompanionRoute {
       const radius = actor === human ? 0.4 : actor.radius;
       if (position && Math.abs(position.y - point.y) < 0.6 &&
         Math.hypot(position.x - point.x, position.z - point.z) < owner.radius + radius + 0.08) {
+        // Contact can put slimes inside the steering margin. Let them leave
+        // sideways without requiring the first small step to clear it entirely.
+        const origin = owner.position;
+        const separating = (origin.x - position.x) * (point.x - origin.x) +
+          (origin.z - position.z) * (point.z - origin.z) >= 0;
+        if (allowSeparation && separating &&
+          Math.hypot(position.x - point.x, position.z - point.z) >
+          Math.hypot(position.x - origin.x, position.z - origin.z) + 1e-6) {
+          continue;
+        }
         return true;
       }
     }

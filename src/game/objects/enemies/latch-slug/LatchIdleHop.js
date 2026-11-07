@@ -41,7 +41,7 @@ export class LatchIdleHop {
     return owner.alive && owner.grounded && !owner.airborne && !owner.carrier && !owner.gatewayArrival.active
       && !owner.stairCrawl?.active && !owner.statuses.has("stun") && !owner.statuses.has("confused")
       && !(owner.affection?.patRemaining > 0)
-      && !owner.affection?.settling
+      && (!owner.affection?.settling || owner.statuses.has("affection"))
       && [LatchSeekState.name, LatchDogState.name].includes(owner.stateName);
   }
 

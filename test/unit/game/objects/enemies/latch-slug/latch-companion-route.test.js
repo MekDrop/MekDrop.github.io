@@ -119,6 +119,22 @@ it("rejects blocked lanes instead of routing across grass or through another flo
   assert.equal(new LatchCompanionRoute(owner, () => false).next(human), null);
 });
 
+it("can leave a touching queue to change lanes without moving into its neighbour", () => {
+  const { owner, human, front } = fixture();
+  owner.position.set(2, 0, 0);
+  front.position.x = 1.16;
+  const route = new LatchCompanionRoute(owner, point => point.x > 2);
+  for (let step = 0; step < 160 && owner.position.distance(human.position) > 1.2; step++) {
+    const next = route.next(human);
+    assert.ok(next, "contact spacing must not trap the slime inside the steering margin");
+    assert.ok(next.distance(owner.position) > 0.025);
+    const previousDistance = owner.position.distance(front.position);
+    owner.position.lerp(owner.position, next, Math.min(1, 0.04 / next.distance(owner.position)));
+    assert.ok(owner.position.distance(front.position) >= Math.min(previousDistance, 0.92) - 1e-6);
+  }
+  assert.ok(owner.position.distance(human.position) <= 1.2);
+});
+
 it("closes an open gap in the same lane and settles when forward clearance is blocked", () => {
   const { owner, human } = fixture();
   owner.actors = [];

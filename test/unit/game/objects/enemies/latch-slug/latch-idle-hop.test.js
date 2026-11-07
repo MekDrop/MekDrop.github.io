@@ -98,6 +98,20 @@ it("does not queue hops while carried, stunned, airborne, being patted, on stair
   }
 });
 
+it("resumes social hops after bonding, but still pauses for pats", () => {
+  const { owner, hop, starts } = fixture();
+  owner.affection.settling = true;
+  assert.equal(hop.update(20), false);
+  assert.equal(starts(), 0);
+  owner.statuses.set("affection", {});
+  assert.equal(hop.update(2), false);
+  assert.equal(hop.update(2), true);
+  assert.equal(starts(), 1);
+  owner.affection.patRemaining = 1;
+  assert.equal(hop.update(20), false);
+  assert.equal(starts(), 1);
+});
+
 it("requires supporting ground and checks headroom across the capsule before jumping", () => {
   const { owner, hop } = fixture();
   assert.equal(hop.clearance, true);
