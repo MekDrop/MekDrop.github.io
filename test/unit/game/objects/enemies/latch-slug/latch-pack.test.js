@@ -2,6 +2,32 @@ import assert from "node:assert/strict";
 import { it } from "node:test";
 import { Entity, Vec3 } from "playcanvas";
 import { LatchPack } from "../../../../../../src/game/objects/enemies/latch-slug/LatchPack.js";
+import { SceneObjectRegistry } from "../../../../../../src/game/rendering/scene/SceneObjectRegistry.js";
+
+it("shares indexed people while checking live range, death and newly spawned companions", () => {
+  const { human, owner } = fixture();
+  human.entity.setPosition(20, 0, 0);
+  const objects = new SceneObjectRegistry();
+  owner.runtime.objects = objects;
+  const companion = {
+    entity: new Entity(),
+    isRoyal: true,
+  };
+  companion.entity.setPosition(1, 0, 0);
+  objects.add("actor", companion);
+  assert.equal(owner.pack.resolve(), companion);
+  companion.alive = false;
+  assert.equal(owner.pack.resolve(), null);
+  const servant = {
+    entity: new Entity(),
+    definition: { object: "Servant" },
+  };
+  servant.entity.setPosition(1.5, 0, 0);
+  objects.add("actor", servant);
+  assert.equal(owner.pack.resolve(), servant);
+  servant.entity.setPosition(4, 0, 0);
+  assert.equal(owner.pack.resolve(), null);
+});
 
 function fixture() {
   const human = { entity: new Entity() };

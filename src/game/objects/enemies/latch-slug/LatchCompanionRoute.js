@@ -1,10 +1,33 @@
 import { MAP_TILE_TYPE } from "../../../enum/MapTileType.js";
 
+const DETOUR_REPLAN_INTERVAL = 0.25;
+
 /**
  * Bounded local path search for an unoccupied place beside a human.
  * Plans steering targets only; Ammo continues to own movement and contacts.
  */
 export class LatchCompanionRoute {
+  /**
+   * @type {{human: import("../shared/Enemy.js").EnemyActor, origin: import("playcanvas").Vec3, target: import("playcanvas").Vec3, point: import("playcanvas").Vec3|null, until: number, revision: number}|null}
+   */
+  #plan = null;
+  /**
+   * A route search visits hundreds of points. Do not rebuild a set containing
+   * every terrain block for each occupancy check.
+   * @returns {ReadonlyArray<import("../shared/Enemy.js").EnemyActor>}
+   */
+  get #socialActors() {
+    return this.owner.runtime?.objects?.getMatching?.(LatchCompanionRoute.#isSocial)
+      ?? this.owner.actors.filter(LatchCompanionRoute.#isSocial);
+  }
+
+  /**
+   * @param {import("../shared/Enemy.js").EnemyActor & {affection?: import("./LatchAffection.js").LatchAffection}} actor
+   * @returns {boolean}
+   */
+  static #isSocial(actor) {
+    return Boolean(actor.affection);
+  }
   /**
    * @param {import("./LatchSlug.js").LatchSlug} owner
    * @param {(point: import("playcanvas").Vec3) => boolean} blocked
@@ -70,6 +93,10 @@ export class LatchCompanionRoute {
     if (owner.position.distance(target) <= 1.6 && !this.#nearbySlug()) {
       return owner.position.clone();
     }
+    const cached = this.#cachedPlan(human, target);
+    if (cached !== undefined) {
+      return cached;
+    }
     const queue = [{
       point: owner.position.clone(),
       first: null,
@@ -81,7 +108,7 @@ export class LatchCompanionRoute {
       const node = queue[index];
       const distance = node.point.distance(target);
       if (distance >= 0.85 && distance <= 1.2 && !this.#occupied(node.point, human)) {
-        return node.first ?? node.point;
+        return this.#rememberPlan(human, target, node.first ?? node.point);
       }
       for (const [dx, dz] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
         const x = node.x + dx, z = node.z + dz;
@@ -106,7 +133,53 @@ export class LatchCompanionRoute {
       }
     }
 
-    return null;
+    return this.#rememberPlan(human, target, null);
+  }
+
+  /**
+   * Expensive crowded detours replan at four Hz. Direct lane movement and
+   * collision checks remain live; a blocked cached step is never followed.
+   * @param {import("../shared/Enemy.js").EnemyActor} human
+   * @param {import("playcanvas").Vec3} target
+   * @returns {import("playcanvas").Vec3|null|undefined}
+   */
+  #cachedPlan(human, target) {
+    const plan = this.#plan;
+    const owner = this.owner;
+    if (!plan || plan.human !== human || owner.elapsed >= plan.until
+      || owner.runtime?.objects?.revision !== plan.revision
+      || owner.position.distance(plan.origin) > 0.12 || target.distance(plan.target) > 0.1) {
+      return undefined;
+    }
+    if (plan.point && (!this.#clear(plan.point, human)
+      || !this.#clear(owner.position.clone().lerp(owner.position, plan.point, 0.5), human))) {
+      return undefined;
+    }
+
+    return plan.point?.clone() ?? null;
+  }
+
+  /**
+   * @param {import("../shared/Enemy.js").EnemyActor} human
+   * @param {import("playcanvas").Vec3} target
+   * @param {import("playcanvas").Vec3|null} point
+   * @returns {import("playcanvas").Vec3|null}
+   */
+  #rememberPlan(human, target, point) {
+    const owner = this.owner;
+    const revision = owner.runtime?.objects?.revision;
+    if (Number.isFinite(owner.elapsed) && Number.isFinite(revision)) {
+      this.#plan = {
+        human,
+        origin: owner.position.clone(),
+        target: target.clone(),
+        point: point?.clone() ?? null,
+        until: owner.elapsed + DETOUR_REPLAN_INTERVAL,
+        revision,
+      };
+    }
+
+    return point;
   }
 
   /**
@@ -116,7 +189,7 @@ export class LatchCompanionRoute {
    */
   #nearbySlug() {
     const owner = this.owner;
-    for (const actor of owner.actors) {
+    for (const actor of this.#socialActors) {
       if (actor !== owner && actor.affection && actor.alive !== false && !actor.carrier && !actor.airborne
         && Math.abs(owner.targetPosition(actor).y - owner.position.y) < 0.6
         && owner.targetPosition(actor).distance(owner.position) <= 2.5) {
@@ -168,7 +241,7 @@ export class LatchCompanionRoute {
    */
   #occupied(point, human) {
     const owner = this.owner;
-    for (const actor of new Set([...owner.actors, human])) {
+    for (const actor of new Set([...this.#socialActors, human])) {
       if (actor === owner || actor.alive === false || actor.carrier || actor.airborne ||
         (actor !== human && !actor.affection)) {
         continue;

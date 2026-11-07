@@ -128,7 +128,7 @@ export class EnemyPathLane {
     const owner = this.owner;
     const dx = end.x - start.x, dz = end.z - start.z;
     const lengthSq = dx * dx + dz * dz;
-    for (const actor of owner.actors ?? []) {
+    for (const actor of owner.enemyActors ?? owner.actors ?? []) {
       if (actor === owner || !actor.isEnemy || !actor.alive || actor.carrier || actor.airborne ||
         actor.entity?.rigidbody?.enabled === false) {
         continue;

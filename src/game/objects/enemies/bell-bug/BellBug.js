@@ -332,7 +332,7 @@ export class BellBug extends Enemy {
      * @param {import("playcanvas").RaycastResult} b
      */
       (a, b) => a.hitFraction - b.hitFraction);
-    const doors = this.actors.flatMap(/**
+    const doors = this.doorOwners.flatMap(/**
      *
      * @param {import("../../castle/Castle.js").Castle} actor
      */
@@ -360,7 +360,7 @@ export class BellBug extends Enemy {
   findGluedDoor() {
     let nearest = null;
     let distance = 3;
-    for (const actor of this.actors) {
+    for (const actor of this.doorOwners) {
       for (const door of actor.destructibleDoors ?? actor.entranceDoors ?? []) {
         if (!door.jammed || door.broken || door.openAmount >= 0.15) {
           continue;

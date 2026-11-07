@@ -3,6 +3,38 @@ import { it } from "node:test";
 import { SCENE_OBJECT_TYPE } from "../../../../../src/game/enum/SceneObjectType.js";
 import { SceneObjectRegistry } from "../../../../../src/game/rendering/scene/SceneObjectRegistry.js";
 
+it("reuses role queries and invalidates them for every membership change", () => {
+  const registry = new SceneObjectRegistry();
+  let visits = 0;
+  const isActor = (object) => {
+    visits++;
+
+    return object.isActor === true;
+  };
+  const first = { isActor: true };
+  registry.add("actor", first);
+  registry.add("terrain", {});
+  const initial = registry.getMatching(isActor);
+  assert.deepEqual(initial, [first]);
+  assert.equal(registry.getMatching(isActor), initial);
+  assert.equal(visits, 2);
+  assert.ok(Object.isFrozen(initial));
+  const next = { isActor: true };
+  registry.setOne("hero", next);
+  assert.deepEqual(registry.getMatching(isActor), [first, next]);
+  registry.remove(first);
+  assert.deepEqual(registry.getMatching(isActor), [next]);
+  const retired = registry.detach();
+  assert.deepEqual(registry.getMatching(isActor), []);
+  assert.deepEqual(retired.getMatching(isActor), [next]);
+  retired.destroyType("hero");
+  assert.deepEqual(retired.getMatching(isActor), []);
+  registry.add("actor", first);
+  assert.deepEqual(registry.getMatching(isActor), [first]);
+  registry.clear();
+  assert.deepEqual(registry.getMatching(isActor), []);
+});
+
 it("stores singleton objects under their singular type key", () => {
   const registry = new SceneObjectRegistry();
   const hero = { name: "hero" };

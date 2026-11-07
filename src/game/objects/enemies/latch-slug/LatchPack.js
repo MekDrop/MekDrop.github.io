@@ -28,12 +28,14 @@ export class LatchPack {
       return this.leader;
     }
     const hero = owner.runtime.getHero?.();
-    const people = new Set([...owner.actors, hero].filter(Boolean));
+    const members = owner.runtime.objects?.getMatching?.(LatchPack.#person)
+      ?? owner.actors.filter(LatchPack.#person);
+    const people = new Set([...members, hero].filter(Boolean));
     const candidates = [...people].filter(/**
      *
      * @param {import("../shared/Enemy.js").EnemyActor} actor
      */
-      actor => this.#person(actor, hero) && this.#eligible(actor));
+      actor => this.#eligible(actor));
     candidates.sort(/**
      *
      * @param {import("../shared/Enemy.js").EnemyActor} a
@@ -56,11 +58,10 @@ export class LatchPack {
 
   /**
    * @param {import("../shared/Enemy.js").EnemyActor} actor
-   * @param {import("../shared/Enemy.js").EnemyActor} hero
    * @returns {boolean}
    */
-  #person(actor, hero) {
-    return actor === hero || actor.isRoyal === true || typeof actor.beginGameOver === "function"
+  static #person(actor) {
+    return actor.isRoyal === true || typeof actor.beginGameOver === "function"
       || actor.entity?.tags.has("Servant") || actor.definition?.object === "Servant";
   }
 
@@ -78,7 +79,8 @@ export class LatchPack {
     if (!map) {
       return true;
     }
-    for (const castle of this.owner.actors) {
+    const castles = this.owner.runtime.objects?.getMatching?.(LatchPack.#hasResidence) ?? this.owner.actors;
+    for (const castle of castles) {
       const layout = castle.residence?.layout;
       if (!layout) {
         continue;
@@ -137,7 +139,8 @@ export class LatchPack {
     const direction = destination.clone().sub(owner.position);
     direction.y = 0;
     direction.normalize();
-    for (const actor of owner.actors) {
+    const members = owner.runtime.objects?.getMatching?.(LatchPack.#isSlug) ?? owner.actors;
+    for (const actor of members) {
       if (actor === owner || !(actor.pack instanceof LatchPack) || !actor.alive || actor.carrier || actor.airborne) {
         continue;
       }
@@ -153,5 +156,21 @@ export class LatchPack {
     }
 
     return false;
+  }
+
+  /**
+   * @param {import("../shared/Enemy.js").EnemyActor} actor
+   * @returns {boolean}
+   */
+  static #hasResidence(actor) {
+    return "residence" in actor;
+  }
+
+  /**
+   * @param {import("../shared/Enemy.js").EnemyActor & {pack?: LatchPack}} actor
+   * @returns {boolean}
+   */
+  static #isSlug(actor) {
+    return actor.pack instanceof LatchPack;
   }
 }

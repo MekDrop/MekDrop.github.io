@@ -4,6 +4,32 @@ export class SceneObjectRegistry {
    */
   #revision = 0;
   /**
+   * @type {number}
+   */
+  #matchingRevision = -1;
+  /**
+   * @type {WeakMap<function(import("src/game/GameContracts.js").GameObjectContract): boolean, ReadonlyArray<import("src/game/GameContracts.js").GameObjectContract>>}
+   */
+  #matchingMembers = new WeakMap();
+
+  /**
+   * Index stable roles or capabilities until membership changes. Callers must
+   * check mutable state such as health, position and visibility separately.
+   * @param {(object: import("src/game/GameContracts.js").GameObjectContract) => boolean} predicate
+   * @returns {ReadonlyArray<import("src/game/GameContracts.js").GameObjectContract>}
+   */
+  getMatching(predicate) {
+    if (this.#matchingRevision !== this.#revision) {
+      this.#matchingMembers = new WeakMap();
+      this.#matchingRevision = this.#revision;
+    }
+    if (!this.#matchingMembers.has(predicate)) {
+      this.#matchingMembers.set(predicate, Object.freeze([...this.#objects.values()].filter(predicate)));
+    }
+
+    return this.#matchingMembers.get(predicate);
+  }
+  /**
    * @type {Map<string, import("src/game/GameContracts.js").GameObjectContract>|null}
    */
   #firstByClass = null;

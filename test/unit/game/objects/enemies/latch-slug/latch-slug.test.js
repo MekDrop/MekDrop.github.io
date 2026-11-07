@@ -7,6 +7,7 @@ import { State } from "yuka";
 import { LatchGlue } from "../../../../../../src/game/objects/enemies/latch-slug/LatchGlue.js";
 import { DoorJam } from "../../../../../../src/game/objects/architecture/door/DoorJam.js";
 import { Enemy } from "../../../../../../src/game/objects/enemies/shared/Enemy.js";
+import { SceneObjectRegistry } from "../../../../../../src/game/rendering/scene/SceneObjectRegistry.js";
 
 const shaderHooks = registerHooks({
   load: (url, context, nextLoad) => {
@@ -34,6 +35,33 @@ it("yields to Bell Bugs without giving other enemies the same priority", () => {
   assert.equal(LatchSlug.prototype.yieldsTo({ isBellBug: true }), true);
   assert.equal(LatchSlug.prototype.yieldsTo({ isEnemy: true }), false);
   assert.equal(LatchSlug.prototype.yieldsTo({ isBellBug: false }), false);
+});
+
+it("restricts live status recipients without reading terrain positions, including after registry changes", () => {
+  const { slug, royal } = fixture(1);
+  const objects = new SceneObjectRegistry();
+  const terrain = {
+    get position() {
+      assert.fail("terrain must not enter the movement restriction's distance query");
+    },
+  };
+  for (let index = 0; index < 1000; index++) {
+    objects.add("terrain", terrain);
+  }
+  slug.runtime.objects = objects;
+  slug.limitNearbyMovement(0.65);
+  objects.add("actor", royal);
+  slug.limitNearbyMovement(0.65);
+  assert.equal(royal.slows.length, 1);
+  assert.equal(royal.slows[0].factor, 0.65);
+  objects.remove(royal);
+  slug.limitNearbyMovement(0.45);
+  assert.equal(royal.slows.length, 1);
+
+  // Array-backed fixtures use the same capability guard without an index.
+  slug.runtime.objects = [terrain, royal];
+  slug.limitNearbyMovement(0.45);
+  assert.equal(royal.slows.at(-1).factor, 0.45);
 });
 
 function fixture(openAmount = 0) {

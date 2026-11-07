@@ -3,6 +3,71 @@ import test from 'node:test';
 import { Entity, Vec3 } from 'playcanvas';
 import { State } from 'yuka';
 import { Enemy } from '../../../../../../src/game/objects/enemies/shared/Enemy.js';
+import { SceneObjectRegistry } from '../../../../../../src/game/rendering/scene/SceneObjectRegistry.js';
+
+test('indexed actors refresh on membership changes while targeting follows live positions and health', () => {
+  const objects = new SceneObjectRegistry();
+  const enemy = createEnemy(objects);
+  const first = {
+    isRoyal: true,
+    entity: new Entity(),
+  };
+  const second = {
+    isRoyal: true,
+    entity: new Entity(),
+  };
+  first.entity.setPosition(1, 0, 0);
+  second.entity.setPosition(2, 0, 0);
+  objects.add('actor', first);
+  const snapshot = enemy.actors;
+  assert.equal(enemy.actors, snapshot);
+  objects.add('actor', second);
+  assert.notEqual(enemy.actors, snapshot);
+  assert.equal(enemy.resolveRoyalTarget(), first);
+  first.entity.setPosition(3, 0, 0);
+  assert.equal(enemy.resolveRoyalTarget(), second);
+  second.alive = false;
+  assert.equal(enemy.resolveRoyalTarget(), first);
+  objects.remove(first);
+  assert.equal(enemy.resolveRoyalTarget(), null);
+});
+
+test('indexed grudge sources are evaluated live and removed sources immediately stop suppression', () => {
+  const objects = new SceneObjectRegistry();
+  const enemy = createEnemy(objects);
+  let enabled = true;
+  const source = { suppressesGrudgesFor: () => enabled };
+  assert.equal(enemy.grudgesSuppressed, false);
+  objects.add('actor', source);
+  assert.equal(enemy.grudgesSuppressed, true);
+  enabled = false;
+  assert.equal(enemy.grudgesSuppressed, false);
+  enabled = true;
+  objects.remove(source);
+  assert.equal(enemy.grudgesSuppressed, false);
+});
+
+test('door and crowd indexes exclude terrain while preserving live door collections and new arrivals', () => {
+  const objects = new SceneObjectRegistry();
+  const enemy = createEnemy(objects);
+  objects.add('terrain', {});
+  let doors = [{ openAmount: 0 }];
+  const castle = {
+    get entranceDoors() {
+      return doors;
+    },
+  };
+  objects.add('castle', castle);
+  assert.deepEqual(enemy.doorOwners, [castle]);
+  doors = [{ openAmount: 1 }];
+  assert.equal(enemy.doorOwners[0].entranceDoors, doors);
+  const peer = { isEnemy: true };
+  assert.deepEqual(enemy.enemyActors, []);
+  objects.add('actor', peer);
+  assert.deepEqual(enemy.enemyActors, [peer]);
+  objects.remove(peer);
+  assert.deepEqual(enemy.enemyActors, []);
+});
 
 function createEnemy(actors = []) {
   const enemy = new Enemy({

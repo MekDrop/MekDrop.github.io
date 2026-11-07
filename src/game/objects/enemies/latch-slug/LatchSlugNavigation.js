@@ -118,7 +118,8 @@ export class LatchSlugNavigation {
       this.#probe = new NpcObstacleProbe(owner.app, target.entity);
       this.#royalSeat = target.entity;
     }
-    const castle = owner.actors.find(/**
+    const castles = owner.runtime?.objects?.getMatching?.(LatchSlugNavigation.#hasResidence) ?? owner.actors;
+    const castle = castles.find(/**
    * @param {import("../shared/Enemy.js").EnemyActor} actor
      */
       (actor) => {
@@ -305,7 +306,8 @@ export class LatchSlugNavigation {
     if (this.#probe.blockedAt(point)) {
       return true;
     }
-    for (const actor of this.#owner.actors) {
+    const bugs = this.#owner.runtime?.objects?.getMatching?.(LatchSlugNavigation.#isBellBug) ?? this.#owner.actors;
+    for (const actor of bugs) {
       if (actor.isBellBug && actor.alive && !actor.carrier && actor.entity?.rigidbody && actor.entity.rigidbody.enabled !== false) {
         const position = this.#owner.targetPosition(actor);
         const overlapsHeight = position.y < point.y + this.#owner.height &&
@@ -319,6 +321,8 @@ export class LatchSlugNavigation {
           return true;
         }
       }
+    }
+    for (const actor of this.#owner.doorOwners ?? this.#owner.actors) {
       for (const door of actor.destructibleDoors ?? actor.entranceDoors ?? []) {
         if (door !== ignoredDoor && door.blocksCameraAt?.(point.x, point.y + this.#owner.height / 2, point.z, this.#owner.radius + 0.04)) {
           return true;
@@ -519,7 +523,7 @@ export class LatchSlugNavigation {
       normal.mulScalar(-1);
     }
     const landing = position.clone().add(normal.mulScalar(owner.radius + 0.12));
-    const castle = owner.actors.find(/**
+    const castle = (owner.doorOwners ?? owner.actors).find(/**
      *
      * @param {import("../shared/Enemy.js").EnemyActor} actor
      */
@@ -532,6 +536,22 @@ export class LatchSlugNavigation {
     owner.moveToward(this.#avoid(landing, door), 0.7, 0.025);
 
     return true;
+  }
+
+  /**
+   * @param {import("../shared/Enemy.js").EnemyActor} actor
+   * @returns {boolean}
+   */
+  static #hasResidence(actor) {
+    return "residence" in actor;
+  }
+
+  /**
+   * @param {import("../shared/Enemy.js").EnemyActor & {isBellBug?: boolean}} actor
+   * @returns {boolean}
+   */
+  static #isBellBug(actor) {
+    return Boolean(actor.isBellBug);
   }
 
   destroy() {

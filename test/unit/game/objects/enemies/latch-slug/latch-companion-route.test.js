@@ -2,6 +2,68 @@ import assert from "node:assert/strict";
 import { it } from "node:test";
 import { Vec3 } from "playcanvas";
 import { LatchCompanionRoute } from "../../../../../../src/game/objects/enemies/latch-slug/LatchCompanionRoute.js";
+import { SceneObjectRegistry } from "../../../../../../src/game/rendering/scene/SceneObjectRegistry.js";
+
+it("indexes social occupancy once per scene revision rather than once per search point", () => {
+  const { owner, human, front } = fixture();
+  const route = new LatchCompanionRoute(owner, () => false);
+  const expected = route.next(human);
+  const objects = new SceneObjectRegistry();
+  let reads = 0;
+  const terrain = {
+    get affection() {
+      reads++;
+
+      return null;
+    },
+  };
+  for (let index = 0; index < 1000; index++) {
+    objects.add("terrain", terrain);
+  }
+  objects.add("slug", front);
+  owner.runtime.objects = objects;
+  for (let query = 0; query < 5; query++) {
+    assert.deepEqual(route.next(human), expected);
+  }
+  assert.equal(reads, 1000);
+  objects.remove(front);
+  owner.actors = [];
+  const indexed = route.next(human);
+  delete owner.runtime.objects;
+  assert.deepEqual(indexed, route.next(human));
+  assert.equal(reads, 2000);
+});
+
+it("bounds failed detour retries and rejects a cached waypoint immediately when its collision changes", () => {
+  const { owner, human, front } = fixture();
+  const objects = new SceneObjectRegistry();
+  objects.add("slug", front);
+  owner.runtime.objects = objects;
+  owner.elapsed = 0;
+  let blocked = true;
+  let queries = 0;
+  const route = new LatchCompanionRoute(owner, () => {
+    queries++;
+
+    return blocked;
+  });
+  assert.equal(route.next(human), null);
+  const firstSearchQueries = queries;
+  assert.ok(firstSearchQueries > 0);
+  owner.elapsed = 0.1;
+  assert.equal(route.next(human), null);
+  assert.equal(queries, firstSearchQueries);
+  owner.elapsed = 0.26;
+  blocked = false;
+  assert.ok(route.next(human));
+  owner.elapsed = 0.27;
+  blocked = true;
+  assert.equal(route.next(human), null);
+  owner.elapsed = 0.28;
+  blocked = false;
+  objects.add("actor", {});
+  assert.ok(route.next(human), "scene changes invalidate a failed search immediately");
+});
 
 function fixture() {
   const human = { position: new Vec3(0, 0, 0) };

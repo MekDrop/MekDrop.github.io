@@ -332,7 +332,7 @@ export class LatchSlug extends Enemy {
     let distance = 1.25;
     let closed = null;
     let closedDistance = 4.5;
-    for (const actor of this.actors) {
+    for (const actor of this.doorOwners) {
       for (const door of actor.destructibleDoors ?? actor.entranceDoors ?? []) {
         const candidate = this.distanceTo(door);
         if (!door.broken && door.openAmount > 0.001 && candidate < distance) {
@@ -467,9 +467,13 @@ export class LatchSlug extends Enemy {
    * @param {number} factor
    */
   limitNearbyMovement(factor) {
-    for (const actor of this.actors) {
-      if (actor !== this && actor.alive !== false && this.distanceTo(actor) < 1.15) {
-        actor.applyStatus?.("slow", {
+    // Terrain and props cannot receive status effects. Reuse the registry's
+    // capability index instead of measuring every map object for every slug.
+    const actors = this.runtime.objects?.getWithMethod?.("applyStatus") ?? this.actors;
+    for (const actor of actors) {
+      if (actor !== this && actor.alive !== false && typeof actor.applyStatus === "function"
+        && this.distanceTo(actor) < 1.15) {
+        actor.applyStatus("slow", {
           duration: 0.2,
           factor,
           source: this,

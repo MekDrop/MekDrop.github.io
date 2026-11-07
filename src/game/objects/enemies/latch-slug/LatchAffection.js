@@ -110,6 +110,7 @@ export class LatchAffection {
     if (this.#nearHuman(human)) {
       return null;
     }
+    const actors = owner.runtime?.objects?.getMatching?.(LatchAffection.#isSocial) ?? owner.actors ?? [];
     const visited = new Set([owner]);
     const queue = [{
       slug: owner,
@@ -126,7 +127,7 @@ export class LatchAffection {
           };
         }
       }
-      for (const actor of owner.actors ?? []) {
+      for (const actor of actors) {
         if (visited.has(actor) || !(actor.affection instanceof LatchAffection)
           || !actor.affection.available || !actor.statuses.has("affection")
           || slug.distanceTo(actor) > 1.35 || Math.abs(actor.position.y - slug.position.y) >= 0.6
@@ -142,6 +143,14 @@ export class LatchAffection {
     }
 
     return null;
+  }
+
+  /**
+   * @param {import("../shared/Enemy.js").EnemyActor & {affection?: LatchAffection}} actor
+   * @returns {boolean}
+   */
+  static #isSocial(actor) {
+    return actor.affection instanceof LatchAffection;
   }
 
   /**

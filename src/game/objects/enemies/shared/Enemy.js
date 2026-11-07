@@ -123,10 +123,51 @@ export class Enemy {
     return `${this.enemyType}: ${this.health}/${this.maxHealth} ${this.stateName}`;
   }
   /**
-   * @returns {EnemyActor[]}
+   * @returns {ReadonlyArray<EnemyActor>}
    */
   get actors() {
-    return [...(this.runtime.objects ?? [])];
+    return this.runtime.objects?.getMatching?.(Enemy.#anyActor)
+      ?? [...(this.runtime.objects ?? [])];
+  }
+
+  /**
+   * @returns {boolean}
+   */
+  static #anyActor() {
+    return true;
+  }
+
+  /**
+   * @returns {ReadonlyArray<EnemyActor>}
+   */
+  get enemyActors() {
+    return this.runtime.objects?.getMatching?.(Enemy.#isEnemy)
+      ?? this.actors.filter(Enemy.#isEnemy);
+  }
+
+  /**
+   * @param {EnemyActor & {isEnemy?: boolean}} actor
+   * @returns {boolean}
+   */
+  static #isEnemy(actor) {
+    return Boolean(actor.isEnemy);
+  }
+
+  /**
+   * Keep door state live while indexing only the objects that own doors.
+   * @returns {ReadonlyArray<EnemyActor>}
+   */
+  get doorOwners() {
+    return this.runtime.objects?.getMatching?.(Enemy.#ownsDoors)
+      ?? this.actors.filter(Enemy.#ownsDoors);
+  }
+
+  /**
+   * @param {EnemyActor} actor
+   * @returns {boolean}
+   */
+  static #ownsDoors(actor) {
+    return "destructibleDoors" in actor || "entranceDoors" in actor;
   }
 
   /**
@@ -134,7 +175,9 @@ export class Enemy {
    * @returns {boolean}
    */
   get grudgesSuppressed() {
-    return this.alive && this.actors.some(this.#suppressesGrudges.bind(this));
+    const sources = this.runtime.objects?.getWithMethod?.("suppressesGrudgesFor") ?? this.actors;
+
+    return this.alive && sources.some(this.#suppressesGrudges.bind(this));
   }
 
   /**
@@ -159,7 +202,8 @@ export class Enemy {
    * Resolve an actual royal actor, including its currently active visual actor.
    */
   resolveRoyalTarget() {
-    const royals = this.actors.filter(/**
+    const candidates = this.runtime.objects?.getMatching?.(Enemy.#isRoyal) ?? this.actors;
+    const royals = candidates.filter(/**
      *
      * @param {EnemyActor|null} actor
      */
@@ -172,6 +216,14 @@ export class Enemy {
      * @param {EnemyActor|null} b
      */
       (a, b) => this.distanceTo(a) - this.distanceTo(b))[0] ?? null;
+  }
+
+  /**
+   * @param {EnemyActor} actor
+   * @returns {boolean}
+   */
+  static #isRoyal(actor) {
+    return actor.isRoyal === true || typeof actor.beginGameOver === "function";
   }
 
   /**

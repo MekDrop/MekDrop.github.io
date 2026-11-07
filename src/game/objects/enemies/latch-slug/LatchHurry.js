@@ -69,7 +69,8 @@ export class LatchHurry {
    * @returns {boolean}
    */
   #nearBellBug() {
-    for (const actor of this.#owner.actors) {
+    const actors = this.#owner.runtime?.objects?.getMatching?.(LatchHurry.#isBellBug) ?? this.#owner.actors;
+    for (const actor of actors) {
       if (actor.isBellBug && actor.alive && !actor.carrier && !actor.airborne && actor.entity?.enabled !== false
         && this.#owner.distanceTo(actor) <= 3 && this.#owner.pack.canSee(actor)) {
         return true;
@@ -77,5 +78,13 @@ export class LatchHurry {
     }
 
     return false;
+  }
+
+  /**
+   * @param {import("../shared/Enemy.js").EnemyActor & {isBellBug?: boolean}} actor
+   * @returns {boolean}
+   */
+  static #isBellBug(actor) {
+    return Boolean(actor.isBellBug);
   }
 }

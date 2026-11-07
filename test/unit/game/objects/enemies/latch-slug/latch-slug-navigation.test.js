@@ -3,6 +3,27 @@ import { test } from "node:test";
 import * as pc from "playcanvas";
 import { LatchSlugNavigation } from "../../../../../../src/game/objects/enemies/latch-slug/LatchSlugNavigation.js";
 import { EnemyPathLane } from "../../../../../../src/game/navigation/EnemyPathLane.js";
+import { SceneObjectRegistry } from "../../../../../../src/game/rendering/scene/SceneObjectRegistry.js";
+
+test("indexed crowd checks still test every live door owner when no Bell Bugs are present", () => {
+  const { owner, castle, door, navigation } = fixture(0);
+  owner.position.set(0, 0, 0);
+  owner.targetPosition = (actor) => actor.position;
+  const objects = new SceneObjectRegistry();
+  objects.add("castle", castle);
+  owner.runtime = { objects };
+  owner.doorOwners = [castle];
+  let checks = 0;
+  door.blocksCameraAt = () => {
+    checks++;
+
+    return true;
+  };
+  const next = navigation.next({ position: new pc.Vec3(0, 0, 3) });
+  assert.ok(checks > 0);
+  assert.deepEqual(next.position, owner.position);
+  navigation.destroy();
+});
 
 function fixture(rise = .25) {
   const entity = new pc.Entity();
