@@ -41,11 +41,62 @@ export class EnemyPathLane {
     const dz = Math.sign(after.row - before.row);
     const offset = owner.usesPathLanes !== false && owner.radius <= 0.5 && owner.traversalCapability !== ENEMY_TRAVERSAL.FLYING ? this.side * 0.5 : 0;
 
-    return new owner.pc.Vec3(
+    const position = new owner.pc.Vec3(
       point.col - (map.cols - 1) / 2 - dz * offset,
       point.elevation,
       point.row - (map.rows - 1) / 2 + dx * offset,
     );
+    // Terrain routes precede the castle's exterior stair construction. Arrival
+    // checks must use the actual tread, or climbing above a ground-level node
+    // leaves the cursor permanently trying to reach a point below the body.
+    const center = position.clone().add(new owner.pc.Vec3(dz * offset, 0, -dx * offset));
+    const height = this.#routeHeight(route, index, center);
+    if (height !== null) {
+      // Open leaves occupy the side lanes. Approach the landing through the
+      // center of the stair flight instead of pinning a capsule to a leaf.
+      position.copy(center);
+      position.y = Math.max(position.y, height);
+    }
+
+    return position;
+  }
+
+  /**
+   * Exterior support stops at the wall; the final route continues onto the
+   * landing. Carry the nearest tread's height across that short terminal run.
+   * @param {import("./WalkingPaths.js").WalkingPoint[]} route
+   * @param {number} index
+   * @param {import("playcanvas").Vec3} point
+   * @returns {number|null}
+   */
+  #routeHeight(route, index, point) {
+    const height = this.#supportHeight(point);
+    if (height !== null) {
+      return height;
+    }
+    const map = this.owner.runtime.mapData;
+    const end = route[route.length - 1];
+    const node = route[index];
+    if (Math.hypot(end.col - node.col, end.row - node.row) > 2) {
+      return null;
+    }
+    for (let previous = index - 1; previous >= 0; previous--) {
+      const candidate = route[previous];
+      if (Math.hypot(candidate.col - node.col, candidate.row - node.row) > 2) {
+        break;
+      }
+      const sample = new this.owner.pc.Vec3(
+        candidate.col - (map.cols - 1) / 2,
+        candidate.elevation,
+        candidate.row - (map.rows - 1) / 2,
+      );
+      const support = this.#supportHeight(sample);
+      if (support !== null) {
+        return support;
+      }
+    }
+
+    return null;
   }
 
   /**
@@ -64,6 +115,7 @@ export class EnemyPathLane {
     let nearest = 0.9;
     let result = goal;
     let normal = null;
+    let stairCentered = false;
     for (const path of map.paths ?? []) {
       for (let index = 1; index < path.route.length; index++) {
         const first = path.route[index - 1];
@@ -89,15 +141,26 @@ export class EnemyPathLane {
         const sign = Math.sign(forward);
         const ahead = Math.max(0, Math.min(length, along + sign * 0.65));
         result = new owner.pc.Vec3(
-          x + dx / length * ahead - dz / length * this.side * 0.5,
+          x + dx / length * ahead,
           first.elevation + (second.elevation - first.elevation) * fraction,
-          z + dz / length * ahead + dx / length * this.side * 0.5,
+          z + dz / length * ahead,
         );
+        const height = this.#supportHeight(result);
+        stairCentered = height !== null;
+        if (height === null) {
+          result.x -= dz / length * this.side * 0.5;
+          result.z += dx / length * this.side * 0.5;
+        } else {
+          result.y = Math.max(result.y, height);
+        }
       }
     }
 
     if (result === goal || this.#clear(result)) {
       return result;
+    }
+    if (stairCentered) {
+      return position.clone();
     }
     // Cross sideways before advancing past the blocker. Persist the new side
     // so route arrival cursors and subsequent frames agree with the maneuver.
@@ -118,6 +181,22 @@ export class EnemyPathLane {
   }
 
   /**
+   * @param {import("playcanvas").Vec3} point
+   * @returns {number|null}
+   */
+  #supportHeight(point) {
+    let result = null;
+    for (const actor of this.owner.doorOwners ?? this.owner.actors ?? []) {
+      const height = actor.capsuleSupportHeightAt?.(point.x, point.z);
+      if (Number.isFinite(height)) {
+        result = result === null ? height : Math.max(result, height);
+      }
+    }
+
+    return result;
+  }
+
+  /**
    * Test the swept footprint so neither crossing nor following pushes peers.
    * Ammo still owns physical contact response; this only chooses AI intent.
    * @param {import("playcanvas").Vec3} end
@@ -128,7 +207,8 @@ export class EnemyPathLane {
     const owner = this.owner;
     const dx = end.x - start.x, dz = end.z - start.z;
     const lengthSq = dx * dx + dz * dz;
-    for (const actor of owner.enemyActors ?? owner.actors ?? []) {
+    const peers = owner.usesPathCrowdAvoidance === false ? [] : owner.enemyActors ?? owner.actors ?? [];
+    for (const actor of peers) {
       if (actor === owner || !actor.isEnemy || !actor.alive || actor.carrier || actor.airborne ||
         actor.entity?.rigidbody?.enabled === false) {
         continue;

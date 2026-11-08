@@ -50,7 +50,10 @@ export class BellBugCrowdMotion {
       }
       const dx = p.x - b.position.x, dz = p.z - b.position.z;
       const radius = actor.isBellBug ? BellBugCalibration.spacingRadius : actor.radius ?? 0.3;
-      const clearance = BellBugCalibration.spacingRadius + radius + 0.03;
+      // A raised scooping claw can enter its own foot margin. Keep both native
+      // capsules separated, and retain normal clearance from every other peer.
+      const ownRadius = actor === b.scoop?.approachTarget ? b.radius : BellBugCalibration.spacingRadius;
+      const clearance = ownRadius + radius + 0.03;
       neighbours.push({
         position: p,
         clearance,

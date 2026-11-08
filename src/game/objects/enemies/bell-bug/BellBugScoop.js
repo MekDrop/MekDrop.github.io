@@ -26,6 +26,18 @@ export class BellBugScoop {
    * @type {number}
    */
   blockedTime = 0;
+  /**
+   * @type {import("../latch-slug/LatchSlug.js").LatchSlug|null}
+   */
+  approachTarget = null;
+  /**
+   * @type {import("playcanvas").Vec3|null}
+   */
+  approachPosition = null;
+  /**
+   * @type {number}
+   */
+  #approachAge = 0;
 
   /**
    * @param {import("./BellBug.js").BellBug} owner
@@ -77,6 +89,9 @@ export class BellBugScoop {
     this.tasted = false;
     this.blockedTime = 0;
     this.anchor = null;
+    this.approachTarget = null;
+    this.approachPosition = null;
+    this.#approachAge = 0;
   }
 
   /**
@@ -88,6 +103,17 @@ export class BellBugScoop {
     if (!pursuing || !b.alive || b.carrier || b.airborne || b.gatewayArrival.active
       || b.statuses.has("stun") || b.statuses.has("confused")) {
       this.reset();
+
+      return;
+    }
+    if (this.approachTarget) {
+      this.#approachAge += dt;
+      const target = this.approachTarget;
+      if (!this.reachable(target) || this.#approachAge > 1.5) {
+        this.reset();
+      } else if (b.position.distance(this.approachPosition) < 0.004) {
+        this.#begin(target);
+      }
 
       return;
     }
@@ -134,17 +160,81 @@ export class BellBugScoop {
     if (this.blockedTime < 0.4) {
       return;
     }
-    this.target = b.actors.find(this.reachable.bind(this)) ?? null;
-    if (this.target) {
-      this.contact = this.target.beginScoop?.(b, this.side);
-      const foot = b.animationPlayback?.scoopPose.foot(this.side);
-      if (!this.contact?.active || (foot && !foot.canReach(this.contact.point))) {
-        this.reset();
-
-        return;
-      }
-      b.stop();
-      b.playClip("idle_nervous");
+    const target = b.actors.find(this.reachable.bind(this));
+    if (target) {
+      this.#begin(target);
     }
+  }
+
+  /**
+   * Ammo integrates the short step; the crowd planner retains every peer.
+   */
+  approach() {
+    const b = this.owner;
+    const moving = this.approachPosition && b.moveToward({ position: this.approachPosition }, 0.25, 0.002);
+    b.playClip(moving ? "scuttle_walk" : "idle_nervous");
+  }
+
+  /**
+   * @param {import("../latch-slug/LatchSlug.js").LatchSlug} target
+   */
+  #begin(target) {
+    this.approachTarget = null;
+    this.approachPosition = null;
+    this.#approachAge = 0;
+    this.target = target;
+    this.contact = this.#contact(target);
+    if (!this.contact) {
+      this.target = null;
+      if (!this.approachTarget) {
+        this.reset();
+      }
+
+      return;
+    }
+    this.owner.stop();
+    this.owner.playClip("idle_nervous");
+  }
+
+  /**
+   * Prefer alternating feet, but do not repeat an unreachable foot forever.
+   * Rejected samples release the slime's skin before trying the other socket.
+   * @param {import("../latch-slug/LatchSlug.js").LatchSlug} target
+   * @returns {import("../latch-slug/LatchScoopGel.js").LatchScoopGel|null}
+   */
+  #contact(target) {
+    const b = this.owner;
+    b.faceTarget?.(target);
+    const direction = target.position.clone().sub(b.position);
+    direction.y = 0;
+    const clearance = b.radius + target.radius + 0.03;
+    const available = direction.length() - clearance;
+    direction.normalize();
+    let step = Infinity;
+    for (const side of [this.side, 1 - this.side]) {
+      const contact = target.beginScoop?.(b, side);
+      const foot = b.animationPlayback?.scoopPose.foot(side);
+      if (contact?.active) {
+        const needed = foot?.approachDistance?.(contact.point, direction);
+        if ((!foot || foot.canReach(contact.point)) && (needed === undefined || needed !== null && needed < 0.005)) {
+          this.side = side;
+
+          return contact;
+        }
+        if (needed !== null && needed > 0 && needed <= available && needed < step) {
+          step = needed;
+        }
+      }
+      contact?.destroy();
+    }
+    if (Number.isFinite(step)) {
+      const point = b.position.clone().add(direction.mulScalar(step));
+      if (!b.stepSupport || b.stepSupport.surface(point.x, point.z, point.y + 0.32, point.y - 0.35)) {
+        this.approachTarget = target;
+        this.approachPosition = point;
+      }
+    }
+
+    return null;
   }
 }

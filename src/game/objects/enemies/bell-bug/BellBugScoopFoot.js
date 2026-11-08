@@ -73,6 +73,24 @@ export class BellBugScoopFoot {
   }
 
   /**
+   * Horizontal travel needed to reach the skin with room for its 3.5 cm press.
+   * @param {import("playcanvas").Vec3} point
+   * @param {import("playcanvas").Vec3} direction Normalized ground direction.
+   * @returns {number|null}
+   */
+  approachDistance(point, direction) {
+    if (!this.source) {
+      return null;
+    }
+    const offset = this.bone.getPosition().clone().sub(point);
+    const along = offset.dot(direction);
+    const radius = Math.max(0, this.length * 1.55 - 0.035);
+    const discriminant = along * along + radius * radius - offset.lengthSq();
+
+    return discriminant >= 0 ? Math.max(0, -along - Math.sqrt(discriminant)) : null;
+  }
+
+  /**
    * @param {import("playcanvas").Vec3} goal
    */
   pose(goal) {

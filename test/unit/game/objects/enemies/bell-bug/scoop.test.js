@@ -109,3 +109,86 @@ test("a nearby slug without a reachable skin surface cannot be scooped", () => {
   assert.equal(scoop.target, null);
   assert.equal(contacts(), 0);
 });
+
+test("tries the other front foot when the preferred foot cannot reach the skin", () => {
+  const { owner, slug, scoop } = fixture();
+  let discarded = 0;
+  slug.beginScoop = () => ({
+    active: true,
+    point: new Vec3(0, 0.25, -0.4),
+    destroy: () => {
+      discarded++;
+    },
+  });
+  owner.animationPlayback = {
+    scoopPose: { foot: side => ({ canReach: () => side === 1 }) },
+  };
+  scoop.update(0.4, true);
+  assert.equal(scoop.target, slug);
+  assert.equal(scoop.side, 1);
+  assert.equal(discarded, 1);
+});
+
+test("faces the slime before choosing a skin contact from the front claw", () => {
+  const { owner, slug, scoop } = fixture();
+  let facing = false;
+  owner.faceTarget = target => {
+    facing = target === slug;
+  };
+  const begin = slug.beginScoop;
+  slug.beginScoop = () => {
+    assert.equal(facing, true, "road steering must not determine the scooping stance");
+
+    return begin();
+  };
+  scoop.update(0.4, true);
+  assert.equal(scoop.target, slug);
+});
+
+test("walks only the missing reach before pressing and tasting", () => {
+  const { owner, slug, scoop, contacts } = fixture();
+  slug.position.z = -0.95;
+  const foot = {
+    canReach: () => owner.position.z < -0.09,
+    approachDistance: () => Math.max(0, 0.1 + owner.position.z),
+  };
+  owner.animationPlayback = { scoopPose: { foot: () => foot } };
+  owner.stepSupport = { surface: () => ({}) };
+  owner.moveToward = (goal, speed, arrival) => {
+    assert.equal(speed, 0.25);
+    assert.equal(arrival, 0.002);
+    assert.ok(Math.abs(goal.position.z + 0.1) < 1e-6);
+    owner.position.copy(goal.position).add(new Vec3(0, 0, arrival));
+
+    return true;
+  };
+  scoop.update(0.4, true);
+  assert.equal(scoop.target, null);
+  assert.equal(scoop.approachTarget, slug);
+  assert.equal(contacts(), 0);
+  scoop.approach();
+  scoop.update(0.1, true);
+  assert.equal(scoop.approachTarget, null);
+  assert.equal(scoop.target, slug);
+  scoop.update(0.93, true);
+  assert.equal(contacts(), 1);
+});
+
+test("rejects approach steps across unsupported ground or into the slime capsule", () => {
+  for (const supported of [true, false]) {
+    const { owner, scoop } = fixture();
+    owner.actors[0].position.z = supported ? -0.76 : -0.95;
+    owner.animationPlayback = {
+      scoopPose: {
+        foot: () => ({
+          canReach: () => false,
+          approachDistance: () => 0.1,
+        }),
+      },
+    };
+    owner.stepSupport = { surface: () => supported ? {} : null };
+    scoop.update(0.4, true);
+    assert.equal(scoop.approachTarget, null);
+    assert.equal(scoop.target, null);
+  }
+});

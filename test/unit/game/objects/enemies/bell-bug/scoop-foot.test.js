@@ -3,6 +3,20 @@ import test from "node:test";
 import * as pc from "playcanvas";
 import { BellBugScoopFoot } from "../../../../../../src/game/objects/enemies/bell-bug/BellBugScoopFoot.js";
 
+test("calculates a ground step with press clearance and rejects unreachable heights", () => {
+  const foot = Object.create(BellBugScoopFoot.prototype);
+  foot.source = {};
+  foot.length = 0.2;
+  foot.bone = new pc.Entity();
+  const direction = new pc.Vec3(0, 0, -1);
+  const point = new pc.Vec3(0.1, 0.1, -0.4);
+  const step = foot.approachDistance(point, direction);
+  assert.ok(step > 0 && step < 0.4);
+  foot.bone.setPosition(direction.clone().mulScalar(step));
+  assert.ok(Math.abs(foot.bone.getPosition().distance(point) - (0.2 * 1.55 - 0.035)) < 1e-6);
+  assert.equal(foot.approachDistance(new pc.Vec3(0, 1, -0.4), direction), null);
+});
+
 test("bends the toe onto contact while retaining the socket and shared source mesh", () => {
   const original = [0, 0, 0, 0, 0, -0.3, 0.05, 0, -0.1];
   const source = {

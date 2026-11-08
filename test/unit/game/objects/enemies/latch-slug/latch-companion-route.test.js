@@ -112,6 +112,22 @@ it("changes lanes to pass a settled slime and reach an empty place beside the hu
   assert.ok(owner.position.distance(human.position) <= 1.2);
 });
 
+it("recovers a partially overhanging path edge before passing a settled slime", () => {
+  const { owner, human, front } = fixture();
+  owner.position.z = -0.2;
+  front.position.z = -0.2;
+  human.position.z = -0.2;
+  const route = new LatchCompanionRoute(owner, () => false);
+  assert.equal(route.active, true);
+  for (let step = 0; step < 32 && owner.position.distance(human.position) > 1.2; step++) {
+    const next = route.next(human);
+    assert.ok(next, "a small path-edge overhang must not disable companion navigation");
+    assert.ok(next.distance(owner.position) > 0.025);
+    owner.position.copy(next);
+  }
+  assert.ok(owner.position.distance(human.position) <= 1.2);
+});
+
 it("rejects blocked lanes instead of routing across grass or through another floor", () => {
   const { owner, human } = fixture();
   assert.equal(new LatchCompanionRoute(owner, () => true).next(human), null);

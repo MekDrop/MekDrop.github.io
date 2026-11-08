@@ -41,7 +41,7 @@ export class LatchCompanionRoute {
    * @returns {boolean}
    */
   get active() {
-    return this.#onPath(this.owner.position);
+    return this.#onPath(this.owner.position, 0);
   }
 
   /**
@@ -83,7 +83,7 @@ export class LatchCompanionRoute {
   next(human) {
     const owner = this.owner;
     const target = owner.targetPosition(human);
-    if (!target || !this.#onPath(owner.position)) {
+    if (!target || !this.active) {
       return null;
     }
     const forward = this.laneStep(human);
@@ -202,14 +202,14 @@ export class LatchCompanionRoute {
 
   /**
    * @param {import("playcanvas").Vec3} point
+   * @param {number} radius
    * @returns {boolean}
    */
-  #onPath(point) {
+  #onPath(point, radius = this.owner.radius) {
     const map = this.owner.runtime?.mapData;
     if (!map?.grid) {
       return false;
     }
-    const radius = this.owner.radius;
     for (const [dx, dz] of [[-radius, -radius], [-radius, radius], [radius, -radius], [radius, radius]]) {
       const col = Math.round(point.x + dx + (map.cols - 1) / 2);
       const row = Math.round(point.z + dz + (map.rows - 1) / 2);
@@ -231,7 +231,40 @@ export class LatchCompanionRoute {
    * @returns {boolean}
    */
   #clear(point, human) {
-    return this.#onPath(point) && !this.#occupied(point, human, true) && !this.blocked(point);
+    return (this.#onPath(point) || this.#recoversPathEdge(point)) &&
+      !this.#occupied(point, human, true) && !this.blocked(point);
+  }
+
+  /**
+   * Native contact can leave a belly slightly beyond the road edge. Permit
+   * only steps back toward a full-footprint road position, never grass detours.
+   * @param {import("playcanvas").Vec3} point
+   * @returns {boolean}
+   */
+  #recoversPathEdge(point) {
+    const origin = this.owner.position;
+    if (this.#onPath(origin) || !this.#onPath(point, 0)) {
+      return false;
+    }
+    const map = this.owner.runtime.mapData;
+    const col = Math.round(origin.x + (map.cols - 1) / 2);
+    const row = Math.round(origin.z + (map.rows - 1) / 2);
+    let nearest = null;
+    let distance = Infinity;
+    for (let x = col - 1; x <= col + 1; x++) {
+      for (let z = row - 1; z <= row + 1; z++) {
+        const candidate = origin.clone();
+        candidate.x = x - (map.cols - 1) / 2;
+        candidate.z = z - (map.rows - 1) / 2;
+        const gap = candidate.distance(origin);
+        if (gap < distance && this.#onPath(candidate)) {
+          nearest = candidate;
+          distance = gap;
+        }
+      }
+    }
+
+    return nearest !== null && point.distance(nearest) < distance - 0.001;
   }
 
   /**

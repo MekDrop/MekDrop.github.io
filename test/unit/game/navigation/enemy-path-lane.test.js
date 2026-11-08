@@ -104,6 +104,49 @@ function fixture(id, vertical = false) {
   };
 }
 
+it("uses the stair center and carries its elevation onto the final landing", () => {
+  for (const id of ["enemy-a", "enemy-b"]) {
+    const owner = fixture(id);
+    owner.doorOwners = [{
+      capsuleSupportHeightAt: (x, z) => x <= 1.5 && z === 0 ? 0.5 : null,
+    }];
+    const lane = new EnemyPathLane(owner);
+    const route = [{
+      col: 1.5,
+      row: 0,
+      elevation: 0,
+    }, {
+      col: 2,
+      row: 0,
+      elevation: 0,
+    }, {
+      col: 2.5,
+      row: 0,
+      elevation: 0,
+    }, {
+      col: 3,
+      row: 0,
+      elevation: 0,
+    }];
+    assert.deepEqual(lane.routePoint(route, 0), new pc.Vec3(1.5, 0.5, 0));
+    assert.deepEqual(lane.routePoint(route, 1), new pc.Vec3(2, 0.5, 0));
+    assert.deepEqual(lane.routePoint(route, 2), new pc.Vec3(2.5, 0.5, 0));
+    assert.deepEqual(lane.routePoint(route, 3), new pc.Vec3(3, 0.5, 0));
+    const steering = lane.next(new pc.Vec3(5, 0.5, 0));
+    assert.equal(steering.z, 0);
+    assert.equal(steering.y, 0.5);
+    owner.position.y = 0.5;
+    owner.actors = [{
+      isEnemy: true,
+      alive: true,
+      radius: 0.3,
+      position: new pc.Vec3(0.9, 0.5, 0),
+    }];
+    assert.deepEqual(lane.next(new pc.Vec3(5, 0.5, 0)), owner.position,
+      "a blocked stair center waits instead of crossing a full lane off the tread");
+  }
+});
+
 it("assigns both sides and keeps the same lane when travel reverses", () => {
   for (const vertical of [false, true]) {
     const offsets = [];

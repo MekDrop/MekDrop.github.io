@@ -36,6 +36,23 @@ test('a close enemy makes the bug wait without changing gravity velocity',()=>{
   assert.equal(body.linearVelocity.y,-0.5);
 });
 
+test('scoop approach uses capsule clearance only for its target',()=>{
+  const {peer,body,motion}=fixture(0,-0.8);
+  peer.isBellBug=false;peer.radius=0.42;
+  motion.owner.radius=0.254;
+  motion.owner.scoop={approachTarget:peer};
+  body.linearVelocity.set(0,-0.5,-0.25);
+  assert.equal(motion.constrain(),true);
+  assert.equal(body.linearVelocity.z,-0.25);
+  assert.equal(body.linearVelocity.y,-0.5);
+  motion.owner.scoop.approachTarget=null;
+  assert.equal(motion.constrain(),false);
+  peer.position.z=-0.69;
+  motion.owner.scoop.approachTarget=peer;
+  body.linearVelocity.set(0,-0.5,-0.25);
+  assert.equal(motion.constrain(),false);
+});
+
 test('approaching traffic slows smoothly before its feet overlap',()=>{
   const {body,motion}=fixture(0,-1);
   assert.equal(motion.constrain(),true);

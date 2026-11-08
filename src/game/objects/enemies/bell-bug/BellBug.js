@@ -181,6 +181,14 @@ export class BellBug extends Enemy {
   }
 
   /**
+   * The foot-spacing planner must see blocked intent to age and recover a yield.
+   * @returns {boolean}
+   */
+  get usesPathCrowdAvoidance() {
+    return false;
+  }
+
+  /**
    * @returns {string}
    */
   get testStatus() {

@@ -84,6 +84,14 @@ export class Enemy {
   }
 
   /**
+   * Species with a full footprint-aware crowd planner keep ownership of yields.
+   * @returns {boolean}
+   */
+  get usesPathCrowdAvoidance() {
+    return true;
+  }
+
+  /**
    * Local obstacle planners must not reject the lower waypoint while the
    * shared bridge planner is deliberately walking the body off a raised lip.
    * @returns {boolean}

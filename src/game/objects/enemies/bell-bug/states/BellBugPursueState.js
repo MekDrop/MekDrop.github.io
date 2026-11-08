@@ -27,14 +27,23 @@ export class BellBugPursueState extends State {
 
       return;
     }
+    if (owner.scoop.approachTarget) {
+      owner.scoop.approach();
+
+      return;
+    }
     const royal = owner.resolveRoyalTarget();
-    owner.scratchTarget = owner.findGluedDoor() ?? (royal && owner.findClosedDoor(royal));
+    const nearbyGoo = owner.findGluedDoor();
+    owner.scratchTarget = nearbyGoo ?? (royal && owner.findClosedDoor(royal));
+    // Keep advancing even during a local cleanup approach. Resuming a stale
+    // ground waypoint after climbing the entrance traps the bug behind peers.
+    const waypoint = owner.route.next();
     if (owner.canScratchDoor) {
       owner.transition(BellBugScratchState.name);
 
       return;
     }
-    const destination = owner.scratchTarget?.jammed ? owner.scratchTarget : owner.route.next() ?? royal;
+    const destination = nearbyGoo ?? waypoint ?? royal;
     if (!destination) {
       owner.stop();
       owner.playClip("idle_nervous");

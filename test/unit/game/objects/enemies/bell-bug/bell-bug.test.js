@@ -58,6 +58,45 @@ function fixture() {
   };
 }
 
+test('lane traffic does not bypass the Bell Bug crowd recovery planner', () => {
+  const {bug,ally,royal}=fixture();
+  bug.entity.setPosition(.5,0,0);
+  royal.entity.setPosition(.5,0,-3);
+  ally.entity.setPosition(.5,0,-.8);
+  ally.entity.rigidbody={enabled:true};
+  bug.pathLane.side=1;
+  bug.runtime.mapData={
+    cols:1,
+    rows:1,
+    paths:[{
+      route:[{
+        col:0,
+        row:0,
+        elevation:0,
+      },{
+        col:0,
+        row:-4,
+        elevation:0,
+      }],
+    }],
+  };
+  bug.runtime.objects.push({
+    isEnemy:true,
+    alive:true,
+    radius:.3,
+    height:1,
+    position:new Vec3(-.5,0,0),
+  });
+  let recoveries=0;
+  bug.crowdMotion.constrain=()=>{
+    recoveries++;
+
+    return false;
+  };
+  bug.moveToward(royal);
+  assert.equal(recoveries,1,'the species planner must get a chance to wait or pass');
+});
+
 test('walking syncs a physical turn once without repeatedly teleporting straight travel', () => {
   const {bug, royal}=fixture();
   const teleport=bug.entity.rigidbody.teleport;
