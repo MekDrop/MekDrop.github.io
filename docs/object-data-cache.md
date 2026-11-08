@@ -40,6 +40,18 @@ at development/build time. Content hashes make unchanged files stable across bak
 Consumers receive independent data copies; gameplay state and entities are never
 shared through the cache.
 
+Startup preloads the small reusable recipe families. Large castle-plan snapshots
+load only for the requested input key, including all fragments of that variant;
+unrelated castle plans and compiled-map snapshots are not downloaded at startup.
+Compiled map transforms use the normal local compiler when not already loaded.
+The Vite plugin supplies the variant index only after validating the manifest.
+
+Browsers persist requested shards in Cache Storage (`game-object-recipes-v1`),
+shared with generation workers and subsequent refreshes. Content-hashed filenames
+identify immutable entries; changed data uses a different key, while stale source
+manifests disable the loaders entirely. Denied storage, eviction, quota errors,
+and corrupt responses fall back to ordinary loading and generation.
+
 ## Baked data
 
 | Type | Cached data |

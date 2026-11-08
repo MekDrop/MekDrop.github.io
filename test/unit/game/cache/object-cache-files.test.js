@@ -56,6 +56,12 @@ test("files contain one variant, stay bounded, reassemble large variants, and re
         another: [4, 5, 6],
       },
       roofs: { roof: { height: 1 } },
+      "castle-plans": {
+        selected: Array.from({ length: 3000 }, (_, index) => ({
+          index,
+          room: "castle room",
+        })),
+      },
     };
     await writeCache({
       version: 1,
@@ -65,7 +71,7 @@ test("files contain one variant, stay bounded, reassemble large variants, and re
     const metadata = JSON.parse(await readFile(join(directory, "manifest.json"), "utf8"));
     const shards = [];
     for (const file of metadata.files) {
-      assert.match(file, /^(books|roofs)\/[a-f\d]+\.json$/);
+      assert.match(file, /^(books|roofs|castle-plans)\/[a-f\d]+\.json$/);
       const path = join(directory, file);
       assert.ok((await stat(path)).size <= 128 * 1024, file);
       const shard = JSON.parse(await readFile(path, "utf8"));
@@ -91,6 +97,12 @@ test("files contain one variant, stay bounded, reassemble large variants, and re
     const cachePlugin = plugin(root);
     assert.equal(cachePlugin.transform.call(context, "original loader", loaderPath), undefined,
       "valid cache retains the lazy shard imports");
+    const loaderSource = await readFile(new URL("../../../../src/game/cache/ObjectCacheFiles.js", import.meta.url), "utf8");
+    const indexed = cachePlugin.transform.call(context, loaderSource, loaderPath);
+    const indexedModule = await import(`data:text/javascript,${encodeURIComponent(indexed.code)}`);
+    assert.deepEqual(indexedModule.lazyEntries["castle-plans/selected"],
+      metadata.files.filter((file) => file.startsWith("castle-plans/")).map((file) => `./generated/${file}`),
+      "the selected variant index includes every fragment and no unrelated recipes");
     const id = join(directory, metadata.files[0]).replaceAll("\\", "/");
     assert.deepEqual(JSON.parse(plugin(root).load.call(context, id)),
       JSON.parse(await readFile(id, "utf8")));

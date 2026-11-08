@@ -1,5 +1,13 @@
 # Game asset loading
 
+Development binary assets use content-versioned URLs and immutable browser cache
+headers through `scripts/game-assets/vite-plugin.cjs`. Editing a model, texture,
+or audio clip changes its URL. Shader script/WASM pairs retain their colocated
+URLs. Production retains Vite's normal hashed
+asset output. Keep application modules on Vite's normal revalidation/HMR path.
+Optional baked recipe shards also persist across refreshes in browser Cache
+Storage; see `docs/object-data-cache.md` for selective snapshot loading.
+
 `GameModelLibrary`, `GameTextureLibrary`, and `GameAudioLibrary` own reusable PlayCanvas assets. Texture and audio libraries share `AbstractGameAssetLibrary` for caching, concurrent request deduplication, four active loads per library, progress, retries, and teardown. Call `load()` before `get()`; objects borrow loaded assets and must not unload them.
 
 After map preparation, `renderer.prepareMapAssets()` loads material textures, models, and the present objects' audio concurrently in one awaited asset phase. Renderer initialization only sets up the engine; rendering waits for all three asset types. The loading UI uses a separate `assets` phase (Loading assets) after map planning, then switches to `rendering` (Raising the terrain) only after asset loading finishes. Initial loading, navigation, and regeneration share these phase transitions. Materials and loaded assets are reused across maps; newly needed textures are attached to the existing materials, and failed loads can retry. Texture loads report `texture` progress. Named material textures retain separate sampler resources when the same image needs different wrapping or filtering. External shared model images are resolved through the texture library's image hook; declare their URL and image options under `src/game/textures/`.

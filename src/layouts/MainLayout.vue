@@ -340,17 +340,25 @@
 import { useOtherLinksStore } from "stores/other-links-store";
 import { storeToRefs } from "pinia";
 import LanguageSwitcher from "components/LanguageSwitcher.vue";
+import GameLoadingScene from "components/GameLoadingScene.vue";
 import ShaderDropTitle from "components/ShaderDropTitle.vue";
 import getMetaConfig from "src/assets/config/meta";
 import getMainMenu from "src/assets/config/main_menu";
 import { useMeta } from "quasar";
 import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
-import { computed, defineAsyncComponent, ref, useSSRContext, watch } from "vue";
+import { computed, defineAsyncComponent, h, ref, useSSRContext, watch } from "vue";
 
 export default {
   components: {
-    GameCanvas: defineAsyncComponent(() => import("components/GameCanvas.vue")),
+    GameCanvas: defineAsyncComponent({
+      loader: () => import("components/GameCanvas.vue"),
+      delay: 0,
+      loadingComponent: () => h(GameLoadingScene, {
+        active: true,
+        phase: "initializing",
+      }),
+    }),
     LanguageSwitcher,
     ShaderDropTitle,
   },

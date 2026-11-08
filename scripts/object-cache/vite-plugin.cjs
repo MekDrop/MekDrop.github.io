@@ -46,10 +46,39 @@ module.exports = (root) => {
       validate(this);
       if (!valid) {
         return {
-          code: "export default {};",
+          code: "export default {}; export const lazyEntries = {};",
           map: null,
         };
       }
+      if (!_code.includes("export const lazyEntries = {};")) {
+        return;
+      }
+      const entries = {};
+      for (const file of manifest.files) {
+        if (!/^(castle-plans|compiled-maps)\//.test(file)) {
+          continue;
+        }
+        let shard;
+        try {
+          shard = JSON.parse(readFileSync(resolve(directory, file), "utf8"));
+        } catch {
+          // An optional missing/corrupt part must fall back to generation.
+          continue;
+        }
+        const keys = new Set([
+          ...Object.entries(shard.entries ?? {}).flatMap(([family, records]) =>
+            Object.keys(records).map(key => `${family}/${key}`)),
+          ...(shard.fragments ?? []).map(({ family, key }) => `${family}/${key}`),
+        ]);
+        for (const key of keys) {
+          (entries[key] ??= []).push(`./generated/${file}`);
+        }
+      }
+
+      return {
+        code: _code.replace("export const lazyEntries = {};", `export const lazyEntries = ${JSON.stringify(entries)};`),
+        map: null,
+      };
     },
     load: function (id) {
       const path = id.split("?")[0];

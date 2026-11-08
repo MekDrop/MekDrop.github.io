@@ -109,6 +109,9 @@ module.exports = configure(function (ctx) {
       // distDir
 
       extendViteConf(viteConf, { isClient, isServer }) {
+        if (ctx.dev) {
+          viteConf.plugins.push(require("./scripts/game-assets/vite-plugin.cjs")(__dirname));
+        }
         if (ctx.dev && ctx.mode.spa && isClient) {
           viteConf.plugins.push(require("./scripts/game-hmr/vite-plugin.cjs")(__dirname));
         }

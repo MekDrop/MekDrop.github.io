@@ -10,3 +10,6 @@ try {
 }
 
 export default files;
+
+// Populated by the validating Vite plugin; keys select complete large variants.
+export const lazyEntries = {};

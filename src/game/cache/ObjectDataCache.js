@@ -1,4 +1,5 @@
-import files from "./ObjectCacheFiles.js";
+import files, { lazyEntries } from "./ObjectCacheFiles.js";
+import { BrowserObjectCache } from "./BrowserObjectCache.js";
 
 /**
  * Immutable baked recipes, shared by the CLI and the SPA. Never stores entities.
@@ -35,7 +36,8 @@ export class ObjectDataCache {
    * @returns {Promise<void>}
    */
   static async #load() {
-    const results = await Promise.allSettled(Object.values(files).map(ObjectDataCache.#loadFile));
+    const requests = Object.entries(files).filter(ObjectDataCache.#isStartupFile);
+    const results = await Promise.allSettled(requests.map(ObjectDataCache.#loadFile));
     const shards = [];
     for (const result of results) {
       if (result.status === "fulfilled") {
@@ -97,11 +99,20 @@ export class ObjectDataCache {
   }
 
   /**
-   * @param {() => Promise<{default: CacheShard}>} load
+   * @param {[string, () => Promise<{default: CacheShard}>]} entry
    * @returns {Promise<{default: CacheShard}>}
    */
-  static #loadFile(load) {
-    return load();
+  static #loadFile([path, load]) {
+    return BrowserObjectCache.load(path, load);
+  }
+
+  /**
+   * Large map and castle snapshots must not preload unrelated maps.
+   * @param {[string, () => Promise<{default: CacheShard}>]} entry
+   * @returns {boolean}
+   */
+  static #isStartupFile([path]) {
+    return !/^\.\/generated\/(castle-plans|compiled-maps)\//.test(path);
   }
 
   /**
@@ -157,6 +168,17 @@ export class ObjectDataCache {
    * @returns {Promise<T>}
    */
   static async resolveAsync(family, input, generate) {
+    if (!this.#recording) {
+      const paths = lazyEntries[`${family}/${this.key(input)}`];
+      if (paths && !Object.hasOwn(this.data.entries[family] ?? {}, this.key(input))) {
+        const results = await Promise.allSettled(paths.map(ObjectDataCache.#loadPath));
+        const shards = results.filter(ObjectDataCache.#fulfilled).map(ObjectDataCache.#shard);
+        const decoded = this.decode(shards);
+        for (const [name, entries] of Object.entries(decoded)) {
+          Object.assign(this.data.entries[name] ??= {}, entries);
+        }
+      }
+    }
     const entries = this.data.version === 1 ? this.data.entries[family] : null;
     if (!this.#recording && !entries) {
       return generate();
@@ -174,6 +196,30 @@ export class ObjectDataCache {
     }
 
     return result;
+  }
+
+  /**
+   * @param {string} path
+   * @returns {Promise<{default: CacheShard}>}
+   */
+  static #loadPath(path) {
+    return ObjectDataCache.#loadFile([path, files[path]]);
+  }
+
+  /**
+   * @param {PromiseSettledResult<{default: CacheShard}>} result
+   * @returns {boolean}
+   */
+  static #fulfilled(result) {
+    return result.status === "fulfilled";
+  }
+
+  /**
+   * @param {PromiseFulfilledResult<{default: CacheShard}>} result
+   * @returns {CacheShard}
+   */
+  static #shard(result) {
+    return result.value.default;
   }
 
   /**
