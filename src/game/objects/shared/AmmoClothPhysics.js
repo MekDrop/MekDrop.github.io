@@ -1,4 +1,5 @@
 import Ammo from "sync-ammo/dist/ammo.module.js";
+import { ClothRoofContacts } from "./ClothRoofContacts.js";
 import { getAmbientWind } from "./AmbientWind.js";
 
 const GRAVITY = -3.2;
@@ -17,8 +18,7 @@ const STRETCH_LIMIT_ITERATIONS = 3;
 const ROOF_CONTACT_ITERATIONS = 12;
 const SOFT_RIGID_AND_SELF_COLLISION = 0x41;
 const SELF_COLLISION_CLUSTERS = 8;
-const ROOF_COLLISION_CLEARANCE = 0.065;
-const ROOF_CONTACT_EPSILON = 0.000001;
+const LINK_DIRECTION_EPSILON = 0.000001;
 const POINTER_RADIUS_SCALE = 0.28;
 const MINIMUM_POINTER_RADIUS = 0.16;
 
@@ -147,7 +147,7 @@ export class AmmoClothPhysics {
 
   /**
    *
-   * @param {{positions: Array<{x: number, y: number, z: number}>, indices: Array<number>, pinnedIndices: Array<number>, vertexUv: import("src/game/objects/ObjectTypes.js").Point3, root: import("playcanvas").Entity, normalAxis: {x: number, y: number, z: number}, seed: number, wallPlane: {normal: import("src/game/objects/ObjectTypes.js").Point3, distance: number}|null, wallOpeningWindExposure: (position: import("src/game/objects/ObjectTypes.js").Point3) => number, roofCollider: number, bendingStiffness: number, selfCollision: boolean, windExposure?: (direction: import("../ObjectTypes.js").Point3, elapsed: number) => number}} options
+   * @param {{positions: Array<{x: number, y: number, z: number}>, indices: Array<number>, pinnedIndices: Array<number>, vertexUv: import("src/game/objects/ObjectTypes.js").Point3, root: import("playcanvas").Entity, normalAxis: {x: number, y: number, z: number}, seed: number, wallPlane: {normal: import("src/game/objects/ObjectTypes.js").Point3, distance: number}|null, wallOpeningWindExposure: (position: import("src/game/objects/ObjectTypes.js").Point3) => number, roofCollider: import("./ClothRoofContacts.js").ClothRoofCollider|null, bendingStiffness: number, selfCollision: boolean, windExposure?: (direction: import("../ObjectTypes.js").Point3, elapsed: number) => number}} options
    * @param {Array<{x: number, y: number, z: number}>} options.positions
    * @param {Array<number>} options.indices
    * @param {Array<number>} options.pinnedIndices
@@ -158,7 +158,7 @@ export class AmmoClothPhysics {
    * @param {{normal: import("src/game/objects/ObjectTypes.js").Point3, distance: number}|null} options.wallPlane
    * @param {(position: import("src/game/objects/ObjectTypes.js").Point3) => number} options.wallOpeningWindExposure
    * @param {(direction: import("../ObjectTypes.js").Point3, elapsed: number) => number} [options.windExposure] Fraction of ambient wind reaching this cloth.
-   * @param {number} options.roofCollider
+   * @param {import("./ClothRoofContacts.js").ClothRoofCollider|null} options.roofCollider
    * @param {number} options.bendingStiffness
    * @param {boolean} options.selfCollision
    */
@@ -222,19 +222,6 @@ export class AmmoClothPhysics {
       positions,
       root,
       roofCollider,
-      roofFaces: Array.from(
-        { length: indices.length / 3 },
-        /**
-         *
-         * @param {undefined} _
-         * @param {number} faceIndex
-         */
-        (_, faceIndex) => ({
-          first: indices[faceIndex * 3],
-          second: indices[faceIndex * 3 + 1],
-          third: indices[faceIndex * 3 + 2],
-        }),
-      ),
       stretchConstraints,
       vertexUv,
       wallPlane,
@@ -242,6 +229,11 @@ export class AmmoClothPhysics {
       windExposure,
       worldWind: this.#pc && root ? new this.#pc.Vec3() : null,
     };
+    cloth.roofContacts = new ClothRoofContacts(
+      roofCollider,
+      indices,
+      cloth.pinnedIndices,
+    );
     this.#cloths.push(cloth);
 
     return cloth;
@@ -619,7 +611,7 @@ export class AmmoClothPhysics {
       : STRETCH_LIMIT_ITERATIONS;
     for (let iteration = 0; iteration < iterations; iteration += 1) {
       this.#enforceWallPlane(cloth, nodes);
-      this.#enforceRoofCollider(cloth, nodes);
+      cloth.roofContacts.solve(nodes);
       for (const constraint of cloth.stretchConstraints) {
         const leftNode = nodes.at(constraint.left);
         const rightNode = nodes.at(constraint.right);
@@ -646,7 +638,7 @@ export class AmmoClothPhysics {
           ? constraint.minimumLength
           : constraint.maximumLength;
         const direction =
-          distance > ROOF_CONTACT_EPSILON
+          distance > LINK_DIRECTION_EPSILON
             ? [deltaX / distance, deltaY / distance, deltaZ / distance]
             : constraint.restDirection;
         const correction = distance - targetLength;
@@ -672,7 +664,7 @@ export class AmmoClothPhysics {
         );
       }
       this.#enforceWallPlane(cloth, nodes);
-      this.#enforceRoofCollider(cloth, nodes);
+      cloth.roofContacts.solve(nodes);
     }
   }
 
@@ -710,428 +702,6 @@ export class AmmoClothPhysics {
         );
       }
     }
-  }
-
-  /**
-   *
-   * @param {number} cloth
-   * @param {Array<import("playcanvas").Entity>} nodes
-   */
-  #enforceRoofCollider(cloth, nodes) {
-    const collider = cloth.roofCollider;
-    if (!collider || collider.halfWidth <= 0 || collider.halfDepth <= 0) {
-      return;
-    }
-    for (let index = 0; index < nodes.size(); index += 1) {
-      this.#enforceRoofNodeContact(cloth, nodes, collider, index);
-    }
-    for (const face of cloth.roofFaces) {
-      this.#enforceRoofFaceContacts(cloth, nodes, collider, face);
-    }
-  }
-
-  /**
-   *
-   * @param {number} cloth
-   * @param {Array<import("playcanvas").Entity>} nodes
-   * @param {number} collider
-   * @param {number} index
-   */
-  #enforceRoofNodeContact(cloth, nodes, collider, index) {
-    const node = nodes.at(index);
-    const position = node.get_m_x();
-    const contact = this.#roofContact(
-      collider,
-      position.x(),
-      position.y(),
-      position.z(),
-    );
-    if (!contact || cloth.pinnedIndices.has(index)) {
-      return;
-    }
-    position.setValue(position.x(), position.y() + contact.penetration, position.z());
-    this.#removeRoofVelocity(node.get_m_v(), contact.normal, 1);
-  }
-
-  /**
-   *
-   * @param {number} cloth
-   * @param {Array<import("playcanvas").Entity>} nodes
-   * @param {number} collider
-   * @param {import("src/game/objects/ObjectTypes.js").Triangle} face
-   */
-  #enforceRoofFaceContacts(cloth, nodes, collider, face) {
-    const facePositions = [face.first, face.second, face.third].map(/**
-     *
-     * @param {number} index
-     */
-      (index) =>
-        nodes.at(index).get_m_x(),
-    );
-    const centerX = collider.centerX ?? 0;
-    const centerZ = collider.centerZ ?? 0;
-    const clearance = collider.clearance ?? ROOF_COLLISION_CLEARANCE;
-    /**
-     *
-     * @param {{x: number, y: number, z: number}} position
-     */
-    const isAboveCollider = (position) =>
-      position.y() >= collider.baseY + collider.height + clearance;
-    /**
-     *
-     * @param {{x: number, y: number, z: number}} position
-     */
-    const isLeftOfCollider = (position) => position.x() < centerX - collider.halfWidth;
-    /**
-     *
-     * @param {{x: number, y: number, z: number}} position
-     */
-    const isRightOfCollider = (position) => position.x() > centerX + collider.halfWidth;
-    /**
-     *
-     * @param {{x: number, y: number, z: number}} position
-     */
-    const isBehindCollider = (position) => position.z() < centerZ - collider.halfDepth;
-    /**
-     *
-     * @param {{x: number, y: number, z: number}} position
-     */
-    const isInFrontOfCollider = (position) => position.z() > centerZ + collider.halfDepth;
-    if (
-      facePositions.every(isAboveCollider) ||
-      facePositions.every(isLeftOfCollider) ||
-      facePositions.every(isRightOfCollider) ||
-      facePositions.every(isBehindCollider) ||
-      facePositions.every(isInFrontOfCollider)
-    ) {
-      return;
-    }
-    this.#enforceRoofFaceSample(cloth, nodes, collider, face, 1 / 3, 1 / 3, 1 / 3);
-    this.#enforceRoofFeaturePoint(cloth, nodes, collider, face, 0, 0);
-    for (const x of [-collider.halfWidth, collider.halfWidth]) {
-      for (const z of [-collider.halfDepth, collider.halfDepth]) {
-        this.#enforceRoofFeaturePoint(cloth, nodes, collider, face, x, z);
-      }
-    }
-
-    const lines = [
-      [1 / collider.halfWidth, -1 / collider.halfDepth, 0],
-      [1 / collider.halfWidth, 1 / collider.halfDepth, 0],
-      [1, 0, -collider.halfWidth],
-      [1, 0, collider.halfWidth],
-      [0, 1, -collider.halfDepth],
-      [0, 1, collider.halfDepth],
-    ];
-    for (const line of lines) {
-      this.#enforceRoofEdgeIntersection(
-        cloth,
-        nodes,
-        collider,
-        face,
-        0,
-        1,
-        line,
-      );
-      this.#enforceRoofEdgeIntersection(
-        cloth,
-        nodes,
-        collider,
-        face,
-        1,
-        2,
-        line,
-      );
-      this.#enforceRoofEdgeIntersection(
-        cloth,
-        nodes,
-        collider,
-        face,
-        2,
-        0,
-        line,
-      );
-    }
-  }
-
-  /**
-   *
-   * @param {number} cloth
-   * @param {Array<import("playcanvas").Entity>} nodes
-   * @param {number} collider
-   * @param {import("src/game/objects/ObjectTypes.js").Triangle} face
-   * @param {number} x
-   * @param {number} z
-   */
-  #enforceRoofFeaturePoint(cloth, nodes, collider, face, x, z) {
-    const indices = [face.first, face.second, face.third];
-    const points = indices.map(/**
-     *
-     * @param {number} index
-     */
-      (index) => nodes.at(index).get_m_x());
-    const denominator =
-      (points[1].z() - points[2].z()) * (points[0].x() - points[2].x()) +
-      (points[2].x() - points[1].x()) * (points[0].z() - points[2].z());
-    if (Math.abs(denominator) <= ROOF_CONTACT_EPSILON) {
-      return;
-    }
-    const firstWeight =
-      ((points[1].z() - points[2].z()) * (x - points[2].x()) +
-        (points[2].x() - points[1].x()) * (z - points[2].z())) /
-      denominator;
-    const secondWeight =
-      ((points[2].z() - points[0].z()) * (x - points[2].x()) +
-        (points[0].x() - points[2].x()) * (z - points[2].z())) /
-      denominator;
-    const thirdWeight = 1 - firstWeight - secondWeight;
-    if (
-      firstWeight < -ROOF_CONTACT_EPSILON ||
-      secondWeight < -ROOF_CONTACT_EPSILON ||
-      thirdWeight < -ROOF_CONTACT_EPSILON
-    ) {
-      return;
-    }
-    this.#enforceRoofFaceSample(
-      cloth,
-      nodes,
-      collider,
-      face,
-      firstWeight,
-      secondWeight,
-      thirdWeight,
-    );
-  }
-
-  /**
-   *
-   * @param {number} cloth
-   * @param {Array<import("playcanvas").Entity>} nodes
-   * @param {number} collider
-   * @param {import("src/game/objects/ObjectTypes.js").Triangle} face
-   * @param {boolean} leftSlot
-   * @param {number} rightSlot
-   * @param {Array<number>} line
-   */
-  #enforceRoofEdgeIntersection(
-    cloth,
-    nodes,
-    collider,
-    face,
-    leftSlot,
-    rightSlot,
-    line,
-  ) {
-    const indices = [face.first, face.second, face.third];
-    const left = nodes.at(indices[leftSlot]).get_m_x();
-    const right = nodes.at(indices[rightSlot]).get_m_x();
-    const leftDistance = line[0] * left.x() + line[1] * left.z() + line[2];
-    const rightDistance =
-      line[0] * right.x() + line[1] * right.z() + line[2];
-    const distanceDifference = leftDistance - rightDistance;
-    if (Math.abs(distanceDifference) <= ROOF_CONTACT_EPSILON) {
-      return;
-    }
-    const ratio = leftDistance / distanceDifference;
-    if (ratio <= ROOF_CONTACT_EPSILON || ratio >= 1 - ROOF_CONTACT_EPSILON) {
-      return;
-    }
-    const weights = [0, 0, 0];
-    weights[leftSlot] = 1 - ratio;
-    weights[rightSlot] = ratio;
-    this.#enforceRoofFaceSample(
-      cloth,
-      nodes,
-      collider,
-      face,
-      weights[0],
-      weights[1],
-      weights[2],
-    );
-  }
-
-  /**
-   *
-   * @param {number} cloth
-   * @param {Array<import("playcanvas").Entity>} nodes
-   * @param {number} collider
-   * @param {import("src/game/objects/ObjectTypes.js").Triangle} face
-   * @param {number} firstWeight
-   * @param {number} secondWeight
-   * @param {number} thirdWeight
-   */
-  #enforceRoofFaceSample(
-    cloth,
-    nodes,
-    collider,
-    face,
-    firstWeight,
-    secondWeight,
-    thirdWeight,
-  ) {
-    const indices = [face.first, face.second, face.third];
-    const weights = [firstWeight, secondWeight, thirdWeight];
-    const positions = indices.map(/**
-     *
-     * @param {number} index
-     */
-      (index) => nodes.at(index).get_m_x());
-    const x = positions.reduce(
-      /**
-       *
-       * @param {number} total
-       * @param {{x: number, y: number, z: number}} position
-       * @param {number} index
-       */
-      (total, position, index) => total + position.x() * weights[index],
-      0,
-    );
-    const y = positions.reduce(
-      /**
-       *
-       * @param {number} total
-       * @param {{x: number, y: number, z: number}} position
-       * @param {number} index
-       */
-      (total, position, index) => total + position.y() * weights[index],
-      0,
-    );
-    const z = positions.reduce(
-      /**
-       *
-       * @param {number} total
-       * @param {{x: number, y: number, z: number}} position
-       * @param {number} index
-       */
-      (total, position, index) => total + position.z() * weights[index],
-      0,
-    );
-    const contact = this.#roofContact(collider, x, y, z);
-    if (!contact) {
-      return;
-    }
-    let movableWeightSquared = 0;
-    for (let slot = 0; slot < indices.length; slot += 1) {
-      if (!cloth.pinnedIndices.has(indices[slot])) {
-        movableWeightSquared += weights[slot] * weights[slot];
-      }
-    }
-    if (movableWeightSquared <= ROOF_CONTACT_EPSILON) {
-      return;
-    }
-    for (let slot = 0; slot < indices.length; slot += 1) {
-      if (cloth.pinnedIndices.has(indices[slot])) {
-        continue;
-      }
-      const correction =
-        (contact.penetration * weights[slot]) / movableWeightSquared;
-      const position = positions[slot];
-      position.setValue(position.x(), position.y() + correction, position.z());
-    }
-
-    const velocities = indices.map(/**
-     *
-     * @param {number} index
-     */
-      (index) => nodes.at(index).get_m_v());
-    const inwardSpeed = velocities.reduce(
-      /**
-       *
-       * @param {number} total
-       * @param {{x: number, y: number, z: number}} velocity
-       * @param {number} index
-       */
-      (total, velocity, index) =>
-        total +
-        weights[index] *
-          (velocity.x() * contact.normal[0] +
-            velocity.y() * contact.normal[1] +
-            velocity.z() * contact.normal[2]),
-      0,
-    );
-    if (inwardSpeed >= 0) {
-      return;
-    }
-    for (let slot = 0; slot < indices.length; slot += 1) {
-      if (cloth.pinnedIndices.has(indices[slot])) {
-        continue;
-      }
-      this.#removeRoofVelocity(
-        velocities[slot],
-        contact.normal,
-        weights[slot] / movableWeightSquared,
-        inwardSpeed,
-      );
-    }
-  }
-
-  /**
-   *
-   * @param {number} collider
-   * @param {number} x
-   * @param {number} y
-   * @param {number} z
-   */
-  #roofContact(collider, x, y, z) {
-    const centerX = collider.centerX ?? 0;
-    const centerZ = collider.centerZ ?? 0;
-    const offsetX = x - centerX;
-    const offsetZ = z - centerZ;
-    const normalizedX = Math.abs(offsetX) / collider.halfWidth;
-    const normalizedZ = Math.abs(offsetZ) / collider.halfDepth;
-    const roofRatio = Math.max(normalizedX, normalizedZ);
-    if (roofRatio > 1) {
-      return null;
-    }
-    const clearance = collider.clearance ?? ROOF_COLLISION_CLEARANCE;
-    const roofY =
-      collider.baseY + collider.height * (1 - roofRatio) + clearance;
-    if (y >= roofY) {
-      return null;
-    }
-    const normal =
-      normalizedX >= normalizedZ
-        ? [
-          (Math.sign(offsetX) * collider.height) / collider.halfWidth,
-          1,
-          0,
-        ]
-        : [
-          0,
-          1,
-          (Math.sign(offsetZ) * collider.height) / collider.halfDepth,
-        ];
-    const inverseNormalLength = 1 / Math.hypot(...normal);
-    normal[0] *= inverseNormalLength;
-    normal[1] *= inverseNormalLength;
-    normal[2] *= inverseNormalLength;
-
-    return {
-      normal,
-      penetration: roofY - y,
-    };
-  }
-
-  /**
-   *
-   * @param {{x: number, y: number, z: number}} velocity
-   * @param {{x: number, y: number, z: number}} normal
-   * @param {number} scale
-   * @param {number} inwardSpeed
-   */
-  #removeRoofVelocity(velocity, normal, scale, inwardSpeed = null) {
-    const speed =
-      inwardSpeed ??
-      velocity.x() * normal[0] +
-        velocity.y() * normal[1] +
-        velocity.z() * normal[2];
-    if (speed >= 0) {
-      return;
-    }
-    velocity.setValue(
-      velocity.x() - normal[0] * speed * scale,
-      velocity.y() - normal[1] * speed * scale,
-      velocity.z() - normal[2] * speed * scale,
-    );
   }
 
   /**
