@@ -129,7 +129,10 @@ class Projector {
   }
 }
 const theme = new Proxy({}, { get: () => () => "#000000" });
-const InventoryHud = new Function("Vec2", "InventoryItemProjector", "gameUiTheme", "inventoryMushroomPart", "InventoryFullReactionHud", `${inventorySource}\nreturn InventoryHud;`)(Vec2, Projector, theme, () => "", InventoryFullReactionHud);
+const painterSource = readFileSync(new URL("../../../../src/game/ui/InventoryPanelPainter.js", import.meta.url), "utf8")
+  .replace(/^import[^;]+;\r?\n/gm, "")
+  .replaceAll("export ", "");
+const InventoryHud = new Function("Vec2", "InventoryItemProjector", "gameUiTheme", "inventoryMushroomPart", "InventoryFullReactionHud", `${painterSource}\n${inventorySource}\nreturn InventoryHud;`)(Vec2, Projector, theme, () => "", InventoryFullReactionHud);
 
 it("preserves inventory gating, modal independence and public teardown contracts", () => {
   const previousDocument = globalThis.document;

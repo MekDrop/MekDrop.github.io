@@ -1,3 +1,15 @@
+import {
+  InventoryPanelPainter,
+  PANEL_WIDTH,
+  PANEL_HEIGHT,
+  PANEL_TEXTURE_SCALE,
+  SLOT_COLUMNS,
+  SLOT_ROWS,
+  SLOT_SIZE,
+  TOOLTIP_WIDTH,
+  TOOLTIP_HEIGHT,
+  CLOSE_BUTTON_SIZE,
+} from "./InventoryPanelPainter.js";
 import { inventoryMushroomPart } from "../objects/ground-cover/MushroomParts.js";
 import { Vec2 } from "playcanvas";
 import { InventoryItemProjector } from "./InventoryItemProjector.js";
@@ -26,17 +38,7 @@ import { InventoryFullReactionHud } from "./InventoryFullReactionHud.js";
 
 const REFERENCE_WIDTH = 1280;
 const REFERENCE_HEIGHT = 720;
-const PANEL_WIDTH = 430;
-const PANEL_HEIGHT = 420;
-const PANEL_TEXTURE_SCALE = 3;
-const SLOT_COLUMNS = 4;
-const SLOT_ROWS = 3;
-const SLOT_SIZE = 90;
-const CLOSE_BUTTON_SIZE = 32;
 const ITEM_PROJECTION_SIZE = 64;
-const ITEM_LABEL_MAXIMUM_WIDTH = SLOT_SIZE - 12;
-const TOOLTIP_WIDTH = 164;
-const TOOLTIP_HEIGHT = 25;
 
 export class InventoryHud {
   /**
@@ -51,6 +53,10 @@ export class InventoryHud {
    * @type {((key: string) => string)|null}
    */
   #translate;
+  /**
+   * @type {InventoryPanelPainter}
+   */
+  #painter;
   /**
    * @type {((sourceSlot: number, targetSlot: number) => boolean)|null}
    */
@@ -72,7 +78,7 @@ export class InventoryHud {
    */
   #panel;
   /**
-   * @type {import("playcanvas").Texture|null}
+   * @type {TextureRecord|null}
    */
   #panelTexture;
   /**
@@ -168,6 +174,7 @@ export class InventoryHud {
     this.#pc = pc;
     this.#app = app;
     this.#translate = translate;
+    this.#painter = new InventoryPanelPainter(translate);
     this.#onMoveItem = onMoveItem;
     this.#onDropItem = onDropItem;
     this.#itemProjector = new InventoryItemProjector({
@@ -610,56 +617,12 @@ export class InventoryHud {
     if (!this.#closeTexture || !this.#closeButton) {
       return;
     }
-    const { canvas, context, texture } = this.#closeTexture;
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    context.save();
-    context.scale(PANEL_TEXTURE_SCALE, PANEL_TEXTURE_SCALE);
-    const inset = this.#closePressed ? 2 : 1;
-    if (this.#closeHovered && !this.#closePressed) {
-      context.shadowColor = gameUiTheme.withAlpha(
-        gameUiTheme.outlineStrong,
-        0.65,
-      );
-      context.shadowBlur = 5;
-    }
-    this.#roundedRect(
-      context,
-      inset,
-      inset,
-      CLOSE_BUTTON_SIZE - inset * 2,
-      CLOSE_BUTTON_SIZE - inset * 2,
-      gameUiTheme.borderRadius,
+    this.#painter.drawCloseButton(
+      this.#closeTexture,
+      this.#closeHovered,
+      this.#closePressed,
     );
-    const gradient = context.createLinearGradient(0, 0, 0, CLOSE_BUTTON_SIZE);
-    if (this.#closePressed) {
-      gradient.addColorStop(0, gameUiTheme.surfaceInsetTop);
-      gradient.addColorStop(1, gameUiTheme.surfaceInsetBottom);
-    } else if (this.#closeHovered) {
-      gradient.addColorStop(0, gameUiTheme.outlineStrong);
-      gradient.addColorStop(1, gameUiTheme.surfaceRaisedTop);
-    } else {
-      gradient.addColorStop(0, gameUiTheme.surfaceRaisedTop);
-      gradient.addColorStop(1, gameUiTheme.surfaceRaisedBottom);
-    }
-    context.fillStyle = gradient;
-    context.fill();
-    context.shadowColor = "transparent";
-    context.strokeStyle = this.#closeHovered
-      ? gameUiTheme.textMuted
-      : gameUiTheme.outline;
-    context.lineWidth = this.#closePressed ? 1.5 : 1;
-    context.stroke();
-    const offset = this.#closePressed ? 1 : 0;
-    context.beginPath();
-    context.moveTo(11 + offset, 11 + offset);
-    context.lineTo(21 + offset, 21 + offset);
-    context.moveTo(21 + offset, 11 + offset);
-    context.lineTo(11 + offset, 21 + offset);
-    context.strokeStyle = gameUiTheme.text;
-    context.lineWidth = 2;
-    context.lineCap = "round";
-    context.stroke();
-    context.restore();
+    const { canvas, texture } = this.#closeTexture;
     texture.setSource(canvas);
     this.#closeButton.setLocalScale(1, 1, 1);
   }
@@ -698,196 +661,14 @@ export class InventoryHud {
     if (!this.#panelTexture) {
       return;
     }
-    const { canvas, context, texture } = this.#panelTexture;
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    context.save();
-    context.scale(PANEL_TEXTURE_SCALE, PANEL_TEXTURE_SCALE);
-    this.#drawPanelBackground(context);
-    this.#drawHeader(context);
-    this.#drawSlots(context);
-    context.restore();
+    this.#painter.drawPanel(
+      this.#panelTexture,
+      this.#state,
+      this.#draggedItemSlot,
+      this.#dragHoveredSlot,
+    );
+    const { canvas, texture } = this.#panelTexture;
     texture.setSource(canvas);
-  }
-
-  /**
-   *
-   * @param {CanvasRenderingContext2D} context
-   */
-  #drawPanelBackground(context) {
-    context.shadowColor = gameUiTheme.withAlpha(gameUiTheme.shadow, 0.58);
-    context.shadowBlur = 18;
-    context.shadowOffsetY = 10;
-    this.#roundedRect(
-      context,
-      8,
-      8,
-      PANEL_WIDTH - 16,
-      PANEL_HEIGHT - 20,
-      gameUiTheme.borderRadius,
-    );
-    const gradient = context.createLinearGradient(
-      0,
-      8,
-      PANEL_WIDTH,
-      PANEL_HEIGHT,
-    );
-    gradient.addColorStop(0, gameUiTheme.surfaceTop);
-    gradient.addColorStop(1, gameUiTheme.surfaceBottom);
-    context.fillStyle = gradient;
-    context.fill();
-    context.shadowColor = "transparent";
-    context.strokeStyle = gameUiTheme.shadow;
-    context.lineWidth = 2;
-    context.stroke();
-    this.#roundedRect(
-      context,
-      12,
-      12,
-      PANEL_WIDTH - 24,
-      PANEL_HEIGHT - 28,
-      gameUiTheme.borderRadius,
-    );
-    context.strokeStyle = gameUiTheme.withAlpha(gameUiTheme.outline, 0.72);
-    context.lineWidth = 1;
-    context.stroke();
-  }
-
-  /**
-   *
-   * @param {CanvasRenderingContext2D} context
-   */
-  #drawHeader(context) {
-    context.textAlign = "left";
-    context.textBaseline = "alphabetic";
-    context.fillStyle = gameUiTheme.info;
-    context.font = gameUiTheme.font(700, 10);
-    context.fillText(
-      this.#translate("game.inventory.backpack").toUpperCase(),
-      24,
-      36,
-    );
-    context.fillStyle = gameUiTheme.text;
-    context.font = gameUiTheme.font(700, 27);
-    context.fillText(this.#translate("game.inventory.title"), 24, 68);
-    context.textAlign = "right";
-    context.fillStyle = gameUiTheme.textMuted;
-    context.font = gameUiTheme.font(600, 12);
-    context.fillText(
-      this.#translate("game.inventory.capacity", {
-        current: this.#state.items.length,
-        total: this.#state.capacity,
-      }),
-      PANEL_WIDTH - 24,
-      66,
-    );
-    context.beginPath();
-    context.moveTo(24, 82);
-    context.lineTo(PANEL_WIDTH - 24, 82);
-    context.strokeStyle = gameUiTheme.withAlpha(gameUiTheme.outline, 0.65);
-    context.lineWidth = 1;
-    context.stroke();
-  }
-
-  /**
-   *
-   * @param {CanvasRenderingContext2D} context
-   */
-  #drawSlots(context) {
-    const left =
-      (PANEL_WIDTH -
-        SLOT_COLUMNS * SLOT_SIZE -
-        (SLOT_COLUMNS - 1) * gameUiTheme.spaceSm) /
-      2;
-    const top = 98;
-    for (let index = 0; index < SLOT_COLUMNS * SLOT_ROWS; index += 1) {
-      const column = index % SLOT_COLUMNS;
-      const row = Math.floor(index / SLOT_COLUMNS);
-      const x = left + column * (SLOT_SIZE + gameUiTheme.spaceSm);
-      const y = top + row * (SLOT_SIZE + gameUiTheme.spaceSm);
-      this.#drawSlot(context, x, y, this.#itemAtSlot(index), index);
-    }
-  }
-
-  /**
-   *
-   * @param {CanvasRenderingContext2D} context
-   * @param {number} x
-   * @param {number} y
-   * @param {InventoryItem|null} item
-   * @param {number} slot
-   */
-  #drawSlot(context, x, y, item, slot) {
-    const isDragSource = slot === this.#draggedItemSlot;
-    const isHoveredDropSlot = slot === this.#dragHoveredSlot;
-    const isValidDropSlot =
-      isHoveredDropSlot && !item && this.#draggedItemSlot !== null;
-    this.#roundedRect(
-      context,
-      x,
-      y,
-      SLOT_SIZE,
-      SLOT_SIZE,
-      gameUiTheme.borderRadius,
-    );
-    const gradient = context.createLinearGradient(
-      x,
-      y,
-      x + SLOT_SIZE,
-      y + SLOT_SIZE,
-    );
-    gradient.addColorStop(
-      0,
-      item ? gameUiTheme.surfaceRaisedTop : gameUiTheme.surfaceInsetTop,
-    );
-    gradient.addColorStop(
-      1,
-      item ? gameUiTheme.surfaceRaisedBottom : gameUiTheme.surfaceInsetBottom,
-    );
-    context.fillStyle = gradient;
-    context.fill();
-    context.strokeStyle = isValidDropSlot
-      ? gameUiTheme.withAlpha(gameUiTheme.positive, 0.98)
-      : isHoveredDropSlot && item && !isDragSource
-        ? gameUiTheme.withAlpha(gameUiTheme.negative, 0.94)
-        : item
-          ? gameUiTheme.withAlpha(gameUiTheme.outlineStrong, 0.9)
-          : gameUiTheme.withAlpha(gameUiTheme.outline, 0.42);
-    context.lineWidth = isHoveredDropSlot ? 3 : 1;
-    context.stroke();
-
-    if (!item || isDragSource) {
-      context.beginPath();
-      context.arc(x + SLOT_SIZE / 2, y + SLOT_SIZE / 2, 12, 0, Math.PI * 2);
-      context.strokeStyle = isValidDropSlot
-        ? gameUiTheme.withAlpha(gameUiTheme.positive, 0.72)
-        : gameUiTheme.withAlpha(gameUiTheme.outlineStrong, 0.18);
-      context.setLineDash([3, 3]);
-      context.stroke();
-      context.setLineDash([]);
-
-      return;
-    }
-
-    if (!item.modelUrl) {
-      context.textAlign = "center";
-      context.textBaseline = "middle";
-      context.font = '38px "Segoe UI Emoji", sans-serif';
-      context.fillStyle = gameUiTheme.text;
-      context.fillText(item.icon, x + SLOT_SIZE / 2, y + 38);
-    }
-    context.textAlign = "center";
-    context.textBaseline = "middle";
-    context.fillStyle = gameUiTheme.text;
-    context.font = gameUiTheme.font(600, 10);
-    context.fillText(
-      this.#fitText(
-        context,
-        this.#translate(item.labelKey),
-        ITEM_LABEL_MAXIMUM_WIDTH,
-      ),
-      x + SLOT_SIZE / 2,
-      y + 72,
-    );
   }
 
   #drawItemTooltip() {
@@ -899,9 +680,8 @@ export class InventoryHud {
       return;
     }
     const label = this.#translate(item.labelKey);
-    const { canvas, context, texture } = this.#tooltipTexture;
-    context.font = gameUiTheme.font(600, 10);
-    if (context.measureText(label).width <= ITEM_LABEL_MAXIMUM_WIDTH) {
+    const { canvas, texture } = this.#tooltipTexture;
+    if (!this.#painter.drawTooltip(this.#tooltipTexture, label)) {
       this.#tooltip.enabled = false;
 
       return;
@@ -924,39 +704,6 @@ export class InventoryHud {
         ? slotTop + SLOT_SIZE + gameUiTheme.spaceXs + TOOLTIP_HEIGHT / 2
         : slotTop - gameUiTheme.spaceXs - TOOLTIP_HEIGHT / 2;
 
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    context.save();
-    context.scale(PANEL_TEXTURE_SCALE, PANEL_TEXTURE_SCALE);
-    context.shadowColor = gameUiTheme.withAlpha(gameUiTheme.shadow, 0.55);
-    context.shadowBlur = 7;
-    context.shadowOffsetY = 3;
-    this.#roundedRect(
-      context,
-      1,
-      1,
-      TOOLTIP_WIDTH - 2,
-      TOOLTIP_HEIGHT - 3,
-      gameUiTheme.borderRadius,
-    );
-    const gradient = context.createLinearGradient(0, 0, 0, TOOLTIP_HEIGHT);
-    gradient.addColorStop(0, gameUiTheme.surfaceTop);
-    gradient.addColorStop(1, gameUiTheme.surfaceBottom);
-    context.fillStyle = gradient;
-    context.fill();
-    context.shadowColor = "transparent";
-    context.strokeStyle = gameUiTheme.outlineStrong;
-    context.lineWidth = 1;
-    context.stroke();
-    context.textAlign = "center";
-    context.textBaseline = "middle";
-    context.fillStyle = gameUiTheme.text;
-    context.font = gameUiTheme.font(600, 11);
-    context.fillText(
-      label,
-      TOOLTIP_WIDTH / 2,
-      TOOLTIP_HEIGHT / 2 + 0.5,
-    );
-    context.restore();
     texture.setSource(canvas);
     this.#tooltip.setLocalPosition(
       centerX - PANEL_WIDTH / 2,
@@ -1263,28 +1010,6 @@ export class InventoryHud {
 
   /**
    *
-   * @param {CanvasRenderingContext2D} context
-   * @param {number} value
-   * @param {number} maximumWidth
-   */
-  #fitText(context, value, maximumWidth) {
-    const text = String(value);
-    if (context.measureText(text).width <= maximumWidth) {
-      return text;
-    }
-    let fitted = text;
-    while (
-      fitted.length > 1 &&
-      context.measureText(fitted + "…").width > maximumWidth
-    ) {
-      fitted = fitted.slice(0, -1);
-    }
-
-    return fitted + "…";
-  }
-
-  /**
-   *
    * @param {string} name
    * @param {HTMLCanvasElement} canvas
    */
@@ -1306,31 +1031,4 @@ export class InventoryHud {
     return texture;
   }
 
-  /**
-   *
-   * @param {CanvasRenderingContext2D} context
-   * @param {number} x
-   * @param {number} y
-   * @param {number} width
-   * @param {number} height
-   * @param {number} radius
-   */
-  #roundedRect(context, x, y, width, height, radius) {
-    context.beginPath();
-    context.moveTo(x + radius, y);
-    context.lineTo(x + width - radius, y);
-    context.quadraticCurveTo(x + width, y, x + width, y + radius);
-    context.lineTo(x + width, y + height - radius);
-    context.quadraticCurveTo(
-      x + width,
-      y + height,
-      x + width - radius,
-      y + height,
-    );
-    context.lineTo(x + radius, y + height);
-    context.quadraticCurveTo(x, y + height, x, y + height - radius);
-    context.lineTo(x, y + radius);
-    context.quadraticCurveTo(x, y, x + radius, y);
-    context.closePath();
-  }
 }
