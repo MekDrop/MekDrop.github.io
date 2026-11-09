@@ -2,6 +2,9 @@ import { Hero } from "../../objects/characters/hero/index.js";
 import { ThrownInventoryItem } from "../../objects/inventory/index.js";
 import { InventoryHud } from "../../ui/index.js";
 
+const INVENTORY_DROP_MIN_FALL_HEIGHT = 0.35;
+const INVENTORY_DROP_MAX_FALL_HEIGHT = 12;
+
 export class InventoryScene {
   /**
    *
@@ -34,10 +37,25 @@ export class InventoryScene {
    */
   #getMapRoot;
   /**
-   *
-   * @type {() => {position: pc.Vec3, rotation?: pc.Quat}|null}
+   * @type {pc.Application|null}
    */
-  #getDropPlacement;
+  #app;
+  /**
+   * @type {HTMLCanvasElement|null}
+   */
+  #canvas;
+  /**
+   * @type {(event: import("../../GameContracts.js").CameraPointer) => import("../../objects/shared/ScenePointerInteraction.js").ScenePointerRay|null}
+   */
+  #pointerRay;
+  /**
+   * @type {() => import("../../camera/GameCamera.js").GameCamera|null}
+   */
+  #getCamera;
+  /**
+   * @type {number}
+   */
+  #cameraPitch;
   /**
    *
    * @type {Array}
@@ -46,7 +64,7 @@ export class InventoryScene {
 
   /**
    *
-   * @param {{pc: typeof pc, app: pc.Application, modelLibrary: GameModelLibrary, heroConfigurationStore: import("src/game/GameContracts.js").StoreContract, translate: (key: string, values?: {[key: string]: string|number}) => string, getHero: () => Hero|null, getMapRoot: () => pc.Entity, getDropPlacement?: () => {position: pc.Vec3, rotation?: pc.Quat}|null}} options
+   * @param {{pc: typeof pc, app: pc.Application, modelLibrary: GameModelLibrary, heroConfigurationStore: import("src/game/GameContracts.js").StoreContract, translate: (key: string, values?: {[key: string]: string|number}) => string, getHero: () => Hero|null, getMapRoot: () => pc.Entity, canvas: HTMLCanvasElement, pointerRay: (event: import("../../GameContracts.js").CameraPointer) => import("../../objects/shared/ScenePointerInteraction.js").ScenePointerRay|null, getCamera: () => import("../../camera/GameCamera.js").GameCamera|null, cameraPitch: number}} options
    * @param {typeof pc} options.pc
    * @param {pc.Application} options.app
    * @param {GameModelLibrary} options.modelLibrary
@@ -54,7 +72,10 @@ export class InventoryScene {
    * @param {(key: string, values?: {[key: string]: string|number}) => string} options.translate
    * @param {() => Hero|null} options.getHero
    * @param {() => pc.Entity} options.getMapRoot
-   * @param {() => {position: pc.Vec3, rotation?: pc.Quat}|null} options.getDropPlacement
+   * @param {HTMLCanvasElement} options.canvas
+   * @param {(event: import("../../GameContracts.js").CameraPointer) => import("../../objects/shared/ScenePointerInteraction.js").ScenePointerRay|null} options.pointerRay
+   * @param {() => import("../../camera/GameCamera.js").GameCamera|null} options.getCamera
+   * @param {number} options.cameraPitch
    */
   constructor({
     pc,
@@ -64,7 +85,10 @@ export class InventoryScene {
     translate,
     getHero,
     getMapRoot,
-    getDropPlacement = null,
+    canvas,
+    pointerRay,
+    getCamera,
+    cameraPitch,
   }) {
     /**
      *
@@ -91,11 +115,11 @@ export class InventoryScene {
      * @type {() => pc.Entity}
      */
     this.#getMapRoot = getMapRoot;
-    /**
-     *
-     * @type {() => {position: pc.Vec3, rotation?: pc.Quat}|null}
-     */
-    this.#getDropPlacement = getDropPlacement;
+    this.#app = app;
+    this.#canvas = canvas;
+    this.#pointerRay = pointerRay;
+    this.#getCamera = getCamera;
+    this.#cameraPitch = cameraPitch;
     /**
      *
      * @type {InventoryHud}
@@ -289,7 +313,7 @@ export class InventoryScene {
       return null;
     }
     const placement =
-      this.#getDropPlacement?.(
+      this.#inventoryDropPlacement(
         clientX,
         clientY,
         heightClientX,
@@ -376,7 +400,134 @@ export class InventoryScene {
     this.#heroConfigurationStore = null;
     this.#getHero = null;
     this.#getMapRoot = null;
-    this.#getDropPlacement = null;
+    this.#app = null;
+    this.#canvas = null;
+    this.#pointerRay = null;
+    this.#getCamera = null;
+  }
+
+  /**
+   *
+   * @param {number} clientX
+   * @param {number} clientY
+   * @param {number} heightClientX
+   * @param {number} heightClientY
+   */
+  #inventoryDropPlacement(clientX, clientY, heightClientX, heightClientY) {
+    const ray = this.#pointerRay({
+      clientX,
+      clientY,
+    });
+    const heightRay = this.#pointerRay({
+      clientX: heightClientX ?? clientX,
+      clientY: heightClientY ?? clientY,
+    });
+    const hero = this.#getHero();
+    if (!ray || !heightRay || !hero) {
+      return null;
+    }
+    const hit = this.#inventoryDropRaycast(heightRay);
+    const position = hit?.point?.clone() ?? this.#inventoryDropPlanePosition(
+      ray,
+      hero.position.y,
+    );
+    if (!position) {
+      return null;
+    }
+    const direction = {
+      x: position.x - hero.position.x,
+      z: position.z - hero.position.z,
+    };
+    if (Math.hypot(direction.x, direction.z) <= 0.000001) {
+      return {
+        position,
+        direction: hero.facingDirection,
+        dropStartY: this.#inventoryDropStartY(
+          position,
+          heightClientY ?? clientY,
+        ),
+      };
+    }
+    return {
+      position,
+      direction,
+      dropStartY: this.#inventoryDropStartY(position, heightClientY ?? clientY),
+    };
+  }
+
+  /**
+   *
+   * @param {import("../../objects/shared/ScenePointerInteraction.js").ScenePointerRay} ray
+   */
+  #inventoryDropRaycast(ray) {
+    const hits =
+      this.#app?.systems.rigidbody?.raycastAll?.(ray.start, ray.end, {
+        sort: true,
+      }) ?? [];
+
+    return hits.find(InventoryScene.#findDropSurface) ?? null;
+  }
+
+  /**
+   *
+   * @param {pc.Vec3} position
+   * @param {number} clientY
+   */
+  #inventoryDropStartY(position, clientY) {
+    const camera = this.#getCamera();
+    if (!camera?.camera || !this.#canvas) {
+      return null;
+    }
+    const rect = this.#canvas.getBoundingClientRect();
+    const screenPosition = camera.camera.worldToScreen(position);
+    const worldPerPixel =
+      (2 * camera.baseOrthoHeight) /
+      Math.max(1, this.#canvas.clientHeight) /
+      camera.zoom;
+    const cursorY = clientY - rect.top;
+    const upwardScreenDistance = screenPosition.y - cursorY;
+    if (upwardScreenDistance <= 0) {
+      return null;
+    }
+    const fallHeight =
+      (upwardScreenDistance * worldPerPixel) / Math.cos(this.#cameraPitch);
+
+    return (
+      position.y +
+      Math.max(
+        INVENTORY_DROP_MIN_FALL_HEIGHT,
+        Math.min(INVENTORY_DROP_MAX_FALL_HEIGHT, fallHeight),
+      )
+    );
+  }
+
+  /**
+   *
+   * @param {import("../../objects/shared/ScenePointerInteraction.js").ScenePointerRay} ray
+   * @param {number} height
+   */
+  #inventoryDropPlanePosition(ray, height) {
+    const rayY = ray.end.y - ray.start.y;
+    if (Math.abs(rayY) <= 0.000001) {
+      return null;
+    }
+    const distance = (height - ray.start.y) / rayY;
+    if (distance < 0 || distance > 1) {
+      return null;
+    }
+    return new this.#pc.Vec3(
+      ray.start.x + (ray.end.x - ray.start.x) * distance,
+      height,
+      ray.start.z + (ray.end.z - ray.start.z) * distance,
+    );
+  }
+
+  /**
+   *
+   * @param {pc.RaycastResult} hit
+   */
+  static #findDropSurface(hit) {
+    return hit.normal?.y >= 0.35;
   }
 
   /**

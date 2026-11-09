@@ -1,3 +1,4 @@
+import { MAP_TILE_TYPE as TileType } from "../../../../src/game/enum/MapTileType.js";
 import assert from "node:assert/strict";
 import { it } from "node:test";
 import * as pc from "playcanvas";
@@ -139,4 +140,43 @@ it("samples attached eyes after animation and detaches its render listener on de
   assert.equal(camera.firstPersonState.position.y, 1.2);
   camera.entity.destroy();
   assert.equal(app.hasEvent("prerender"), false);
+});
+
+it("keeps screen-to-ground deltas aligned with rendered axes at each quarter turn and zoom", () => {
+  for (const rotation of [0, 1, 2, 3]) {
+    for (const zoom of [1, 3]) {
+      const camera = createCamera();
+      camera.rotation = rotation;
+      camera.zoom = zoom;
+      camera.update(updateOptions);
+      const start = new pc.Vec3();
+      const before = camera.component.worldToScreen(start);
+      const delta = camera.screenDeltaToGround(30, -20, zoom, 600, updateOptions.cameraPitch);
+      const after = camera.component.worldToScreen(new pc.Vec3(delta.x, 0, delta.z));
+      assert.ok(Math.abs(after.x - before.x - 30) < 0.001);
+      assert.ok(Math.abs(after.y - before.y + 20) < 0.001);
+    }
+  }
+});
+
+it("fits the viewport and centers occupied land while ignoring water", () => {
+  const camera = createCamera();
+  const map = {
+    cols: 3,
+    rows: 1,
+    grid: [[TileType.WATER, TileType.WATER, TileType.GRASS]],
+  };
+  camera.fitMap(map, {
+    width: 800,
+    height: 600,
+  }, updateOptions.cameraPitch);
+  assert.ok(camera.baseOrthoHeight > 0);
+  assert.ok(Math.abs(camera.fitCenterX - 0.5) < 1e-12);
+  assert.ok(Math.abs(camera.fitCenterZ + 0.5) < 1e-12);
+  assert.equal(camera.panX, camera.fitCenterX);
+  assert.equal(camera.panZ, camera.fitCenterZ);
+  map.grid = [[TileType.WATER, TileType.WATER, TileType.WATER]];
+  camera.updateFitCenter(map);
+  assert.equal(camera.fitCenterX, 0);
+  assert.equal(camera.fitCenterZ, 0);
 });

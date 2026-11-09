@@ -1,6 +1,9 @@
+import { MAP_TILE_TYPE as TileType } from "../enum/MapTileType.js";
 import { Vec2 } from "playcanvas";
 import { FirstPersonCameraMode } from "../strategies/camera/FirstPersonCameraMode.js";
 import { IsometricCameraMode } from "../strategies/camera/IsometricCameraMode.js";
+
+const MAP_FIT_ZOOM = 1;
 
 export class GameCamera {
   /**
@@ -470,5 +473,95 @@ export class GameCamera {
     const length = Math.max(0.0001, Math.hypot(x, y));
 
     return new Vec2(x / length, y / length);
+  }
+  /**
+   * @param {import("../GameContracts.js").GameMapData|null} mapData
+   * @param {HTMLCanvasElement} canvas
+   * @param {number} pitch
+   */
+  fitMap(mapData, canvas, pitch) {
+    if (!mapData) {
+      return;
+    }
+    const aspect = Math.max(0.35, canvas.width / canvas.height);
+    const { cols, rows } = mapData;
+    const maxHeight = 9;
+    const halfWidth = (cols + rows) / (2 * Math.sqrt(2)) + 1;
+    const halfHeight =
+      ((cols + rows) * Math.sin(pitch)) / (2 * Math.sqrt(2)) +
+      maxHeight * Math.cos(pitch) +
+      1;
+    this.baseOrthoHeight =
+      Math.max(halfHeight, halfWidth / aspect) * 0.84;
+    this.updateFitCenter(mapData);
+    if (this.panLimitsEnabled && this.zoom === MAP_FIT_ZOOM) {
+      this.panX = this.fitCenterX;
+      this.panZ = this.fitCenterZ;
+    }
+  }
+
+  /**
+   * @param {import("../GameContracts.js").GameMapData|null} mapData
+   */
+  updateFitCenter(mapData) {
+    if (!mapData) {
+      return;
+    }
+    const { grid, cols, rows } = mapData;
+    const yaw = Math.PI / 4 + this.rotation * (Math.PI / 2);
+    const rightX = Math.cos(yaw);
+    const rightZ = -Math.sin(yaw);
+    let minimumProjection = Number.POSITIVE_INFINITY;
+    let maximumProjection = Number.NEGATIVE_INFINITY;
+
+    for (let row = 0; row < rows; row += 1) {
+      for (let col = 0; col < cols; col += 1) {
+        if (grid[row][col] === TileType.WATER) {
+          continue;
+        }
+        const x = col - (cols - 1) / 2;
+        const z = row - (rows - 1) / 2;
+        const projection = x * rightX + z * rightZ;
+        minimumProjection = Math.min(minimumProjection, projection);
+        maximumProjection = Math.max(maximumProjection, projection);
+      }
+    }
+
+    if (!Number.isFinite(minimumProjection)) {
+      this.fitCenterX = 0;
+      this.fitCenterZ = 0;
+
+      return;
+    }
+
+    const centerProjection = (minimumProjection + maximumProjection) / 2;
+    this.fitCenterX = rightX * centerProjection;
+    this.fitCenterZ = rightZ * centerProjection;
+  }
+
+  /**
+   *
+   * @param {number} deltaX
+   * @param {number} deltaY
+   * @param {number} zoom
+   * @param {number} viewportHeight
+   * @param {number} pitch
+   */
+  screenDeltaToGround(deltaX, deltaY, zoom, viewportHeight, pitch) {
+    const yaw = Math.PI / 4 + this.rotation * (Math.PI / 2);
+    const worldPerPixel =
+      (2 * this.baseOrthoHeight) /
+      Math.max(1, viewportHeight) /
+      zoom;
+    const rightX = Math.cos(yaw);
+    const rightZ = -Math.sin(yaw);
+    const downX = Math.sin(yaw);
+    const downZ = Math.cos(yaw);
+    const verticalScale = worldPerPixel / Math.sin(pitch);
+
+    return {
+      x: rightX * deltaX * worldPerPixel + downX * deltaY * verticalScale,
+      z: rightZ * deltaX * worldPerPixel + downZ * deltaY * verticalScale,
+    };
   }
 }
