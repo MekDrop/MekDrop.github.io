@@ -48,7 +48,7 @@ import {
   HudCollection,
   MapTestControlsHud,
 } from "./ui/index.js";
-import { colorFromHex } from "./helpers/colors.js";
+import { SceneMaterialLibrary } from "./rendering/SceneMaterialLibrary.js";
 import { MapObjectFactory } from "./objects/MapObjectFactory.js";
 import { GameOverScene } from "./rendering/scene/GameOverScene.js";
 import { InventoryScene } from "./rendering/scene/InventoryScene.js";
@@ -60,54 +60,6 @@ import {
   FIXED_HEIGHTS,
 } from "./rendering/terrain/TerrainMaterialMaps.js";
 
-const MATERIAL_DEFINITIONS = {
-  water: {
-    color: 0xd8f2ff,
-    texture: "water",
-    gloss: 0.22,
-  },
-};
-
-const SIDE_VARIANT_DEFINITIONS = {
-  waterSide: {
-    texture: "waterSide",
-    colors: [0xd8f2ff, 0xcfeaff, 0xe0f5ff, 0xc9e7ff, 0xd5efff, 0xdff7ff],
-    gloss: 0.18,
-  },
-};
-
-const SIDE_VARIANT_TRANSFORMS = [
-  {
-    startU: 0,
-    scaleU: 0.72,
-    flipU: false,
-  },
-  {
-    startU: 0.14,
-    scaleU: 0.72,
-    flipU: true,
-  },
-  {
-    startU: 0.28,
-    scaleU: 0.72,
-    flipU: false,
-  },
-  {
-    startU: 0,
-    scaleU: 0.72,
-    flipU: true,
-  },
-  {
-    startU: 0.14,
-    scaleU: 0.72,
-    flipU: false,
-  },
-  {
-    startU: 0.28,
-    scaleU: 0.72,
-    flipU: true,
-  },
-];
 const CAMERA_PITCH = Math.atan(1 / Math.sqrt(2));
 const CAMERA_DISTANCE = 80;
 const MAP_FIT_ZOOM = 1;
@@ -214,17 +166,13 @@ export class PlayCanvasRenderer {
   #mapData = null;
   /**
    *
-   * @type {Map<string, playCanvas.StandardMaterial>}
+   * @type {SceneMaterialLibrary|null}
    */
-  #materials = new Map();
+  #sceneMaterials = null;
   /**
    * @type {MapObjectReplacement|null}
    */
   #mapObjectReplacement = null;
-  /**
-   * @type {Map<string, playCanvas.Asset>}
-   */
-  #textureAssets = new Map();
   /**
    * @type {GameTextureLibrary}
    */
@@ -565,6 +513,11 @@ export class PlayCanvasRenderer {
       app: this.#app,
       onProgress: PlayCanvasRenderer.#reportAssetProgress.bind(null, onProgress, "texture"),
     });
+    this.#sceneMaterials = new SceneMaterialLibrary({
+      pc,
+      textureLibrary: this.#textureLibrary,
+      graphicsSettings: this.#graphicsSettingsStore,
+    });
     this.#audioLibrary = new GameAudioLibrary({
       pc,
       app: this.#app,
@@ -692,7 +645,8 @@ export class PlayCanvasRenderer {
     }
     try {
       await Promise.all([
-        this.#createMaterials(textureUrls, onProgress),
+        this.#sceneMaterials.load(textureUrls,
+          PlayCanvasRenderer.#reportAssetProgress.bind(null, onProgress, "texture")),
         this.#audioLibrary.load(MapObjectFactory.audioUrlsFor(mapData.objects ?? []),
           PlayCanvasRenderer.#reportAssetProgress.bind(null, onProgress, "audio")),
         this.#modelLibrary.load([
@@ -1604,11 +1558,7 @@ export class PlayCanvasRenderer {
     this.#inventoryScene = null;
     this.#scene?.destroy();
     this.#scene = null;
-    for (const material of this.#materials.values()) {
-      material.destroy();
-    }
-    this.#materials.clear();
-    this.#textureAssets.clear();
+    this.#sceneMaterials?.destroy();
     this.#modelLibrary?.destroy();
     this.#modelLibrary = null;
     this.#textureLibrary?.destroy();
@@ -1622,161 +1572,6 @@ export class PlayCanvasRenderer {
     this.#app = null;
     this.#frameLoop = null;
     this.#shadowBudget = null;
-  }
-
-  /**
-   * @param {Record<string,string>} textureUrls
-   * @param {((key:string, values:Record<string,string|number>, progress:number)=>void)|null} onProgress
-   */
-  async #createMaterials(textureUrls, onProgress) {
-    await this.#textureLibrary.loadNamed(textureUrls,
-      PlayCanvasRenderer.#reportAssetProgress.bind(null, onProgress, "texture"));
-    /**
-     * @type {Map<string, playCanvas.Texture>}
-     */
-    const textures = new Map();
-    await Promise.all(
-      Object.entries(textureUrls).map(/**
-       *
-       * @param {[string, string]} entry
-       */
-        async ([name, url]) => {
-          textures.set(name, await this.#loadTexture(name, url));
-        }),
-    );
-    for (const [name, asset] of this.#textureAssets) {
-      textures.set(name, asset.resource);
-    }
-    for (const [name, definition] of Object.entries(MATERIAL_DEFINITIONS)) {
-      this.#materials.set(
-        name,
-        this.#createMaterial(name, definition, textures),
-      );
-    }
-
-    for (const [name, definition] of Object.entries(SIDE_VARIANT_DEFINITIONS)) {
-      SIDE_VARIANT_TRANSFORMS.forEach(/**
-       *
-       * @param {typeof SIDE_VARIANT_TRANSFORMS[number]} transform
-       * @param {number} index
-       */
-        (transform, index) => {
-          const variantName = `${name}-${index}`;
-          this.#materials.set(
-            variantName,
-            this.#createMaterial(
-              variantName,
-              {
-                ...definition,
-                ...transform,
-                color: definition.colors[index],
-              },
-              textures,
-            ),
-          );
-        });
-    }
-
-    MapObjectFactory.registerMaterials(
-      this.#materials,
-      /**
-       *
-       * @param {string} name
-       * @param {import("src/game/GameContracts.js").MaterialDefinition} definition
-       */
-      (name, definition) => this.#createMaterial(name, definition, textures),
-      SIDE_VARIANT_TRANSFORMS,
-    );
-    PathSurfaceMaterials.register(
-      this.#materials,
-      /**
-       *
-       * @param {string} name
-       * @param {import("src/game/GameContracts.js").MaterialDefinition} definition
-       */
-      (name, definition) => this.#createMaterial(name, definition, textures),
-      SIDE_VARIANT_TRANSFORMS,
-    );
-  }
-
-  /**
-   *
-   * @param {string} name
-   * @param {import("src/game/GameContracts.js").MaterialDefinition} definition
-   * @param {Map<string, playCanvas.Texture>} textures
-   */
-  #createMaterial(name, definition, textures = new Map()) {
-    const pc = this.#pc;
-    const material = this.#materials.get(name) ?? new pc.StandardMaterial();
-    material.name = name;
-    material.diffuse = colorFromHex(pc, definition.color);
-    material.gloss = definition.gloss ?? 0.08;
-    material.metalness = 0;
-    material.useMetalness = true;
-    material.useLighting = definition.useLighting ?? true;
-    if (definition.texture) {
-      material.diffuseMap = textures.get(definition.texture) ?? null;
-      if (definition.scaleU || definition.scaleV) {
-        const scaleU = definition.scaleU ?? 1;
-        const scaleV = definition.scaleV ?? 1;
-        const tilingU = definition.flipU ? -scaleU : scaleU;
-        const offsetU = definition.flipU
-          ? (definition.startU ?? 0) + scaleU
-          : (definition.startU ?? 0);
-        const tilingV = definition.flipV ? -scaleV : scaleV;
-        material.diffuseMapTiling = new pc.Vec2(tilingU, tilingV);
-        material.diffuseMapOffset = new pc.Vec2(
-          offsetU,
-          definition.flipV
-            ? 1 - (definition.startV ?? 0)
-            : definition.startV === undefined
-              ? 0
-              : 1 - scaleV - definition.startV,
-        );
-      }
-    }
-    if (definition.emissive) {
-      material.emissive = colorFromHex(pc, definition.emissive);
-      material.emissiveIntensity = definition.emissiveIntensity ?? 0.45;
-    }
-    if (definition.opacity !== undefined) {
-      material.opacity = definition.opacity;
-      material.blendType = pc.BLEND_NORMAL;
-      material.depthWrite = false;
-    }
-    material.update();
-
-    return material;
-  }
-
-  /**
-   *
-   * @param {string} name
-   * @param {string} url
-   */
-  async #loadTexture(name, url) {
-    const pc = this.#pc;
-    const asset = this.#textureLibrary.get(url, name);
-    this.#textureAssets.set(name, asset);
-    const texture = asset.resource;
-    texture.mipmaps = this.#graphicsSettingsStore.mipmaps;
-    texture.minFilter = texture.mipmaps
-      ? pc.FILTER_LINEAR_MIPMAP_LINEAR
-      : pc.FILTER_LINEAR;
-    texture.magFilter =
-      name === "castleStone" ? pc.FILTER_NEAREST : pc.FILTER_LINEAR;
-    texture.anisotropy = this.#graphicsSettingsStore.anisotropy;
-    texture.addressU = url === woodTexture.url ? pc.ADDRESS_REPEAT : pc.ADDRESS_CLAMP_TO_EDGE;
-    texture.addressV =
-      name === "castleDoor" ? pc.ADDRESS_REPEAT : pc.ADDRESS_CLAMP_TO_EDGE;
-    MapObjectFactory.configureTexture(
-      pc,
-      name,
-      texture,
-      this.#graphicsSettingsStore.mipmaps,
-    );
-
-    return texture;
   }
 
   *#rebuildScene() {
@@ -1803,7 +1598,7 @@ export class PlayCanvasRenderer {
       this.#bridgeRailingKit = new BridgeRailingKit({
         pc: this.#pc,
         modelLibrary: this.#modelLibrary,
-        materials: this.#materials,
+        materials: this.#sceneMaterials.materials,
         root: this.#mapRoot,
         mapData: this.#mapData,
       });
@@ -1812,7 +1607,7 @@ export class PlayCanvasRenderer {
         app: this.#app,
         mapData: this.#mapData,
         root: this.#mapRoot,
-        materials: this.#materials,
+        materials: this.#sceneMaterials.materials,
         bridgeRailingKit: this.#bridgeRailingKit,
         modelLibrary: this.#modelLibrary,
       });
@@ -1988,7 +1783,7 @@ export class PlayCanvasRenderer {
         audioLibrary: this.#audioLibrary,
         deferDecoration: this.#decorations.add.bind(this.#decorations),
         mapData: this.#mapData,
-        materials: this.#materials,
+        materials: this.#sceneMaterials.materials,
         getHero: this.#getHero2.bind(this),
         /**
          * @param {import("./objects/ground-cover/GroundCoverCollectible.js").GroundCoverCollectible} item
@@ -1999,7 +1794,7 @@ export class PlayCanvasRenderer {
          * @param {import("./objects/ObjectTypes.js").MapObjectDefinition} definition
          */
         replaceObjectDefinition: (definition) => this.#replaceObjectDefinition(definition, replacement),
-        textureAssets: this.#textureAssets,
+        textureAssets: this.#sceneMaterials.textureAssets,
         root: this.#mapRoot,
         camera: this.#camera,
         collisionWorld: this.#collisionWorld,
@@ -2008,7 +1803,7 @@ export class PlayCanvasRenderer {
          * @param {(value: string) => string} value
          */
         setMaterialResolver: this.#setMaterialResolver.bind(this),
-        sideVariantCount: SIDE_VARIANT_TRANSFORMS.length,
+        sideVariantCount: this.#sceneMaterials.sideVariantCount,
         getContactProviders: this.#getContactProviders.bind(this),
         /**
          * @param {import("src/game/GameContracts.js").GameObjectContract} removedObject
