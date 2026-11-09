@@ -2,7 +2,7 @@ import { inventoryMushroomPart } from "../objects/ground-cover/MushroomParts.js"
 import { Vec2 } from "playcanvas";
 import { InventoryItemProjector } from "./InventoryItemProjector.js";
 import { gameUiTheme } from "./GameUiTheme.js";
-import fullInventoryEffectModelUrl from "../models/ui/full-inventory-effect.glb?url";
+import { InventoryFullReactionHud } from "./InventoryFullReactionHud.js";
 
 /**
  * @typedef {{id: string, variant: string, category: number, labelKey: string, icon: string, modelUrl: string, slot: number}} InventoryItem
@@ -37,10 +37,6 @@ const ITEM_PROJECTION_SIZE = 64;
 const ITEM_LABEL_MAXIMUM_WIDTH = SLOT_SIZE - 12;
 const TOOLTIP_WIDTH = 164;
 const TOOLTIP_HEIGHT = 25;
-const FULL_INDICATOR_WIDTH = 152;
-const FULL_INDICATOR_HEIGHT = 120;
-const FULL_INDICATOR_DURATION = 1.3;
-const FULL_INDICATOR_SCALE = 0.4;
 
 export class InventoryHud {
   /**
@@ -104,33 +100,9 @@ export class InventoryHud {
    */
   #closeButton;
   /**
-   * @type {import("playcanvas").Entity|null}
+   * @type {InventoryFullReactionHud|null}
    */
-  #fullIndicator;
-  /**
-   * @type {import("playcanvas").Entity|null}
-   */
-  #fullIndicatorFx;
-  /**
-   * @type {import("playcanvas").Entity|null}
-   */
-  #fullIndicatorOutline;
-  /**
-   * @type {import("playcanvas").Entity|null}
-   */
-  #fullIndicatorModel;
-  /**
-   * @type {TextureRecord|null}
-   */
-  #fullIndicatorTexture;
-  /**
-   * @type {number|null}
-   */
-  #fullReactionElapsed = null;
-  /**
-   * @type {Vec2}
-   */
-  #fullReactionAnchor = new Vec2(0, 0);
+  #fullReaction;
   /**
    * @type {boolean}
    */
@@ -218,7 +190,7 @@ export class InventoryHud {
    * @returns {string}
    */
   static get modelUrl() {
-    return fullInventoryEffectModelUrl;
+    return InventoryFullReactionHud.modelUrl;
   }
 
   /**
@@ -232,7 +204,7 @@ export class InventoryHud {
    * @returns {boolean}
    */
   get fullReactionVisible() {
-    return Boolean(this.#fullIndicator?.enabled);
+    return this.#fullReaction?.visible ?? false;
   }
 
   set visible(visible) {
@@ -423,89 +395,28 @@ export class InventoryHud {
   }
 
   /**
-   *
    * @param {Vec2|import("playcanvas").Vec3|null} screenPosition
    */
   showFullReaction(screenPosition = null) {
-    if (!this.#fullIndicator || this.#state.items.length < this.#state.capacity) {
+    if (this.#state.items.length < this.#state.capacity) {
       return false;
     }
-    this.#updateFullReactionAnchor(screenPosition);
-    this.#fullReactionElapsed = 0;
-    this.#fullIndicator.enabled = true;
-    this.#fullIndicator.element.opacity = 1;
-    this.#fullIndicatorFx.element.opacity = 1;
-    this.#fullIndicatorOutline.element.opacity = 0.86;
-    this.#fullIndicatorModel.element.opacity = 1;
-    if (!this.#fullIndicatorModel.element.texture) {
-      const modelTexture = this.#itemProjector.textureFor(
-        InventoryHud.modelUrl,
-      );
-      this.#fullIndicatorOutline.element.texture = modelTexture;
-      this.#fullIndicatorModel.element.texture = modelTexture;
-    }
-    this.#fullIndicator.setLocalPosition(
-      this.#fullReactionAnchor.x,
-      this.#fullReactionAnchor.y,
-      0,
-    );
-    this.#fullIndicator.setLocalEulerAngles(0, 0, 0);
-    this.#fullIndicator.setLocalScale(0.01, 0.01, 1);
-    this.#drawFullIndicator(0);
-
-    return true;
+    return this.#fullReaction?.show(screenPosition) ?? false;
   }
 
   /**
-   *
    * @param {number} deltaTime
    * @param {Vec2|import("playcanvas").Vec3|null} screenPosition
    */
   update(deltaTime, screenPosition = null) {
-    if (this.#fullReactionElapsed === null || !this.#fullIndicator) {
-      return;
-    }
-    this.#updateFullReactionAnchor(screenPosition);
-    this.#fullReactionElapsed = Math.min(
-      FULL_INDICATOR_DURATION,
-      this.#fullReactionElapsed + deltaTime,
-    );
-    const progress = this.#fullReactionElapsed / FULL_INDICATOR_DURATION;
-    const entrance = Math.min(1, progress / 0.16);
-    const entranceScale =
-      1 + 1.7 * (entrance - 1) ** 3 + 0.7 * (entrance - 1) ** 2;
-    const fade = 1 - this.#smoothstep(Math.max(0, (progress - 0.68) / 0.32));
-    const wobble =
-      Math.sin(progress * Math.PI * 6) * 7 * Math.max(0, 1 - progress);
-    const pulse = 1 + Math.sin(progress * Math.PI * 4) * 0.06 * (1 - progress);
-    const rise = this.#smoothstep(Math.max(0, (progress - 0.48) / 0.52)) * 16;
-    this.#fullIndicator.setLocalPosition(
-      this.#fullReactionAnchor.x,
-      this.#fullReactionAnchor.y + rise,
-      0,
-    );
-    this.#fullIndicator.setLocalEulerAngles(0, 0, wobble);
-    this.#fullIndicator.setLocalScale(
-      entranceScale * pulse * FULL_INDICATOR_SCALE,
-      entranceScale * pulse * FULL_INDICATOR_SCALE,
-      1,
-    );
-    this.#fullIndicator.element.opacity = fade;
-    this.#fullIndicatorFx.element.opacity = fade;
-    this.#fullIndicatorOutline.element.opacity = fade * 0.86;
-    this.#fullIndicatorModel.element.opacity = fade;
-    this.#drawFullIndicator(progress);
-    if (this.#fullReactionElapsed >= FULL_INDICATOR_DURATION) {
-      this.#fullReactionElapsed = null;
-      this.#fullIndicator.enabled = false;
-    }
+    this.#fullReaction?.update(deltaTime, screenPosition);
   }
 
   destroy() {
     this.#destroyItemVisual(this.#dragVisual);
+    this.#fullReaction?.destroy();
     this.#entity?.destroy();
     this.#panelTexture?.texture.destroy();
-    this.#fullIndicatorTexture?.texture.destroy();
     this.#tooltipTexture?.texture.destroy();
     this.#closeTexture?.texture.destroy();
     this.#itemProjector?.destroy();
@@ -520,13 +431,7 @@ export class InventoryHud {
     this.#tooltipTexture = null;
     this.#closeTexture = null;
     this.#closeButton = null;
-    this.#fullIndicator = null;
-    this.#fullIndicatorFx = null;
-    this.#fullIndicatorOutline = null;
-    this.#fullIndicatorModel = null;
-    this.#fullIndicatorTexture = null;
-    this.#fullReactionElapsed = null;
-    this.#fullReactionAnchor = new Vec2(0, 0);
+    this.#fullReaction = null;
     this.#hoveredItemSlot = null;
     this.#dragVisual = null;
     this.#dragStartClient = null;
@@ -548,129 +453,14 @@ export class InventoryHud {
     this.#entity.addChild(this.#modalRoot);
     this.#createDimmer();
     this.#createPanel();
-    this.#createFullIndicator();
+    this.#fullReaction = new InventoryFullReactionHud({
+      pc: this.#pc,
+      app: this.#app,
+      itemProjector: this.#itemProjector,
+      parent: this.#entity,
+    });
     this.#modalRoot.enabled = false;
     this.#entity.screen.syncDrawOrder();
-  }
-
-  #createFullIndicator() {
-    const canvas = document.createElement("canvas");
-    canvas.width = FULL_INDICATOR_WIDTH * PANEL_TEXTURE_SCALE;
-    canvas.height = FULL_INDICATOR_HEIGHT * PANEL_TEXTURE_SCALE;
-    this.#fullIndicatorTexture = {
-      canvas,
-      context: canvas.getContext("2d"),
-      texture: this.#createTexture("Full inventory indicator texture", canvas),
-    };
-    this.#fullIndicator = new this.#pc.Entity("Full inventory indicator");
-    this.#fullIndicator.addComponent("element", {
-      type: this.#pc.ELEMENTTYPE_GROUP,
-      anchor: new this.#pc.Vec4(0.5, 0.5, 0.5, 0.5),
-      pivot: new this.#pc.Vec2(0.5, 0),
-      width: FULL_INDICATOR_WIDTH,
-      height: FULL_INDICATOR_HEIGHT,
-      useInput: false,
-    });
-
-    this.#fullIndicatorFx = new this.#pc.Entity(
-      "Full inventory indicator burst",
-    );
-    this.#fullIndicatorFx.addComponent("element", {
-      type: this.#pc.ELEMENTTYPE_IMAGE,
-      anchor: new this.#pc.Vec4(0.5, 0, 0.5, 0),
-      pivot: new this.#pc.Vec2(0.5, 0.5),
-      width: FULL_INDICATOR_WIDTH,
-      height: FULL_INDICATOR_HEIGHT,
-      useInput: false,
-    });
-    this.#fullIndicatorFx.element.texture = this.#fullIndicatorTexture.texture;
-    this.#fullIndicatorFx.setLocalPosition(0, FULL_INDICATOR_HEIGHT / 2, 0);
-    this.#fullIndicator.addChild(this.#fullIndicatorFx);
-
-    this.#fullIndicatorOutline = new this.#pc.Entity(
-      "Full inventory indicator outline",
-    );
-    this.#fullIndicatorOutline.addComponent("element", {
-      type: this.#pc.ELEMENTTYPE_IMAGE,
-      anchor: new this.#pc.Vec4(0.5, 0, 0.5, 0),
-      pivot: new this.#pc.Vec2(0.5, 0.5),
-      width: 106,
-      height: 106,
-      color: new this.#pc.Color(0.13, 0.25, 0.45),
-      opacity: 0.86,
-      useInput: false,
-    });
-    this.#fullIndicatorOutline.setLocalPosition(0, 49, 0);
-    this.#fullIndicator.addChild(this.#fullIndicatorOutline);
-
-    this.#fullIndicatorModel = new this.#pc.Entity(
-      "Full inventory indicator model",
-    );
-    this.#fullIndicatorModel.addComponent("element", {
-      type: this.#pc.ELEMENTTYPE_IMAGE,
-      anchor: new this.#pc.Vec4(0.5, 0, 0.5, 0),
-      pivot: new this.#pc.Vec2(0.5, 0.5),
-      width: 94,
-      height: 94,
-      color: new this.#pc.Color(0.96, 0.9, 0.68),
-      useInput: false,
-    });
-    this.#fullIndicatorModel.setLocalPosition(0, 49, 0);
-    this.#fullIndicator.addChild(this.#fullIndicatorModel);
-    this.#fullIndicator.setLocalPosition(0, 0, 0);
-    this.#fullIndicator.enabled = false;
-    this.#entity.addChild(this.#fullIndicator);
-    this.#drawFullIndicator();
-  }
-
-  /**
-   *
-   * @param {number} progress
-   */
-  #drawFullIndicator(progress = 0) {
-    const { canvas, context, texture } = this.#fullIndicatorTexture;
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    context.save();
-    context.scale(PANEL_TEXTURE_SCALE, PANEL_TEXTURE_SCALE);
-    context.lineJoin = "round";
-
-    const ringProgress = this.#smoothstep(Math.min(1, progress / 0.42));
-    context.globalAlpha = 0.72 * (1 - ringProgress);
-    context.beginPath();
-    context.arc(76, 71, 31 + ringProgress * 25, 0, Math.PI * 2);
-    context.setLineDash([9, 7]);
-    context.strokeStyle = "#294d7d";
-    context.lineWidth = 8 - ringProgress * 3;
-    context.stroke();
-
-    context.globalAlpha = 0.92 * (1 - ringProgress);
-    context.beginPath();
-    context.arc(76, 71, 31 + ringProgress * 25, 0, Math.PI * 2);
-    context.setLineDash([9, 7]);
-    context.strokeStyle = "#f3e4ad";
-    context.lineWidth = 3.5 - ringProgress * 1.5;
-    context.stroke();
-    context.setLineDash([]);
-
-    const sparkProgress = this.#smoothstep(Math.min(1, progress / 0.7));
-    context.globalAlpha = 0.94 * (1 - sparkProgress);
-    for (const [index, angle] of [-2.45, -0.72, 0.16].entries()) {
-      const distance = 33 + sparkProgress * (19 + index * 3);
-      const x = 76 + Math.cos(angle) * distance;
-      const y = 69 + Math.sin(angle) * distance;
-      const size = 5 - sparkProgress * 2;
-      context.save();
-      context.translate(x, y);
-      context.rotate(angle + Math.PI / 4);
-      context.fillStyle = "#294d7d";
-      context.fillRect(-size / 2 - 1.5, -size / 2 - 1.5, size + 3, size + 3);
-      context.fillStyle = index === 1 ? "#f7e9b6" : "#78a6dc";
-      context.fillRect(-size / 2, -size / 2, size, size);
-      context.restore();
-    }
-
-    context.restore();
-    texture.setSource(canvas);
   }
 
   #createDimmer() {
@@ -1514,32 +1304,6 @@ export class InventoryHud {
     texture.setSource(canvas);
 
     return texture;
-  }
-
-  /**
-   *
-   * @param {Vec2|import("playcanvas").Vec3|null} screenPosition
-   */
-  #updateFullReactionAnchor(screenPosition) {
-    if (!screenPosition) {
-      return;
-    }
-    const canvas = this.#app.graphicsDevice.canvas;
-    const { scale } = this.#canvasMetrics;
-    this.#fullReactionAnchor = new Vec2(
-      (screenPosition.x - canvas.clientWidth / 2) / scale,
-      (canvas.clientHeight / 2 - screenPosition.y) / scale,
-    );
-  }
-
-  /**
-   *
-   * @param {number} value
-   */
-  #smoothstep(value) {
-    const clamped = Math.max(0, Math.min(1, value));
-
-    return clamped * clamped * (3 - 2 * clamped);
   }
 
   /**
