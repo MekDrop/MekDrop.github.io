@@ -591,7 +591,7 @@ export class PlayCanvasRenderer {
       getHero: this.#getHero.bind(this),
       getMapRoot: this.#getMapRoot.bind(this),
       canvas: this.canvas,
-      pointerRay: this.#pointerRay2.bind(this),
+      pointerRay: this.#pointerRay.bind(this),
       getCamera: this.#getGameCamera.bind(this),
       cameraPitch: CAMERA_PITCH,
     });

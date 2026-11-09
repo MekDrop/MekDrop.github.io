@@ -25,7 +25,7 @@ class ThrownItem {
 }
 const InventoryScene = new Function("Hero", "ThrownInventoryItem", "InventoryHud", `${source}\nreturn InventoryScene;`)({}, ThrownItem, Hud);
 
-function fixture({ hits = [], ray = {
+function fixture({ hits = [], pointerRay = null, ray = {
   start: new Vec3(0, 10, 0),
   end: new Vec3(8, -10, 6),
 } } = {}) {
@@ -75,11 +75,11 @@ function fixture({ hits = [], ray = {
       clientHeight: 100,
       getBoundingClientRect: () => ({ top: 20 }),
     },
-    pointerRay: (event) => {
+    pointerRay: pointerRay ?? ((event) => {
       rays.push(event);
 
       return ray;
-    },
+    }),
     getCamera: () => camera,
     cameraPitch: Math.atan(1 / Math.sqrt(2)),
   });
@@ -131,6 +131,41 @@ it("uses the first upward-facing sorted physics hit and independent height point
   }]);
   assert.deepEqual(f.raycasts[0][2], { sort: true });
   assert.equal(item.dropStartY, 14);
+});
+
+it("keeps inventory surface rays available in first-person mode", () => {
+  const rendererSource = readFileSync(new URL("../../../../../src/game/PlayCanvasRenderer.js", import.meta.url), "utf8");
+  const start = rendererSource.indexOf("    this.#inventoryScene = new InventoryScene({");
+  const end = rendererSource.indexOf("    });", start) + "    });".length;
+  const wiring = rendererSource.slice(start, end).replaceAll("#", "_");
+  let options;
+  class CaptureScene {
+    constructor(value) {
+      options = value;
+    }
+  }
+  const Driver = new Function("InventoryScene", "pc", "CAMERA_PITCH",
+    `return class { configure() { ${wiring} } }`)(CaptureScene, {}, 0);
+  const driver = new Driver();
+  driver._camera = { firstPersonEnabled: true };
+  driver._getHero = driver._getMapRoot = driver._getGameCamera = () => null;
+  driver._pointerRay = () => ({
+    start: new Vec3(0, 10, 0),
+    end: new Vec3(8, -10, 6),
+  });
+  driver._pointerRay2 = () => driver._camera.firstPersonEnabled ? null : driver._pointerRay();
+  driver.configure();
+  const point = new Vec3(5, 2, 7);
+  const f = fixture({
+    pointerRay: options.pointerRay,
+    hits: [{
+      normal: { y: 1 },
+      point,
+    }],
+  });
+  f.scene.dropItem(0, 30, 240);
+  assert.deepEqual(constructed.at(-1).options.position, point);
+  assert.equal(f.raycasts.length, 1);
 });
 
 it("falls back to the hero-height plane when no surface is hit", () => {
