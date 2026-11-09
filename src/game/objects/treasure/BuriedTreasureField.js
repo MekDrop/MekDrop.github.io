@@ -2,12 +2,10 @@ import { FILLED_EARTH_OUTLINE } from "./FilledEarthOutline.js";
 import { TREASURE_DIG_STROKES, TREASURE_FILL_SCOOPS, TREASURE_FILL_STROKES, TREASURE_TOOL_MAX_TURN, TREASURE_TOOL_MIN_DISTANCE, treasureToolBackstep } from "../../config/treasure.js";
 import { TileType } from "../../generator/map/MapGenerator.js";
 import { GRASS_SURFACE_LIFT } from "../../config/terrain.js";
-import { COIN_TYPE } from "../../enum/CoinType.js";
 import { MOVEMENT_REFUSAL } from "../../enum/MovementRefusal.js";
 import { TREASURE_CHEST_ANIMATION } from "../../enum/TreasureChestAnimation.js";
 import { TREASURE_HOLE_ANIMATION } from "../../enum/TreasureHoleAnimation.js";
-import { colorFromHex } from "../../helpers/colors.js";
-import coinModelUrl from "../../models/treasure/coin.glb?url";
+import { TreasureCoins } from "./TreasureCoins.js";
 import chestModelUrl from "../../models/treasure/treasure-chest.glb?url";
 import earthModelUrl from "../../models/treasure/excavated-earth.glb?url";
 import holeModelUrl from "../../models/treasure/hole.glb?url";
@@ -57,23 +55,6 @@ import { IslandObjectRoots } from "../shared/IslandObjectRoots.js";
  * @property {Array<import("playcanvas").Entity>} rocks
  */
 
-/**
- * @typedef {object} TreasureCoin
- * @property {import("playcanvas").Entity} entity
- * @property {TreasureSite} site
- * @property {string} type
- * @property {string} state
- * @property {Point3} position
- * @property {Point3} skyStart
- * @property {Point3} skyControlA
- * @property {Point3} skyOffset
- * @property {number} skyDelay
- * @property {number} elapsed
- * @property {number} flightSide
- * @property {number} rotation
- */
-
-
 const MINIMUM_FACING_DOT = Math.cos((50 * Math.PI) / 180);
 const MINIMUM_TOOL_FACING_DOT = Math.cos(TREASURE_TOOL_MAX_TURN * Math.PI / 180);
 const INTERACTION_REACH = 1.18;
@@ -88,27 +69,9 @@ const CHEST_OPEN_DURATION = 0.62;
 const CHEST_FADE_DURATION = 0.82;
 const CHEST_COLLISION_RADIUS = 0.3;
 const HOLE_COLLISION_RADIUS = 0.3;
-const COIN_COLLECTION_DURATION = 0.68;
-const COIN_SKY_FLIGHT_DURATION = 0.72;
-const COIN_SKY_STAGGER = 0.035;
-const COIN_SKY_HEIGHT = 1.75;
 const FILL_SETTLE_DELAY = 0.12;
 const FILL_SETTLE_DURATION = 0.24;
 const RIM_LEVEL_DURATION = 2;
-const COIN_DEFINITIONS = new Map([
-  [COIN_TYPE.GOLD, {
-    color: 0xffc84a,
-    weight: 12,
-  }],
-  [COIN_TYPE.SILVER, {
-    color: 0xd8e2ea,
-    weight: 30,
-  }],
-  [COIN_TYPE.COPPER, {
-    color: 0xd7793d,
-    weight: 58,
-  }],
-]);
 const BLOCKED_DIG_ROCKS = [
   {
     modelUrl: riverStoneFlatModelUrl,
@@ -144,7 +107,7 @@ export class BuriedTreasureField {
   static get modelUrls() {
     return [
       chestModelUrl,
-      coinModelUrl,
+      ...TreasureCoins.modelUrls,
       holeModelUrl,
       earthModelUrl,
       riverStoneModelUrl,
@@ -232,25 +195,9 @@ export class BuriedTreasureField {
    */
   #buriedChests = new Map();
   /**
-   *
-   * @type {Array<TreasureCoin>}
+   * @type {TreasureCoins}
    */
-  #coins = [];
-  /**
-   *
-   * @type {Map}
-   */
-  #materials = new Map();
-  /**
-   *
-   * @type {{x: number, y: number, z: number}}
-   */
-  #heroPosition = null;
-  /**
-   *
-   * @type {(coinType: string, amount: number) => void}
-   */
-  #onCollectCoin;
+  #coins;
   /**
    *
    * @type {(interaction: import("src/game/objects/ObjectTypes.js").InteractionLike|null) => void}
@@ -293,8 +240,6 @@ export class BuriedTreasureField {
 
     this.#modelLibrary = modelLibrary;
 
-    this.#onCollectCoin = onCollectCoin;
-
     this.#onInteractionChange = onInteractionChange;
 
     this.#onTerrainExcavated = onTerrainExcavated;
@@ -323,7 +268,7 @@ export class BuriedTreasureField {
         (this.#groundCoverTileCounts.get(key) ?? 0) + 1,
       );
     }
-    this.#createMaterials();
+    this.#coins = new TreasureCoins(pc, modelLibrary, this.#entity, onCollectCoin);
     for (const cube of mapData.objects ?? []) {
       if (!cube.buriedTreasure) {
         continue;
@@ -561,7 +506,6 @@ export class BuriedTreasureField {
       chestMaterials: [],
       lootSpawned: false,
       hasTreasure: Boolean(buriedChest),
-      coinsRemaining: 0,
       fillProgress: 0,
       contents: buriedChest?.contents ?? [],
     };
@@ -749,7 +693,7 @@ export class BuriedTreasureField {
    * @param {{x: number, y: number, z: number}} position
    */
   applyHeroPosition(position) {
-    this.#heroPosition = { ...position };
+    this.#coins.applyHeroPosition(position);
   }
 
   /**
@@ -875,15 +819,11 @@ export class BuriedTreasureField {
         entry.material.destroy();
       }
     }
+    this.#coins.destroy();
     this.#entity?.destroy();
     this.#entity = null;
     this.#sites = [];
     this.#buriedChests.clear();
-    this.#coins = [];
-    for (const material of this.#materials.values()) {
-      material.destroy();
-    }
-    this.#materials.clear();
     this.#pc = null;
   }
 
@@ -1378,100 +1318,6 @@ export class BuriedTreasureField {
 
   /**
    *
-   * @param {TreasureSite} site
-   */
-  #spawnCoins(site) {
-    const amount = site.contents.length;
-    site.coinsRemaining = amount;
-    for (let index = 0; index < amount; index += 1) {
-      const type = site.contents[index];
-      const angle = (index / amount) * Math.PI * 2 + Math.random() * 0.45;
-      const coinEntity = this.#modelLibrary.instantiate(coinModelUrl);
-      coinEntity.name = `${type} treasure coin`;
-      coinEntity.setLocalScale(0.68, 0.68, 0.68);
-      coinEntity.setLocalEulerAngles(90, 0, 0);
-      const position = {
-        x: site.x,
-        y: site.y + 0.48,
-        z: site.z,
-      };
-      const skyRadius = 0.14 + (index % 4) * 0.055;
-      coinEntity.setLocalPosition(position.x, position.y, position.z);
-      this.#applyCoinMaterial(coinEntity, type);
-      this.#entity.addChild(coinEntity);
-      this.#coins.push({
-        entity: coinEntity,
-        site,
-        type,
-        state: "skyborne",
-        position,
-        skyStart: { ...position },
-        skyControlA: {
-          x: site.x + Math.cos(angle) * 0.12,
-          y: site.y + 1.45 + Math.random() * 0.25,
-          z: site.z + Math.sin(angle) * 0.12,
-        },
-        skyOffset: {
-          x: Math.cos(angle) * skyRadius,
-          y: COIN_SKY_HEIGHT + (index % 3) * 0.08,
-          z: Math.sin(angle) * skyRadius,
-        },
-        skyDelay: index * COIN_SKY_STAGGER,
-        elapsed: 0,
-        collectStart: null,
-        collectControlA: null,
-        collectControlBOffset: null,
-        flightSide: (index % 2 === 0 ? 1 : -1) * (0.16 + (index % 3) * 0.05),
-        rotation: Math.random() * 360,
-      });
-    }
-  }
-
-  /**
-   *
-   * @param {import("playcanvas").Entity} entity
-   * @param {string} type
-   */
-  #applyCoinMaterial(entity, type) {
-    const material = this.#materials.get(type);
-    for (const render of entity.findComponents("render")) {
-      for (const meshInstance of render.meshInstances) {
-        meshInstance.material = material;
-      }
-    }
-  }
-
-  #createMaterials() {
-    for (const [type, definition] of COIN_DEFINITIONS) {
-      const material = this.#createMaterial(
-        `${type} treasure coin`,
-        definition.color,
-        0.82,
-      );
-      this.#materials.set(type, material);
-    }
-  }
-
-  /**
-   *
-   * @param {string} name
-   * @param {import("playcanvas").Color|number} color
-   * @param {number} metalness
-   */
-  #createMaterial(name, color, metalness) {
-    const material = new this.#pc.StandardMaterial();
-    material.name = name;
-    material.diffuse = colorFromHex(this.#pc, color);
-    material.metalness = metalness;
-    material.useMetalness = true;
-    material.gloss = metalness > 0.5 ? 0.7 : 0.05;
-    material.update();
-
-    return material;
-  }
-
-  /**
-   *
    * @param {number} deltaTime
    * @type {(deltaTime: number) => void}
    */
@@ -1480,9 +1326,11 @@ export class BuriedTreasureField {
     for (const site of this.#sites) {
       this.#advanceSite(site, frameTime);
     }
-    for (let index = this.#coins.length - 1; index >= 0; index -= 1) {
-      if (this.#advanceCoin(this.#coins[index], frameTime)) {
-        this.#coins.splice(index, 1);
+    for (const id of this.#coins.update(frameTime)) {
+      for (const site of this.#sites) {
+        if (site.id === id) {
+          this.#beginChestVanish(site);
+        }
       }
     }
   };
@@ -1582,154 +1430,11 @@ export class BuriedTreasureField {
     site.chest.anim.update(0);
     if (!site.lootSpawned && progress >= 0.38) {
       site.lootSpawned = true;
-      this.#spawnCoins(site);
+      this.#coins.spawn(site.id, site.contents, site);
     }
     if (progress >= 1) {
       site.state = "opened";
     }
-  }
-
-  /**
-   *
-   * @param {number} coin
-   * @param {number} deltaTime
-   */
-  #advanceCoin(coin, deltaTime) {
-    coin.elapsed += deltaTime;
-    coin.rotation += deltaTime * 720;
-    if (coin.state === "skyborne") {
-      const flightElapsed = coin.elapsed - coin.skyDelay;
-      if (flightElapsed >= 0) {
-        const progress = Math.min(1, flightElapsed / COIN_SKY_FLIGHT_DURATION);
-        const flightProgress = 1 - (1 - progress) ** 3;
-        const heroPosition = this.#heroPosition ?? coin.skyStart;
-        const target = {
-          x: heroPosition.x + coin.skyOffset.x,
-          y: heroPosition.y + coin.skyOffset.y,
-          z: heroPosition.z + coin.skyOffset.z,
-        };
-        const controlB = {
-          x: target.x + coin.skyOffset.x * 0.35,
-          y: target.y + 0.32,
-          z: target.z + coin.skyOffset.z * 0.35,
-        };
-        coin.position = this.#cubicBezier(
-          coin.skyStart,
-          coin.skyControlA,
-          controlB,
-          target,
-          flightProgress,
-        );
-        if (progress >= 1) {
-          this.#beginCoinCollection(coin);
-        }
-      }
-    } else if (coin.state === "collecting") {
-      const progress = Math.min(1, coin.elapsed / COIN_COLLECTION_DURATION);
-      const flightProgress = progress * progress * (3 - 2 * progress);
-      const targetPosition = this.#heroPosition ?? coin.collectStart;
-      const target = {
-        x: targetPosition.x,
-        y: targetPosition.y + 1.05,
-        z: targetPosition.z,
-      };
-      const controlB = {
-        x: target.x + coin.collectControlBOffset.x,
-        y: target.y + coin.collectControlBOffset.y,
-        z: target.z + coin.collectControlBOffset.z,
-      };
-      coin.position = this.#cubicBezier(
-        coin.collectStart,
-        coin.collectControlA,
-        controlB,
-        target,
-        flightProgress,
-      );
-      const scale = 0.68 * (1 - progress * 0.22);
-      coin.entity.setLocalScale(scale, scale, scale);
-      if (progress >= 1) {
-        coin.state = "arrived";
-        coin.elapsed = 0;
-      }
-    } else if (coin.state === "arrived") {
-      coin.site.coinsRemaining = Math.max(0, coin.site.coinsRemaining - 1);
-      this.#onCollectCoin?.(coin.type, 1);
-      coin.entity.destroy();
-      if (coin.site.coinsRemaining === 0) {
-        this.#beginChestVanish(coin.site);
-      }
-      return true;
-    }
-    coin.entity.setLocalPosition(
-      coin.position.x,
-      coin.position.y,
-      coin.position.z,
-    );
-    coin.entity.setLocalEulerAngles(90, coin.rotation, coin.rotation * 0.35);
-
-    return false;
-  }
-
-  /**
-   *
-   * @param {number} coin
-   */
-  #beginCoinCollection(coin) {
-    if (!this.#heroPosition || coin.state !== "skyborne") {
-      return;
-    }
-    coin.state = "collecting";
-    coin.elapsed = 0;
-    coin.collectStart = { ...coin.position };
-    const targetX = this.#heroPosition.x - coin.position.x;
-    const targetZ = this.#heroPosition.z - coin.position.z;
-    const distance = Math.max(0.001, Math.hypot(targetX, targetZ));
-    const perpendicularX = -targetZ / distance;
-    const perpendicularZ = targetX / distance;
-    coin.collectControlA = {
-      x: coin.position.x + coin.skyOffset.x * 0.2,
-      y: coin.position.y + 0.28,
-      z: coin.position.z + coin.skyOffset.z * 0.2,
-    };
-    coin.collectControlBOffset = {
-      x: perpendicularX * coin.flightSide,
-      y: 0.68 + Math.abs(coin.flightSide) * 0.5,
-      z: perpendicularZ * coin.flightSide,
-    };
-  }
-
-  /**
-   *
-   * @param {import("src/game/objects/ObjectTypes.js").Point3} start
-   * @param {number} controlA
-   * @param {number} controlB
-   * @param {import("src/game/objects/ObjectTypes.js").Point3} end
-   * @param {number} progress
-   */
-  #cubicBezier(start, controlA, controlB, end, progress) {
-    const remaining = 1 - progress;
-    const startWeight = remaining ** 3;
-    const controlAWeight = 3 * remaining ** 2 * progress;
-    const controlBWeight = 3 * remaining * progress ** 2;
-    const endWeight = progress ** 3;
-
-    return {
-      x:
-        start.x * startWeight +
-        controlA.x * controlAWeight +
-        controlB.x * controlBWeight +
-        end.x * endWeight,
-      y:
-        start.y * startWeight +
-        controlA.y * controlAWeight +
-        controlB.y * controlBWeight +
-        end.y * endWeight,
-      z:
-        start.z * startWeight +
-        controlA.z * controlAWeight +
-        controlB.z * controlBWeight +
-        end.z * endWeight,
-    };
   }
 
   /**

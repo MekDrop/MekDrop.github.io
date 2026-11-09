@@ -586,10 +586,12 @@ it("reveals the already instantiated chest and spawns its stored contents withou
     getAnimationTracks: () => new Map([["Open", { duration: 1 }], ["open", { duration: 1 }]]),
   };
   let cutRadius = 0;
+  const rewards = [];
   const field = new BuriedTreasureField({
     pc,
     mapData,
     modelLibrary,
+    onCollectCoin: (type, amount) => rewards.push([type, amount]),
     onTerrainExcavated: (position, radius) => {
       cutRadius = radius;
     },
@@ -680,18 +682,35 @@ it("reveals the already instantiated chest and spawns its stored contents withou
   assert.equal(chestInteraction?.description.labelKey, "game.interaction.open_treasure");
   assert.equal(models.filter(({ url }) => url.includes("treasure-chest")).length, 1);
   field.open(target);
-  for (let frame = 0; frame < 20; frame += 1) {
+  for (let frame = 0; frame < 40; frame += 1) {
     field.applyHeroPosition({
       x: target.x + Math.cos(frame),
       y: target.y,
       z: target.z + Math.sin(frame),
     });
     update(0.1);
+    if (frame === 4) {
+      const airborne = models.filter(({ url }) => url.includes("/coin.glb"));
+      assert.equal(airborne.length, 3);
+      for (const { entity } of airborne) {
+        assert.equal(entity.parent, field.entity, "flying coins remain outside island prop roots");
+        const position = entity.getPosition().clone();
+        field.setIslandOffsets(0.6, -0.5);
+        assert.ok(entity.getPosition().equals(position), "island offsets do not displace active flights");
+        field.setIslandOffsets(0.2, -0.1);
+      }
+    }
     assert.ok(chest.getRotation().equals(chestRotation),
       "opening and vanishing preserve the chest orientation as the hero moves");
   }
   assert.deepEqual(models.filter(({ url }) => url.includes("/coin.glb")).map(({ entity }) => entity.name),
     ["gold treasure coin", "silver treasure coin", "copper treasure coin"]);
+  assert.deepEqual(rewards, [["copper", 1], ["silver", 1], ["gold", 1]],
+    "stored contents reward once each while the hero moves");
+  assert.equal(chest.enabled, false, "the field fades the chest after the last coin arrives");
+  assert.equal(field.canFill(target.id), true);
+  assert.ok(models.filter(({ url }) => url.includes("/coin.glb")).every(({ entity }) => entity.parent === null));
+  field.destroy();
 });
 
 it("grows spoil only after released dirt arrives, independently of cavity growth", () => {
