@@ -1,9 +1,7 @@
+import { CastleMasonry } from "./CastleMasonry.js";
 import { SurfaceSpatialIndex } from "../../shared/SurfaceSpatialIndex.js";
-import { createCastleMasonryVoxels } from "./CastleMasonryPhysics.js";
 import { NpcObstacleProbe } from "../../shared/NpcObstacleProbe.js";
 import { ResidentClearance } from "../residents/ResidentClearance.js";
-import { addGeneratedVoxelPhysics } from "../../shared/GeneratedVoxelPhysics.js";
-import stoneBlockUrl from "../../../models/castle/residential/masonry-block.glb?url";
 import { DynamicRenderBatch } from "../../../rendering/DynamicRenderBatch.js";
 import { CastleMasonryMaterial } from "./CastleMasonryMaterial.js";
 import { CastleAudienceRoom } from "../rooms/audience/CastleAudienceRoom.js";
@@ -46,7 +44,7 @@ export class CastleEntityBuilder {
    */
   static get modelUrls() {
     return [
-      stoneBlockUrl,
+      CastleMasonry.modelUrl,
       CastleRoof.modelUrl,
       ...DoorPlacement.modelUrls,
       DoorArch.modelUrl,
@@ -123,22 +121,9 @@ export class CastleEntityBuilder {
    */
   #doorTexture = null;
   /**
-   *
-   * @type {Array<import("playcanvas").VertexBuffer>}
+   * @type {CastleMasonry|null}
    */
-  #vertexBuffers = [];
-  /**
-   * @type {import("playcanvas").Entity|null}
-   */
-  #masonryRoot = null;
-  /**
-   * @type {import("./CastleWindowLayout.js").MasonryBox[]}
-   */
-  #masonryBoxes = [];
-  /**
-   * @type {WeakMap<Door,number>}
-   */
-  #breachedDoors = new WeakMap();
+  #masonry = null;
   /**
    *
    * @type {CastleRoof|null}
@@ -192,11 +177,12 @@ export class CastleEntityBuilder {
    */
   #groundCollisionColumns = [];
   /**
-   *
-   * @type {Array<{x: number, y: number, z: number, halfX: number, halfY: number, halfZ: number}>}
+   * Borrowed masonry collision snapshot used by aggregate castle queries.
+   * @type {ReadonlyArray<{x: number, y: number, z: number, halfX: number, halfY: number, halfZ: number}>}
    */
   #cameraCollisionBlocks = [];
   /**
+   * Borrowed masonry index; the empty index also supports empty/destroyed castles.
    * @type {SurfaceSpatialIndex<{x:number,y:number,z:number,halfX:number,halfY:number,halfZ:number}>}
    */
   #cameraCollisionIndex = new SurfaceSpatialIndex();
@@ -580,7 +566,7 @@ export class CastleEntityBuilder {
    * @returns {boolean}
    */
   breachDoorway(door, width, height) {
-    if (!this.#animatedDoors.includes(door) || !door.broken || !Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0 || (this.#breachedDoors.get(door) ?? 0) >= width) {
+    if (!this.#animatedDoors.includes(door) || !door.broken || !Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0 || !this.#masonry?.canBreach(door, width)) {
       return false;
     }
     const inverse = new this.#pc.Mat4().copy(this.#entity.getWorldTransform()).invert();
@@ -599,26 +585,15 @@ export class CastleEntityBuilder {
     };
     this.#renderBatch?.destroy();
     this.#renderBatch = null;
-    this.#masonryRoot?.destroy();
-    for (const buffer of this.#vertexBuffers) {
-      buffer?.destroy();
+    try {
+      this.#masonry.breach(door, width, cut);
+    } catch (error) {
+      this.onSceneReady();
+      throw error;
     }
-    this.#vertexBuffers = [];
-    this.#masonryBoxes = CastleWindowLayout.subtractBoxes(this.#masonryBoxes, [cut]);
-    const collisionBoxes = this.#cameraCollisionBlocks.map(CastleEntityBuilder.#mapBlock2);
-    this.#cameraCollisionBlocks = CastleWindowLayout.subtractBoxes(collisionBoxes, [cut]).map(CastleEntityBuilder.#mapBox);
-    this.#cameraCollisionIndex = new SurfaceSpatialIndex();
-    for (const block of this.#cameraCollisionBlocks) {
-      this.#cameraCollisionIndex.add(block, {
-        minX: block.x - block.halfX,
-        maxX: block.x + block.halfX,
-        minZ: block.z - block.halfZ,
-        maxZ: block.z + block.halfZ,
-      });
-    }
+    this.#cameraCollisionBlocks = this.#masonry.collisionBlocks;
+    this.#cameraCollisionIndex = this.#masonry.collisionIndex;
     door.entity.enabled = false;
-    this.#breachedDoors.set(door, width);
-    this.#rebuildMasonry();
     this.onSceneReady();
 
     return true;
@@ -687,12 +662,10 @@ export class CastleEntityBuilder {
     this.#stairs = null;
     this.#serviceStairs?.destroy();
     this.#serviceStairs = null;
+    this.#masonry?.destroy();
+    this.#masonry = null;
     this.#entity?.destroy();
     this.#entity = null;
-    for (const buffer of this.#vertexBuffers) {
-      buffer.destroy();
-    }
-    this.#vertexBuffers = [];
     for (const material of this.#materials.values()) {
       material.destroy();
     }
@@ -907,75 +880,6 @@ export class CastleEntityBuilder {
     this.#entity.addChild(this.#audienceRoom.entity);
   }
 
-  /**
-   *
-   * @param {Map<string, Array<number>>} batches
-   * @param {string} material
-   * @param {number} x
-   * @param {number} y
-   * @param {number} z
-   * @param {number} yaw
-   * @param {number} sx
-   * @param {number} sy
-   * @param {number} sz
-   */
-  #addBoxMatrix(batches, material, x, y, z, yaw, sx, sy, sz) {
-    const matrix = new this.#pc.Mat4();
-    const rotation = new this.#pc.Quat();
-    rotation.setFromEulerAngles(0, yaw, 0);
-    matrix.setTRS(
-      new this.#pc.Vec3(x, y - sy / 2, z),
-      rotation,
-      new this.#pc.Vec3(sx, sy, sz),
-    );
-    const data = batches.get(material) ?? [];
-    for (const value of matrix.data) {
-      data.push(value);
-    }
-    batches.set(material, data);
-  }
-
-  /**
-   *
-   * @param {Map<string, Array<number>>} batches
-   */
-  #createInstancedBatches(batches) {
-    for (const [materialName, matrices] of batches.entries()) {
-      if (!matrices.length) {
-        continue;
-      }
-      const { entity, vertexBuffer } = this.#modelLibrary.instantiateMergedBatch(
-        stoneBlockUrl, matrices,
-        {
-          name: `${materialName} authored castle masonry`,
-          material: this.#materials.get(materialName),
-          linearVertexColors: true,
-          castShadows: true,
-          receiveShadows: true,
-        },
-      );
-      this.#vertexBuffers.push(vertexBuffer);
-      this.#masonryRoot.addChild(entity);
-    }
-  }
-
-  #rebuildMasonry() {
-    this.#masonryRoot = new this.#pc.Entity("Castle destructible masonry");
-    this.#entity.addChild(this.#masonryRoot);
-    const batches = new Map();
-    for (const box of this.#masonryBoxes) {
-      this.#addBoxMatrix(batches, box.material, box.x, box.y, box.z, box.yaw, box.sx, box.sy, box.sz);
-    }
-    addGeneratedVoxelPhysics({
-      pc: this.#pc,
-      parent: this.#masonryRoot,
-      name: "Castle masonry",
-      voxels: createCastleMasonryVoxels(this.#cameraCollisionBlocks),
-      friction: 0,
-    });
-    this.#createInstancedBatches(batches);
-  }
-
   #render() {
     const { geometry, layout, metadata } = this.#buildPlan;
     if (layout.empty) {
@@ -987,29 +891,8 @@ export class CastleEntityBuilder {
     this.#groundCollisionColumns = metadata.collision.groundColumns.map(
       CastleEntityBuilder.#mapColumn,
     );
-    this.#cameraCollisionBlocks = metadata.collision.cameraBlocks.map(
-      CastleEntityBuilder.#mapBlock,
-    );
-
     const windows = new CastleWindowLayout(this.#buildPlan);
-    // Use the same subtraction for masonry and camera collision. The glazing
-    // closes each recess while preserving the visible depth of its stone reveal.
-    this.#cameraCollisionBlocks = windows
-      .cutBoxes(this.#cameraCollisionBlocks.map(CastleEntityBuilder.#mapBlock2))
-      .map(CastleEntityBuilder.#mapBox);
     for (const window of windows.windows) {
-      const angle = window.yaw * Math.PI / 180;
-      const crosswise = Math.abs(Math.sin(angle)) > 0.5;
-      if (!window.open) {
-        this.#cameraCollisionBlocks.push({
-          x: window.position.x - Math.sin(angle) * window.depth * 0.315,
-          y: window.position.y + window.height / 2,
-          z: window.position.z - Math.cos(angle) * window.depth * 0.315,
-          halfX: crosswise ? 0.025 : window.width / 2,
-          halfY: window.height / 2,
-          halfZ: crosswise ? window.width / 2 : 0.025,
-        });
-      }
       const alongX = Math.abs(Math.sin(window.yaw * Math.PI / 180)) < 0.5;
       const half = window.width / 2;
       Window.addVisual(this.#pc, this.#modelLibrary, this.#entity, {
@@ -1031,20 +914,21 @@ export class CastleEntityBuilder {
         facing: (alongX ? Math.cos(window.yaw * Math.PI / 180) : Math.sin(window.yaw * Math.PI / 180)) >= 0 ? 1 : -1,
       }, this.#materials.get("castleStoneMid"));
     }
-    for (const block of this.#cameraCollisionBlocks) {
-      this.#cameraCollisionIndex.add(block, {
-        minX: block.x - block.halfX,
-        maxX: block.x + block.halfX,
-        minZ: block.z - block.halfZ,
-        maxZ: block.z + block.halfZ,
-      });
-    }
-    this.#masonryBoxes = windows.cutBoxes(geometry.boxes, 0.002);
     for (const roof of geometry.decorations.roofs) {
       this.#roofs.add(roof);
     }
 
-    this.#rebuildMasonry();
+    this.#masonry = new CastleMasonry({
+      pc: this.#pc,
+      parent: this.#entity,
+      modelLibrary: this.#modelLibrary,
+      materials: this.#materials,
+      buildPlan: this.#buildPlan,
+      windows,
+    });
+    // Borrow the masonry owner's snapshot for the castle's aggregate queries.
+    this.#cameraCollisionBlocks = this.#masonry.collisionBlocks;
+    this.#cameraCollisionIndex = this.#masonry.collisionIndex;
     this.#createAnimatedDoors();
     if (metadata.runtime.terrace) {
       this.#terraceContext = {
@@ -1184,41 +1068,6 @@ export class CastleEntityBuilder {
    */
   static #mapColumn(column) {
     return { ...column };
-  }
-
-  /**
-   *
-   * @param {{x: number, y: number, z: number, halfX: number, halfY: number, halfZ: number}} block
-   */
-  static #mapBlock(block) {
-    return { ...block };
-  }
-
-  /**
-   * @param {{x:number,y:number,z:number,halfX:number,halfY:number,halfZ:number}} block
-   */
-  static #mapBlock2(block) {
-    return {
-      ...block,
-      sx: block.halfX * 2,
-      sy: block.halfY * 2,
-      sz: block.halfZ * 2,
-      yaw: 0,
-    };
-  }
-
-  /**
-   * @param {import("./CastleWindowLayout.js").MasonryBox} box
-   */
-  static #mapBox(box) {
-    return {
-      x: box.x,
-      y: box.y,
-      z: box.z,
-      halfX: box.sx / 2,
-      halfY: box.sy / 2,
-      halfZ: box.sz / 2,
-    };
   }
 
   /**
