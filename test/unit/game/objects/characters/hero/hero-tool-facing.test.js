@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { it } from "node:test";
 import { Vec2 } from "playcanvas";
 import { HERO_ACTION } from "../../../../../../src/game/enum/HeroAction.js";
-import { treasureToolBackstep } from "../../../../../../src/game/config/treasure.js";
+import { HeroToolStancePlanner } from "../../../../../../src/game/objects/characters/hero/HeroToolStancePlanner.js";
 
 const source = readFileSync(new URL("../../../../../../src/game/objects/characters/hero/Hero.js", import.meta.url), "utf8");
 const start = source.indexOf("  useTool(");
@@ -12,9 +12,8 @@ const positioningStart = source.indexOf("  #toolPositioning(");
 const positioningMethod = source.slice(positioningStart, source.indexOf("\n  /**", positioningStart));
 const repositioningStart = source.indexOf("  repositionTool(");
 const repositioningMethod = source.slice(repositioningStart, source.indexOf("\n  /**", repositioningStart));
-const HeroDriver = new Function("HERO_ACTION", "treasureToolBackstep", "Vec2", "MOVEMENT_COLLISION_RADIUS", `return class Hero {
+const HeroDriver = new Function("HERO_ACTION", "HeroToolStancePlanner", "Vec2", "MOVEMENT_COLLISION_RADIUS", `return class Hero {
   #audio = null;
-  static #compareToolPositions(a, b) { return a.travel - b.travel; }
   #position = { x: 0, z: 0 };
   #facingYaw = 15;
   #grounded = true;
@@ -31,7 +30,7 @@ const HeroDriver = new Function("HERO_ACTION", "treasureToolBackstep", "Vec2", "
   ${method}
   ${positioningMethod}
   ${repositioningMethod}
-}`)(HERO_ACTION, treasureToolBackstep, Vec2, 0.18);
+}`)(HERO_ACTION, HeroToolStancePlanner, Vec2, 0.18);
 
 it("fills from an occupied stance beside a hole without sweeping into its collision", () => {
   for (const action of ["fill", "level-hole"]) {
