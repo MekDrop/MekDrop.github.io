@@ -4,12 +4,12 @@
  */
 export class KingCapeTrimSupport {
   /**
-   * @type {Array<{index: number, edge: import("./KingCapePhysics.js").KingHemAttachment|null, offsets: import("playcanvas").Vec3[]}>}
+   * @type {Array<{index: number, edge: import("./KingCapeGeometry.js").KingHemAttachment|null, offsets: import("playcanvas").Vec3[]}>}
    */
   #groups = [];
 
   /**
-   * @param {import("./KingCapePhysics.js").KingCapeBinding[]} bindings
+   * @param {import("./KingCapeGeometry.js").KingCapeBinding[]} bindings
    */
   constructor(bindings) {
     const groups = new Map();
@@ -47,8 +47,8 @@ export class KingCapeTrimSupport {
   /**
    * Preserve the original extrema and hem correction without per-vertex
    * temporary arrays, repeated frame lookups, or repeated edge sampling.
-   * @param {import("./KingCapePhysics.js").KingCapeFrame[]} frames
-   * @param {(edge: import("./KingCapePhysics.js").KingHemAttachment) => {point: import("playcanvas").Vec3, frame: import("./KingCapePhysics.js").KingCapeFrame}} sampleHem
+   * @param {import("./KingCapeGeometry.js").KingCapeFrame[]} frames
+   * @param {(edge: import("./KingCapeGeometry.js").KingHemAttachment) => {point: import("playcanvas").Vec3, frame: import("./KingCapeGeometry.js").KingCapeFrame}} sampleHem
    * @param {number} floor
    * @param {number[]} clearances
    */

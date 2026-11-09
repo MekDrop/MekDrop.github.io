@@ -219,12 +219,15 @@ it("lazily initializes visible capes, deduplicates seams, and restores shared as
       assert.equal(originals[index].mesh.destroyed, false);
     }
     const clones = scene.instances.map((instance) => instance.mesh);
+    const materials = scene.instances.map((instance) => instance.material);
     scene.physics.destroy();
     for (let index = 0; index < scene.instances.length; index++) {
       assert.equal(scene.instances[index].mesh, originals[index].mesh);
       assert.equal(scene.instances[index].material, originals[index].material);
       assert.equal(scene.instances[index].skinInstance, originals[index].skin);
       assert.equal(clones[index].destroyed, true);
+      assert.equal(materials[index].destroyed, true);
+      assert.equal(originals[index].material.destroyed, false);
     }
     assert.equal(scene.app.hasEvent("update"), false);
     assert.equal(scene.app.hasEvent("prerender"), false);
@@ -456,6 +459,7 @@ it("failed initialization restores every shared asset and does not resume a part
     skin: instance.skinInstance,
   }));
   let clones = 0;
+  const allocated = [];
   class CapeCloneAllocationFailure extends Error {}
   class FailingMesh extends TestMesh {
     constructor() {
@@ -465,6 +469,7 @@ it("failed initialization restores every shared asset and does not resume a part
       if (clones === 2) {
         throw new CapeCloneAllocationFailure();
       }
+      allocated.push(this);
     }
   }
   scene.pc.Mesh = FailingMesh;
@@ -472,6 +477,7 @@ it("failed initialization restores every shared asset and does not resume a part
     assert.throws(() => scene.frame(), CapeCloneAllocationFailure);
     assert.equal(scene.physics.testState.initialized, false);
     assert.equal(scene.physics.testState.nodes.length, 0);
+    assert.ok(allocated.every(mesh => mesh.destroyed), "partial render allocations must be released");
     for (let index = 0; index < scene.instances.length; index++) {
       assert.equal(scene.instances[index].mesh, originals[index].mesh);
       assert.equal(scene.instances[index].material, originals[index].material);
