@@ -37,8 +37,7 @@ export class HeroFallingToDeathActionState extends HeroRuntimeActionState {
     if (!owner.feedback.falling.finished()) {
       return;
     }
-    const nextAction = owner.feedback.death.resolve();
-    owner.transition(nextAction, { elapsed: 0 });
+    owner.resolveDeath();
   }
 
   /**

@@ -124,6 +124,7 @@ export class HeroActionBehavior {
        */
       transition: this.#transition2.bind(this),
       finish: this.#finish.bind(this),
+      resolveDeath: this.#resolveDeath.bind(this),
       /**
        *
        * @param {string} state
@@ -774,6 +775,21 @@ export class HeroActionBehavior {
    */
   #transition2(action, payload) {
     return this.#transition(action, payload);
+  }
+
+  /**
+   * Dying states request one life loss; this coordinator selects the next state.
+   * The dying-timeout escape intentionally bypasses this normal death path.
+   * @param {boolean} [leaveAshes]
+   */
+  #resolveDeath(leaveAshes = false) {
+    const remainingLives = this.#context.feedback.death.consumeLife();
+    const nextAction = remainingLives === 0 ? HERO_ACTION.GAME_OVER : HERO_ACTION.RESPAWNING;
+    const payload = leaveAshes ? {
+      elapsed: 0,
+      ashes: nextAction === HERO_ACTION.GAME_OVER,
+    } : { elapsed: 0 };
+    this.#transition(nextAction, payload);
   }
 
   #finish() {

@@ -36,10 +36,10 @@ import { FOOT_SIDE } from "../../../enum/FootSide.js";
 import { HERO_ANIMATION } from "../../../enum/HeroAnimation.js";
 import { HERO_ACTION } from "../../../enum/HeroAction.js";
 import { OCCUPANCY } from "../../../enum/Occupancy.js";
-import { COIN_TYPE } from "../../../enum/CoinType.js";
+import { HeroPossessions } from "./HeroPossessions.js";
 import { MOVEMENT_REFUSAL } from "../../../enum/MovementRefusal.js";
 import { HERO_INVENTORY_CAPACITY } from "../../../config/inventory.js";
-import { pickupActionForCategory } from "../../../config/hero-pickup-actions.js";
+import { HeroCollectingActionState, HeroInventoryFullActionState } from "./states/action/HeroCollectionActionState.js";
 import { HeroPhysicsController } from "./HeroPhysicsController.js";
 import { addHeroPartColliders } from "./HeroPartColliders.js";
 import { HeroFootPlacement } from "./HeroFootPlacement.js";
@@ -60,7 +60,7 @@ import { HeroLadderClimb, LADDER_CLIMB_SPEED } from "./HeroLadderClimb.js";
 import { HeroHardLandingRecoveryActionState } from "./states/action/HeroHardLandingRecoveryActionState.js";
 
 /**
- * @typedef {{capacity: number, items: Array<{id: string, variant: string, quantity?: number}>}} HeroInventory
+ * @typedef {import("./HeroPossessions.js").HeroInventory} HeroInventory
  * @typedef {object} HeroState
  * @property {number} lives
  * @property {number} maxLives
@@ -74,7 +74,7 @@ import { HeroHardLandingRecoveryActionState } from "./states/action/HeroHardLand
  * @property {string} action
  * @property {Array<{type: string, remaining: number}>} buffs
  * @property {{walkSpeed: number, runSpeed: number}} stats
- * @typedef {{inventory: HeroInventory, addInventoryItem: (item: {id: string, variant: string, quantity?: number}) => boolean}} HeroConfigurationStore
+ * @typedef {import("./HeroPossessions.js").HeroConfigurationStore} HeroConfigurationStore
  * @typedef {object} HeroPresentation
  * @property {{setMood: (mood: {kind: string}|null) => void, sync: (state: HeroState) => void, $reset: () => void} [stateStore]
  * @property {{setLives: (lives: number, maximum: number) => void}} [lifeHud]
@@ -960,19 +960,9 @@ export class Hero {
    */
   #gatewayRepelCooldown = 0;
   /**
-   *
-   * @type {Record<string, number>}
+   * @type {HeroPossessions}
    */
-  #wallet = {
-    [COIN_TYPE.GOLD]: 0,
-    [COIN_TYPE.SILVER]: 0,
-    [COIN_TYPE.COPPER]: 0,
-  };
-  /**
-   *
-   * @type {HeroConfigurationStore}
-   */
-  #heroConfigurationStore;
+  #possessions;
   /**
    *
    * @type {(x: number, z: number) => void}
@@ -1062,7 +1052,7 @@ export class Hero {
     this.#getViewDirection = getViewDirection;
     this.#onPositionChange = onPositionChange;
     this.#onFacingChange = onFacingChange;
-    this.#heroConfigurationStore = heroConfigurationStore;
+    this.#possessions = new HeroPossessions(heroConfigurationStore);
     this.#graphicsSettingsStore = graphicsSettingsStore;
     this.#modelUrl = heroModelUrlFor(graphicsSettingsStore?.heroModel);
     this.#onMovementInput = onMovementInput;
@@ -1168,24 +1158,11 @@ export class Hero {
            * @param {import("playcanvas").Entity} attachment
            */
           mountHeldItem: this.#mountHeldItem.bind(this),
-          /**
-           *
-           * @param {string} action
-           */
           begin: this.#beginCollection.bind(this),
-          beginInventoryFull: this.#beginInventoryFull.bind(this),
           restartAnimation: this.#restartCollectionAnimation.bind(this),
-          /**
-           *
-           * @param {string} action
-           */
-          endCollection: this.#endCollection.bind(this),
+          playPickupSound: this.#playPickupSound.bind(this),
+          mountTool: this.#mountCollectionTool.bind(this),
           showInventoryFull: this.#showCollectionInventoryFullReaction.bind(this),
-          /**
-           *
-           * @param {string} action
-           */
-          endInventoryFull: this.#endInventoryFull.bind(this),
         },
         dodge: {
           /**
@@ -1337,26 +1314,21 @@ export class Hero {
           syncState: this.#syncBurningState.bind(this),
         },
         falling: {
-          begin: this.#onFallDeathBegin.bind(this),
+          begin: this.#beginFallDeath.bind(this),
           finished: this.#hasFallenPastExitHeight.bind(this),
         },
         death: {
-          resolve: this.#onDeathResolved.bind(this),
+          consumeLife: this.#consumeLife.bind(this),
         },
         respawning: {
           duration: RESPAWN_ANIMATION_DURATION,
-          begin: this.#onRespawnBegin.bind(this),
-          /**
-           *
-           * @param {number} progress
-           * @param {number} elapsed
-           */
-          updatePresentation: this.#updateRespawnPresentation.bind(this),
-          resetPresentation: this.#resetRespawnPresentation.bind(this),
+          prepare: this.#prepareRespawn.bind(this),
+          presentation: this.#getRespawnPresentation.bind(this),
+          begin: this.#beginRespawn.bind(this),
           complete: this.#completeRespawn.bind(this),
         },
         gameOver: {
-          begin: this.#onGameOverBegin.bind(this),
+          begin: this.#beginGameOver.bind(this),
         },
       },
     });
@@ -1541,7 +1513,7 @@ export class Hero {
    * @returns {Record<string, number>}
    */
   get wallet() {
-    return { ...this.#wallet };
+    return this.#possessions.wallet;
   }
 
   /**
@@ -1549,10 +1521,7 @@ export class Hero {
    * @returns {HeroInventory}
    */
   get inventory() {
-    return {
-      capacity: this.#heroConfigurationStore.inventory.capacity,
-      items: this.#heroConfigurationStore.inventory.items.map(Hero.#copyInventoryItem),
-    };
+    return this.#possessions.inventory;
   }
 
   /**
@@ -1560,10 +1529,7 @@ export class Hero {
    * @returns {boolean}
    */
   get inventoryFull() {
-    return (
-      this.#heroConfigurationStore.inventory.items.length >=
-      this.#heroConfigurationStore.inventory.capacity
-    );
+    return this.#possessions.inventoryFull;
   }
 
   /**
@@ -2463,58 +2429,21 @@ export class Hero {
     }
     this.#clearActionInput();
     this.#queuedFacingDirection = null;
-    this.#facingYaw = Math.atan2(targetPosition.x - this.#position.x,
-      targetPosition.z - this.#position.z) * 180 / Math.PI;
-    this.#actionBehavior.collectAction = {
-      animation: HERO_ANIMATION.OPEN_CHEST,
-      duration: 1.8,
-      impactTime: 0.65,
-      elapsed: 0,
-      impacted: false,
-      positioning: this.#collectionPositioning({
-        pickupAction: {
-          targetDistance: 0.535,
-          maximumStep: 0.55,
-        },
-        targetPosition,
-        targetRadius: 0.3,
-        targetDistance: Math.hypot(targetPosition.x - this.#position.x,
-          targetPosition.z - this.#position.z),
-      }),
-      positioningElapsed: 0,
+    this.#actionBehavior.collectAction = HeroCollectingActionState.createChest({
+      targetPosition,
       onImpact,
       onComplete,
-    };
+    }, this.#collectionHost);
 
     return true;
   }
 
   /**
-   *
-   * @param {number} category
-   * @param {{targetPosition: {x: number, y: number, z: number}, targetRadius: number, tool: import("src/game/objects/characters/hero/tools/HeroTool.js").HeroTool, heldItem: boolean, onImpact: (impact: import("src/game/objects/ObjectTypes.js").HeroActionPayload) => void, onComplete: () => void}} options
-   * @param {{x: number, y: number, z: number}} options.targetPosition
-   * @param {number} options.targetRadius
-   * @param {import("src/game/objects/characters/hero/tools/HeroTool.js").HeroTool} options.tool
-   * @param {import("../../ground-cover/GroundCoverHeldItem.js").GroundCoverHeldItem} options.heldItem
-   * @param {() => import("../../ground-cover/GroundCoverHeldItem.js").GroundCoverHeldItem|null} options.nextHeldItem
-   * @param {() => import("playcanvas").Vec3} options.nextTargetPosition
-   * @param {(impact: import("src/game/objects/ObjectTypes.js").HeroActionPayload) => void} options.onImpact
-   * @param {() => void} options.onComplete
+   * @param {string} category
+   * @param {import("./states/action/HeroCollectionActionState.js").HeroPickupOptions} options
+   * @returns {boolean}
    */
-  collectGroundCover(
-    category,
-    {
-      targetPosition,
-      targetRadius = 0,
-      tool = null,
-      heldItem = null,
-      nextHeldItem = null,
-      nextTargetPosition = null,
-      onImpact,
-      onComplete,
-    },
-  ) {
+  collectGroundCover(category, options) {
     if (
       !this.#acceptAction() ||
       !this.#actionBehavior.canStart(HERO_ACTION.COLLECTING, {
@@ -2524,67 +2453,11 @@ export class Hero {
       return false;
     }
 
-    const targetX = targetPosition.x - this.#position.x;
-    const targetZ = targetPosition.z - this.#position.z;
-    const targetDistance = Math.hypot(targetX, targetZ);
-    if (targetDistance > 0.001) {
-      this.#facingYaw = (Math.atan2(targetX, targetZ) * 180) / Math.PI;
-    }
-    const pickupAction = pickupActionForCategory(category);
-    if (!pickupAction) {
+    const action = HeroCollectingActionState.createPickup(category, options, this.#collectionHost);
+    if (!action) {
       return false;
     }
-    const collectionTool = pickupAction.requiresTool ? tool : null;
-    if (pickupAction.requiresTool && !collectionTool) {
-      return false;
-    }
-    const positioning = this.#collectionPositioning({
-      pickupAction,
-      targetPosition,
-      targetRadius,
-      targetDistance,
-    });
-    this.#actionBehavior.collectAction = {
-      animation: pickupAction.animation,
-      duration: pickupAction.duration,
-      cutStartTime: pickupAction.cutStartTime,
-      liftStartTime: pickupAction.liftStartTime,
-      toolHideTime: pickupAction.toolHideTime,
-      impactTime: pickupAction.impactTime,
-      stowStartTime: pickupAction.stowStartTime,
-      elapsed: 0,
-      impacted: false,
-      positioning,
-      positioningElapsed: 0,
-      tool: collectionTool,
-      heldItem,
-      nextHeldItem,
-      /**
-       * @param {import("src/game/objects/ObjectTypes.js").HeroActionPayload} action
-       */
-      retarget: nextTargetPosition ? (action) => {
-        const next = nextTargetPosition();
-        const x = next.x - this.#position.x;
-        const z = next.z - this.#position.z;
-        const distance = Math.hypot(x, z);
-        if (distance > 0.001) {
-          this.#facingYaw = Math.atan2(x, z) * 180 / Math.PI;
-        }
-        action.positioning = this.#collectionPositioning({
-          pickupAction,
-          targetPosition: next,
-          targetRadius,
-          targetDistance: distance,
-        });
-        action.positioningElapsed = 0;
-      } : null,
-      heldItemAttachmentEntity: pickupAction.heldItemAttachment === "left"
-        ? this.#leftHeldItemAttachmentEntity
-        : this.#rightHeldItemAttachmentEntity,
-      heldItemHideTime: pickupAction.heldItemHideTime,
-      onImpact,
-      onComplete,
-    };
+    this.#actionBehavior.collectAction = action;
 
     return true;
   }
@@ -2595,10 +2468,9 @@ export class Hero {
    * @param {number} amount
    */
   collectCoin(type, amount = 1) {
-    if (!Object.hasOwn(this.#wallet, type)) {
+    if (!this.#possessions.collectCoin(type, amount)) {
       return false;
     }
-    this.#wallet[type] += Math.max(0, Math.floor(amount));
     this.#syncState();
 
     return true;
@@ -2623,7 +2495,7 @@ export class Hero {
    * @param {{id: string, variant: string, quantity?: number}} item
    */
   collectInventoryItem(item) {
-    if (!this.#heroConfigurationStore.addInventoryItem(item)) {
+    if (!this.#possessions.collectInventoryItem(item)) {
       this.#showInventoryFull();
 
       return false;
@@ -2659,28 +2531,11 @@ export class Hero {
     ) {
       return false;
     }
-    let positioning = null;
-    if (targetPosition) {
-      const targetX = targetPosition.x - this.#position.x;
-      const targetZ = targetPosition.z - this.#position.z;
-      const targetDistance = Math.hypot(targetX, targetZ);
-      if (targetDistance > 0.001) {
-        this.#facingYaw = (Math.atan2(targetX, targetZ) * 180) / Math.PI;
-      }
-      positioning = this.#collectionPositioning({
-        pickupAction: pickupActionForCategory(category),
-        targetPosition,
-        targetRadius,
-        targetDistance,
-      });
-    }
-    this.#actionBehavior.inventoryFullAction = {
-      elapsed: 0,
-      notified: false,
-      positioning,
-      positioningElapsed: 0,
+    this.#actionBehavior.inventoryFullAction = HeroInventoryFullActionState.createPayload(category, {
+      targetPosition,
+      targetRadius,
       onComplete,
-    };
+    }, this.#collectionHost);
 
     return true;
   }
@@ -3954,15 +3809,18 @@ export class Hero {
     this.#resetBoredom();
   }
 
-  #resolveDeath() {
+  #consumeLife() {
     this.#contactDamage = 0;
     this.#lives = Math.max(0, this.#lives - 1);
     this.#syncState();
 
-    return this.#lives === 0 ? HERO_ACTION.GAME_OVER : HERO_ACTION.RESPAWNING;
+    return this.#lives;
   }
 
-  #beginRespawn() {
+  /**
+   * Restore one supported spawn pose and reset the shared locomotion bookkeeping.
+   */
+  #prepareRespawn() {
     this.#jumpLandingOriginHeight = null;
     this.#jumpLandingSettledTime = 0;
     this.#modelRoot?.setLocalScale(
@@ -3986,7 +3844,9 @@ export class Hero {
     this.#physics.gravity = GRAVITY;
     this.#physics.resume(this.#position, this.#velocity);
     this.#syncIslandVisualPosition();
-    this.#respawnEffect.begin(this.#facingYaw, this.#islandVisualRoot.getPosition().y);
+  }
+
+  #beginRespawn() {
     this.#gatewayRepelCooldown = 0;
     this.#restartAnimation = true;
     this.#resetBoredom();
@@ -4496,56 +4356,6 @@ export class Hero {
 
   /**
    *
-   * @param {{pickupAction: {targetDistance?: number, minimumDistance: number, maximumDistance: number, radiusClearance: number, maximumStep?: number, maximumForwardStep: number, maximumBackwardStep: number}, targetPosition: {x: number, y: number, z: number}, targetRadius: number, targetDistance: number}} options
-   * @param {{targetDistance?: number, minimumDistance: number, maximumDistance: number, radiusClearance: number, maximumStep?: number, maximumForwardStep: number, maximumBackwardStep: number}} options.pickupAction
-   * @param {{x: number, y: number, z: number}} options.targetPosition
-   * @param {number} options.targetRadius
-   * @param {number} options.targetDistance
-   */
-  #collectionPositioning({
-    pickupAction,
-    targetPosition,
-    targetRadius,
-    targetDistance,
-  }) {
-    const preferredDistance = pickupAction.targetDistance ?? Math.max(
-      pickupAction.minimumDistance,
-      Math.min(
-        pickupAction.maximumDistance,
-        targetRadius + pickupAction.radiusClearance,
-      ),
-    );
-    const distanceAdjustment = targetDistance - preferredDistance;
-    const maximumForwardStep =
-      pickupAction.maximumStep ?? pickupAction.maximumForwardStep;
-    const maximumBackwardStep =
-      pickupAction.maximumStep ?? pickupAction.maximumBackwardStep;
-    const stepDistance = Math.max(
-      -maximumBackwardStep,
-      Math.min(maximumForwardStep, distanceAdjustment),
-    );
-    if (Math.abs(stepDistance) < 0.025) {
-      return null;
-    }
-    const direction =
-      targetDistance > 0.001
-        ? {
-          x: (targetPosition.x - this.#position.x) / targetDistance,
-          z: (targetPosition.z - this.#position.z) / targetDistance,
-        }
-        : this.facingDirection;
-
-    return {
-      animationSpeed: 0.8,
-      startX: this.#position.x,
-      startZ: this.#position.z,
-      targetX: this.#position.x + direction.x * stepDistance,
-      targetZ: this.#position.z + direction.z * stepDistance,
-    };
-  }
-
-  /**
-   *
    * @param {number} toX
    * @param {number} toZ
    */
@@ -4740,21 +4550,36 @@ export class Hero {
   }
 
   /**
-   *
-   * @param {string} action
+   * @type {import("./states/action/HeroCollectionActionState.js").HeroCollectionHost}
    */
-  #beginCollection(action) {
-    if (action.tool) {
-      action.tool.mount(this.#toolAttachmentEntity);
-      action.tool.visible = true;
-    }
-    this.#velocity.x = 0;
-    this.#velocity.z = 0;
-    this.#restartAnimation = true;
-    this.#resetBoredom();
+  #collectionHost = {
+    readPose: this.#readCollectionPose.bind(this),
+    setFacingYaw: this.#setCollectionFacingYaw.bind(this),
+  };
+
+  /**
+   * @returns {import("./states/action/HeroCollectionActionState.js").HeroCollectionPose}
+   */
+  #readCollectionPose() {
+    return {
+      position: this.#position,
+      facingDirection: this.facingDirection,
+      leftAttachment: this.#leftHeldItemAttachmentEntity,
+      rightAttachment: this.#rightHeldItemAttachmentEntity,
+    };
   }
 
-  #beginInventoryFull() {
+  /**
+   * @param {number} yaw
+   */
+  #setCollectionFacingYaw(yaw) {
+    this.#facingYaw = yaw;
+  }
+
+  /**
+   * Stop input-driven motion before a collection state begins its sequence.
+   */
+  #beginCollection() {
     this.#velocity.x = 0;
     this.#velocity.z = 0;
     this.#restartAnimation = true;
@@ -4765,37 +4590,19 @@ export class Hero {
     this.#restartAnimation = true;
   }
 
+  #playPickupSound() {
+    this.#audio?.play("pickup");
+  }
+
   /**
-   *
-   * @param {string} action
+   * @param {import("./tools/HeroTool.js").HeroTool} tool
    */
-  #endCollection(action) {
-    if (action.completed) {
-      this.#audio?.play("pickup");
-    }
-    if (action.tool) {
-      action.tool.visible = false;
-    }
-    action.heldItem?.destroy();
-    this.#restartAnimation = true;
-    if (action.completed) {
-      action.onComplete?.();
-    }
+  #mountCollectionTool(tool) {
+    tool.mount(this.#toolAttachmentEntity);
   }
 
   #showCollectionInventoryFullReaction() {
     return this.#showInventoryFull();
-  }
-
-  /**
-   *
-   * @param {string} action
-   */
-  #endInventoryFull(action) {
-    this.#restartAnimation = true;
-    if (action.completed) {
-      action.onComplete?.();
-    }
   }
 
   /**
@@ -5062,51 +4869,24 @@ export class Hero {
     return this.#syncState();
   }
 
-  #onFallDeathBegin() {
-    return this.#beginFallDeath();
-  }
-
   #hasFallenPastExitHeight() {
     return this.#position.y < FALL_EXIT_HEIGHT;
   }
 
-  #onDeathResolved() {
-    return this.#resolveDeath();
-  }
-
-  #onRespawnBegin() {
-    return this.#beginRespawn();
-  }
-
   /**
-   *
-   * @param {number} progress
-   * @param {number} elapsed
+   * Read live presentation resources; rebuilding the model replaces the effect.
+   * @returns {import("./states/action/HeroRespawningActionState.js").HeroRespawnPresentation}
    */
-  #updateRespawnPresentation(progress, elapsed) {
-    this.#respawnEffect?.update(progress, elapsed, this.#islandVisualRoot.getPosition().y);
-  }
-
-  #resetRespawnPresentation() {
-    return this.#respawnEffect?.reset();
+  #getRespawnPresentation() {
+    return {
+      effect: this.#respawnEffect,
+      facingYaw: this.#facingYaw,
+      baseHeight: this.#islandVisualRoot.getPosition().y,
+    };
   }
 
   #completeRespawn() {
     this.#restartAnimation = true;
-  }
-
-  #onGameOverBegin() {
-    return this.#beginGameOver();
-  }
-
-  /**
-   *
-   * @param {{id: string, variant: string, quantity?: number}} item
-   */
-  static #copyInventoryItem(item) {
-    return {
-      ...item,
-    };
   }
 
   /**

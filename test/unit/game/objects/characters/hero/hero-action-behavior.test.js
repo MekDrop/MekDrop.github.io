@@ -62,11 +62,10 @@ function createFeedback(overrides = {}) {
       moveTo: () => {},
       mountHeldItem: () => {},
       begin: () => {},
-      beginInventoryFull: () => {},
       restartAnimation: () => {},
-      endCollection: () => {},
+      playPickupSound: () => {},
+      mountTool: () => {},
       showInventoryFull: () => {},
-      endInventoryFull: () => {},
     },
     dodge: { complete: () => {} },
     patReaction: { shouldContinue: () => true },
@@ -96,10 +95,18 @@ function createFeedback(overrides = {}) {
       begin: () => {},
       finished: () => false,
     },
-    death: { resolve: () => HERO_ACTION.RESPAWNING },
+    death: { consumeLife: () => 1 },
     respawning: {
+      prepare: () => {},
       begin: () => {},
-      resetPresentation: () => {},
+      presentation: () => ({
+        effect: {
+          begin: () => {},
+          reset: () => {},
+        },
+        facingYaw: 0,
+        baseHeight: 0,
+      }),
     },
     gameOver: { begin: () => {} },
   };
@@ -334,8 +341,8 @@ it("completes collection from its action state and returns to rest", () => {
         mountHeldItem: () => {},
         restartAnimation: () => {},
         begin: () => {},
-        endCollection: (action) => {
-          completedAction = action;
+        playPickupSound: () => {
+          completedAction = behavior.collectAction;
         },
       },
     },
@@ -636,12 +643,18 @@ it("lets action states drive and clean up their presentation", () => {
       },
       respawning: {
         duration: 1.55,
-        updatePresentation: (progress, elapsed) =>
-          presentations.push(["respawn", {
-            progress,
-            elapsed,
-          }]),
-        resetPresentation: () => resets.push("respawn"),
+        presentation: () => ({
+          effect: {
+            begin: () => {},
+            update: (progress, elapsed) => presentations.push(["respawn", {
+              progress,
+              elapsed,
+            }]),
+            reset: () => resets.push("respawn"),
+          },
+          facingYaw: 0,
+          baseHeight: 0,
+        }),
       },
     },
   });
@@ -683,10 +696,10 @@ it("owns refusal, repulsion, death, and recovery lifecycle effects", () => {
         finished: () => fallFinished,
       },
       death: {
-        resolve: () => {
+        consumeLife: () => {
           events.push("death-resolved");
 
-          return HERO_ACTION.RESPAWNING;
+          return 1;
         },
       },
       respawning: {

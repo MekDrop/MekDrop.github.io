@@ -57,8 +57,16 @@ function fixture() {
         endPresentation: () => {},
       },
       respawning: {
+        prepare: () => {},
         begin: () => {},
-        resetPresentation: () => {},
+        presentation: () => ({
+          effect: {
+            begin: () => {},
+            reset: () => {},
+          },
+          facingYaw: 0,
+          baseHeight: 0,
+        }),
       },
       tool: {
         begin: () => events.push("tool-begin"),

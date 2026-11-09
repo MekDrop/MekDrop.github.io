@@ -89,11 +89,7 @@ export class HeroBurningActionState extends HeroRuntimeActionState {
     }
     if (action.elapsed >= action.duration) {
       feedback.setModelScale(0, 0, 0);
-      const nextAction = owner.feedback.death.resolve();
-      owner.transition(nextAction, {
-        elapsed: 0,
-        ashes: nextAction === HERO_ACTION.GAME_OVER,
-      });
+      owner.resolveDeath(true);
     }
   }
 

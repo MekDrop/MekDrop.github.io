@@ -203,6 +203,7 @@
  * @property {number} deltaTime
  * @property {(action: string, payload: HeroActionPayload|null) => void} transition
  * @property {() => void} finish
+ * @property {(leaveAshes?: boolean) => void} resolveDeath
  * @property {Point3} [bridgeClimbEnd]
  * @property {number} [dodgeAnimationDuration]
  * @property {number} [edgeRefusalDuration]

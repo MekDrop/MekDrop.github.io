@@ -34,16 +34,17 @@ for (const lives of [1, 2, 3]) {
           modelScale: 0.65,
           syncState: () => {},
         },
-        death: {
-          resolve: () => {
-            deaths += 1;
-
-            return lives > 1 ? HERO_ACTION.RESPAWNING : HERO_ACTION.GAME_OVER;
-          },
-        },
       },
-      transition: (...args) => {
-        transition = args;
+      resolveDeath: (leaveAshes) => {
+        assert.equal(leaveAshes, true);
+        deaths += 1;
+        transition = [
+          lives > 1 ? HERO_ACTION.RESPAWNING : HERO_ACTION.GAME_OVER,
+          {
+            elapsed: 0,
+            ashes: lives === 1,
+          },
+        ];
       },
     };
     state.enter(owner);
