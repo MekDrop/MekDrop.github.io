@@ -1,0 +1,24 @@
+{
+  "license": "CC0-1.0",
+  "created": "2026-11-09",
+  "aiGenerated": false,
+  "description": "Short edit and mix of existing CC0 recorded claw and wet-contact foley. Sources, licenses and processing: copyrights.txt.",
+  "files": [
+    {
+      "path": "src/game/audio/door/door-claws-source.mp3",
+      "sha256": "8c0b3d4a5abf24c341601ff200cabda632c2d54894c4ba91ef6fd8d41facb890"
+    },
+    {
+      "path": "src/game/audio/latch-slug/sources/slime_04.ogg",
+      "sha256": "56f914928bf8f81662a1c4f354ef690600abd5172bb1cf259f55cb38ed7e4a1d"
+    },
+    {
+      "path": "src/game/audio/bell-bug/flesh-scratch.wav",
+      "sha256": "c152d41c0e9f20622475d4688e559576ac30bb412f7171c6315a010ff89d5564"
+    },
+    {
+      "path": "src/game/audio/bell-bug/flesh-scratch.ogg",
+      "sha256": "8ba09208db4c170f8e32f931978897408447760c0f024854f7516e80ef38709d"
+    }
+  ]
+}

@@ -159,6 +159,7 @@ export class BellBugFleshScratch {
       if (!blocked && (!foot || foot.canReach(this.stroke.start) && foot.canReach(this.stroke.end))) {
         const applied = this.target.receiveDamage(0.08, b, "scratch");
         if (applied > 0) {
+          b.playFleshScratch?.(this.stroke.start);
           b.app.fire?.("bell-bug:scratch-contact", {
             bug: b,
             point: this.stroke.start.clone().lerp(this.stroke.start, this.stroke.end, Math.min(1, (this.time - 0.24) / 0.2)),

@@ -60,6 +60,8 @@ function fixture() {
     },
   };
   const events = [];
+  const sounds = [];
+  owner.playFleshScratch = point => sounds.push(point.clone());
   const facings = [];
   const faceTarget = owner.faceTarget;
   owner.faceTarget = target => {
@@ -73,6 +75,7 @@ function fixture() {
     actor,
     scratch,
     events,
+    sounds,
     facings,
     weaponOnly: () => {
       node.name = "King sword blade";
@@ -87,21 +90,23 @@ function fixture() {
 }
 
 test("front-foot scratches damage once at contact, emit in stroke direction and alternate", () => {
-  const { actor, scratch, events } = fixture();
+  const { actor, scratch, events, sounds } = fixture();
   scratch.update(0.22, true);
   assert.equal(actor.health, 3);
   scratch.update(0.13, true);
   assert.equal(actor.health, 2.92);
   assert.equal(events.length, 1);
+  assert.equal(sounds.length, 1, "sound is synchronized with damage and the blood cue");
   assert.ok(events[0].direction.dot(scratch.stroke.end.clone().sub(scratch.stroke.start).normalize()) > 0.99);
   scratch.update(0.1, true);
   assert.equal(events.length, 1);
+  assert.equal(sounds.length, 1, "the recovery does not repeat the sound");
   scratch.update(0.4, true);
   assert.equal(scratch.side, 1);
 });
 
 test("an unreachable strike cannot damage later when reach returns during recovery", () => {
-  const { actor, scratch, events, reach } = fixture();
+  const { actor, scratch, events, sounds, reach } = fixture();
   scratch.update(0.22, true);
   reach(false);
   scratch.update(0.13, true);
@@ -109,6 +114,7 @@ test("an unreachable strike cannot damage later when reach returns during recove
   scratch.update(0.3, true);
   assert.equal(actor.health, 3);
   assert.equal(events.length, 0);
+  assert.equal(sounds.length, 0, "an unreachable claw is silent");
 });
 
 test("a limb moving in place invalidates the old skin point without blood or damage", () => {

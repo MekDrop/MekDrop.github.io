@@ -1,0 +1,19 @@
+Bell bug flesh scratch: recorded foley, no AI-generated audio.
+
+Both source recordings are CC0-1.0 (free to use, modify and redistribute).
+Full license: ../castle/CC0-1.0.txt
+
+Claw texture: moxobna, scratch_door.wav
+https://freesound.org/people/moxobna/sounds/109969/
+Preserved recording: ../door/door-claws-source.mp3
+Source license and retrieval provenance: ../door/provenance.json
+
+Quiet wet-contact layer: rubberduck, 40 CC0 water / splash / slime SFX
+https://opengameart.org/content/40-cc0-water-splash-slime-sfx
+Preserved recording: ../latch-slug/sources/slime_04.ogg
+Source license and retrieval provenance: ../latch-slug/scoop-provenance.json
+
+Processing: a 0.22-second claw excerpt at 2.38 seconds, filtered 320–6200 Hz,
+mixed with 0.20 seconds of wet foley filtered 220–3200 Hz, gains 0.75/0.35,
+short endpoint fades, limited at 0.7. Mono 48 kHz PCM16 WAV master and
+nominal 192 kbps Ogg Vorbis. No generated or synthesized sound layers.

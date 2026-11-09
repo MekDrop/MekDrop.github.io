@@ -1,6 +1,7 @@
 import { BellBugDoorScratch } from "./BellBugDoorScratch.js";
 import { LatchSlugAudio } from "../../../audio/latch-slug/LatchSlugAudio.js";
 import { CastleAudio } from "../../../audio/castle/CastleAudio.js";
+import { BellBugAudio } from "../../../audio/bell-bug/BellBugAudio.js";
 import { BellBugScoop } from "./BellBugScoop.js";
 import { BellBugFleshScratch } from "./BellBugFleshScratch.js";
 import { ACTOR_MASS } from "../../../enum/ActorMass.js";
@@ -122,6 +123,12 @@ export class BellBug extends Enemy {
           loop:false,
         });
       }
+      this.entity.sound.addSlot("fleshScratch", {
+        asset: this.runtime.audioLibrary.get(BellBugAudio.fleshScratch.wavUrl).id,
+        volume: 0.4,
+        overlap: false,
+        loop: false,
+      });
     }
   }
 
@@ -136,6 +143,28 @@ export class BellBug extends Enemy {
       slot.pitch = pitch;
       sound.play(name);
     }
+  }
+
+  /**
+   * A short recorded rake on successful skin contact, quiet at a distance.
+   * @param {import("playcanvas").Vec3} point
+   */
+  playFleshScratch(point) {
+    const sound = this.entity.sound, slot = sound?.slot("fleshScratch");
+    if (!slot) {
+      return;
+    }
+    const hero = this.runtime.getHero?.()?.position;
+    const camera = this.runtime.camera;
+    const heroDistance = hero ? Math.hypot(point.x - hero.x, point.y - hero.y, point.z - hero.z) : Infinity;
+    const cameraDistance = camera ? Math.hypot(point.x - camera.panX, point.y - camera.targetY, point.z - camera.panZ) : Infinity;
+    const gain = Math.max(0, 1 - Math.min(heroDistance, cameraDistance) / 10) ** 2;
+    if (gain <= 0) {
+      return;
+    }
+    slot.volume = 0.4 * gain;
+    slot.pitch = 0.97 + Math.random() * 0.06;
+    sound.play("fleshScratch");
   }
 
   /**
