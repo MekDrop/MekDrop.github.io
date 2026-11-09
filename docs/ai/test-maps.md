@@ -18,6 +18,36 @@ object classes, camera, lighting, HUD, physics, and asset loading. Do not create
 standalone HTML/JavaScript preview apps when a test map can cover the behavior.
 Temporary conversion scripts and offline Blender renders still belong in `tmp/`.
 
+## Shared enemy terrain review
+
+`enemy-bell-bug-route.json` and `enemy-wave-director.json` intentionally remain
+self-contained saved maps. Their 42 × 42 `grid`, `heightmap`, `tileMeta`,
+`earthTextureVariants`, and all other top-level fields except `objects`,
+`layoutSignature`, `mapName`, and `testControls` match. The matching fields occupy
+770,711 bytes when serialized together with two-space indentation and a final
+newline (November 2026 review). Objects and HUD scripts belong to each fixture;
+the bell route authors its BellBug, spawn and review trigger, while the wave map
+authors its director and castle occupants.
+
+There is no existing saved-map composition convention to reuse:
+
+- `src/game/MapFileLoader.js` lazily imports `maps/tests/*.json` and deep-clones
+  each complete map before preparation, terrain population and path rebuilding.
+  That clone owns mutable terrain and object data for one load.
+- `scripts/check-castle-ground.mjs` and `scripts/cache-objects.mjs` independently
+  parse JSON files from disk. Runtime-only merging would leave those consumers
+  with incomplete data; a nested shared JSON file would also be discovered by
+  their recursive scans.
+- `scripts/game-hmr/vite-plugin.cjs` discovers top-level JSON maps and replaces
+  the changed map's loader. Shared dependencies would need dependent-map
+  invalidation rather than the current one-file/one-map update.
+
+Keep the duplication until a concrete map-authoring or loading requirement
+justifies changing those boundaries together. A JSON reference or JavaScript
+wrapper solely for these two fixtures would introduce a new resolution contract
+and validation/HMR work to save source bytes. Neither fixture, route, generated
+path behavior nor runtime ownership was changed by this review.
+
 Testing controls belong in the map's optional `testControls.panels` properties,
 rendered by `src/game/ui/MapTestControlsHud.js`. Do not add visible HTML controls
 over the game canvas or put entity-specific testing branches in the renderer.
