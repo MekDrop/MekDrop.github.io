@@ -109,3 +109,32 @@ than retain old route arrays. Disconnected gates have empty routes. Removing a
 single lane disables the affected two-lane segment; restoring its tiles restores
 connectivity. Tile slope metadata controls edge heights, and overpass tile metadata
 keeps deck and ground graph nodes separate.
+
+## Castle residential layouts
+
+`CastleResidentialLayout` extends `AbstractCastleResidentialLayout`, which owns
+construction, transforms and geometry data. The concrete layout owns runtime
+floor indexing, stair/floor queries and servant identity. Each instance builds
+its floor index lazily; access changes are checked on every query.
+
+The base retains two construction paths:
+
+- Version 2 consumes explicit rooms, furniture, reservations and stairs.
+  `CastleGenerator` uses `CastleAuthoredBuildPlan` and
+  `CastleAuthoredResidentialPlan` to produce these plans. `RoomPlanningStage`
+  also produces version 2, published by `BuildMetadataStage` when that stage
+  pipeline is used.
+- Dimensional construction derives rooms and furnishings from build inputs and
+  optional unversioned residential metadata. Hand-built fixtures in
+  `castle-residential-layout.test.js` exercise this path, including orientation,
+  basement access, furniture and stair support. It remains supported here;
+  absence from current generator output alone does not prove it obsolete.
+  `BuildMetadataStage` can also publish metadata without a residential room plan
+  when its context omits `roomPlan`; the current `CastleGenerator` does not use
+  that stage pipeline.
+
+Saved JSON maps under `src/game/maps/` store Castle object generation inputs,
+not residential build plans. Map preparation generates their plans through
+`CastleGenerator`; object-cache generation uses that same generator. Existing
+planned-room coverage includes `castle-authored-build-plan.test.js` and
+`room-planning.test.js` under `test/unit/game/generator/castle/`.

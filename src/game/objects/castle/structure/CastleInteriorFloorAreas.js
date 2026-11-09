@@ -2,7 +2,7 @@
  * Derives missing first-floor spaces from the built shell, including side rooms
  * omitted by the work-room bounds. Courtyard turf remains an outdoor area.
  * @param {import("../../../generator/castle/CastleBuildPlanWriter.js").CastleBuildPlan} plan
- * @param {import("../residents/CastleResidentialLayout.js").CastleResidentialLayout} layout
+ * @param {import("../residents/AbstractCastleResidentialLayout.js").AbstractCastleResidentialLayout} layout
  */
 export function createCastleInteriorFloorAreas(plan, layout) {
   if (!plan.metadata.runtime?.residential || !plan.metadata.collision?.cameraBlocks?.length) {

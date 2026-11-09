@@ -395,3 +395,24 @@ it("preserves compact occupied levels and stair descent in every entrance orient
     }
   }
 });
+
+it("keeps floor indexes and servant access local to each residential layout", () => {
+  const first = new CastleResidentialLayout(makePlan());
+  const second = new CastleResidentialLayout(makePlan("EAST"));
+  const servant = {};
+  const room = first.rooms.servantBedroom;
+  const point = first.toWorld((room.minX + room.maxX) / 2, (room.minZ + room.maxZ) / 2);
+
+  // Warm the index while access is denied, then change only the access policy.
+  assert.equal(first.surfaceHeightAt(point.x, point.z, room.floorY), null);
+  first.servant = servant;
+  assert.equal(first.surfaceHeightAt(point.x, point.z, room.floorY, servant), room.floorY);
+  assert.equal(second.canEnterBasement(servant), false);
+
+  const secondRoom = second.rooms.work;
+  const secondPoint = second.toWorld((secondRoom.minX + secondRoom.maxX) / 2, (secondRoom.minZ + secondRoom.maxZ) / 2);
+  assert.equal(second.surfaceHeightAt(secondPoint.x, secondPoint.z, secondRoom.floorY), secondRoom.floorY);
+
+  first.servant = null;
+  assert.equal(first.surfaceHeightAt(point.x, point.z, room.floorY, servant), null);
+});
