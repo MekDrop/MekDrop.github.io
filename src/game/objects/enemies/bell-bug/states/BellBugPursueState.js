@@ -32,6 +32,13 @@ export class BellBugPursueState extends State {
 
       return;
     }
+    if (owner.scoop.attentionTarget) {
+      owner.stop();
+      owner.faceTarget(owner.scoop.attentionTarget);
+      owner.playClip("idle_nervous");
+
+      return;
+    }
     const royal = owner.resolveRoyalTarget();
     const nearbyGoo = owner.findGluedDoor();
     owner.scratchTarget = nearbyGoo ?? (royal && owner.findClosedDoor(royal));

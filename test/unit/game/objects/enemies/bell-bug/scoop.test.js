@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { Entity, Vec3 } from "playcanvas";
 import { BellBugScoop } from "../../../../../../src/game/objects/enemies/bell-bug/BellBugScoop.js";
+import { BellBugPursueState } from "../../../../../../src/game/objects/enemies/bell-bug/states/BellBugPursueState.js";
 
 const fixture = () => {
   let contacts = 0;
@@ -34,6 +35,7 @@ const fixture = () => {
     stop: () => {},
     playClip: () => {},
   };
+  owner.faceTarget = target => owner.entity.lookAt(target.position);
 
   return {
     owner,
@@ -62,18 +64,8 @@ test("blocked scoops contact once per foot, alternate, and stop outside pursuit"
   assert.equal(scoop.target, null);
 });
 
-test("moving bugs, rear slugs, walls and interrupted contact cannot feed", () => {
+test("walls and interrupted contact cannot feed", () => {
   const { owner, slug, scoop, contacts } = fixture();
-  for (let i = 0; i < 10; i++) {
-    owner.position.x += 0.05;
-    scoop.update(0.1, true);
-  }
-  assert.equal(scoop.target, null);
-  owner.position.set(0, 0, 0);
-  slug.position.z = 0.6;
-  scoop.update(1, true);
-  assert.equal(scoop.target, null);
-  slug.position.z = -0.6;
   owner.app.systems.rigidbody.raycastAll = () => [{ entity: new Entity() }];
   scoop.update(1, true);
   assert.equal(scoop.target, null);
@@ -83,6 +75,39 @@ test("moving bugs, rear slugs, walls and interrupted contact cannot feed", () =>
   slug.position.z = -3;
   scoop.update(1, true);
   assert.equal(contacts(), 0);
+});
+
+test("turns toward side and rear slimes within one tile before pursuing a royal", () => {
+  for (const position of [new Vec3(0, 0, 0.9), new Vec3(0.9, 0, 0), new Vec3(0, 0, -1)]) {
+    const { owner, slug, scoop } = fixture();
+    slug.position.copy(position);
+    owner.scoop = scoop;
+    owner.resolveRoyalTarget = () => assert.fail("nearby slime must win attention");
+    scoop.update(0.016, true);
+    assert.equal(scoop.target, slug);
+    assert.ok(owner.entity.forward.dot(position.clone().normalize()) > 0.99);
+    new BellBugPursueState().execute(owner);
+  }
+});
+
+test("nearest slime wins even without available skin; attention releases beyond one tile", () => {
+  const { owner, slug, scoop } = fixture();
+  const farther = {
+    ...slug,
+    position: new Vec3(0, 0, -0.95),
+  };
+  owner.actors = [{ alive: true }, farther, slug];
+  slug.beginScoop = () => null;
+  owner.scoop = scoop;
+  owner.resolveRoyalTarget = () => assert.fail("skin contention must not restore royal priority");
+  scoop.update(0.016, true);
+  assert.equal(scoop.attentionTarget, slug);
+  new BellBugPursueState().execute(owner);
+  slug.position.z = -1.01;
+  farther.position.z = -1.1;
+  scoop.update(0.016, true);
+  assert.equal(scoop.attentionTarget, null);
+  assert.equal(scoop.target, null);
 });
 
 test("press, pull and taste sounds play once at contact phases, cancellation stays silent", () => {

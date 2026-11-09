@@ -1,7 +1,11 @@
 /**
- * Scoops accumulate independently of affection; five trigger survival movement.
+ * Two scoops are tolerated before annoyance grows; seven trigger escape.
  */
 export class LatchAnnoyance {
+  /**
+   * @type {number}
+   */
+  #scoops = 0;
   /**
    * @type {number}
    */
@@ -27,12 +31,15 @@ export class LatchAnnoyance {
     if (!owner.alive || owner.carrier || owner.airborne || owner.gatewayArrival.active) {
       return false;
     }
-    this.level = Math.min(5, this.level + 1);
+    this.#scoops++;
+    this.level = Math.min(5, Math.max(0, this.#scoops - 2));
     this.active = this.level >= 5;
-    owner.affection.charge = Math.max(0, owner.affection.charge - 0.6);
-    owner.affection.patRemaining = 0;
-    owner.affection.happyRemaining = 0;
-    owner.statuses.delete("affection");
+    if (this.level > 0) {
+      owner.affection.charge = Math.max(0, owner.affection.charge - 0.6);
+      owner.affection.patRemaining = 0;
+      owner.affection.happyRemaining = 0;
+      owner.statuses.delete("affection");
+    }
     // Clamp the final portion to avoid floating-point health surviving scoop ten.
     owner.gelMass?.removeScoop();
     const portion = owner.maxHealth / 10;

@@ -1,5 +1,5 @@
 /**
- * A blocked bug alternates its front feet, collecting once before each taste.
+ * Nearby slimes take attention before royals, from any direction.
  */
 export class BellBugScoop {
   /**
@@ -15,17 +15,13 @@ export class BellBugScoop {
    */
   target = null;
   /**
+   * @type {import("../latch-slug/LatchSlug.js").LatchSlug|null}
+   */
+  attentionTarget = null;
+  /**
    * @type {boolean}
    */
   contacted = false;
-  /**
-   * @type {import("playcanvas").Vec3|null}
-   */
-  anchor = null;
-  /**
-   * @type {number}
-   */
-  blockedTime = 0;
   /**
    * @type {import("../latch-slug/LatchSlug.js").LatchSlug|null}
    */
@@ -48,9 +44,10 @@ export class BellBugScoop {
 
   /**
    * @param {import("../shared/Enemy.js").EnemyActor} actor
+   * @param {boolean} requireFacing
    * @returns {boolean}
    */
-  reachable(actor) {
+  reachable(actor, requireFacing = true) {
     const b = this.owner;
     if (!actor.annoyance || !actor.alive || actor.carrier || actor.airborne || actor.entity?.enabled === false
       || actor.gatewayArrival?.active || Math.abs(actor.position.y - b.position.y) > 0.5) {
@@ -58,8 +55,8 @@ export class BellBugScoop {
     }
     const offset = actor.position.clone().sub(b.position);
     const distance = offset.length();
-    if (distance > b.radius + actor.radius + 0.45 || distance < 0.01
-      || offset.normalize().dot(b.entity.forward) < 0.65) {
+    if (distance > 1 || distance < 0.01
+      || requireFacing && offset.normalize().dot(b.entity.forward) < 0.65) {
       return false;
     }
     const start = b.position.clone().add(new b.pc.Vec3(0, 0.35, 0));
@@ -83,12 +80,11 @@ export class BellBugScoop {
     this.contact?.destroy();
     this.contact = null;
     this.target = null;
+    this.attentionTarget = null;
     this.time = 0;
     this.contacted = false;
     this.pressed = false;
     this.tasted = false;
-    this.blockedTime = 0;
-    this.anchor = null;
     this.approachTarget = null;
     this.approachPosition = null;
     this.#approachAge = 0;
@@ -151,18 +147,24 @@ export class BellBugScoop {
 
       return;
     }
-    const moved = this.anchor && this.anchor.distance(b.position) > 0.04;
-    if (!this.anchor || moved) {
-      this.anchor = b.position.clone();
-      this.blockedTime = 0;
+    this.attentionTarget = null;
+    let target = null;
+    let distance = Infinity;
+    for (const actor of b.actors) {
+      if (!this.reachable(actor, false)) {
+        continue;
+      }
+      const candidateDistance = actor.position.distance(b.position);
+      if (candidateDistance < distance) {
+        target = actor;
+        distance = candidateDistance;
+      }
     }
-    this.blockedTime += dt;
-    if (this.blockedTime < 0.4) {
-      return;
-    }
-    const target = b.actors.find(this.reachable.bind(this));
     if (target) {
       this.#begin(target);
+      // Even a temporarily unavailable skin contact must not turn us back
+      // toward a royal while this slime is within one tile.
+      this.attentionTarget = target;
     }
   }
 
