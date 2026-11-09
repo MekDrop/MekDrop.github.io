@@ -24,3 +24,5 @@ Use this file to find likely entry points, focused rules, and the smallest relev
 | Build or SSG output | `quasar.config.js`, `src/router/`, `src/i18n/` | affected source files | `docs/ai/testing.md` | affected build mode only if output behavior changed |
 
 Run checks only when they cover changed behavior; prefer targeted tests and lint over broad suites. Before builds, follow the localhost:9000 rule in root `AGENTS.md`. Avoid inspecting generated or heavy directories unless needed: `node_modules/`, `dist/`, `coverage/`, `.nyc_output/`, `.quasar/`, and `tmp/`.
+
+Retained captures under `src/game/**/evidence/` are excluded from ordinary ripgrep searches by root `.rgignore`. For investigations, list them with `rg --files --no-ignore -g 'src/game/**/evidence/**' src/game`, then search a selected file explicitly with `rg -n -m 5 'pattern' <capture-file>`. These captures can be enormous; keep output bounded. This search-only exclusion does not affect Git tracking, runtime assets, fixtures, or test maps.
