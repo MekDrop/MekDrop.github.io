@@ -2,6 +2,8 @@ import { BellBugDoorScratch } from "./BellBugDoorScratch.js";
 import { LatchSlugAudio } from "../../../audio/latch-slug/LatchSlugAudio.js";
 import { CastleAudio } from "../../../audio/castle/CastleAudio.js";
 import { BellBugScoop } from "./BellBugScoop.js";
+import { BellBugFleshScratch } from "./BellBugFleshScratch.js";
+import { ACTOR_MASS } from "../../../enum/ActorMass.js";
 import { BellBugScratchRecoverState } from "./states/BellBugScratchRecoverState.js";
 import { BellBugPlaybackVerification } from "./BellBugPlaybackVerification.js";
 import { BellBugPreview } from "./BellBugPreview.js";
@@ -21,6 +23,12 @@ import { BellBugReactionState } from "./states/BellBugReactionState.js";
  * Cowardly bell beetle. The royal remains its goal; towers are never targets.
  */
 export class BellBug extends Enemy {
+  /**
+   * @returns {number}
+   */
+  get mass() {
+    return ACTOR_MASS.BELL_BUG;
+  }
   /**
    * Foot room used by nearby creatures, separate from the body collider.
    * @returns {number}
@@ -53,6 +61,7 @@ export class BellBug extends Enemy {
     }
     this.isBellBug = true;
     this.scoop = new BellBugScoop(this);
+    this.fleshScratch = new BellBugFleshScratch(this);
     this.doorScratch = new BellBugDoorScratch(this);
     this.radius = BellBugCalibration.radius;
     this.height = BellBugCalibration.height;
@@ -205,34 +214,7 @@ export class BellBug extends Enemy {
     }
     super.update(dt);
     this.scoop.update(dt, this.stateName === BellBugPursueState.name);
-    if (this.scoop.target) {
-      return;
-    }
-    if (!this.alive || this.carrier || this.airborne ||
-      this.statuses.has("stun") || this.stateName !== BellBugPursueState.name) {
-      return;
-    }
-    for (const actor of this.actors) {
-      if (actor === this || actor.isEnemy || typeof actor.receiveDamage !== "function" ||
-        this.distanceTo(actor) > this.radius + (actor.radius ?? 0.3) + 0.15) {
-        continue;
-      }
-      const point = this.targetPosition(actor);
-      const start = this.position.clone().add(new this.pc.Vec3(0, 0.4, 0));
-      const end = point.clone().add(new this.pc.Vec3(0, 0.4, 0));
-      const hits = this.app.systems?.rigidbody?.raycastAll(start, end) ?? [];
-      const blocked = hits.some(/**
-       *
-       * @param {import("playcanvas").RaycastResult} hit
-       */
-        (hit) => hit.entity !== this.entity &&
-        !hit.entity.isDescendantOf(this.entity) && hit.entity !== actor.entity &&
-        !hit.entity.isDescendantOf(actor.entity));
-      if (!blocked) {
-        this.playClip("scratch_attack");
-        actor.receiveDamage(dt / 10, this, "scratch");
-      }
-    }
+    this.fleshScratch.update(dt, this.stateName === BellBugPursueState.name);
   }
 
   /**
@@ -540,6 +522,7 @@ export class BellBug extends Enemy {
 
   destroy() {
     this.scoop.reset();
+    this.fleshScratch.destroy();
     this.doorScratch.destroy();
     this.animationPlayback?.destroy();
     super.destroy();

@@ -11,6 +11,30 @@ import { TerraceRoyalActions } from "../../castle/rooms/terrace/TerraceRoyalActi
  */
 export class AbstractRoyal {
   /**
+   * @type {number}
+   */
+  health = 3;
+
+  /**
+   * Royal health is measured in hearts. Bell bugs remove one per ten seconds.
+   * @param {number} amount
+   * @param {import("../../enemies/shared/Enemy.js").Enemy} source
+   * @returns {number}
+   */
+  receiveDamage(amount, source) {
+    if (!Number.isFinite(amount) || amount <= 0 || this.health <= 0) {
+      return 0;
+    }
+    const applied = Math.min(this.health, amount);
+    this.health -= applied;
+    this.#app.fire?.("royal:damaged", this.health);
+    if (this.health === 0) {
+      this.beginGameOver(() => source.position);
+    }
+
+    return applied;
+  }
+  /**
    * @type {ActorStatusEffects}
    */
   #statusEffects = new ActorStatusEffects();

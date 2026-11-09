@@ -1101,3 +1101,27 @@ it("annoyance follows the default route without settling beside a companion", ()
   assert.equal(routed, 1);
   assert.ok(slug.affection.charge < 2);
 });
+
+it("annoyed slimes approach and press closed room doors instead of running into them", () => {
+  const { slug } = fixture(1);
+  const door = {
+    openAmount: 0,
+    broken: false,
+    entity: new pc.Entity(),
+  };
+  Object.defineProperty(slug, "nearbyDoor", { get: () => door });
+  slug.annoyance.active = true;
+  let approaching = true;
+  slug.approachDoor = target => {
+    assert.equal(target, door);
+
+    return approaching;
+  };
+  slug.advanceToPack = () => assert.fail("closed door must be handled before the escape route");
+  slug.update(0.1);
+  assert.equal(slug.stateName, "LatchAnnoyedState");
+  approaching = false;
+  slug.update(0.1);
+  assert.equal(slug.doorTarget, door);
+  assert.equal(slug.stateName, "LatchPressState");
+});

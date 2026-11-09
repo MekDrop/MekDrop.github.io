@@ -39,8 +39,10 @@ export class BellBugCrowdMotion {
     let allowed = speed;
     let blocker = null;
     const neighbours = [];
+    const hero = b.runtime?.getHero?.();
     for (const actor of b.actors) {
-      if (actor === b || !actor.isEnemy || !actor.alive || actor.carrier || actor.airborne ||
+      const isHero = actor === hero;
+      if (actor === b || (!actor.isEnemy && !isHero) || (!isHero && !actor.alive) || actor.carrier || actor.airborne ||
         !actor.entity?.rigidbody || actor.entity.rigidbody.enabled === false) {
         continue;
       }
@@ -49,10 +51,11 @@ export class BellBugCrowdMotion {
         continue;
       }
       const dx = p.x - b.position.x, dz = p.z - b.position.z;
-      const radius = actor.isBellBug ? BellBugCalibration.spacingRadius : actor.radius ?? 0.3;
+      const radius = actor.isBellBug ? BellBugCalibration.spacingRadius :
+        isHero && b.fleshScratch?.target === actor ? actor.bodyRadius ?? actor.radius ?? 0.3 : actor.radius ?? 0.3;
       // A raised scooping claw can enter its own foot margin. Keep both native
       // capsules separated, and retain normal clearance from every other peer.
-      const ownRadius = actor === b.scoop?.approachTarget ? b.radius : BellBugCalibration.spacingRadius;
+      const ownRadius = isHero || actor === b.scoop?.approachTarget ? b.radius : BellBugCalibration.spacingRadius;
       const clearance = ownRadius + radius + 0.03;
       neighbours.push({
         position: p,

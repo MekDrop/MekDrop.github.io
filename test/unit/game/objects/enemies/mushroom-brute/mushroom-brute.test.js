@@ -128,6 +128,7 @@ test("uses real Yuka states and chooses a royal instead of a castle or tower", (
 test("physical club arc damages multiple allies once and excludes rear targets", (t) => {
   const world = scene(t);
   const left = ally(world, "left ally", -0.65, 1);
+  left.entity.rigidbody.mass = 12;
   const right = ally(world, "right ally", 0.65, 1);
   const rear = ally(world, "rear ally", 0, -1);
   world.app.systems.rigidbody.onUpdate(1 / 60);
@@ -137,6 +138,8 @@ test("physical club arc damages multiple allies once and excludes rear targets",
   assert.equal(right.health, 68);
   assert.equal(rear.health, 100);
   assert.ok(left.entity.rigidbody.linearVelocity.length() > 0, "Ammo receives a real impact impulse");
+  const velocity = left.entity.rigidbody.linearVelocity;
+  assert.ok(Math.abs(Math.hypot(velocity.x, velocity.z) - 7) < 1e-5, "mass-scaled impulse preserves the authored club knockback speed");
 });
 
 test("a real static wall shields allies from the club", (t) => {

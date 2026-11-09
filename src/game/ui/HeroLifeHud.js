@@ -44,6 +44,14 @@ export class HeroLifeHud extends GamePanelHud {
    */
   #heartTexture;
   /**
+   * @type {CanvasRenderingContext2D|null}
+   */
+  #heartContext = null;
+  /**
+   * @type {number}
+   */
+  #heartFill = -1;
+  /**
    * @type {import("playcanvas").Texture|null}
    */
   #heartLeftFragmentTexture;
@@ -55,6 +63,18 @@ export class HeroLifeHud extends GamePanelHud {
    * @type {import("playcanvas").Texture|null}
    */
   #shieldTexture;
+  /**
+   * @type {CanvasRenderingContext2D|null}
+   */
+  #shieldContext = null;
+  /**
+   * @type {number}
+   */
+  #shieldFill = -1;
+  /**
+   * @type {import("playcanvas").EventHandle|null}
+   */
+  #royalDamageHandle = null;
   /**
    * @type {{canvas: HTMLCanvasElement, context: CanvasRenderingContext2D, texture: import("playcanvas").Texture}|null}
    */
@@ -150,6 +170,8 @@ export class HeroLifeHud extends GamePanelHud {
       this.#maxCastleLives,
     );
     this.setLives(lives, maxLives);
+    this.setCastleLives(this.#castleLives, this.#maxCastleLives);
+    this.#royalDamageHandle = app.on?.("royal:damaged", this.#royalDamaged, this) ?? null;
   }
 
   get lives() {
@@ -188,7 +210,7 @@ export class HeroLifeHud extends GamePanelHud {
     const nextLives = this.#normalizeLives(current, nextMaximum);
     const previousLives = this.#lives;
     const shouldAnimate =
-      this.#hasDisplayedLives && nextLives < previousLives;
+      this.#hasDisplayedLives && Math.ceil(nextLives) < Math.ceil(previousLives);
     const shouldRebuild = nextMaximum !== this.#maxLives || !this.#panelRoot;
     this.#maxLives = nextMaximum;
     this.#lives = nextLives;
@@ -202,6 +224,13 @@ export class HeroLifeHud extends GamePanelHud {
       nextLives,
     );
     this.#hasDisplayedLives = true;
+    const fill = nextLives > 0 ? nextLives - Math.ceil(nextLives) + 1 : 0;
+    if (Math.abs(fill - this.#heartFill) > 0.001 && this.#heartContext) {
+      this.#heartFill = fill;
+      this.#heartContext.clearRect(0, 0, TEXTURE_SIZE, TEXTURE_SIZE);
+      this.#drawHeart(this.#heartContext, fill);
+      this.#heartTexture.setSource(this.#heartContext.canvas);
+    }
     if (shouldAnimate) {
       this.#startDeathAnimation();
     } else if (nextLives !== previousLives) {
@@ -279,9 +308,25 @@ export class HeroLifeHud extends GamePanelHud {
       this.#castleNumberTexture,
       nextLives,
     );
+    const fill = nextLives > 0 ? nextLives - Math.ceil(nextLives) + 1 : 0;
+    if (Math.abs(fill - this.#shieldFill) > 0.001 && this.#shieldContext) {
+      this.#shieldFill = fill;
+      this.#shieldContext.clearRect(0, 0, TEXTURE_SIZE, TEXTURE_SIZE);
+      this.#drawShield(this.#shieldContext, fill);
+      this.#shieldTexture.setSource(this.#shieldContext.canvas);
+    }
+  }
+
+  /**
+   * The least healthy royal determines how close the castle is to losing.
+   * @param {number} health
+   */
+  #royalDamaged(health) {
+    this.setCastleLives(Math.min(this.#castleLives, health), this.#maxCastleLives);
   }
 
   destroy() {
+    this.#royalDamageHandle?.off();
     this.#finishDeathAnimation();
     this.#panelRoot = null;
     this.#heartEntity = null;
@@ -431,7 +476,7 @@ export class HeroLifeHud extends GamePanelHud {
       this.pc,
       value > 0 ? this.#colors.iconActive : this.#colors.iconInactive,
     );
-    this.drawNumber(numberTexture, value);
+    this.drawNumber(numberTexture, Math.ceil(value));
     number.element.texture = numberTexture.texture;
   }
 
@@ -470,12 +515,20 @@ export class HeroLifeHud extends GamePanelHud {
   /**
    *
    * @param {CanvasRenderingContext2D} context
+   * @param {number} fill
    */
-  #drawHeart(context) {
+  #drawHeart(context, fill = 1) {
     const gradient = context.createLinearGradient(0, 10, 0, 58);
     gradient.addColorStop(0, "#ff5866");
     gradient.addColorStop(0.48, "#ec273b");
     gradient.addColorStop(1, "#a90825");
+    this.#heartPath(context);
+    context.fillStyle = "#3e2631";
+    context.fill();
+    context.save();
+    context.beginPath();
+    context.rect(0, 10 + 47 * (1 - fill), TEXTURE_SIZE, 47 * fill);
+    context.clip();
     this.#heartPath(context);
     context.fillStyle = gradient;
     context.fill();
@@ -483,13 +536,17 @@ export class HeroLifeHud extends GamePanelHud {
     context.strokeStyle = "#651022";
     context.lineWidth = 6;
     context.stroke();
-
     context.beginPath();
     context.moveTo(18, 20);
     context.bezierCurveTo(20, 13, 27, 11, 31, 16);
     context.strokeStyle = "rgba(255, 226, 226, 0.8)";
     context.lineCap = "round";
     context.lineWidth = 4;
+    context.stroke();
+    context.restore();
+    this.#heartPath(context);
+    context.strokeStyle = "#651022";
+    context.lineWidth = 6;
     context.stroke();
   }
 
@@ -694,7 +751,7 @@ export class HeroLifeHud extends GamePanelHud {
    * @param {number} maximum
    */
   #normalizeLives(value, maximum) {
-    return Math.min(maximum, Math.max(0, Math.floor(Number(value) || 0)));
+    return Math.min(maximum, Math.max(0, Number(value) || 0));
   }
 
   /**
@@ -702,6 +759,7 @@ export class HeroLifeHud extends GamePanelHud {
    * @param {CanvasRenderingContext2D} context
    */
   #createDrawnTexture(context) {
+    this.#heartContext = context;
     this.#drawHeart(context);
   }
 
@@ -710,10 +768,26 @@ export class HeroLifeHud extends GamePanelHud {
    * @param {CanvasRenderingContext2D} context
    */
   #createDrawnTexture2(context) {
+    this.#shieldContext = context;
+    this.#drawShield(context);
+  }
+
+  /**
+   * @param {CanvasRenderingContext2D} context
+   * @param {number} fill
+   */
+  #drawShield(context, fill = 1) {
     const gradient = context.createLinearGradient(0, 7, 0, 58);
     gradient.addColorStop(0, "#35c7ff");
     gradient.addColorStop(0.5, "#078dde");
     gradient.addColorStop(1, "#0750a8");
+    this.#shieldPath(context);
+    context.fillStyle = "#263746";
+    context.fill();
+    context.save();
+    context.beginPath();
+    context.rect(0, 7 + 52 * (1 - fill), TEXTURE_SIZE, 52 * fill);
+    context.clip();
     this.#shieldPath(context);
     context.fillStyle = gradient;
     context.fill();
@@ -721,6 +795,7 @@ export class HeroLifeHud extends GamePanelHud {
     context.strokeStyle = "#06355d";
     context.lineWidth = 9;
     context.stroke();
+    context.restore();
     this.#shieldPath(context);
     context.strokeStyle = "#9deaff";
     context.lineWidth = 4;

@@ -35,6 +35,11 @@ export class BellBugScoopPose {
 
   #pose() {
     this.#restore();
+    if (this.owner.fleshScratch?.stroke) {
+      this.owner.fleshScratch.pose();
+
+      return;
+    }
     const scoop = this.owner.scoop;
     if (!scoop?.target) {
       return;

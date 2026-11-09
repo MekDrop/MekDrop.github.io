@@ -473,7 +473,9 @@ export class CinderImp extends Enemy {
       this.behavior.changeTo(CinderKnockbackState.name);
       const impulse = details?.impulse;
       if (impulse && [impulse.x,impulse.y,impulse.z].every(Number.isFinite)) {
-        this.entity.rigidbody?.applyImpulse(impulse.x, impulse.y, impulse.z);
+        const body = this.entity.rigidbody;
+        const mass = body?.mass ?? 1;
+        body?.applyImpulse(impulse.x * mass, impulse.y * mass, impulse.z * mass);
       }
     }
     if (name === "stun" && !this.carrier && !this.airborne) {

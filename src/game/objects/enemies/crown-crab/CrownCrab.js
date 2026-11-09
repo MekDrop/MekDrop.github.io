@@ -298,7 +298,9 @@ export class CrownCrab extends Enemy {
     if (name === "knockback" && !this.carrier && !this.airborne) {
       const impulse = details.impulse;
       if (impulse && [impulse.x, impulse.y, impulse.z].every(Number.isFinite)) {
-        this.entity.rigidbody?.applyImpulse(impulse.x, impulse.y, impulse.z);
+        const body = this.entity.rigidbody;
+        const mass = body?.mass ?? 1;
+        body?.applyImpulse(impulse.x * mass, impulse.y * mass, impulse.z * mass);
       }
       this.behavior.changeTo(CrownCrabKnockbackState.name);
     }

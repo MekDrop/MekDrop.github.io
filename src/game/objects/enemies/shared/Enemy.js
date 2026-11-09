@@ -2,6 +2,7 @@
  * @typedef {{entity?: import("playcanvas").Entity, position?: import("playcanvas").Vec3, alive?: boolean, isRoyal?: boolean, beginGameOver?: Function, audienceActor?: {entity: import("playcanvas").Entity}}} EnemyActor
  */
 import { NpcStateMachine } from "../../shared/NpcStateMachine.js";
+import { ACTOR_MASS } from "../../../enum/ActorMass.js";
 import { EnemyBridgeNavigation } from "../../../navigation/EnemyBridgeNavigation.js";
 import { ENEMY_TRAVERSAL } from "../../../enum/EnemyTraversal.js";
 import { EnemyGatewayArrival } from "./EnemyGatewayArrival.js";
@@ -12,6 +13,12 @@ import { EnemyPathLane } from "../../../navigation/EnemyPathLane.js";
  * Movement and throws use the scene's Ammo body; no trajectory integration here.
  */
 export class Enemy {
+  /**
+   * @returns {number}
+   */
+  get mass() {
+    return ACTOR_MASS.ENEMY;
+  }
   /**
    * @type {import("playcanvas").EventHandle|null}
    */
@@ -276,7 +283,7 @@ export class Enemy {
     this.entity.addChild(capsule);
     this.entity.addComponent("rigidbody", {
       type: "dynamic",
-      mass: 1,
+      mass: this.mass,
       friction: 0.4,
       restitution: 0,
       angularFactor: new pc.Vec3(0, 0, 0),
@@ -287,6 +294,7 @@ export class Enemy {
      * @param {import("playcanvas").ContactResult} result
      */
       (result) => {
+        this.onBodyContact?.(result);
         const supported = result.contacts?.some(/**
        *
        * @param {import("playcanvas").ContactPoint} contact

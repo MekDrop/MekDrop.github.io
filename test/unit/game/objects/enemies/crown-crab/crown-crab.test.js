@@ -461,6 +461,7 @@ test("walls occlude claw contact and own colliders do not", () => {
 
 test("knockback uses a body impulse and never assigns a revenge target", () => {
   const { crab } = create();
+  crab.entity.rigidbody.mass = 40;
   const impulses = [];
   crab.entity.rigidbody.applyImpulse = (...values) => impulses.push(values);
   crab.applyStatus("knockback", {
@@ -472,7 +473,7 @@ test("knockback uses a body impulse and never assigns a revenge target", () => {
     },
   });
   assert.equal(crab.stateName, "CrownCrabKnockbackState");
-  assert.deepEqual(impulses, [[2, 1, 0]]);
+  assert.deepEqual(impulses, [[80, 40, 0]]);
   assert.equal(crab.revengeTarget, null);
 });
 

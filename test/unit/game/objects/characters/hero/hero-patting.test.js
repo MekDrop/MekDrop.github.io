@@ -344,3 +344,23 @@ it("long escapes stay in the connected enclosure and reach the available farthes
   }
   assert.ok(Math.hypot(position.x - target.x, position.z - target.z) < 0.2);
 });
+
+it("five scratches agitate, then continued scratches use the normal pat anger progression", () => {
+  const buffs = new BuffSystem();
+  const mood = new HeroEmotionBehavior(buffs);
+  for (let i = 1; i <= 9; i++) {
+    const reaction = mood.reactToScratch();
+    assert.equal(mood.state.kind, i < 5 ? "calm" : i < 9 ? "agitated" : "angry");
+    assert.equal(buffs.has(HERO_BUFF.AFFECTION), false);
+    if (i === 9) {
+      assert.equal(reaction.becameAngry, true);
+    }
+    buffs.advance(0.8);
+    mood.advance(0.8);
+  }
+  assert.equal(mood.acceptsActions, false, "normal angry pat behavior takes over");
+  mood.reset();
+  assert.equal(mood.state.kind, "calm");
+  mood.reactToScratch();
+  assert.equal(mood.state.kind, "calm", "respawn/reset clears irritation");
+});

@@ -255,20 +255,20 @@ test('goo cleanup cannot reach through a wall', () => {
   assert.equal(bug.canScratchDoor,false);
 });
 
-test('living contact loses one heart per ten seconds and walls block scratches', () => {
+test('living contact damages on claw strokes and walls block scratches', () => {
   const {bug,royal,physics}=fixture();
   royal.entity.setPosition(0,0,-.6);
   bug.update(1);
-  assert.equal(royal.health,99.9);
+  assert.equal(royal.health,99.92);
   physics.hits=[{
     entity:new Entity('wall'),
     hitFraction:.5,
   }];
   bug.update(1);
-  assert.equal(royal.health,99.9);
+  assert.equal(royal.health,99.92);
   physics.hits=[];
   bug.onBellRung({eventId:'pause-contact'});bug.update(1);
-  assert.equal(royal.health,99.9);
+  assert.equal(royal.health,99.92);
 });
 
 test('tower strike immediately vibrates and stuns for two seconds',()=>{

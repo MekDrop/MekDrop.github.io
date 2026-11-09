@@ -36,6 +36,17 @@ test('a close enemy makes the bug wait without changing gravity velocity',()=>{
   assert.equal(body.linearVelocity.y,-0.5);
 });
 
+test('bell bugs stop short of the hero capsule while remaining in scratching reach',()=>{
+  const {peer,body,motion}=fixture(0,-0.58);
+  peer.isEnemy=false;peer.radius=0.3;
+  motion.owner.radius=0.254;
+  motion.owner.runtime={getHero:()=>peer};
+  assert.equal(motion.constrain(),false);
+  assert.ok(Math.abs(body.linearVelocity.z)<1e-9);
+  assert.equal(body.linearVelocity.y,-0.5);
+  assert.ok(peer.position.length()<0.254+0.3+0.15);
+});
+
 test('scoop approach uses capsule clearance only for its target',()=>{
   const {peer,body,motion}=fixture(0,-0.8);
   peer.isBellBug=false;peer.radius=0.42;

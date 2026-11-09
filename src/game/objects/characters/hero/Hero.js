@@ -1,4 +1,5 @@
 import { HeroAudio } from "./HeroAudio.js";
+import { ACTOR_MASS } from "../../../enum/ActorMass.js";
 import { HeroLadderGrip } from "./HeroLadderGrip.js";
 import { ActorStatusEffects } from "../../shared/ActorStatusEffects.js";
 import { HeroStairCameraHeight } from "./HeroStairCameraHeight.js";
@@ -866,6 +867,88 @@ export class Hero {
    * @type {number}
    */
   #lives = MAX_LIVES;
+  /**
+   * @type {number}
+   */
+  #contactDamage = 0;
+  /**
+   * Remaining hearts, including damage within the current life.
+   * @returns {number}
+   */
+  get health() {
+    return Math.max(0, this.#lives - this.#contactDamage);
+  }
+
+  /**
+   * Accumulate contact scratches in hearts before consuming a life.
+   * @param {number} amount
+   * @param {import("../../enemies/shared/Enemy.js").EnemyActor} source
+   * @param {string} type
+   * @returns {number}
+   */
+  receiveDamage(amount, source, type) {
+    if (!Number.isFinite(amount) || amount <= 0 || !this.#actionBehavior ||
+      this.#actionBehavior.fallingToDeath || this.#actionBehavior.respawning || this.#lives <= 0) {
+      return 0;
+    }
+    this.#contactDamage += amount;
+    if (type === "scratch") {
+      const reaction = this.#emotionBehavior.reactToScratch();
+      if (reaction.becameAngry) {
+        this.#startAngryEscape();
+      } else if (reaction.agitated && !this.#hasMovementInput) {
+        this.#actionBehavior.patReactionRemaining = PAT_ANNOYED_DURATION;
+      }
+    }
+    if (this.#contactDamage >= 1) {
+      this.#contactDamage = 1;
+      this.#actionBehavior.fallingToDeath = true;
+    }
+    this.#syncState();
+
+    return amount;
+  }
+  /**
+   * A grounded slime bump uses the existing short balance-recovery action.
+   * Its velocity is integrated by Ammo, with ordinary wall/edge checks intact.
+   * @param {import("../../enemies/latch-slug/LatchSlug.js").LatchSlug} slug
+   * @param {number} speed
+   * @returns {boolean}
+   */
+  receiveSlimeBump(slug, speed) {
+    const action = this.#actionBehavior;
+    if (!this.#grounded || !action || action.incapacitated || action.repelAction
+      || action.toolAction || action.dodgeAction || action.collectAction
+      || this.#gatewayRepelCooldown > 0 || !Number.isFinite(speed) || speed < 0.35) {
+      return false;
+    }
+    const position = slug.position;
+    const dx = this.#position.x - position.x, dz = this.#position.z - position.z;
+    const distance = Math.hypot(dx, dz);
+    if (distance < 0.001 || !slug.alive || slug.airborne || slug.carrier) {
+      return false;
+    }
+    const strength = Math.min(0.18, speed * slug.mass / ACTOR_MASS.HERO);
+    action.repelAction = {
+      x: dx / distance * strength,
+      z: dz / distance * strength,
+      elapsed: 0,
+    };
+
+    return true;
+  }
+  /**
+   * @returns {number}
+   */
+  get radius() {
+    return HERO_RADIUS;
+  }
+  /**
+   * @returns {number}
+   */
+  get bodyRadius() {
+    return MOVEMENT_COLLISION_RADIUS;
+  }
   /**
    *
    * @type {number}
@@ -3862,6 +3945,7 @@ export class Hero {
   }
 
   #resolveDeath() {
+    this.#contactDamage = 0;
     this.#lives = Math.max(0, this.#lives - 1);
     this.#syncState();
 
@@ -4481,6 +4565,7 @@ export class Hero {
   #syncState() {
     const state = {
       lives: this.#lives,
+      health: this.health,
       maxLives: MAX_LIVES,
       gameOver: this.#actionBehavior.gameOver,
       drowning: this.#actionBehavior.drowningAction !== null,
@@ -4493,7 +4578,7 @@ export class Hero {
       buffs: this.buffs,
       stats: this.stats,
     };
-    this.#presentation?.lifeHud?.setLives(state.lives, state.maxLives);
+    this.#presentation?.lifeHud?.setLives(state.health, state.maxLives);
     this.#presentation?.coinHud?.setWallet(state.wallet);
     this.#presentation?.inventoryScene?.setInventory(state.inventory);
     this.#presentation?.gameOverScene?.syncHeroState(state);

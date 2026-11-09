@@ -339,7 +339,9 @@ export class MushroomBrute extends Enemy {
       if (actor?.isEnemy && actor !== this && actor.alive !== false && !this.swingRecipients.has(actor)) {
         this.swingRecipients.add(actor);
         actor.receiveDamage?.(this.enraged ? 48 : 32, this, "club");
-        actor.entity?.rigidbody?.applyImpulse(Math.sin(angle) * 7, 1, Math.cos(angle) * 7);
+        const body = actor.entity?.rigidbody;
+        const mass = body?.mass ?? 1;
+        body?.applyImpulse(Math.sin(angle) * 7 * mass, mass, Math.cos(angle) * 7 * mass);
       }
     }
     // Production royals have no dynamic body. Use their real actor location and

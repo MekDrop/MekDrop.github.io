@@ -550,7 +550,7 @@ describe("HeroPhysicsController", () => {
     });
     assert.deepEqual(entity.components.get("rigidbody"), {
       type: "dynamic",
-      mass: 1,
+      mass: 80,
       friction: 0,
       restitution: 0,
       linearDamping: 0,

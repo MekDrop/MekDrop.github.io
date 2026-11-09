@@ -67,7 +67,7 @@ export class HeroEmotionBehavior {
 
     this.#stateMachine = new StateMachine(this.#context);
     this.#stateMachine
-      .add(HERO_MOOD.CALM, new State())
+      .add(HERO_MOOD.CALM, Object.assign(new State(), { pressure: 0 }))
       .add(HERO_MOOD.HAPPY, new HeroHappyEmotionState())
       .add(HERO_MOOD.AGITATED, new HeroAgitatedEmotionState())
       .add(HERO_MOOD.ANGRY, new HeroAngryEmotionState());
@@ -142,6 +142,29 @@ export class HeroEmotionBehavior {
 
   pat() {
     return this.reactToPat().accepted;
+  }
+
+  /**
+   * Scratches build the same irritation as pats, without an affection buff.
+   * @returns {{agitated?:boolean,becameAngry?:boolean}}
+   */
+  reactToScratch() {
+    if (this.#stateMachine.in(HERO_MOOD.ANGRY) || this.#sincePat < PAT_INTERVAL) {
+      return {};
+    }
+    this.#sincePat = 0;
+    const pressure = Math.min(SNAP_THRESHOLD, this.#pressure + 1);
+    this.#buffs.remove(HERO_BUFF.AFFECTION);
+    if (pressure >= SNAP_THRESHOLD) {
+      this.#buffs.apply(HERO_BUFF.OVERSTIMULATED);
+      this.#wasOverstimulated = true;
+    }
+    this.#updateState(pressure);
+
+    return {
+      agitated: this.state.kind === HERO_MOOD.AGITATED,
+      becameAngry: this.state.kind === HERO_MOOD.ANGRY,
+    };
   }
 
   reactToPat() {
@@ -223,6 +246,7 @@ export class HeroEmotionBehavior {
     this.#sincePat = Infinity;
     this.#sinceProvoked = Infinity;
     this.#reactionRevision = 0;
+    this.#stateMachine.get(HERO_MOOD.CALM).pressure = 0;
     this.#changeState(HERO_MOOD.CALM);
   }
 

@@ -39,6 +39,11 @@ export class BellBugPursueState extends State {
 
       return;
     }
+    if (owner.fleshScratch?.target) {
+      owner.fleshScratch.approach();
+
+      return;
+    }
     const royal = owner.resolveRoyalTarget();
     const nearbyGoo = owner.findGluedDoor();
     owner.scratchTarget = nearbyGoo ?? (royal && owner.findClosedDoor(royal));
@@ -50,7 +55,9 @@ export class BellBugPursueState extends State {
 
       return;
     }
-    const destination = nearbyGoo ?? waypoint ?? royal;
+    // Once inside, approach the obstructing leaf rather than the royal's
+    // off-center position, which can drive the body into the room's jamb.
+    const destination = nearbyGoo ?? waypoint ?? owner.scratchTarget ?? royal;
     if (!destination) {
       owner.stop();
       owner.playClip("idle_nervous");

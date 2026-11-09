@@ -22,6 +22,7 @@ it("matches tripod steps to travel speed and preserves action and inspection pla
   const owner = {
     app,
     doorScratch: { attach: () => {} },
+    fleshScratch: { blood: { attach: () => {} } },
     clip: "scuttle_walk",
     stateName: "BellBugPursueState",
     entity: {
@@ -81,6 +82,7 @@ it("restarts inspection clips during a real Engine crossfade without losing prev
   const owner = {
     app,
     doorScratch: { attach: () => {} },
+    fleshScratch: { blood: { attach: () => {} } },
     clip: names[0],
     stateName: "BellBugPlaybackState",
     entity: { addChild: () => {} },

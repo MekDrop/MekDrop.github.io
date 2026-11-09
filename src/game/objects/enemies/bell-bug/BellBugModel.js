@@ -52,6 +52,7 @@ export class BellBugModel {
     }
     this.scoopPose = new BellBugScoopPose(owner, this.#model);
     owner.doorScratch.attach();
+    owner.fleshScratch.blood.attach();
     this.play(owner.clip);
     this.#updateHandle = owner.app.on("update", this.#updateSpeed, this);
   }

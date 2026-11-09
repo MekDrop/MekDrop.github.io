@@ -41,6 +41,28 @@ test("real Yuka states pursue royal and ignore tower goals", () => {
   assert.equal(target, royal);
 });
 
+test("native hop impulse retains its takeoff speed with the configured actor mass", () => {
+  const { hopper, actors } = make();
+  const royal = {
+    isRoyal: true,
+    entity: new pc.Entity(),
+  };
+  royal.entity.setPosition(5, 0, 0);
+  actors.push(royal);
+  let impulse;
+  hopper.entity.rigidbody = {
+    mass: hopper.mass,
+    applyImpulse: (...values) => {
+      impulse = values;
+    },
+  };
+  hopper.moveToward = () => true;
+  hopper.grounded = true;
+  hopper.nextHopAt = 0;
+  hopper.update(0.01);
+  assert.equal(impulse[1] / hopper.mass, 2.4);
+});
+
 test("fuse continues across carry, throw, landing and bell stop", () => {
   const { hopper } = make();
   hopper.entity.rigidbody = {

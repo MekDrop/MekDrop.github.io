@@ -1,4 +1,6 @@
 import { LatchGelMass } from "./LatchGelMass.js";
+import { ACTOR_MASS } from "../../../enum/ActorMass.js";
+import { LatchHeroBump } from "./LatchHeroBump.js";
 import { LatchFloorPuddle } from "./LatchFloorPuddle.js";
 import { LatchScoopGel } from "./LatchScoopGel.js";
 import { LatchAnnoyance } from "./LatchAnnoyance.js";
@@ -41,6 +43,18 @@ const LOOPING_CLIPS = new Set([
  * Map-owned nuisance behavior with the authored slug mesh and embedded clips.
  */
 export class LatchSlug extends Enemy {
+  /**
+   * @returns {number}
+   */
+  get mass() {
+    return ACTOR_MASS.LATCH_SLUG;
+  }
+  /**
+   * @param {import("playcanvas").ContactResult} result
+   */
+  onBodyContact(result) {
+    this.heroBump?.contact(result);
+  }
   /**
    * @type {import("playcanvas").Entity|null}
    */
@@ -150,6 +164,8 @@ export class LatchSlug extends Enemy {
   constructor(options) {
     super(options);
 
+    this.heroBump = new LatchHeroBump(this);
+
     this.pack = new LatchPack(this);
     this.affection = new LatchAffection(this);
     this.annoyance = new LatchAnnoyance(this);
@@ -207,7 +223,10 @@ export class LatchSlug extends Enemy {
     // The foot wave carries a mostly steady body, with a gentle gather phase.
     const pulse = this.stairCrawl?.active ? 1 : 1 - 0.15 * Math.cos(this.crawlTime * Math.PI * 2 / 1.6);
 
-    return super.moveToward(target, Math.min(speed, limit) * pulse, arrivalRadius);
+    const moving = super.moveToward(target, Math.min(speed, limit) * pulse, arrivalRadius);
+    this.heroBump.constrain();
+
+    return moving;
   }
 
   /**
@@ -411,6 +430,7 @@ export class LatchSlug extends Enemy {
     if (!Number.isFinite(dt) || dt <= 0) {
       return;
     }
+    this.heroBump.update();
     if (this.alive && this.annoyance.active && !this.carrier && !this.airborne
       && !this.gatewayArrival.active && !this.statuses.has("stun") && !this.statuses.has("confused")
       && [LatchSeekState.name, LatchDogState.name].includes(this.stateName)) {

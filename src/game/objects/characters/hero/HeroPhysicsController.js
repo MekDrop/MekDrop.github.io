@@ -1,3 +1,5 @@
+import { ACTOR_MASS } from "../../../enum/ActorMass.js";
+
 // This configures the entire Ammo world, not just the hero. Match the 60 FPS
 // simulation budget instead of doubling every body's collision/solver work.
 const DEFAULT_FIXED_TIME_STEP = 1 / 60;
@@ -155,7 +157,7 @@ export class HeroPhysicsController {
     entity.addChild(bodyCollider);
     entity.addComponent("rigidbody", {
       type: "dynamic",
-      mass: 1,
+      mass: ACTOR_MASS.HERO,
       friction: 0,
       restitution: 0,
       linearDamping: 0,

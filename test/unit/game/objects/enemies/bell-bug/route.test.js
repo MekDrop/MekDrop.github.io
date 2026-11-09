@@ -126,6 +126,28 @@ test('a distant jammed door cannot divert a bug off its authored road',()=>{
   assert.deepEqual(moves,[waypoint]);
 });
 
+test('after its gate route, a closed room leaf takes approach priority over an off-center royal',()=>{
+  const door={position:new Vec3(2,3,0)},royal={position:new Vec3(4,3,2)},moves=[];
+  const owner={
+    route:{next:()=>null},
+    scoop:{target:null},
+    resolveRoyalTarget:()=>royal,
+    findGluedDoor:()=>null,
+    findClosedDoor:()=>door,
+    canScratchDoor:false,
+    walkSpeed:1.15,
+    distanceTo:()=>3,
+    moveToward:target=>{
+      moves.push(target);
+
+      return true;
+    },
+    playClip:()=>{},
+  };
+  new BellBugPursueState().execute(owner);
+  assert.deepEqual(moves,[door]);
+});
+
 test('nearby goo cleanup keeps the route cursor current before pursuit resumes',()=>{
   const waypoints=[{position:new Vec3(1,2.25,0)},{position:new Vec3(2,2.75,0)}];
   const door={jammed:true};

@@ -279,7 +279,7 @@ test('carried heat grows and then cools after release, while knockback applies a
       z:0,
     },
   });const heat=imp.heat;imp.update(.2);assert.ok(imp.heat<heat);
-  imp.onLanding();let impulse=null;imp.entity.rigidbody.applyImpulse=(...args)=>{
+  imp.onLanding();let impulse=null;imp.entity.rigidbody.mass=40;imp.entity.rigidbody.applyImpulse=(...args)=>{
     impulse=args;
   };
   imp.applyStatus('knockback',{
@@ -289,5 +289,5 @@ test('carried heat grows and then cools after release, while knockback applies a
       y:0,
       z:-2,
     },
-  });assert.equal(imp.stateName,'CinderKnockbackState');assert.deepEqual(impulse,[1,0,-2]);
+  });assert.equal(imp.stateName,'CinderKnockbackState');assert.deepEqual(impulse,[40,0,-80]);
 });

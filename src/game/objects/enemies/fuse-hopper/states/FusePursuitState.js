@@ -31,7 +31,8 @@ export class FusePursuitState extends State {
     owner.playClip("hop_locomotion_loop");
     owner.moveToward(royal, 3.2);
     if (owner.grounded && owner.elapsed >= owner.nextHopAt) {
-      owner.entity.rigidbody.applyImpulse(0, 2.4, 0);
+      const body = owner.entity.rigidbody;
+      body.applyImpulse(0, 2.4 * (body.mass ?? 1), 0);
       owner.grounded = false;
       owner.nextHopAt = owner.elapsed + 0.42;
     }
