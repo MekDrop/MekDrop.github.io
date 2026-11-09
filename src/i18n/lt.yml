@@ -95,7 +95,8 @@ game:
     collect_flower: Skinti gėles
     collect_mushroom: Rinkti grybus
     chop_tree: Kirsti medį
-    clear_bush: Pašalinti krūmą
+    clear_bush: Išdeginti krūmą
+    stop_burning: Baigti deginti
     stop_cutting: Baigti kirsti
     dig: Kasti lobį
     stop_digging: Baigti kasti

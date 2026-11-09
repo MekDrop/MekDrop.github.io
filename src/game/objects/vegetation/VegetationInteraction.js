@@ -1,3 +1,5 @@
+import { AXE_HIT_STOP_DURATION } from "../../config/axe.js";
+
 export class VegetationInteraction {
   /**
    *
@@ -71,7 +73,7 @@ export class VegetationInteraction {
     return {
       ...target,
       labelKey: active
-        ? "game.interaction.stop_cutting"
+        ? target.kind === "bush" ? "game.interaction.stop_burning" : "game.interaction.stop_cutting"
         : target.kind === "bush"
           ? "game.interaction.clear_bush"
           : "game.interaction.chop_tree",
@@ -98,6 +100,7 @@ export class VegetationInteraction {
       context: {
         heightClass: target.heightClass,
         cutHeight: target.cutHeight,
+        verticalCut: target.verticalCut,
       },
       onImpact: this.#onImpact.bind(this),
       onContact: this.#onContact.bind(this),
@@ -121,6 +124,10 @@ export class VegetationInteraction {
     if (action) {
       action.toolContext.heightClass = target.heightClass;
       action.toolContext.cutHeight = target.cutHeight;
+      action.toolContext.verticalCut = target.verticalCut;
+    }
+    if (this.#tool.name === "burner") {
+      return true;
     }
     const distance = this.#tool.targetDistanceFor?.(target) ?? 0.62;
 
@@ -134,7 +141,22 @@ export class VegetationInteraction {
    * @param {import("src/game/objects/ObjectTypes.js").HeroActionPayload} action
    */
   #onImpact(action) {
-    void action;
+    if (this.#tool.name === "burner") {
+      const result = this.#item.burnLevel(action.toolContext.cutHeight);
+      if (result) {
+        this.#handleCut(action, result);
+      }
+
+      return !this.#item.canInteract;
+    }
+    if (action.toolContext?.verticalCut) {
+      const result = this.#item.cutVertical();
+      if (result) {
+        this.#handleCut(action, result);
+
+        return true;
+      }
+    }
 
     return !this.#item.canInteract;
   }
@@ -154,11 +176,34 @@ export class VegetationInteraction {
    * @param {import("playcanvas").Vec3[]} current
    */
   #onContact(action, previous, current) {
+    if (this.#tool.name === "burner" || action.toolContext.verticalCut) {
+      return;
+    }
     const result = this.#item.cutSweep(previous, current, action.toolContext.cutHeight);
     if (!result) {
       return;
     }
-    this.#hero.playToolContact?.("axe", Boolean(result.destroyed));
+    this.#handleCut(action, result);
+  }
+
+  /**
+   * @param {import("src/game/objects/ObjectTypes.js").HeroActionPayload} action
+   * @param {{destroyed:boolean,felled?:boolean}} result
+   */
+  #handleCut(action, result) {
+    // Bushes may report several swept columns in one stroke. Pause only once.
+    if (this.#tool.name !== "burner" && !action.chopHitStopped) {
+      action.chopHitStopped = true;
+      action.hitStopRemaining = AXE_HIT_STOP_DURATION;
+      action.hitStopActive = true;
+    }
+    if (this.#tool.name !== "burner") {
+      this.#hero.playToolContact?.("axe", Boolean(result.destroyed || result.felled));
+    }
+    if (result.felled) {
+      action.stopAfterCycle = true;
+      action.impactIndex = Math.max(1, action.impactIndex ?? 0);
+    }
     if (result?.destroyed) {
       action.stopAfterCycle = true;
       action.impactIndex = Math.max(1, action.impactIndex ?? 0);

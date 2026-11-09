@@ -1,5 +1,6 @@
 import { addGeneratedVoxelPhysics } from "../shared/GeneratedVoxelPhysics.js";
 import { mergeCollisionVoxels } from "../shared/MergeCollisionVoxels.js";
+import { FallenTree } from "./FallenTree.js";
 
 const CELL_PATTERN = /^Voxel cell (-?\d+) (-?\d+) (-?\d+)/;
 
@@ -72,7 +73,7 @@ export class DestructibleVegetation {
   #interactionHeight;
   /**
    *
-   * @type {number}
+   * @type {Array<{x:number,y:number,z:number}>}
    */
   #collisionVoxels;
   /**
@@ -85,6 +86,10 @@ export class DestructibleVegetation {
    * @type {typeof import("playcanvas")}
    */
   #pc;
+  /**
+   * @type {import("playcanvas").Application}
+   */
+  #app;
   /**
    *
    * @type {import("playcanvas").Entity|null}
@@ -112,15 +117,16 @@ export class DestructibleVegetation {
 
   /**
    *
-   * @param {{pc: typeof import("playcanvas"), modelLibrary: string, modelUrl: string, id: string, variant: string, kind: string, cutsRequired: number, collisionRows: number, voxelSize: number, x: number, y: number, z: number, rotation: number}} options
+   * @param {{pc?: typeof import("playcanvas"), app?: import("playcanvas").Application, modelLibrary: import("../../models/GameModelLibrary.js").GameModelLibrary, modelUrl: string, id: string, variant: string, kind: string, cutsRequired?: number, collisionRows: Array<{y:number,cells:number[][]}>, voxelSize?: number, x: number, y: number, z: number, rotation?: number}} options
    * @param {typeof import("playcanvas")} options.pc
-   * @param {string} options.modelLibrary
+   * @param {import("playcanvas").Application} [options.app]
+   * @param {import("../../models/GameModelLibrary.js").GameModelLibrary} options.modelLibrary
    * @param {string} options.modelUrl
    * @param {string} options.id
    * @param {string} options.variant
    * @param {string} options.kind
    * @param {number} options.cutsRequired
-   * @param {number} options.collisionRows
+   * @param {Array<{y:number,cells:number[][]}>} options.collisionRows
    * @param {number} options.voxelSize
    * @param {number} options.x
    * @param {number} options.y
@@ -129,6 +135,7 @@ export class DestructibleVegetation {
    */
   constructor({
     pc,
+    app,
     modelLibrary,
     modelUrl,
     id,
@@ -142,6 +149,7 @@ export class DestructibleVegetation {
     rotation = 0,
   }) {
     this.#pc = pc;
+    this.#app = app;
 
     this.#id = id;
 
@@ -224,9 +232,10 @@ export class DestructibleVegetation {
   /**
    * Aim at an exposed face of the remaining plant, rather than inside its canopy.
    * @param {{x:number, z:number}} position
+   * @param {number|null} [targetRow]
    * @returns {{x:number,y:number,z:number,yaw:number}}
    */
-  cuttingTargetFrom(position) {
+  cuttingTargetFrom(position, targetRow = null) {
     const local = this.#toLocalCoordinates(position.x, position.z);
     const dx = local.x;
     const dz = local.z;
@@ -234,7 +243,7 @@ export class DestructibleVegetation {
     const nx = alongX ? Math.sign(dx) || 1 : 0;
     const nz = alongX ? 0 : Math.sign(dz) || 1;
     const remaining = this.#collisionVoxels.filter(this.#filterVoxel.bind(this));
-    const row = Math.max(...remaining.map(/**
+    const row = targetRow ?? Math.max(...remaining.map(/**
      *
      * @param {{x: number, y: number, z: number}} v
      */
@@ -244,7 +253,7 @@ export class DestructibleVegetation {
      * @param {{x:number,y:number,z:number}} v
      */
       v => v.y === row);
-    const front = Math.max(...remaining.map(/**
+    const front = Math.max(...(targetRow === null ? remaining : choices).map(/**
      *
      * @param {{x:number,y:number,z:number}} v
      */
@@ -333,6 +342,103 @@ export class DestructibleVegetation {
     }
 
     return changed ? this.#finishCut() : null;
+  }
+
+  /**
+   * Remaining plant-local cells; callers receive a fresh array.
+   * @returns {Array<{x:number,y:number,z:number}>}
+   */
+  get remainingVoxels() {
+    return this.#collisionVoxels.filter(this.#filterVoxel.bind(this));
+  }
+
+  /**
+   * Test the real blade against the selected trunk cell, including its depth.
+   * @param {import("playcanvas").Vec3[]} previous
+   * @param {import("playcanvas").Vec3[]} current
+   * @param {number} row
+   * @returns {boolean}
+   */
+  touchesCutRow(previous, current, row) {
+    const inverse = this.#entity.getWorldTransform().clone().invert();
+    const half = this.#voxelSize / 2;
+    const points = [...previous, ...current].map(/**
+     *
+     * @param {import("playcanvas").Vec3} point
+     */
+      point => inverse.transformPoint(point));
+    // Segment/AABB intersection also catches a fast edge crossing between frames.
+    for (const voxel of this.remainingVoxels) {
+      if (voxel.y !== row) {
+        continue;
+      }
+      const center = [voxel.x * this.#voxelSize, (row + 0.5) * this.#voxelSize, voxel.z * this.#voxelSize];
+      for (let index = 0; index < points.length; index++) {
+        const start = points[index];
+        const end = points[(index + 1) % points.length];
+        let near = 0;
+        let far = 1;
+        for (const [axis, coordinate] of ["x", "y", "z"].entries()) {
+          const delta = end[coordinate] - start[coordinate];
+          const lower = center[axis] - half;
+          const upper = center[axis] + half;
+          if (Math.abs(delta) < 1e-8) {
+            if (start[coordinate] < lower || start[coordinate] > upper) {
+              far = -1;
+            }
+          } else {
+            const first = (lower - start[coordinate]) / delta;
+            const second = (upper - start[coordinate]) / delta;
+            near = Math.max(near, Math.min(first, second));
+            far = Math.min(far, Math.max(first, second));
+          }
+        }
+        if (near <= far) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Sever a complete cross-section, optionally releasing the crown to Ammo.
+   * @param {number} row
+   * @param {boolean} [fell]
+   * @returns {ReturnType<DestructibleVegetation["describe"]> & {destroyed:boolean,groundFootprint:Array<{x:number,z:number,width:number,depth:number}>}}
+   */
+  cutLevel(row, fell = false) {
+    const remaining = this.remainingVoxels;
+    if (fell && this.#pc) {
+      const crown = remaining.filter(/**
+       *
+       * @param {{x:number,y:number,z:number}} voxel
+       */
+        voxel => voxel.y > row);
+      const parts = crown.flatMap(/**
+       *
+       * @param {{x:number,y:number,z:number}} voxel
+       */
+        voxel => this.#cellParts.get(`${voxel.x},${voxel.y},${voxel.z}`) ?? []);
+      if (crown.length && parts.length) {
+        new FallenTree({
+          pc: this.#pc,
+          app: this.#app,
+          source: this.#entity,
+          parts,
+          voxels: mergeCollisionVoxels(crown, "trees").map(this.#mapVoxel.bind(this)),
+          direction: this.#cutNormal,
+        });
+      }
+    }
+    for (const voxel of remaining) {
+      if (voxel.y === row || (fell && voxel.y > row)) {
+        this.#removeCell(voxel.x, voxel.y, voxel.z);
+      }
+    }
+
+    return this.#finishCut();
   }
 
   /**

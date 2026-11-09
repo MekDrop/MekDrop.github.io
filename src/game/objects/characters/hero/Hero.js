@@ -17,6 +17,7 @@ import { Vec2 } from "playcanvas";
 import { IslandCellOwnership } from "../../shared/IslandCellOwnership.js";
 import { HeroTerrain } from "./HeroTerrain.js";
 import { HERO_MODEL_SCALE } from "../../../config/character-size.js";
+import { HERO_MODEL } from "../../../enum/HeroModel.js";
 import { HeroFootSupport } from "./HeroFootSupport.js";
 import { HeroMovementSurface } from "./HeroMovementSurface.js";
 import {
@@ -51,7 +52,8 @@ import { HeroClothPhysics } from "./HeroClothPhysics.js";
 import { HERO_MOOD } from "../../../enum/HeroMood.js";
 import { HERO_STAT } from "../../../enum/HeroStat.js";
 import { BuffSystem } from "../../../buffs/BuffSystem.js";
-import { AxeTool, HammerTool, KnifeTool, ShovelTool } from "./tools/index.js";
+import { AxeTool, HammerTool, KnifeTool, ShovelTool, AlchemicalBurnerTool } from "./tools/index.js";
+import { BurnerAnimations } from "../../../models/hero/tools/BurnerAnimations.js";
 import { projectFirstPersonMovement } from "./projectFirstPersonMovement.js";
 import { projectIsometricMovement } from "./projectIsometricMovement.js";
 import { HeroLadderClimb, LADDER_CLIMB_SPEED } from "./HeroLadderClimb.js";
@@ -442,6 +444,9 @@ export class Hero {
       HammerTool.modelUrl,
       KnifeTool.modelUrl,
       ShovelTool.modelUrl,
+      AlchemicalBurnerTool.modelUrl,
+      BurnerAnimations.url,
+      BurnerAnimations.specialUrl,
     ];
   }
 
@@ -1066,6 +1071,11 @@ export class Hero {
     this.#terrain = new HeroTerrain(
       mapData,
       collisionWorld,
+    this.#tools.set(AlchemicalBurnerTool.name, new AlchemicalBurnerTool({
+      modelLibrary,
+      app,
+      pc,
+    }));
       this.#riverSourceCovers,
     );
     this.#footSupport = new HeroFootSupport(this.#terrain);
@@ -4301,6 +4311,10 @@ export class Hero {
     const fade = Math.min(1, remaining);
     if (kind === HERO_MOOD.HAPPY) {
       // Squint into a contented smile and lean into each pat.
+      this.#modelLibrary.getAnimationTracks(
+        this.#modelUrl === HERO_MODEL_URLS[HERO_MODEL.SPECIAL_ARTOJAS] ? BurnerAnimations.specialUrl : BurnerAnimations.url,
+        BurnerAnimations.names,
+      ),
       const squint = (0.65 + patPulse * 0.25) * fade;
       this.#leftEyeEntity?.setLocalScale(1, 1 - squint, 1);
       this.#rightEyeEntity?.setLocalScale(1, 1 - squint, 1);

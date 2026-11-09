@@ -81,12 +81,23 @@ than at the end of its follow-through. The blade stays centred on the selected
 layer from 0.58 through 0.74 seconds. Verify the rendered world-space height
 against the vegetation base as well as testing the exported clip in isolation.
 
-The interaction approaches the exposed outer vegetation face, including the
-remaining canopy footprint. It selects the highest remaining level and slices
-its columns progressively as the blade crosses them, including each column's depth.
-One stroke clears one level; lower levels remain protected through follow-through.
-After recovery it recalculates that face and uses
-the normal movement planner to step closer when necessary. Only the blade may
+Tree interaction targets the middle of the bare trunk. Three separate blade
+contacts at that height sever the crown; follow-through cannot add another hit.
+The crown becomes one Ammo body and disappears four seconds after terrain contact.
+The stump remains interactive. Each subsequent interaction uses the existing
+`SmashBridge` overhead clip with the axe on `Hammer grip`, and removes one stump
+section at the 0.94-second impact before dismissing the axe.
+
+Bushes use a brass-and-leather alchemical hand siphon. Three separate aiming
+clips sweep green flame across the exposed level in a 0.5-second burst. Impact
+at 0.30 seconds burns exactly that level, then the next burst aims lower without
+walking between levels. Burning has no axe contact sound or chop hit stop.
+Separate animation libraries match the production and alternate hero hierarchies;
+neither animates the runtime model root's scale or facing. See
+`tools/alchemical-burner-notes.md` and `/map/test_bush-burner`.
+
+Axe interactions use the normal movement planner for the initial approach.
+Walking and drawing must not reset an active cutting sequence. Only the blade may
 enter the active layer; the shaft must clear the plant and all lower rows.
 A support-arm constraint maintains the left grip during blends without moving
 the shoulder sockets or stretching either arm. During the low stance blend,

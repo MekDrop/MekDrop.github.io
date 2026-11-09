@@ -1,4 +1,7 @@
 export const HERO_ANIMATION = Object.freeze({
+  BURN_BUSH_LOW: "BurnBushLow",
+  BURN_BUSH_MIDDLE: "BurnBushMiddle",
+  BURN_BUSH_HIGH: "BurnBushHigh",
   SMASH_BRIDGE: "SmashBridge",
   SUMMON_HAMMER: "SummonHammer",
   DISMISS_HAMMER: "DismissHammer",

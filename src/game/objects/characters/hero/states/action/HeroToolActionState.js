@@ -50,6 +50,13 @@ export class HeroToolActionState extends HeroRuntimeActionState {
   execute(owner) {
     const action = this.payload;
     const feedback = owner.feedback.tool;
+    action.hitStopActive = (action.hitStopRemaining ?? 0) > 0;
+    if (action.hitStopActive) {
+      action.hitStopRemaining = action.hitStopRemaining <= owner.deltaTime + 1e-8
+        ? 0 : action.hitStopRemaining - owner.deltaTime;
+
+      return;
+    }
     if (action.positioning) {
       if (action.tool) {
         action.tool.visible = false;
@@ -100,6 +107,9 @@ export class HeroToolActionState extends HeroRuntimeActionState {
 
         return;
       }
+      action.chopHitStopped = false;
+      action.hitStopRemaining = 0;
+      action.hitStopActive = false;
       action.elapsed = 0;
       action.impacted = false;
       action.impactIndex = 0;

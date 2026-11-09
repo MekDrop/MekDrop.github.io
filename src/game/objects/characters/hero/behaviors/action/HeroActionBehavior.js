@@ -241,6 +241,9 @@ export class HeroActionBehavior {
    * @returns {number}
    */
   get animationSpeed() {
+    if (this.toolAction?.hitStopActive) {
+      return 0;
+    }
     if (this.bellAction?.pulling) {
       return 0;
     }

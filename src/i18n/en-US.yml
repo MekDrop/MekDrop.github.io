@@ -95,7 +95,8 @@ game:
     collect_flower: Collect flowers
     collect_mushroom: Collect mushrooms
     chop_tree: Chop tree
-    clear_bush: Clear bush
+    clear_bush: Burn bush
+    stop_burning: Stop burning
     stop_cutting: Stop cutting
     dig: Dig for treasure
     stop_digging: Stop digging

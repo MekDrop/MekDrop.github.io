@@ -174,3 +174,36 @@ it("repositions between vegetation strokes only after recovery completes", () =>
   assert.equal(state.payload.positioning.travel, 0.25);
   assert.equal(state.payload.phase, "summon");
 });
+
+it("holds the tool clock during hit stop and resumes without replaying impact", () => {
+  const state = new HeroToolActionState();
+  let impacts = 0;
+  state.payload = {
+    phase: "use",
+    elapsed: 0.6,
+    hitStopRemaining: 0.05,
+    impactIndex: 1,
+    impactTimes: [0.6],
+    tool: {
+      name: "axe",
+      useDuration: 1.5,
+    },
+    onImpact: () => {
+      impacts += 1;
+    },
+  };
+  const owner = {
+    deltaTime: 1 / 60,
+    feedback: { tool: {} },
+  };
+  for (let frame = 0; frame < 3; frame++) {
+    state.execute(owner);
+    assert.equal(state.payload.elapsed, 0.6);
+    assert.equal(state.payload.hitStopActive, true);
+  }
+  assert.equal(state.payload.hitStopRemaining, 0);
+  state.execute(owner);
+  assert.equal(state.payload.hitStopActive, false);
+  assert.ok(state.payload.elapsed > 0.6);
+  assert.equal(impacts, 0);
+});

@@ -913,3 +913,21 @@ it("applies each digging rim impact once, including across a slow frame", () => 
   assert.equal(behavior.payload.phase, "dismiss");
   assert.equal(impacts, 8);
 });
+
+it("freezes axe playback only while the impact pause is active", () => {
+  const behavior = createBehavior();
+  behavior.toolAction = {
+    phase: "use",
+    elapsed: 0.6,
+    tool: {
+      name: "axe",
+      useDuration: 1.5,
+    },
+    hitStopActive: true,
+  };
+  assert.equal(behavior.animationSpeed, 0);
+  behavior.toolAction.hitStopActive = false;
+  assert.equal(behavior.animationSpeed, 1);
+  behavior.finish();
+  assert.equal(behavior.animationSpeed, 1);
+});

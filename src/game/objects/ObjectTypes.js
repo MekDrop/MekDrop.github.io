@@ -172,6 +172,9 @@
  * @property {(item: import("./ground-cover/GroundCoverCollectible.js").GroundCoverCollectible) => boolean} [collectInventoryItem]
  * @property {(interaction: InteractionLike|null) => void} [setInteraction]
  * @typedef {object} HeroActionPayload
+ * @property {number} [hitStopRemaining] Seconds of successful axe impact pause left.
+ * @property {boolean} [hitStopActive] Hold the pose for the current update.
+ * @property {boolean} [chopHitStopped] Prevent repeated contact pauses within one swing.
  * @property {boolean} [bridgeCollapse] Seated reaction started by a failing bridge.
  * @property {boolean} [gettingUp] Stable support has released the seated hold.
  * @property {() => void} [onScoop]

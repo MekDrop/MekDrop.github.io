@@ -58,6 +58,14 @@ export class AxeTool extends HeroTool {
    */
   #clearingStance = false;
   /**
+   * @type {import("playcanvas").Entity|null}
+   */
+  #axeMount = null;
+  /**
+   * @type {import("playcanvas").Entity|null}
+   */
+  #verticalMount = null;
+  /**
    *
     * @returns {string}
    */
@@ -117,11 +125,15 @@ export class AxeTool extends HeroTool {
 
   /**
    *
-   * @param {{heightClass?: string, cutHeight?: number}} options
+   * @param {{heightClass?: string, cutHeight?: number, verticalCut?: boolean}} options
    * @param {string} [options.heightClass]
    * @param {number} [options.cutHeight]
+   * @param {boolean} [options.verticalCut]
    */
-  useAnimation({ heightClass, cutHeight } = {}) {
+  useAnimation({ heightClass, cutHeight, verticalCut } = {}) {
+    if (verticalCut) {
+      return HERO_ANIMATION.SMASH_BRIDGE;
+    }
     if (Number.isFinite(cutHeight)) {
       const row = Math.max(0, Math.min(CUT_ANIMATIONS.length - 1, Math.round((cutHeight - 0.125) / 0.25)));
 
@@ -176,10 +188,13 @@ export class AxeTool extends HeroTool {
   }
 
   /**
-   * @param {{cutHeight:number}} target
+   * @param {{cutHeight:number,verticalCut?:boolean}} target
    * @returns {number}
    */
   targetDistanceFor(target) {
+    if (target.verticalCut) {
+      return 0.72;
+    }
     const row = Math.max(0, Math.min(6, Math.round((target.cutHeight - 0.125) / 0.25)));
 
     return [0.95, 0.95, 1.01, 0.98, 0.90, 0.68, 0.50][row];
@@ -198,7 +213,9 @@ export class AxeTool extends HeroTool {
    */
   mount(parent) {
     this.#supportGrip = new AxeSupportGrip(parent);
-    super.mount(parent.findByName("Axe grip") ?? parent.findByName("Right white glove"));
+    this.#axeMount = parent.findByName("Axe grip") ?? parent.findByName("Right white glove");
+    this.#verticalMount = parent.findByName("Hammer grip") ?? this.#axeMount;
+    super.mount(this.#axeMount);
     const offset = this.mountOffset;
     this.entity.setLocalPosition(offset.x, offset.y, offset.z);
     // Seat the shaft across the curled fingers rather than at the wrist pivot.
@@ -211,6 +228,14 @@ export class AxeTool extends HeroTool {
    * @param {import("src/game/objects/ObjectTypes.js").HeroActionPayload|null} action
    */
   renderUpdate(action) {
+    const vertical = action?.tool === this && action.phase === "use" && action.toolContext?.verticalCut;
+    const mount = vertical ? this.#verticalMount : this.#axeMount;
+    if (this.entity && mount && this.entity.parent !== mount) {
+      this.entity.reparent(mount);
+      const offset = this.mountOffset;
+      this.entity.setLocalPosition(vertical ? 0 : offset.x, vertical ? 0 : offset.y, vertical ? 0 : offset.z);
+      this.entity.setLocalEulerAngles(0, 0, vertical ? 180 : 90);
+    }
     if (action?.tool === this && !action.positioning && this.entity?.enabled) {
       if (action.elapsed === this.#previousTime && action.phase === this.#previousPhase
         && action.useAnimation === this.#previousAnimation) {
@@ -230,7 +255,7 @@ export class AxeTool extends HeroTool {
       this.#supportGrip?.update(this.entity, action.phase !== "summon", clearance);
       const edge = this.#cuttingEdge.points();
       const contactStart = action.useAnimation === HERO_ANIMATION.CHOP_LOW ? 0.34 : 0.48;
-      if (action.phase === "use" && action.elapsed >= contactStart && action.elapsed <= 0.80
+      if (!vertical && action.phase === "use" && action.elapsed >= contactStart && action.elapsed <= 0.80
         && action.elapsed > this.#previousTime && !action.stopAfterCycle) {
         action.onContact?.(action, this.#previousEdge, edge);
       }
@@ -243,5 +268,21 @@ export class AxeTool extends HeroTool {
       this.#previousTime = 0;
       this.#previousPhase = null;
     }
+  }
+
+  /**
+   * @param {{verticalCut?:boolean}} context
+   * @returns {number}
+   */
+  useDurationFor(context = {}) {
+    return context.verticalCut ? 1.8 : this.useDuration;
+  }
+
+  /**
+   * @param {{verticalCut?:boolean}} context
+   * @returns {number[]}
+   */
+  impactTimes(context = {}) {
+    return [context.verticalCut ? 0.94 : this.impactTime];
   }
 }

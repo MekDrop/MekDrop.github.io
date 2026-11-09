@@ -11,6 +11,7 @@ import {
 import { VegetationInteraction } from "./VegetationInteraction.js";
 import { VegetationDirtPatch } from "./VegetationDirtPatch.js";
 import { DetachedShaderWarmup } from "../../rendering/DetachedShaderWarmup.js";
+import { AlchemicalBurnerTool } from "../characters/hero/tools/index.js";
 
 const VEGETATION_TYPES = Object.freeze({
   oak: OakTree,
@@ -23,6 +24,10 @@ const VEGETATION_TYPES = Object.freeze({
 const MINIMUM_FACING_DOT = Math.cos((50 * Math.PI) / 180);
 
 export class VoxelVegetation {
+  /**
+   * @type {Record<string,string>}
+   */
+  static textureUrls = AlchemicalBurnerTool.textureUrls;
   /**
    * @type {VegetationDirtPatch|null}
    */
@@ -144,6 +149,7 @@ export class VoxelVegetation {
       const { x, y, z } = vegetation.position;
       const item = new VegetationType({
         pc,
+        app,
         modelLibrary,
         id: vegetation.id,
         x,
@@ -293,11 +299,17 @@ export class VoxelVegetation {
       };
     }
 
-    return closest
+    const tool = closest?.item.describe().kind === "bush"
+      ? hero.tools.get(AlchemicalBurnerTool.name) : this.#tool;
+    if (closest) {
+      tool?.prepareShaders?.(this.#pc, this.#app);
+    }
+
+    return closest && tool
       ? new VegetationInteraction({
         item: closest.item,
         hero,
-        tool: this.#tool,
+        tool,
         onChange,
         onComplete,
         /**

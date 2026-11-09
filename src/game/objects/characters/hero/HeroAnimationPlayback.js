@@ -1,4 +1,5 @@
 import { HERO_ANIMATION } from "../../../enum/HeroAnimation.js";
+const BURNER_ANIMATIONS = new Set([HERO_ANIMATION.BURN_BUSH_LOW, HERO_ANIMATION.BURN_BUSH_MIDDLE, HERO_ANIMATION.BURN_BUSH_HIGH]);
 
 const ANIMATION_BLEND_TIME = 0.14;
 const HERO_ANIMATION_NAMES = Object.freeze(Object.values(HERO_ANIMATION));
@@ -83,11 +84,15 @@ export class HeroAnimationPlayback {
    * @param {import("playcanvas").Entity} modelRoot
    * @param {import("../../../models/GameModelLibrary.js").GameModelLibrary} modelLibrary
    * @param {string} modelUrl
+   * @param {Map<string,import("playcanvas").AnimTrack>} [supplementalTracks]
    * @returns {Map<string, import("playcanvas").AnimTrack>}
    */
-  initialize(modelRoot, modelLibrary, modelUrl) {
+  initialize(modelRoot, modelLibrary, modelUrl, supplementalTracks = new Map()) {
     const tracks = modelLibrary.getAnimationTracks(modelUrl,
       HERO_ANIMATION_NAMES.filter(HeroAnimationPlayback.#requiredAnimation));
+    for (const [name, track] of supplementalTracks) {
+      tracks.set(name, track);
+    }
     for (const [name, fallback] of OPTIONAL_CHOP_ANIMATIONS) {
       if (!tracks.has(name)) {
         tracks.set(name, tracks.get(fallback));
@@ -176,7 +181,7 @@ export class HeroAnimationPlayback {
    * @returns {boolean}
    */
   static #requiredAnimation(name) {
-    return !RUN_STOP_ANIMATIONS.has(name) && !OPTIONAL_CHOP_ANIMATIONS.has(name) &&
+    return !BURNER_ANIMATIONS.has(name) && !RUN_STOP_ANIMATIONS.has(name) && !OPTIONAL_CHOP_ANIMATIONS.has(name) &&
       ![HERO_ANIMATION.DIG_OPPOSITE, HERO_ANIMATION.FILL_HOLE_OPPOSITE, HERO_ANIMATION.LEVEL_HOLE].includes(name);
   }
 }
