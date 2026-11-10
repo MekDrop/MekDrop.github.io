@@ -96,6 +96,15 @@ export class LatchSlugNavigation {
   }
 
   /**
+   * @param {import("playcanvas").Vec3} point
+   * @param {import("./LatchSlug.js").LatchSlug} peer
+   * @returns {boolean}
+   */
+  clearPeerStep(point, peer) {
+    return this.#companionRoute.clearSegment(point, peer);
+  }
+
+  /**
    * @param {import("../shared/Enemy.js").EnemyActor} target
    * @returns {{position:import("playcanvas").Vec3, crowdChecked?: boolean}|null}
    */

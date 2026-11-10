@@ -56,6 +56,19 @@ function fixture() {
   };
 }
 
+test("looks toward the bumping peer before returning attention to a companion", () => {
+  const { gaze, hero, owner } = fixture();
+  owner.runtime.getHero = () => null;
+  owner.peerYield = { attentionTarget: hero };
+  gaze.update(0.2);
+  assert.equal(gaze.isTracking, true);
+  assert.equal(gaze.heroEntity, hero.entity);
+  owner.peerYield.attentionTarget = null;
+  gaze.update(0.2);
+  assert.equal(gaze.isTracking, false);
+  gaze.destroy();
+});
+
 test("notices a visible hero within three tiles, follows both sides and releases distant attention", () => {
   const { gaze, hero } = fixture();
   gaze.update(0.2);

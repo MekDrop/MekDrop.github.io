@@ -64,7 +64,7 @@ it("restricts live status recipients without reading terrain positions, includin
   assert.equal(royal.slows.at(-1).factor, 0.45);
 });
 
-function fixture(openAmount = 0) {
+function fixture(openAmount = 0, app = undefined) {
   const jam = new DoorJam();
   const door = {
     entity: new pc.Entity(),
@@ -102,6 +102,7 @@ function fixture(openAmount = 0) {
   const objects = [{ entranceDoors: [door] }, royal];
   const slug = new LatchSlug({
     pc,
+    app,
     definition: { id: "slug" },
     runtime: { objects },
   });
@@ -573,6 +574,55 @@ it("stays in its lane and builds affection without repositioning or hopping besi
   assert.equal(slug.affection.charge, 3);
   assert.ok(slug.statuses.has("affection"));
   assert.equal(slug.entity.rigidbody.linearVelocity.length(), 0);
+});
+
+it("recovers from grass while affectionate even closer than the usual following stop", () => {
+  const { slug, royal, door } = fixture(1, { systems: {} });
+  door.entity.setPosition(20, 0, 20);
+  slug.runtime.mapData = {
+    cols: 11,
+    rows: 7,
+    grid: Array.from({ length: 7 }, (_, row) => Array(11).fill(row === 3 || row === 4 ? 2 : 1)),
+  };
+  royal.entity.setPosition(-0.8, 0, -0.2);
+  slug.entity.setPosition(0, 0, -0.65);
+  slug.pack.leader = royal;
+  slug.affection.companion = royal;
+  slug.affection.charge = 3;
+  slug.applyStatus("affection", { duration: 0.6 });
+  slug.behavior.changeTo("LatchDogState");
+  assert.equal(slug.canCloseCompanionGap(royal), true);
+  for (let frame = 0; frame < 90; frame++) {
+    slug.update(1 / 60);
+  }
+  assert.equal(slug.requestedClip, "follow");
+  assert.ok(slug.entity.rigidbody.linearVelocity.z > 0, "affection must not pin an overhanging footprint");
+});
+
+it("stands up and takes the free lane even when already inside the sitting distance", () => {
+  const { slug, royal, door } = fixture(1, { systems: {} });
+  door.entity.setPosition(20, 0, 0);
+  slug.runtime.mapData = {
+    cols: 11,
+    rows: 7,
+    grid: Array.from({ length: 7 }, (_, row) => Array(11).fill(row === 3 || row === 4 ? 2 : 1)),
+  };
+  royal.entity.setPosition(0, 0, 0);
+  slug.entity.setPosition(1.3, 0, 0.9);
+  const front = new LatchSlug({
+    pc,
+    definition: { id: "settled-front-slug" },
+    runtime: slug.runtime,
+  });
+  front.entity.setPosition(0.95, 0, 0);
+  slug.runtime.objects.push(front);
+  slug.behavior.changeTo("LatchDogState");
+  assert.equal(slug.canCloseCompanionGap(royal), true);
+  for (let frame = 0; frame < 90; frame++) {
+    slug.update(1 / 60);
+  }
+  assert.equal(slug.requestedClip, "follow");
+  assert.ok(slug.entity.rigidbody.linearVelocity.length() > 0);
 });
 
 it("stops following before pushing a slug ahead toward the human", () => {

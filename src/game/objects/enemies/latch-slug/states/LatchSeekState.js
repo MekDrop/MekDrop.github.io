@@ -39,7 +39,7 @@ export class LatchSeekState extends State {
 
       return;
     }
-    if (owner.distanceTo(companion) <= 1.2 || door?.openAmount > 0.001) {
+    if ((owner.distanceTo(companion) <= 1.2 && !owner.canCloseCompanionGap(companion)) || door?.openAmount > 0.001) {
       owner.behavior.changeTo(LatchDogState.name);
 
       return;

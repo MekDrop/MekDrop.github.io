@@ -61,15 +61,16 @@ export class LatchDogState extends State {
     }
     const distance = owner.distanceTo(companion);
     const sittingDistance = owner.affection.nearCompanion ? 1.6 : 1.2;
+    const shouldApproach = distance > sittingDistance || owner.canCloseCompanionGap(companion);
     if (this.#phase === ANIMATION.FOLLOW) {
-      if (distance > sittingDistance) {
+      if (shouldApproach) {
         owner.followTarget(companion, distance > 3 ? 1.35 : 0.9);
         owner.playClip(distance > 3 ? ANIMATION.WADDLE_RUN : ANIMATION.FOLLOW);
 
         return;
       }
       this.#setPhase(owner, ANIMATION.SIT_DOWN);
-    } else if (distance > sittingDistance && this.#phase !== ANIMATION.STAND_UP) {
+    } else if (shouldApproach && this.#phase !== ANIMATION.STAND_UP) {
       this.#setPhase(owner, ANIMATION.STAND_UP);
     }
     owner.stop();

@@ -1,6 +1,7 @@
 import { LatchGelMass } from "./LatchGelMass.js";
 import { ACTOR_MASS } from "../../../enum/ActorMass.js";
 import { LatchHeroBump } from "./LatchHeroBump.js";
+import { LatchPeerYield } from "./LatchPeerYield.js";
 import { LatchFloorPuddle } from "./LatchFloorPuddle.js";
 import { LatchScoopGel } from "./LatchScoopGel.js";
 import { LatchAnnoyance } from "./LatchAnnoyance.js";
@@ -116,6 +117,10 @@ export class LatchSlug extends Enemy {
    */
   idleHop;
   /**
+   * @type {LatchPeerYield}
+   */
+  peerYield;
+  /**
    * Continuous pulse clock, advanced faster during the stamina burst.
    * @type {number}
    */
@@ -165,6 +170,7 @@ export class LatchSlug extends Enemy {
     super(options);
 
     this.heroBump = new LatchHeroBump(this);
+    this.peerYield = new LatchPeerYield(this);
 
     this.pack = new LatchPack(this);
     this.affection = new LatchAffection(this);
@@ -225,6 +231,7 @@ export class LatchSlug extends Enemy {
 
     const moving = super.moveToward(target, Math.min(speed, limit) * pulse, arrivalRadius);
     this.heroBump.constrain();
+    this.peerYield.constrain();
 
     return moving;
   }
@@ -266,6 +273,15 @@ export class LatchSlug extends Enemy {
    */
   canCloseCompanionGap(human) {
     return this.#navigation.canCloseCompanionGap(human);
+  }
+
+  /**
+   * @param {import("playcanvas").Vec3} point
+   * @param {LatchSlug} peer
+   * @returns {boolean}
+   */
+  clearPeerStep(point, peer) {
+    return this.#navigation.clearPeerStep(point, peer);
   }
 
   onSceneReady() {
@@ -396,7 +412,7 @@ export class LatchSlug extends Enemy {
    */
   followTarget(target, speed) {
     const next = this.#navigation.next(target);
-    if (this.distanceTo(target) <= 0.95 || (!next?.crowdChecked && this.pack.isCrowdedToward(this.targetPosition(next ?? target)))) {
+    if (!next?.crowdChecked && (this.distanceTo(target) <= 0.95 || this.pack.isCrowdedToward(this.targetPosition(next ?? target)))) {
       this.stop();
 
       return true;
@@ -431,6 +447,9 @@ export class LatchSlug extends Enemy {
       return;
     }
     this.heroBump.update();
+    if (!this.peerYield.available) {
+      this.peerYield.cancel();
+    }
     if (this.alive && this.annoyance.active && !this.carrier && !this.airborne
       && !this.gatewayArrival.active && !this.statuses.has("stun") && !this.statuses.has("confused")
       && [LatchSeekState.name, LatchDogState.name].includes(this.stateName)) {
@@ -466,6 +485,7 @@ export class LatchSlug extends Enemy {
     this.idleHop.update(dt);
     this.#updateAnimationSpeed();
     this.affection.update(dt);
+    this.peerYield.update(dt);
     if (this.alive && !this.carrier && !this.airborne) {
       this.limitNearbyMovement(0.65);
     }
@@ -816,6 +836,7 @@ export class LatchSlug extends Enemy {
   }
 
   destroy() {
+    this.peerYield.cancel();
     this.scoopGel?.destroy();
     this.floorPuddle?.destroy();
     this.gatewayArrival.finish();

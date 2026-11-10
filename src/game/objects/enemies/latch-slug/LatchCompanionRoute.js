@@ -41,7 +41,7 @@ export class LatchCompanionRoute {
    * @returns {boolean}
    */
   get active() {
-    return this.#onPath(this.owner.position, 0);
+    return this.#onPath(this.owner.position, 0) || this.#recoveryPoint() !== null;
   }
 
   /**
@@ -85,6 +85,25 @@ export class LatchCompanionRoute {
     const target = owner.targetPosition(human);
     if (!target || !this.active) {
       return null;
+    }
+    if (!this.#onPath(owner.position)) {
+      const recovery = this.#recoveryPoint();
+      if (recovery) {
+        const step = owner.position.clone().lerp(owner.position, recovery,
+          Math.min(1, 0.25 / owner.position.distance(recovery)));
+        if (this.clearSegment(step, human)) {
+          return step;
+        }
+        for (const [dx, dz] of [[-0.25, -0.25], [-0.25, 0.25], [0.25, -0.25], [0.25, 0.25]]) {
+          const side = owner.position.clone();
+          side.x += dx;
+          side.z += dz;
+          if (side.distance(recovery) < owner.position.distance(recovery)
+            && this.clearSegment(side, human)) {
+            return side;
+          }
+        }
+      }
     }
     const forward = this.laneStep(human);
     if (forward) {
@@ -236,6 +255,24 @@ export class LatchCompanionRoute {
   }
 
   /**
+   * Check the complete motor step, including peers and authored obstacles.
+   * @param {import("playcanvas").Vec3} destination
+   * @param {import("../shared/Enemy.js").EnemyActor} human
+   * @returns {boolean}
+   */
+  clearSegment(destination, human) {
+    const origin = this.owner.position;
+    const steps = Math.max(1, Math.ceil(origin.distance(destination) / 0.1));
+    for (let index = 1; index <= steps; index++) {
+      if (!this.#clear(origin.clone().lerp(origin, destination, index / steps), human)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /**
    * Native contact can leave a belly slightly beyond the road edge. Permit
    * only steps back toward a full-footprint road position, never grass detours.
    * @param {import("playcanvas").Vec3} point
@@ -243,14 +280,28 @@ export class LatchCompanionRoute {
    */
   #recoversPathEdge(point) {
     const origin = this.owner.position;
-    if (this.#onPath(origin) || !this.#onPath(point, 0)) {
+    if (this.#onPath(origin)) {
       return false;
     }
+    const nearest = this.#recoveryPoint();
+
+    return nearest !== null && point.distance(nearest) < origin.distance(nearest) - 0.001;
+  }
+
+  /**
+   * A partially overhanging body may have its centre on the grass tile.
+   * @returns {import("playcanvas").Vec3|null}
+   */
+  #recoveryPoint() {
+    const origin = this.owner.position;
     const map = this.owner.runtime.mapData;
+    if (!map?.grid) {
+      return null;
+    }
     const col = Math.round(origin.x + (map.cols - 1) / 2);
     const row = Math.round(origin.z + (map.rows - 1) / 2);
     let nearest = null;
-    let distance = Infinity;
+    let distance = this.owner.radius + 0.55;
     for (let x = col - 1; x <= col + 1; x++) {
       for (let z = row - 1; z <= row + 1; z++) {
         const candidate = origin.clone();
@@ -264,7 +315,7 @@ export class LatchCompanionRoute {
       }
     }
 
-    return nearest !== null && point.distance(nearest) < distance - 0.001;
+    return nearest;
   }
 
   /**

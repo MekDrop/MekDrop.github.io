@@ -77,7 +77,8 @@ export class LatchHeroGaze {
   }
 
   #observe() {
-    const owner = this.owner, hero = owner.resolvePackTarget?.() ?? owner.runtime.getHero?.();
+    const owner = this.owner, hero = owner.peerYield?.attentionTarget
+      ?? owner.resolvePackTarget?.() ?? owner.runtime.getHero?.();
     this.isTracking = false;
     if (!hero?.entity || hero.alive === false || hero.isDying) {
       this.reason = "no hero";

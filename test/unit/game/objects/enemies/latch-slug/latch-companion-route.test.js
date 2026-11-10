@@ -135,6 +135,25 @@ it("rejects blocked lanes instead of routing across grass or through another flo
   assert.equal(new LatchCompanionRoute(owner, () => false).next(human), null);
 });
 
+it("recovers onto the path when its centre is on grass, even inside affection range", () => {
+  const { owner, human } = fixture();
+  owner.actors = [];
+  owner.position.set(0.9, 0, -0.65);
+  const route = new LatchCompanionRoute(owner, () => false);
+  assert.equal(route.active, true);
+  for (let step = 0; step < 5; step++) {
+    const next = route.next(human);
+    assert.ok(next && next.z > owner.position.z, "recover the footprint before settling");
+    owner.position.copy(next);
+    if (owner.position.z >= -0.08) {
+      break;
+    }
+  }
+  assert.ok(owner.position.z >= -0.08);
+  owner.position.set(0.9, 0, -2);
+  assert.equal(route.active, false, "recovery must not become an unrestricted grass route");
+});
+
 it("can leave a touching queue to change lanes without moving into its neighbour", () => {
   const { owner, human, front } = fixture();
   owner.position.set(2, 0, 0);
