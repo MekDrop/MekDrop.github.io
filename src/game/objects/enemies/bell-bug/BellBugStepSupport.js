@@ -64,6 +64,22 @@ export class BellBugStepSupport {
     const reach = (b.radius + 0.04) / Math.max(Math.abs(dx), Math.abs(dz));
     let ahead = this.surface(p.x + dx * reach, p.z + dz * reach, p.y + 0.32, p.y - 0.12);
     const below = this.surface(p.x, p.z, p.y + 0.06, p.y - 0.13);
+    // Ammo already supports continuous ramps. Lifting to a point farther
+    // uphill suspends a queued capsule above its floor and makes it fall back.
+    if (ahead?.normal.y < 0.9999 || below?.normal.y < 0.9999) {
+      this.pendingHeight = null;
+      this.pendingPoint = null;
+      if (below && below.normal.y < 0.9999) {
+        const velocity = body.linearVelocity;
+        const normal = below.normal;
+        const vertical = -(normal.x * velocity.x + normal.z * velocity.z) / normal.y;
+        // Give Ammo a velocity along the support, rather than carrying a
+        // downward contact velocity into each new uphill movement request.
+        body.linearVelocity = new b.pc.Vec3(velocity.x, vertical, velocity.z);
+      }
+
+      return;
+    }
     const continuing = this.pendingPoint && (!below || Math.abs(below.point.y + 0.004 - this.pendingHeight) > 0.04);
     if (continuing) {
       if ((this.pendingPoint.x - p.x) * dx + (this.pendingPoint.z - p.z) * dz < -0.02 ||

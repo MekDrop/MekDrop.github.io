@@ -1,4 +1,5 @@
 import { BellBugDoorScratch } from "./BellBugDoorScratch.js";
+import { BellBugDoorApproach } from "./BellBugDoorApproach.js";
 import { LatchSlugAudio } from "../../../audio/latch-slug/LatchSlugAudio.js";
 import { CastleAudio } from "../../../audio/castle/CastleAudio.js";
 import { BellBugAudio } from "../../../audio/bell-bug/BellBugAudio.js";
@@ -64,6 +65,7 @@ export class BellBug extends Enemy {
     this.scoop = new BellBugScoop(this);
     this.fleshScratch = new BellBugFleshScratch(this);
     this.doorScratch = new BellBugDoorScratch(this);
+    this.doorApproach = new BellBugDoorApproach(this);
     this.radius = BellBugCalibration.radius;
     this.height = BellBugCalibration.height;
     this.stepSupport = new BellBugStepSupport(this);
@@ -197,6 +199,11 @@ export class BellBug extends Enemy {
    * @param {number} arrivalRadius
    */
   moveToward(target, speed = this.walkSpeed, arrivalRadius = 0.05) {
+    if (this.entity.rigidbody) {
+      // Keep enough traction to hold an incline between movement updates,
+      // including when crowd steering slows a bug almost to a standstill.
+      this.entity.rigidbody.friction = this.grounded && !this.airborne && !this.carrier ? 1 : 0.4;
+    }
     const previousYaw = this.entity.getEulerAngles().y;
     const moving = super.moveToward(target, speed, arrivalRadius);
     if (moving) {
@@ -216,6 +223,14 @@ export class BellBug extends Enemy {
       }
     }
     return moving;
+  }
+
+  stop() {
+    super.stop();
+    const body = this.entity.rigidbody;
+    if (body) {
+      body.friction = this.grounded && this.alive && !this.airborne && !this.carrier ? 2 : 0.4;
+    }
   }
 
   /**
@@ -399,13 +414,13 @@ export class BellBug extends Enemy {
   }
 
   /**
-   * Use real Ammo hits to identify the main-door leaf obstructing the royal.
+   * Use real Ammo hits to identify a closed leaf obstructing the next target.
    * Castle-owned doors remain castle-owned; no renderer special cases.
-   * @param {Enemy} royal
+   * @param {import("../shared/Enemy.js").EnemyActor} target
    * @returns {import("../../architecture/door/Door.js").Door|null}
    */
-  findClosedDoor(royal) {
-    const point = this.targetPosition(royal);
+  findClosedDoor(target) {
+    const point = this.targetPosition(target);
     const physics = this.app.systems?.rigidbody;
     if (!point || !physics) {
       return null;

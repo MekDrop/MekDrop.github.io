@@ -85,7 +85,7 @@ export class BellBugCrowdMotion {
     const following = peerVelocity && peerVelocity.x * forwardX + peerVelocity.z * forwardZ > 0.15;
     // Passing a higher peer on the stairs steers into the next riser or jamb.
     // Queue until it clears, rather than alternating between a lift and a flank.
-    const stairQueue = blocker && (Math.abs(blocker.position.y - b.position.y) > 0.08 ||
+    const stairQueue = blocker && (this.#differentSupport(blocker) ||
       b.stepSupport?.pendingHeight != null);
     if (stairQueue) {
       this.#passingTarget = null;
@@ -111,6 +111,23 @@ export class BellBugCrowdMotion {
     body.linearVelocity = new b.pc.Vec3(forwardX * allowed, velocity.y, forwardZ * allowed);
 
     return allowed > 0.01;
+  }
+
+  /**
+   * A raised body can be hopping or wedged against a door on the same landing.
+   * Queue for different treads, rather than treating body height as a stair.
+   * @param {import("../shared/Enemy.js").Enemy} peer
+   * @returns {boolean}
+   */
+  #differentSupport(peer) {
+    const b = this.owner, p = b.position, q = peer.position;
+    if (Math.abs(q.y - p.y) <= 0.08) {
+      return false;
+    }
+    const own = b.stepSupport?.surface(p.x, p.z, p.y + 0.06, p.y - 0.35);
+    const other = b.stepSupport?.surface(q.x, q.z, q.y + 0.06, p.y - 0.35);
+
+    return !own || !other || Math.abs(own.point.y - other.point.y) > 0.08;
   }
 
   /**

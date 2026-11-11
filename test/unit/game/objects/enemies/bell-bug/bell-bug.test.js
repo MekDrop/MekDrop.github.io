@@ -534,3 +534,19 @@ test('six contact scratches break the actual Door API and resume royal pursuit',
   assert.equal(bug.resolveRoyalTarget(),royal);
   door.destroy();activeRoot.destroy();
 });
+
+test('queued ground contact gains native grip and walking releases it', () => {
+  const { bug, royal } = fixture();
+  bug.grounded = true;
+  bug.entity.rigidbody.linearVelocity.set(1, -.3, 0);
+  bug.stop();
+  assert.equal(bug.entity.rigidbody.friction, 2);
+  assert.deepEqual(bug.entity.rigidbody.linearVelocity, new Vec3(0, -.3, 0));
+  assert.equal(bug.moveToward(royal), true);
+  assert.equal(bug.entity.rigidbody.friction, 1);
+  bug.airborne = true;
+  bug.entity.rigidbody.linearVelocity.set(1, 3, 2);
+  bug.stop();
+  assert.equal(bug.entity.rigidbody.friction, .4);
+  assert.deepEqual(bug.entity.rigidbody.linearVelocity, new Vec3(1, 3, 2));
+});

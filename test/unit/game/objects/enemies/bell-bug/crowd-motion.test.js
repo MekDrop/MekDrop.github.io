@@ -260,3 +260,15 @@ test('a stopped higher peer on the stairs keeps its follower queued instead of r
     assert.equal(body.linearVelocity.y,-.5);
   }
 });
+
+test('a raised stationary peer on the same landing does not create a permanent stair queue', () => {
+  const {body, motion} = fixture(0, -.8, .42);
+  motion.owner.deltaTime = .2;
+  motion.owner.stepSupport = { surface: (x, z) => ({ point: new Vec3(x, 0, z) }) };
+  for (let frame = 0; frame < 5; frame++) {
+    body.linearVelocity.set(0, -.5, -1.15);
+    motion.constrain();
+  }
+  assert.ok(Math.abs(body.linearVelocity.x) > .2);
+  assert.equal(body.linearVelocity.y, -.5);
+});

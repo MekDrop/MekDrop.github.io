@@ -46,18 +46,21 @@ export class BellBugPursueState extends State {
     }
     const royal = owner.resolveRoyalTarget();
     const nearbyGoo = owner.findGluedDoor();
-    owner.scratchTarget = nearbyGoo ?? (royal && owner.findClosedDoor(royal));
     // Keep advancing even during a local cleanup approach. Resuming a stale
     // ground waypoint after climbing the entrance traps the bug behind peers.
     const waypoint = owner.route.next();
+    // The royal can be across a courtyard wall from the entrance. Check the
+    // actual route first so that wall cannot hide the door blocking our feet.
+    owner.scratchTarget = nearbyGoo ?? (waypoint && owner.findClosedDoor(waypoint)) ??
+      (royal && owner.findClosedDoor(royal));
     if (owner.canScratchDoor) {
       owner.transition(BellBugScratchState.name);
 
       return;
     }
-    // Once inside, approach the obstructing leaf rather than the royal's
-    // off-center position, which can drive the body into the room's jamb.
-    const destination = nearbyGoo ?? waypoint ?? owner.scratchTarget ?? royal;
+    // Line up in front of a closed leaf before trying the route through it.
+    // Inside, keep the obstructing door ahead of an off-center royal target.
+    const destination = owner.doorApproach.next(owner.scratchTarget) ?? nearbyGoo ?? waypoint ?? owner.scratchTarget ?? royal;
     if (!destination) {
       owner.stop();
       owner.playClip("idle_nervous");

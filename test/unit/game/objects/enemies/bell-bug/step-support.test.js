@@ -134,3 +134,29 @@ test('a diagonal approach probes beyond the riser already touching the capsule',
   assert.equal(calls.length,0);
   assert.ok(bug.entity.rigidbody.linearVelocity.y > 0);
 });
+
+test('continuous inclines stay Ammo-supported instead of starting a step lift', () => {
+  const { bug, support, calls, forces } = fixture();
+  const floor = new Entity('ordinary incline');
+  floor.rigidbody = { type: 'static' };
+  bug.app.systems.rigidbody.raycastAll = (start, end) => {
+    if (start.y <= end.y) {
+      return [];
+    }
+    const y = -start.z * .5;
+
+    return y <= start.y && y >= end.y ? [{
+      entity: floor,
+      point: new Vec3(start.x, y, start.z),
+      normal: new Vec3(0, 1, .5).normalize(),
+    }] : [];
+  };
+  support.pendingHeight = .2;
+  support.pendingPoint = new Vec3(0, .2, -.4);
+  support.advance(new Vec3(0, 0, -1));
+  assert.equal(support.pendingHeight, null);
+  assert.equal(support.pendingPoint, null);
+  assert.deepEqual(forces, []);
+  assert.deepEqual(calls, []);
+  assert.deepEqual(bug.entity.rigidbody.linearVelocity, new Vec3(0, .5, -1));
+});

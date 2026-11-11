@@ -86,8 +86,10 @@ test('pursuit follows its route even when there is no royal target yet',()=>{
   const owner={
     route:{next:()=>target},
     scoop:{target:null},
+    doorApproach:{next:()=>null},
     resolveRoyalTarget:()=>null,
     findGluedDoor:()=>null,
+    findClosedDoor:()=>null,
     canScratchDoor:false,
     walkSpeed:1.15,
     moveToward:point=>{
@@ -109,6 +111,7 @@ test('a distant jammed door cannot divert a bug off its authored road',()=>{
   const owner={
     route:{next:()=>waypoint},
     scoop:{target:null},
+    doorApproach:{next:()=>null},
     resolveRoyalTarget:()=>({position:new Vec3(10,3,0)}),
     findGluedDoor:()=>null,
     findClosedDoor:()=>door,
@@ -131,6 +134,7 @@ test('after its gate route, a closed room leaf takes approach priority over an o
   const owner={
     route:{next:()=>null},
     scoop:{target:null},
+    doorApproach:{next:()=>null},
     resolveRoyalTarget:()=>royal,
     findGluedDoor:()=>null,
     findClosedDoor:()=>door,
@@ -157,6 +161,7 @@ test('nearby goo cleanup keeps the route cursor current before pursuit resumes',
   const owner={
     route:{next:()=>waypoints[index++]},
     scoop:{target:null},
+    doorApproach:{next:()=>null},
     resolveRoyalTarget:()=>({position:new Vec3(10,3,0)}),
     findGluedDoor:()=>localDoor,
     findClosedDoor:()=>null,
@@ -216,6 +221,7 @@ test('intermittent sight of a jammed door never creates a forward-backward road 
       },
     },
     scoop:{target:null},
+    doorApproach:{next:()=>null},
     resolveRoyalTarget:()=>royal,
     findGluedDoor:()=>null,
     findClosedDoor:()=>owner.position.x>=3&&owner.position.x<6 ? door : null,
@@ -243,4 +249,50 @@ test('intermittent sight of a jammed door never creates a forward-backward road 
     assert.ok(owner.position.x>=previous,'a changing royal sightline must not reverse road progress');
   }
   assert.ok(owner.position.x>10,'the bug completes its road instead of oscillating at the sightline boundary');
+});
+
+test('a closed entrance on the route is detected when the royal sightline hits a wall', () => {
+  const waypoint = { position: new Vec3(-7.5, 3, 4.5) };
+  const royal = { position: new Vec3(7.66, 3.167, 9.25) };
+  const door = { closed: true };
+  const transitions = [];
+  const owner = {
+    route: { next: () => waypoint },
+    scoop: { target: null },
+    resolveRoyalTarget: () => royal,
+    findGluedDoor: () => null,
+    findClosedDoor: target => target === waypoint ? door : null,
+    get canScratchDoor() {
+      return this.scratchTarget === door;
+    },
+    transition: state => transitions.push(state),
+  };
+  new BellBugPursueState().execute(owner);
+  assert.equal(owner.scratchTarget, door);
+  assert.deepEqual(transitions, ['BellBugScratchState']);
+});
+
+test('the door front takes priority over a route node behind the closed leaf on the landing', () => {
+  const waypoint = { position: new Vec3(-7.5, 3, 4.5) };
+  const landing = { position: new Vec3(-7.3741, 3, 5) };
+  const door = { closed: true };
+  const moves = [];
+  const owner = {
+    route: { next: () => waypoint },
+    scoop: { target: null },
+    doorApproach: { next: target => target === door ? landing : null },
+    resolveRoyalTarget: () => null,
+    findGluedDoor: () => null,
+    findClosedDoor: () => door,
+    canScratchDoor: false,
+    walkSpeed: 1.15,
+    moveToward: target => {
+      moves.push(target);
+
+      return true;
+    },
+    playClip: () => {},
+  };
+  new BellBugPursueState().execute(owner);
+  assert.deepEqual(moves, [landing]);
 });

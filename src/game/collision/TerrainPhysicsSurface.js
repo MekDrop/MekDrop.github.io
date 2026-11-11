@@ -153,7 +153,9 @@ export class TerrainPhysicsSurface {
     });
     this.#entity.addComponent("rigidbody", {
       type: "static",
-      friction: 0,
+      // Resting actors need real grip on ordinary slopes. Moving controllers
+      // can release their own friction without making the whole ground icy.
+      friction: 0.6,
       restitution: 0,
     });
   }
