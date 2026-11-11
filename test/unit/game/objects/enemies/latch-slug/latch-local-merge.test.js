@@ -13,6 +13,25 @@ const patch = (x, y = 0) => {
   };
 };
 
+it("does not turn overlapping dry support sheets at different depths into gel", () => {
+  const left = patch(-0.15), right = patch(0.15);
+  for (const [index, shape] of [left, right].entries()) {
+    const offset = shape.positions.length / 3;
+    // Dry film triangles can survive at the visible contour. Each is flat,
+    // but separate impacts sample the hardware at slightly different depths.
+    shape.positions.push(-1, -1, index * 0.02, 1, -1, index * 0.02,
+      1, 1, index * 0.02, -1, 1, index * 0.02);
+    shape.indices.push(offset, offset + 1, offset + 2, offset, offset + 2, offset + 3);
+  }
+  const union = new LatchCoverage([left, right]);
+  const xs = union.indices.map(index => union.positions[index * 3]);
+  const ys = union.indices.map(index => union.positions[index * 3 + 1]);
+  assert.ok(Math.max(...xs) < 0.6 && Math.min(...xs) > -0.6,
+    "only independently wet patch samples enter the merged footprint");
+  assert.ok(Math.max(...ys) < 0.45 && Math.min(...ys) > -0.45);
+  assert.ok(Math.abs(union.volume - left.volume - right.volume) < 1e-6);
+});
+
 it("redistributes merged mass instead of amplifying a thin corner into a long spike", () => {
   const shape = new BoxGeometry();
   const positions = shape.positions.map((value, index) => {

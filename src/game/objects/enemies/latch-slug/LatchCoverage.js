@@ -275,6 +275,11 @@ export class LatchCoverage {
    */
   #sample(patch) {
     const p = patch.positions;
+    // Establish thickness within each deposit before combining it with others.
+    // Two dry support sheets at different depths are still dry; combining
+    // their extrema first would fill the space between them with phantom gel.
+    const front = new Float64Array(this.#front.length).fill(-Infinity);
+    const back = new Float64Array(this.#back.length).fill(Infinity);
     for (let triangle = 0; triangle < patch.indices.length; triangle += 3) {
       const a = patch.indices[triangle] * 3, b = patch.indices[triangle + 1] * 3, c = patch.indices[triangle + 2] * 3;
       const denominator = (p[b + 1] - p[c + 1]) * (p[a] - p[c]) + (p[c] - p[b]) * (p[a + 1] - p[c + 1]);
@@ -296,9 +301,15 @@ export class LatchCoverage {
           }
           const z = u * p[a + 2] + v * p[b + 2] + (1 - u - v) * p[c + 2];
           const index = row * this.#columns + column;
-          this.#front[index] = Math.max(this.#front[index], z);
-          this.#back[index] = Math.min(this.#back[index], z);
+          front[index] = Math.max(front[index], z);
+          back[index] = Math.min(back[index], z);
         }
+      }
+    }
+    for (let i = 0; i < front.length; i++) {
+      if (front[i] - back[i] > MIN_COVERAGE_THICKNESS) {
+        this.#front[i] = Math.max(this.#front[i], front[i]);
+        this.#back[i] = Math.min(this.#back[i], back[i]);
       }
     }
   }

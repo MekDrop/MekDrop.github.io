@@ -104,6 +104,13 @@ Direct clicks on a door release its forced test destination and use the normal
 temporary opening behavior, so test buttons cannot silently disable interaction.
 Use `/map/test_castle-entrance` for entrance checks, including both camera presets.
 
+Use `/map/test_slime-door-goo` to isolate six nearby Latch Slugs at a closed
+castle entrance, using the terrain and castle seed from `mwbiyeex_1eibo62`.
+`Throw one slime` and `Throw six slimes` use the production Ammo door leap and
+contact-authorized splat. Compare `Individual splats` with the merged surface,
+inspect the entrance and side views, and reload the route for a fresh batch.
+No enemy wave or Bell Bug is required to reproduce dry-padding goo artifacts.
+
 Verify button clicks, outside-panel gameplay input, both camera presets, live
 status, and switching to a map without controls. Capture the real game route for
 visual evidence. Run the focused dispatcher test and lint changed files.

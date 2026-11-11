@@ -12,6 +12,33 @@ function film() {
   });
 }
 
+test("deposit conservation leaves the dry padding of the impact mesh dry", () => {
+  const positions = [], indices = [];
+  for (let y = 0; y < 9; y++) {
+    for (let x = 0; x < 9; x++) {
+      const px = x / 4 - 1, py = y / 4 - 1;
+      positions.push(px, py, Math.hypot(px, py) < 0.4 ? 0.03 : 0);
+      if (x < 8 && y < 8) {
+        const a = y * 9 + x;
+        indices.push(a, a + 1, a + 10, a, a + 10, a + 9);
+      }
+    }
+  }
+  const f = new LatchDoorFilm({
+    positions: new Float32Array(positions),
+    indices,
+    field: { height: () => 0 },
+    floor: -2,
+    volume: 0.04,
+  });
+  for (let i = 0; i < f.count; i++) {
+    if (Math.abs(f.base[i * 3]) > 0.55 || Math.abs(f.base[i * 3 + 1]) > 0.55) {
+      assert.equal(f.heights[i], 0, "mass redistribution must not wet dry template triangles");
+    }
+  }
+  assert.ok(Math.abs(f.volume - 0.04) < 1e-10);
+});
+
 test("raised hardware between impact vertices cannot erase a fresh deposit", () => {
   const f = new LatchDoorFilm({
     positions: new Float32Array([-0.4, 0, 0.03, 0.4, 0, 0.03, 0.4, 0.7, 0.03, -0.4, 0.7, 0.03]),
@@ -208,4 +235,84 @@ test("a supported projecting arch receives gel without adding mass or coating ai
   }
   assert.ok(wrapped>0, "the forward offset of stone does not erase the deposit");
   assert.ok(Math.abs(f.volume-0.04)<1e-10);
+});
+
+test("a high impact can descend to the real sill instead of pooling on the solver boundary", () => {
+  const f = new LatchDoorFilm({
+    positions: new Float32Array([-0.2, 0, 0.12, 0.2, 0, 0.12, 0.2, 0.4, 0.12, -0.2, 0.4, 0.12]),
+    indices: [0, 1, 2, 0, 2, 3],
+    field: { height: () => 0 },
+    floor: -2,
+    volume: 0.02,
+  });
+  f.flowSpeed = 1;
+  for (let step = 0; step < 300; step++) {
+    f.update(0.1);
+  }
+  let lowMass = 0;
+  for (let i = 0; i < f.count; i++) {
+    if (f.base[i * 3 + 1] < -0.8) {
+      lowMass += f.heights[i] * f.areas[i];
+    }
+  }
+  assert.ok(lowMass > 0.001 || f.volume < 0.019,
+    "gel must travel below the old impact-minus-0.65m boundary or drain at the sill");
+});
+
+test("one impact cannot seed a detached masonry strip across an unsupported jamb gap", () => {
+  const f = new LatchDoorFilm({
+    positions: new Float32Array([-0.4, 0, 0.12, 0.4, 0, 0.12, 0.4, 0.7, 0.12, -0.4, 0.7, 0.12]),
+    indices: [0, 1, 2, 0, 2, 3],
+    field: {
+      height: () => 0,
+      contains: x => x < 0.15,
+      support: x => x > 0.25 ? 0.15 : null,
+    },
+    floor: -1,
+    volume: 0.04,
+  });
+  for (let i = 0; i < f.count; i++) {
+    if (f.base[i * 3] > 0.25) {
+      assert.equal(f.heights[i], 0, "the separate wall is not connected to the impacted leaf");
+    }
+  }
+  assert.ok(Math.abs(f.volume - 0.04) < 1e-10);
+});
+
+test("a rounded intact splat keeps a tapered contour after ten seconds of settling", () => {
+  const positions = [], indices = [];
+  for (let y = 0; y <= 20; y++) {
+    for (let x = 0; x <= 20; x++) {
+      const px = x / 20 - 0.5, py = y / 20;
+      const radius = Math.hypot(px / 0.45, (py - 0.5) / 0.4);
+      positions.push(px, py, radius < 1 ? 0.1 * Math.sqrt(1 - radius * radius) : 0);
+      if (x < 20 && y < 20) {
+        const a = y * 21 + x;
+        indices.push(a, a + 1, a + 22, a, a + 22, a + 21);
+      }
+    }
+  }
+  const f = new LatchDoorFilm({
+    positions: new Float32Array(positions),
+    indices,
+    field: { height: () => 0 },
+    floor: -2,
+    volume: 0.04,
+  });
+  for (let frame = 0; frame < 600; frame++) {
+    f.update(1 / 60);
+  }
+  let left = Infinity, right = -Infinity, bottom = Infinity, top = -Infinity, wet = 0;
+  for (let i = 0; i < f.count; i++) {
+    if (f.heights[i] > 0.004) {
+      wet++;
+      left = Math.min(left, i % f.nx);
+      right = Math.max(right, i % f.nx);
+      bottom = Math.min(bottom, Math.floor(i / f.nx));
+      top = Math.max(top, Math.floor(i / f.nx));
+    }
+  }
+  assert.ok(wet / ((right - left + 1) * (top - bottom + 1)) < 0.85,
+    "the visible contour must not fill its bounding rectangle");
+  assert.ok(Math.abs(f.volume - 0.04) < 1e-8, "retaining the contour must not discard gel");
 });

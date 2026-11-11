@@ -24,8 +24,11 @@ export class LatchDoorFilm {
     // Leave dry space around the wet footprint. The solver boundary must never
     // become the visible edge as the blob spreads and refills a scraped gap.
     this.minX = minX - 0.6;
-    this.minY = Math.max(floor, minY - 0.65);
-    const width = maxX - minX + 1.2, height = maxY - this.minY + 0.45;
+    // The bottom of the transport grid is the real sill, not an invisible
+    // shelf a fixed distance below the impact. Otherwise high splats pile up
+    // against that shelf and settle into the simulation rectangle.
+    this.minY = floor;
+    const width = maxX - minX + 1.2, height = Math.max(0.45, maxY - this.minY + 0.45);
     this.nx = Math.max(4, Math.min(64, Math.ceil(width / 0.032) + 1));
     this.ny = Math.max(4, Math.min(64, Math.ceil(height / 0.032) + 1));
     this.dx = width / (this.nx - 1); this.dy = height / (this.ny - 1);
@@ -37,10 +40,12 @@ export class LatchDoorFilm {
     this.positions = new Float32Array(this.count * 6);
     this.indices = []; this.frontIndices = [];
     const footprint = new Uint8Array(this.count);
+    const doorSamples = new Uint8Array(this.count);
     for (let y = 0; y < this.ny; y++) {
       for (let x = 0; x < this.nx; x++) {
         const v = y * this.nx + x, px = this.minX + x * this.dx, py = this.minY + y * this.dy;
         const onDoor = field.contains?.(px,py) ?? true;
+        doorSamples[v] = onDoor ? 1 : 0;
         const support = onDoor ? field.height(px,py) : field.support?.(px,py);
         this.supported[v] = Number.isFinite(support) ? 1 : 0;
         const z = support ?? field.height(px,py);
@@ -67,15 +72,22 @@ export class LatchDoorFilm {
           const u = ((by - cy) * (px - cx) + (cx - bx) * (py - cy)) / area;
           const w = ((cy - ay) * (px - cx) + (ax - cx) * (py - cy)) / area;
           if (this.supported[v] && u >= -0.00001 && w >= -0.00001 && u + w <= 1.00001) {
-            footprint[v] = 1;
             // Transfer thickness above each source vertex's support. Sampling
             // support at the destination instead can put a coarse triangle
             // behind raised door hardware and erase the entire deposit.
-            this.heights[v] = Math.max(this.heights[v], u * az + w * bz + (1 - u - w) * cz);
+            const thickness = u * az + w * bz + (1 - u - w) * cz;
+            // The authored skin includes dry, collapsed padding. It is mesh
+            // coverage, not deposited gel: conservation must not refill it.
+            // Negative depth still admits a body partly behind raised support.
+            if (Math.abs(thickness) > 1e-6) {
+              footprint[v] = 1;
+            }
+            this.heights[v] = Math.max(this.heights[v], thickness);
           }
         }
       }
     }
+    this.#connectFootprint(footprint, doorSamples);
     for (let y = 0; y < this.ny - 1; y++) {
       for (let x = 0; x < this.nx - 1; x++) {
         const a = y * this.nx + x, b = a + 1, c = a + this.nx, d = c + 1;
@@ -104,6 +116,51 @@ export class LatchDoorFilm {
     }
     this.initialVolume = this.volume;
     this.refresh();
+  }
+
+  /**
+   * Native support rays can also find a separate wall across the jamb gap.
+   * Deposit only on wet support connected to the impacted leaf; a ray hit on
+   * another island must not create a detached ribbon of gel there.
+   * @param {Uint8Array} footprint
+   * @param {Uint8Array} doorSamples
+   */
+  #connectFootprint(footprint, doorSamples) {
+    const connected = new Uint8Array(this.count), queue = new Int32Array(this.count);
+    let head = 0, tail = 0, nearest = -1, distance = Infinity;
+    for (let i = 0; i < this.count; i++) {
+      if (!footprint[i]) {
+        continue;
+      }
+      const d = this.base[i * 3] ** 2 + this.base[i * 3 + 1] ** 2;
+      if (d < distance) {
+        nearest = i;
+        distance = d;
+      }
+      if (doorSamples[i]) {
+        connected[i] = 1;
+        queue[tail++] = i;
+      }
+    }
+    if (tail === 0 && nearest >= 0) {
+      connected[nearest] = 1;
+      queue[tail++] = nearest;
+    }
+    while (head < tail) {
+      const i = queue[head++], x = i % this.nx;
+      for (const next of [x > 0 ? i - 1 : -1, x < this.nx - 1 ? i + 1 : -1, i - this.nx, i + this.nx]) {
+        if (next >= 0 && next < this.count && footprint[next] && !connected[next]) {
+          connected[next] = 1;
+          queue[tail++] = next;
+        }
+      }
+    }
+    for (let i = 0; i < this.count; i++) {
+      if (!connected[i]) {
+        footprint[i] = 0;
+        this.heights[i] = 0;
+      }
+    }
   }
 
   /**
@@ -168,6 +225,10 @@ export class LatchDoorFilm {
   update(dt) {
     const steps = Math.ceil(Math.min(Math.max(dt,0),0.1) / 0.008);
     const step = steps ? Math.min(dt,0.1) / steps : 0;
+    const columnDepth = new Float64Array(this.nx);
+    for (let i = 0; i < this.count; i++) {
+      columnDepth[i % this.nx] = Math.max(columnDepth[i % this.nx], this.heights[i]);
+    }
     for (let iteration = 0; iteration < steps; iteration++) {
       const delta = new Float64Array(this.count);
       for (let y = 0; y < this.ny; y++) {
@@ -184,15 +245,16 @@ export class LatchDoorFilm {
             // A nearly dry contact line must not diffuse across the entire
             // simulation rectangle. Thick gel still redistributes into bites.
             const mobility = Math.min(1, (Math.max(h,k) / 0.035) ** 2);
-            let flux = (h - k) * Math.min(this.areas[a],this.areas[b]) * step * 2 * mobility / COHESIVE_FLOW_RESISTANCE;
+            // Ordinary settling transports the authored contour. Diffusing
+            // every intact column into its neighbours flattens a round splat
+            // into a rectangular sheet. Lateral relaxation is for cut gaps.
+            let flux = this.changed ? (h - k) * Math.min(this.areas[a],this.areas[b]) * step * 2 * mobility / COHESIVE_FLOW_RESISTANCE : 0;
             if (b === a + this.nx) {
-              // Density contributes to weight, while the separate mobility
-              // controls the slow, cohesive slump of dessert jelly.
-              const backPressure = Math.max(0,1-h/(k+0.015));
-              flux -= k * this.areas[b] * Math.min(0.14, step * this.flowSpeed * (this.density/1000) * Math.min(4,(k / 0.05) ** 2) / (this.dy*COHESIVE_FLOW_RESISTANCE)) * backPressure;
-              // Positive flux would lift mass from the lower row to the upper
-              // row. After impact only sideways wetting and descent remain.
-              flux = Math.min(0,flux);
+              // Advect each cohesive column at one thickness-dependent speed.
+              // Cell-local back-pressure used to leave the upper gel behind
+              // while filling every dry row below it, producing square tails.
+              const depth = columnDepth[x];
+              flux = -k * this.areas[b] * Math.min(0.14, step * this.flowSpeed * (this.density/1000) * Math.min(4,(depth / 0.05) ** 2) / (this.dy*COHESIVE_FLOW_RESISTANCE));
             }
             const donor = flux > 0 ? a : b;
             const amount = Math.min(Math.abs(flux), this.heights[donor] * this.areas[donor] * 0.18);

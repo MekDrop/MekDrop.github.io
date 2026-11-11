@@ -146,13 +146,22 @@ export class LatchSurface {
     const world = this.splash.entity.getWorldTransform();
     const start = world.transformPoint(new pc.Vec3(x,y,0.9*this.normalSign));
     const end = world.transformPoint(new pc.Vec3(x,y,-0.3*this.normalSign));
+    const outward = world.transformVector(new pc.Vec3(0, 0, this.normalSign)).normalize();
     const hits = this.owner.app.systems?.rigidbody?.raycastAll?.(start,end) ?? [];
     let nearest = null, distance = Infinity;
     for (const hit of hits) {
-      if (hit.entity.rigidbody?.type === "dynamic" || !hit.point) {
+      // This field represents outward-facing wall surfaces. Floor contacts
+      // and perpendicular jamb sides cannot be projected into it: a grazing
+      // ray can report the floor at its origin and create a long gel fin.
+      if (hit.entity.rigidbody?.type === "dynamic" || !hit.point || !hit.normal || hit.normal.dot(outward) < 0.5) {
         continue;
       }
       const d = hit.point.distance(start);
+      // Bullet can report an initial overlap at the ray origin with a normal
+      // opposing the ray. It is not a measured outward-facing wall surface.
+      if (d < 0.005 || hit.hitFraction === 0) {
+        continue;
+      }
       if (d < distance) {
         nearest = hit.point;
         distance = d;
@@ -357,8 +366,13 @@ export class LatchSurface {
    * @param {number} volume Remaining deposited volume, never the initial refill.
    */
   #startFilm(positions, volume) {
+    // An early handoff means the body-to-splat interpolation has folded.
+    // Its still-offset projection can leave a narrow surviving slice on the
+    // leaf; conserving the entire deposit there creates a rectangular slab.
+    // Seed the contact-centred outline even when that slice is not empty.
+    const footprint = this.age < IMPACT_TRANSITION_SECONDS && this.initial ? this.initial : positions;
     this.film = new LatchDoorFilm({
-      positions,
+      positions: footprint,
       indices: this.indices,
       field: this.field,
       floor: this.floor,

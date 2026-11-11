@@ -171,3 +171,58 @@ it("keeps the contact-centred patch when a folded impact projects outside the le
   assert.ok(surface.renderIndices.length > 0);
   assert.ok(surface.film.minX < 0, "fallback uses the actual impact footprint, not the airborne body's off-door projection");
 });
+
+it("keeps the contact footprint when a folding body's projection only partly overlaps the leaf", () => {
+  const surface = fixture();
+  surface.filmEnabled = true;
+  surface.floor = -2;
+  surface.start = Float32Array.from(surface.basis, (value, index) => index % 3 === 0 ? value + 1 : index % 3 === 2 ? 0.25 - value : value);
+  surface.field.contains = (x, y) => Math.abs(x) < 0.6 && Math.abs(y) < 0.6;
+  surface.initialVolume = 0.1;
+  surface.sourceVolume = 0.04;
+  surface.age = 0.088;
+  surface.update(0.001);
+  assert.ok(surface.film);
+  assert.ok(surface.film.minX < -1,
+    "a surviving off-centre slice must not replace the full contact-centred outline");
+  assert.ok(Math.abs(surface.sourceVolume - 0.04) < 1e-8);
+});
+
+it("masonry wetting rejects grazing floor hits and perpendicular jamb sides", () => {
+  const surface = fixture();
+  surface.original.node = new pc.Entity();
+  surface.original.mesh.morph = { targets: [] };
+  surface.owner.getImpactMeshes = () => [];
+  surface.splash.variation = { profile: { node: "outline" } };
+  surface.splash.model.findByName = () => ({ render: { meshInstances: [surface.original] } });
+  const ground = {
+    entity: { rigidbody: { type: "static" } },
+    point: new pc.Vec3(0, 0, 0.8),
+    normal: new pc.Vec3(0, 1, 0),
+  };
+  const jamb = {
+    entity: { rigidbody: { type: "static" } },
+    point: new pc.Vec3(0, 0, 0.6),
+    normal: new pc.Vec3(1, 0, 0),
+  };
+  const wall = {
+    entity: { rigidbody: { type: "static" } },
+    point: new pc.Vec3(0, 0, 0.1),
+    normal: new pc.Vec3(0, 0, 1),
+  };
+  const overlap = {
+    entity: { rigidbody: { type: "static" } },
+    point: new pc.Vec3(0, 0, 0.9),
+    normal: new pc.Vec3(0, 0, 1),
+    hitFraction: 0,
+  };
+  let hits = [overlap, ground, jamb, wall];
+  surface.owner.app.systems = { rigidbody: { raycastAll: () => hits } };
+  surface.bind({
+    entity: new pc.Entity(),
+    getSurfaceMeshInstances: () => [surface.original],
+  }, -1);
+  assert.ok(Math.abs(surface.field.support(0, 0) - 0.103) < 1e-6);
+  hits = [overlap, ground, jamb];
+  assert.equal(surface.field.support(0, 0), null);
+});
