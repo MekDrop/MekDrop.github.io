@@ -4,35 +4,16 @@ uniform vec3 uStairEdge;
 uniform vec3 uStairDirection;
 uniform vec2 uStairLevels;
 uniform float uStairWeight;
-uniform float uStairFlow;
-uniform vec4 uStairSpan;
-uniform vec2 uStairBodyLine;
-uniform vec2 uStairRuns;
-uniform mat4 uStairWorldToBind;
-uniform vec2 uStairBindSpan;
+uniform float uStairRootHeight;
 vec3 stairOriginalPosition;
-vec3 stairReferencePosition;
 vec3 latchStairSurface(vec3 p) {
     if (uStairWeight <= 0.0) return p;
-    vec3 reference = stairReferencePosition + p - stairOriginalPosition;
-    vec3 local = (uStairWorldToBind * vec4(reference, 1.0)).xyz;
-    vec2 v = vec2(dot(reference - uStairEdge, uStairDirection), reference.y);
-    float t = clamp((uStairBindSpan.x - local.z) / max(0.05, uStairBindSpan.x - uStairBindSpan.y), 0.0, 1.0);
-    t = clamp(t + uStairFlow * sin(t * 3.14159265), 0.0, 1.0);
-    float arc = clamp(mix(uStairSpan.x, uStairSpan.y, t), -uStairRuns.x, uStairLevels.y-uStairLevels.x+uStairRuns.y);
+    // A vertical shear bends the authored body with determinant one.
+    float along = dot(p - uStairEdge, uStairDirection);
     float rise = uStairLevels.y - uStairLevels.x;
-    vec2 q;
-    vec2 n = vec2(0.0, 1.0);
-    if (arc < 0.0) { q = vec2(arc, uStairLevels.x); }
-    else if (arc < rise) { q = vec2(0.0, uStairLevels.x + arc); n = vec2(-1.0, 0.0); }
-    else { q = vec2(arc - rise, uStairLevels.y); }
     float radius = min(0.08, rise * 0.3);
-    float angle = 1.5707963 * (smoothstep(-radius, radius, arc) - smoothstep(rise - radius, rise + radius, arc));
-    n = vec2(-sin(angle), cos(angle));
-    float depth = max(0.008, local.y * 0.55);
-    vec2 attached = q + n * depth;
-    vec3 result = reference + uStairDirection * (attached.x - v.x) + vec3(0.0, attached.y - reference.y, 0.0);
-    return mix(p, result, uStairWeight);
+    float support = mix(uStairLevels.x, uStairLevels.y, smoothstep(-radius, radius, along));
+    return p + vec3(0.0, (support - uStairRootHeight) * uStairWeight, 0.0);
 }
 vec3 latchStairNormal(vec3 normal) {
     if (uStairWeight <= 0.0) return normal;

@@ -13,6 +13,10 @@ export class BellBugCrowdMotion {
    */
   #passingSide = 0;
   /**
+   * @type {import("playcanvas").Vec3|null}
+   */
+  #passingTarget = null;
+  /**
    * @type {import("./BellBug.js").BellBug}
    */
   owner;
@@ -79,11 +83,19 @@ export class BellBugCrowdMotion {
     }
     const peerVelocity = blocker?.entity.rigidbody.linearVelocity;
     const following = peerVelocity && peerVelocity.x * forwardX + peerVelocity.z * forwardZ > 0.15;
+    // Passing a higher peer on the stairs steers into the next riser or jamb.
+    // Queue until it clears, rather than alternating between a lift and a flank.
+    const stairQueue = blocker && (Math.abs(blocker.position.y - b.position.y) > 0.08 ||
+      b.stepSupport?.pendingHeight != null);
+    if (stairQueue) {
+      this.#passingTarget = null;
+      this.#passingSide = 0;
+    }
     if (allowed < speed * 0.8 && !following) {
       this.#blockedAge += b.deltaTime ?? 1 / 60;
       // Local passing must stay within the authored path, including when
       // close route waypoints bypass the shared lane planner.
-      if (this.#blockedAge >= 0.45) {
+      if (this.#blockedAge >= 0.45 && !stairQueue) {
         const passing = this.#passingVelocity(forwardX, forwardZ, speed, neighbours);
         if (passing) {
           body.linearVelocity = passing;
@@ -94,6 +106,7 @@ export class BellBugCrowdMotion {
     } else {
       this.#blockedAge = 0;
       this.#passingSide = 0;
+      this.#passingTarget = null;
     }
     body.linearVelocity = new b.pc.Vec3(forwardX * allowed, velocity.y, forwardZ * allowed);
 
@@ -141,6 +154,15 @@ export class BellBugCrowdMotion {
    */
   #passingVelocity(forwardX, forwardZ, speed, neighbours) {
     const b = this.owner;
+    if (this.#passingTarget) {
+      const delta = this.#passingTarget.clone().sub(b.position);
+      delta.y = 0;
+      const distance = delta.length();
+      if (distance > 0.1 && this.#clearPassingDirection(delta.x / distance, delta.z / distance, neighbours, Math.min(0.7, distance))) {
+        return new b.pc.Vec3(delta.x * speed * 0.7 / distance, b.entity.rigidbody.linearVelocity.y, delta.z * speed * 0.7 / distance);
+      }
+      this.#passingTarget = null;
+    }
     const sides = this.#passingSide ? [this.#passingSide, -this.#passingSide] : [1, -1];
     for (const side of sides) {
       for (const degrees of this.#onPath() ? [30, 60, 90] : [30, 60, 90, 120]) {
@@ -149,6 +171,7 @@ export class BellBugCrowdMotion {
         const dz = forwardX * Math.sin(angle) + forwardZ * Math.cos(angle);
         if (this.#clearPassingDirection(dx, dz, neighbours)) {
           this.#passingSide = side;
+          this.#passingTarget = b.position.clone().add(new b.pc.Vec3(dx * 0.7, 0, dz * 0.7));
 
           return new b.pc.Vec3(dx * speed * 0.7, b.entity.rigidbody.linearVelocity.y, dz * speed * 0.7);
         }
@@ -162,12 +185,13 @@ export class BellBugCrowdMotion {
    * @param {number} dx
    * @param {number} dz
    * @param {Array<{position:import("playcanvas").Vec3,clearance:number}>} neighbours
+   * @param {number} reach
    * @returns {boolean}
    */
-  #clearPassingDirection(dx, dz, neighbours) {
+  #clearPassingDirection(dx, dz, neighbours, reach = 0.7) {
     const b = this.owner, origin = b.position;
     const onPath = this.#onPath();
-    for (const distance of [0.35, 0.7]) {
+    for (const distance of [Math.min(0.35, reach), reach]) {
       const x = origin.x + dx * distance, z = origin.z + dz * distance;
       if (onPath && !this.#onPath(x, z)) {
         return false;
@@ -183,15 +207,23 @@ export class BellBugCrowdMotion {
           return false;
         }
       }
-      if (b.stepSupport && !b.stepSupport.surface(x, z, origin.y + 0.32, origin.y - 0.35)) {
-        return false;
+      if (b.stepSupport) {
+        const radius = Math.max(b.radius ?? 0, BellBugCalibration.spacingRadius);
+        for (const offset of [-radius, 0, radius]) {
+          if (!b.stepSupport.surface(x - dz * offset, z + dx * offset, origin.y + 0.32, origin.y - 0.35)) {
+            return false;
+          }
+          if (offset && !b.stepSupport.surface(x + dx * offset, z + dz * offset, origin.y + 0.32, origin.y - 0.35)) {
+            return false;
+          }
+        }
       }
     }
     const physics = b.app?.systems?.rigidbody;
     if (physics?.raycastAll) {
       for (const side of [-b.radius, 0, b.radius]) {
         const start = new b.pc.Vec3(origin.x - dz * side, origin.y + 0.36, origin.z + dx * side);
-        const end = start.clone().add(new b.pc.Vec3(dx * 0.7, 0, dz * 0.7));
+        const end = start.clone().add(new b.pc.Vec3(dx * reach, 0, dz * reach));
         const hits = physics.raycastAll(start, end);
         for (const hit of hits) {
           if (hit.entity !== b.entity && !hit.entity.isDescendantOf?.(b.entity) &&

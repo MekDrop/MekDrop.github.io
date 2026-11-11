@@ -17,6 +17,22 @@ export function gelVolume(positions, indices) {
 }
 
 /**
+ * Volume of the captured body, independent of the chosen splat topology.
+ * @param {number[][]} triangles
+ * @returns {number}
+ */
+export function impactVolume(triangles) {
+  let volume = 0;
+  for (const p of triangles) {
+    volume += p[0] * (p[4] * p[8] - p[5] * p[7])
+      + p[1] * (p[5] * p[6] - p[3] * p[8])
+      + p[2] * (p[3] * p[7] - p[4] * p[6]);
+  }
+
+  return Math.abs(volume / 6);
+}
+
+/**
  * Snapshot the actual skinned pose, in the impact frame. The transition starts
  * here, rather than spawning a flattened replacement at the wall.
  * @param {typeof import("playcanvas")} pc

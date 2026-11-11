@@ -3,9 +3,11 @@ import { LatchGelScrape } from "./LatchGelScrape.js";
 import { LatchGelUnion } from "./LatchGelUnion.js";
 import { LatchDoorSurface } from "./LatchDoorSurface.js";
 import { LatchFootprint } from "./LatchFootprint.js";
-import { bodyToGel, gelVolume, impactTriangles } from "./LatchImpactShape.js";
+import { bodyToGel, gelVolume, impactTriangles, impactVolume } from "./LatchImpactShape.js";
 
 const DEPOSIT_VOLUME_FRACTION = 0.35;
+const MAX_TRANSITION_VOLUME_GAIN = 4;
+const IMPACT_TRANSITION_SECONDS = 0.18;
 
 /**
  * Continuous visual deformation of authored geometry. Ammo still owns contact
@@ -109,7 +111,9 @@ export class LatchSurface {
     }
     const started = performance.now();
     this.start = bodyToGel(initial, triangles);
-    this.sourceVolume = Math.abs(gelVolume(this.start, this.indices))*DEPOSIT_VOLUME_FRACTION;
+    // Resampling into different outlines changes signed mesh volume. The
+    // deposit comes from the same captured body, not that presentation mesh.
+    this.sourceVolume = impactVolume(triangles) * DEPOSIT_VOLUME_FRACTION;
     this.initialVolume = this.sourceVolume;
     this.metrics = {
       triangles: this.field.triangles,
@@ -176,7 +180,7 @@ export class LatchSurface {
     const remainingVolume = this.sourceVolume;
     this.sourceVolume = this.initialVolume;
     this.age += dt;
-    const progress = Math.min(1, this.age / 0.38);
+    const progress = Math.min(1, this.age / IMPACT_TRANSITION_SECONDS);
     const blend = progress * progress * (3 - 2 * progress);
     const point = new pc.Vec3();
     const weights = [];
@@ -202,9 +206,19 @@ export class LatchSurface {
     // A surface displacement is a shear. Compensate the extra area/compression
     // from routing around metal lips with thickness, including during impact.
     const raw = gelVolume(this.positions, this.indices), zero = gelVolume(this.base, this.indices);
-    const thickness = Math.abs(raw - zero) > 1e-9 ? this.initialVolume / Math.abs(raw - zero) : 1;
+    const fluidVolume = Math.abs(raw - zero);
+    const thickness = fluidVolume > 1e-9 ? this.initialVolume / fluidVolume : Infinity;
+    // Interpolating the posed body into the door topology can temporarily fold
+    // triangles through one another. Their signed volumes then cancel; scaling
+    // that nearly-zero result creates a long spike before film handoff.
+    if (this.#needsFilm(thickness)) {
+      this.#startFilm(this.positions, remainingVolume);
+
+      return;
+    }
+    const correction = Number.isFinite(thickness) ? thickness : 1;
     for (let i = 2; i < this.positions.length; i += 3) {
-      this.positions[i] = this.base[i] + (this.positions[i] - this.base[i]) * thickness;
+      this.positions[i] = this.base[i] + (this.positions[i] - this.base[i]) * correction;
     }
     const conservedVolume = Math.abs(gelVolume(this.positions, this.indices) - gelVolume(this.base, this.indices));
     this.metrics.maxRelativeVolumeError = Math.max(this.metrics.maxRelativeVolumeError, Math.abs(conservedVolume / this.initialVolume - 1));
@@ -232,6 +246,11 @@ export class LatchSurface {
     const redistributing = this.scrape?.changed && dt > 0 && highest > floor + 0.1;
     const retained = redistributing ? remainingVolume : Math.min(Math.abs(clipped - clippedBase), remainingVolume);
     const retainedThickness = Math.abs(clipped - clippedBase) > 1e-9 ? retained / Math.abs(clipped - clippedBase) : 1;
+    if (this.#needsFilm(retainedThickness)) {
+      this.#startFilm(this.positions, retained);
+
+      return;
+    }
     for (let i = 2; i < this.positions.length; i += 3) {
       this.positions[i] = this.base[i] + (this.positions[i] - this.base[i]) * retainedThickness;
     }
@@ -254,6 +273,11 @@ export class LatchSurface {
         this.base.set(previousBase);
       }
       const correction = valid ? beforeRipple / fluid : 1;
+      if (this.#needsFilm(correction)) {
+        this.#startFilm(previousPositions, Math.min(beforeRipple, remainingVolume));
+
+        return;
+      }
       for (let i = 2; i < this.positions.length; i += 3) {
         this.positions[i] = this.base[i] + (this.positions[i] - this.base[i]) * correction;
       }
@@ -270,19 +294,12 @@ export class LatchSurface {
     for (let i = 2; i < this.positions.length; i += 3) {
       this.positions[i] *= this.normalSign;
     }
-    if (this.age >= 0.38 && this.filmEnabled !== false) {
+    if (this.age >= IMPACT_TRANSITION_SECONDS && this.filmEnabled !== false) {
       const unsigned = this.positions.slice();
       for (let i = 2; i < unsigned.length; i += 3) {
         unsigned[i] *= this.normalSign;
       }
-      this.film = new LatchDoorFilm({
-        positions: unsigned,
-        indices: this.indices,
-        field: this.field,
-        floor: this.floor,
-        volume: this.sourceVolume,
-      });
-      this.#showFilm();
+      this.#startFilm(unsigned, this.sourceVolume);
 
       return;
     }
@@ -313,6 +330,53 @@ export class LatchSurface {
       this.owner.finishSplatTransition();
       this.entity.enabled = true;
     }
+  }
+
+  /**
+   * @param {number} gain
+   * @returns {boolean}
+   */
+  #needsFilm(gain) {
+    if (this.filmEnabled === false) {
+      return false;
+    }
+    if (!Number.isFinite(gain) || gain > MAX_TRANSITION_VOLUME_GAIN) {
+      return true;
+    }
+    let limit = 0.12, peak = 0;
+    for (let i = 2; i < this.start.length; i += 3) {
+      limit = Math.max(limit, Math.abs(this.start[i]));
+      peak = Math.max(peak, Math.abs(this.positions[i] - this.base[i]) * gain);
+    }
+
+    return peak > limit + 1e-6;
+  }
+
+  /**
+   * @param {Float32Array} positions Positions with outward-positive depth.
+   * @param {number} volume Remaining deposited volume, never the initial refill.
+   */
+  #startFilm(positions, volume) {
+    this.film = new LatchDoorFilm({
+      positions,
+      indices: this.indices,
+      field: this.field,
+      floor: this.floor,
+      volume,
+    });
+    // A folded, still-airborne silhouette may project off the leaf or below
+    // its threshold. Retry the contact-centred authored footprint before
+    // treating an otherwise valid native door hit as fully drained.
+    if (volume > 0 && this.film.drained && this.initial) {
+      this.film = new LatchDoorFilm({
+        positions: this.initial,
+        indices: this.indices,
+        field: this.field,
+        floor: this.floor,
+        volume,
+      });
+    }
+    this.#showFilm();
   }
 
   /**
@@ -374,13 +438,45 @@ export class LatchSurface {
   }
 
   /**
+   * Closed gel geometry for merging; the visible skin omits the back faces.
+   * @returns {{positions:ArrayLike<number>,indices:number[]}}
+   */
+  get volumeGeometry() {
+    if (!this.film) {
+      return {
+        positions: this.positions,
+        indices: this.indices,
+      };
+    }
+    const count = this.film.count, indices = [];
+    for (let i = 0; i < this.film.renderIndices.length; i += 3) {
+      const a = this.film.renderIndices[i], b = this.film.renderIndices[i + 1], c = this.film.renderIndices[i + 2];
+      if (a >= count || b >= count || c >= count) {
+        continue;
+      }
+      // Close each visible triangle against its real back. Dry solver cells
+      // must not enter the union: different patches' dry support samples can
+      // otherwise become phantom gel bars around the whole solver rectangle.
+      indices.push(a, b, c, a + count, c + count, b + count,
+        a, a + count, b, b, a + count, b + count,
+        b, b + count, c, c, b + count, c + count,
+        c, c + count, a, a, c + count, a + count);
+    }
+
+    return {
+      positions: this.positions,
+      indices,
+    };
+  }
+
+  /**
    * Bottom-up front-skin points, preferring thickness within each reach band.
    * @param {import("playcanvas").Vec3} origin
    * @param {number} maxReach
    * @returns {(import("playcanvas").Vec3 & {gooThickness:number})[]}
    */
   scrapeCandidates(origin, maxReach) {
-    if (!this.positions || this.drained || this.age < 0.38) {
+    if (!this.positions || this.drained || this.age < IMPACT_TRANSITION_SECONDS) {
       return [];
     }
     const transform = this.splash.entity.getWorldTransform();

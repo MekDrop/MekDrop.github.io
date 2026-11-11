@@ -12,6 +12,7 @@ import { RoyalTears } from "./RoyalTears.js";
 import { NpcDoorAvoidance } from "../../shared/NpcDoorAvoidance.js";
 import { KingThroneIdle } from "./KingThroneIdle.js";
 import { KingCapePhysics } from "../../characters/royal/king/KingCapePhysics.js";
+import { KingSwordCollision } from "../../characters/royal/king/KingSwordCollision.js";
 
 const MODEL_URLS = Object.freeze([
   kingModelUrl,
@@ -128,6 +129,9 @@ export class SeatedRoyal {
     this.#resident = resident;
     this.#entity = resident?.entity ?? modelLibrary.instantiate(modelUrl);
     this.#model = resident?.model ?? this.#entity;
+    if (kind === "KING" && !resident) {
+      new KingSwordCollision(pc, this.#model);
+    }
     this.#entity.name = "Seated royal";
 
     const tracks = modelLibrary.getAnimationTracks(modelUrl, [

@@ -13,6 +13,27 @@ const patch = (x, y = 0) => {
   };
 };
 
+it("redistributes merged mass instead of amplifying a thin corner into a long spike", () => {
+  const shape = new BoxGeometry();
+  const positions = shape.positions.map((value, index) => {
+    if (index % 3 !== 2) {
+      return value;
+    }
+
+    return value > 0 ? 1e-8 + 0.005 * (shape.positions[index - 2] + 0.5) * (shape.positions[index - 1] + 0.5) : 0;
+  });
+  const union = new LatchCoverage([{
+    positions,
+    indices: shape.indices,
+    volume: 0.04,
+  }]);
+  const thicknesses = union.topIndices.map((top, index) => union.positions[top * 3 + 2] - union.positions[union.baseIndices[index] * 3 + 2]);
+
+  assert.ok(Math.abs(union.volume - 0.04) < 1e-8);
+  assert.ok(Math.max(...thicknesses) <= 0.12 + 1e-8);
+  assert.ok(union.positions.every(Number.isFinite));
+});
+
 it("merges the occupied area of both splats without shrinking either one into an older center", () => {
   const left = patch(-0.3), right = patch(0.3);
   const union = new LatchCoverage([left, right]);

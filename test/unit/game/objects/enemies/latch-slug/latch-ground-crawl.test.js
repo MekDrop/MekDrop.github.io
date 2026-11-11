@@ -48,7 +48,7 @@ it("drapes the belly across tread heights and restores the authored rig without 
   crawl.update(1 / 60);
 });
 
-it("reaches before lifting, holds three separate contacts, then pulls the rear onto the upper tread", () => {
+it("reaches before lifting and preserves the authored rig throughout stair transfer", () => {
   const app = new pc.EventHandler(), model = new pc.Entity(), body = new pc.Entity("body");
   model.addChild(body);
   body.setLocalPosition(0, 0.23, 0);
@@ -80,43 +80,26 @@ it("reaches before lifting, holds three separate contacts, then pulls the rear o
   assert.equal(crawl.speedLimit,.2,"the front reaches while the body continues gliding forward");
   assert.equal(crawl.targetHeight,0);
   assert.equal(crawl.lowerHeight,0,"the tread height is sampled rather than taken from the drifting capsule");
-  assert.ok(Math.abs(crawl.frontAnchor.clone().sub(crawl.edge).dot(crawl.direction)-.35)<1e-6);
-  assert.ok(Math.abs(crawl.edge.clone().sub(crawl.rearAnchor).dot(crawl.direction)-.35)<1e-6);
   crawl.update(.51);
   assert.equal(crawl.phase,"transfer");
-  crawl.apply();
-  const front = model.findByName("belly_front"), rear = model.findByName("belly_rear"), middle = model.findByName("belly_L");
-  assert.ok(Math.abs(front.getPosition().y-.43)<1e-5);
-  assert.ok(Math.abs(rear.getPosition().y-.18)<1e-5);
-  assert.ok(Math.abs(middle.getPosition().y-.305)<1e-5);
-  assert.ok(Math.abs(middle.getPosition().z+.32)<1e-5);
-  const pinnedFront = front.getPosition().clone();
-  crawl.restore();
-  owner.position.y=.125;
-  crawl.update(.3);
-  assert.equal(crawl.phase,"transfer","time alone cannot pull the rear off its lower contact");
-  crawl.apply();
-  assert.ok(front.getPosition().distance(pinnedFront)<1e-5,"front contact stays anchored as the capsule advances");
-  assert.ok(Math.abs(rear.getPosition().y-.18)<1e-5,"rear stays on the lower tread during transfer");
-  crawl.restore();
-  owner.position.set(0,.25,-.45);
-  crawl.update(.01);
-  assert.equal(crawl.phase,"pull");
-  crawl.update(.3);
-  crawl.apply();
-  assert.ok(rear.getPosition().y>.3);
-  crawl.restore();
-  crawl.update(.3);
-  assert.equal(crawl.phase,"settle");
-  crawl.apply();
-  assert.ok(Math.abs(rear.getPosition().y-.43)<1e-5);
-  assert.ok(rear.getPosition().z<-.32,"the gathered rear must clear the riser onto the upper tread");
-  crawl.restore();
-  owner.position.z=-.65;
+  const nodes = [body, ...body.children];
+  const positions = nodes.map(node => node.getLocalPosition().clone());
+  for (const height of [.02, .125, .25]) {
+    owner.position.y = height;
+    crawl.update(.3);
+    crawl.apply();
+    assert.equal(crawl.applied, false, "the shader bends the authored pose without scaling or relocating bones");
+    for (const [index, node] of nodes.entries()) {
+      assert.deepEqual(node.getLocalScale(), pc.Vec3.ONE);
+      assert.deepEqual(node.getLocalPosition(), positions[index]);
+    }
+    crawl.restore();
+  }
+  crawl.update(.56);
+  assert.equal(crawl.phase, "settle");
   crawl.update(.23);
-  assert.equal(crawl.phase,"flat");
-  assert.equal(crawl.weight,0,"the old whole-body squash must not reappear between transfers");
-  assert.equal(front.getLocalPosition().y,-.01);
+  assert.equal(crawl.phase, "flat");
+  assert.equal(crawl.weight, 0);
   crawl.destroy();
 });
 

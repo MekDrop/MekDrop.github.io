@@ -10326,6 +10326,46 @@
         "y": 2.264,
         "z": 6.25
       }
+    },
+    {
+      "id": "latch-slug-stair-review",
+      "object": "LatchSlug",
+      "position": {
+        "x": -0.5,
+        "y": 2.264,
+        "z": 6.25
+      },
+      "testClip": "idle_dog"
+    },
+    {
+      "id": "latch-slug-stair-second",
+      "object": "LatchSlug",
+      "position": {
+        "x": 3,
+        "y": 2.264,
+        "z": 7
+      },
+      "testClip": "idle_dog"
+    },
+    {
+      "id": "bell-bug-stair-first",
+      "object": "BellBug",
+      "position": {
+        "x": 4,
+        "y": 2.264,
+        "z": 7
+      },
+      "inspection": true
+    },
+    {
+      "id": "bell-bug-stair-second",
+      "object": "BellBug",
+      "position": {
+        "x": 5,
+        "y": 2.264,
+        "z": 7
+      },
+      "inspection": true
     }
   ],
   "animationViewport": {
@@ -10360,6 +10400,26 @@
           {
             "label": "Upper corner",
             "script": "camera.setViewport({zoom:7,rotation:0,panX:-.5,panZ:3});const h=objects.getOne('hero');h.setMovement(0,0);h.teleport({x:-.69,y:3.764,z:3.4});h.setMovement(1,0);"
+          }
+        ]
+      },
+      {
+        "title": "Slime volume",
+        "x": 16,
+        "y": 140,
+        "statusTargetId": "latch-slug-stair-review",
+        "buttons": [
+          {
+            "label": "Slime climb",
+            "script": "map.latchStairReview?.off();const s=[...objects].find(o=>o.definition?.id==='latch-slug-stair-review');objects.getOne('hero').teleport({x:4,y:2.264,z:7});s.testPlayClip('waddle_walk');s.entity.rigidbody.teleport(-.5,2.264,6.25);const door=objects.getAll('castle')[0].entranceDoors[0];let age=0;const handle=s.app.on('update',dt=>{age+=dt;if(age<35&&s.approachDoor(door))return;s.stop();handle.off();});s.entity.once('destroy',()=>handle.off());map.latchStairReview=handle;camera.setViewport({zoom:7,rotation:0,panX:-.5,panZ:4.5});"
+          },
+          {
+            "label": "Stop slime",
+            "script": "map.latchStairReview?.off();const s=[...objects].find(o=>o.definition?.id==='latch-slug-stair-review');s.stop();"
+          },
+          {
+            "label": "Two splats, then Bell Bugs",
+            "script": "map.doorSequence?.off();objects.getOne('hero').teleport({x:4,y:2.264,z:9});const all=[...objects],a=all.find(o=>o.definition?.id==='latch-slug-stair-review'),b=all.find(o=>o.definition?.id==='latch-slug-stair-second'),u=all.find(o=>o.definition?.id==='bell-bug-stair-first'),v=all.find(o=>o.definition?.id==='bell-bug-stair-second'),door=objects.getAll('castle')[0].entranceDoors[0];if(!a.alive||!b.alive){window.location.reload();return;}const begin=(s,x)=>{s.testPlayClip('waddle_walk');s.entity.rigidbody.teleport(x,2.264,6.25);};begin(a,-.35);let stage=0,age=0;const handle=a.app.on('update',dt=>{age+=dt;const s=stage===0?a:b;if(stage<2){if(!s.alive){stage++;if(stage===1)begin(b,.35);else{u.entity.rigidbody.teleport(-.35,2.264,6.25);v.entity.rigidbody.teleport(.35,2.264,7.3);u.resolveRoyalTarget=()=>door;v.resolveRoyalTarget=()=>door;u.transition('BellBugPursueState');v.transition('BellBugPursueState');}return;}if(s.stateName==='LatchClipState'&&!s.approachDoor(door)){s.doorTarget=door;s.behavior.changeTo('LatchPressState');}}if(age>75)handle.off();});a.entity.once('destroy',()=>handle.off());map.doorSequence=handle;camera.setViewport({zoom:6,rotation:0,panX:0,panZ:4.5});"
           }
         ]
       }

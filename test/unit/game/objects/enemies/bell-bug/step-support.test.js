@@ -7,7 +7,7 @@ function fixture({ height = 0.3, blocked = false, ceiling = false, type = 'stati
   const entity = new Entity('bug');
   const ground = new Entity('tread');
   ground.rigidbody = { type };
-  const calls = [];
+  const calls = [], forces = [];
   const bug = {
     pc: { Vec3 },
     entity,
@@ -39,6 +39,8 @@ function fixture({ height = 0.3, blocked = false, ceiling = false, type = 'stati
   };
   entity.rigidbody = {
     linearVelocity: new Vec3(0, -0.1, -1),
+    mass: 5,
+    applyForce: (...force) => forces.push(force),
     teleport: p => {
       calls.push(p.clone()); entity.setPosition(p);
     },
@@ -47,31 +49,62 @@ function fixture({ height = 0.3, blocked = false, ceiling = false, type = 'stati
   return {
     bug,
     calls,
+    forces,
     support: new BellBugStepSupport(bug),
   };
 }
 
-test('a reachable tread lifts the capsule while retaining horizontal velocity', () => {
-  const { bug, support, calls } = fixture();
+test('a reachable tread uses a continuous native motor while retaining horizontal velocity', () => {
+  const { bug, support, calls, forces } = fixture();
   support.advance(new Vec3(0, 0, -1));
-  assert.equal(calls.length, 1);
-  assert.ok(Math.abs(bug.position.y - 0.304) < 1e-6);
-  assert.deepEqual(bug.entity.rigidbody.linearVelocity, new Vec3(0, 0, -1));
+  assert.equal(calls.length, 0);
+  assert.equal(bug.position.y, 0);
+  assert.deepEqual(bug.entity.rigidbody.linearVelocity, new Vec3(0, 0.8, -1));
+  assert.deepEqual(forces, [[0, 49.050000000000004, 0]]);
 });
 
 test('settling just below the authored stair base still permits an ordinary riser', () => {
   const { bug, support, calls } = fixture();
   bug.entity.setPosition(0, -0.01, 0);
   support.advance(new Vec3(0, 0, -1));
-  assert.equal(calls.length, 1);
-  assert.ok(bug.position.y - (-0.01) <= 0.32);
+  assert.equal(calls.length, 0);
+  assert.ok(bug.entity.rigidbody.linearVelocity.y > 0);
+  assert.ok(support.pendingHeight - bug.position.y <= 0.32);
+});
+
+test('finishes one riser and holds its height until the capsule reaches real upper support', () => {
+  const { bug, support, calls, forces } = fixture();
+  support.advance(new Vec3(0, 0, -1));
+  bug.entity.setPosition(0, 0.15, 0);
+  bug.grounded = false;
+  support.advance(new Vec3(0, 0, -1));
+  assert.ok(Math.abs(support.pendingHeight - 0.304) < 1e-6);
+  assert.equal(bug.entity.rigidbody.linearVelocity.y, 0.8);
+  bug.entity.setPosition(0, 0.304, 0);
+  support.advance(new Vec3(0, 0, -1));
+  assert.ok(Math.abs(bug.entity.rigidbody.linearVelocity.y) < 1e-6);
+  assert.equal(forces.length, 3, 'native gravity compensation prevents falling between repeated step lifts');
+  bug.entity.setPosition(0, 0.304, -0.2);
+  support.advance(new Vec3(0, 0, -1));
+  assert.equal(support.pendingHeight, null);
+  assert.equal(forces.length, 3, 'real upper support ends the motor');
+  assert.equal(calls.length, 0);
+});
+
+test('turning away abandons the pending riser instead of hovering beside it', () => {
+  const { support, forces } = fixture();
+  support.advance(new Vec3(0, 0, -1));
+  support.advance(new Vec3(0, 0, 1));
+  assert.equal(support.pendingHeight, null);
+  assert.equal(forces.length, 1);
 });
 
 test('walls, ceilings, tall risers and moving objects cannot become automatic steps', () => {
   for (const options of [{ blocked: true }, { ceiling: true }, { height: 0.5 }, { type: 'dynamic' }]) {
-    const { support, calls } = fixture(options);
+    const { support, calls, forces } = fixture(options);
     support.advance(new Vec3(0, 0, -1));
     assert.equal(calls.length, 0, JSON.stringify(options));
+    assert.equal(forces.length, 0, JSON.stringify(options));
   }
 });
 
@@ -90,4 +123,14 @@ test('falling, thrown, carried and stunned bugs never receive a step lift', () =
     support.advance(new Vec3(0, 0, -1));
     assert.equal(calls.length, 0, state);
   }
+});
+
+test('a diagonal approach probes beyond the riser already touching the capsule', () => {
+  const {bug,support,forces,calls} = fixture();
+  bug.entity.setPosition(0,0,.32);
+  support.advance(new Vec3(1,0,-1));
+  assert.ok(Math.abs(support.pendingHeight - .304) < 1e-6);
+  assert.equal(forces.length,1);
+  assert.equal(calls.length,0);
+  assert.ok(bug.entity.rigidbody.linearVelocity.y > 0);
 });

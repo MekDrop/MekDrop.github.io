@@ -43,8 +43,6 @@ it('binds the complete skin to the lower-riser-upper contact path and restores m
     };
   });
   const originals = instances.map(i=>i.material);
-  const front = new pc.Entity(),rear = new pc.Entity();
-  front.setPosition(.3,.43,0);rear.setPosition(-.4,.18,0);
   const crawl = {
     active:false,
     phase:'flat',
@@ -53,9 +51,6 @@ it('binds the complete skin to the lower-riser-upper contact path and restores m
     direction:new pc.Vec3(1,0,0),
     lowerHeight:0,
     upperHeight:.25,
-    rearAnchor:new pc.Vec3(-.4,.18,0),
-    frontAnchor:new pc.Vec3(.3,.43,0),
-    belly:[front,rear],
   };
   const owner = {
     pc,
@@ -70,29 +65,18 @@ it('binds the complete skin to the lower-riser-upper contact path and restores m
     assert.equal(instance.material.opacity,originals[index].opacity);
     assert.equal(instance.parameters.get('uStairWeight'),1);
     assert.deepEqual(instance.parameters.get('uStairLevels'),[0,.25]);
-    for (const [i,value] of instance.parameters.get('uStairSpan').entries()) {
-      assert.ok(Math.abs(value-[-.4,.55,-.4,.3][i])<1e-6);
-    }
+    assert.equal(instance.parameters.get('uStairRootHeight'), 0);
     assert.ok(instance.bounds.halfExtents.x>instance.mesh.aabb.halfExtents.x);
     for(const language of [pc.SHADERLANGUAGE_GLSL,pc.SHADERLANGUAGE_WGSL]){
       assert.match(instance.material.getShaderChunks(language).get('transformVS'),/latchStairSurface/);
       assert.match(instance.material.getShaderChunks(language).get('normalVS'),/latchStairNormal/);
     }
   }
-  const bindSpan = [...instances[0].parameters.get('uStairBindSpan')];
-  owner.position=new pc.Vec3(0,.125,0);
+  owner.position = new pc.Vec3(0, .125, 0);
   surface.update();
-  assert.ok(instances[0].parameters.get('uStairFlow')>0,"gel flows forward while the front and rear contacts remain planted");
-  assert.ok(instances[0].parameters.get('uStairFlow')<=.16);
-  const contactSpan = instances[0].parameters.get('uStairSpan').slice(0,2);
-  front.setPosition(.1,.8,0);rear.setPosition(-.7,.05,0);
-  surface.update();
-  assert.deepEqual(instances[0].parameters.get('uStairBindSpan'),bindSpan,"authored body proportions remain fixed as animated bones move");
-  assert.deepEqual(instances[0].parameters.get('uStairSpan').slice(0,2),contactSpan,"animated bones cannot change the size of a transfer");
-  crawl.phase='pull';crawl.phaseAge=.55;surface.update();
-  for(const instance of instances){
-    assert.ok(instance.parameters.get('uStairSpan')[0]>=.25,'gathered body has no lower-tread segment');
-  }
+  assert.equal(instances[0].parameters.get('uStairRootHeight'), .125);
+  crawl.phase = 'settle';crawl.phaseAge = .11;surface.update();
+  assert.ok(Math.abs(instances[0].parameters.get('uStairWeight') - .5) < 1e-6);
   crawl.active=false;surface.update();
   for(const instance of instances){
     assert.equal(instance.parameters.get('uStairWeight'),0);assert.equal(instance.bounds,null);

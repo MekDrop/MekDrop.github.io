@@ -3,7 +3,7 @@ import { it } from "node:test";
 import * as pc from "playcanvas";
 import { LatchSurface } from "../../../../../../src/game/objects/enemies/latch-slug/LatchSurface.js";
 
-it("loses only gel that crosses the floor, never refills drained volume, and finishes only below the threshold", () => {
+function fixture() {
   class Entity extends pc.Entity {
     addComponent(type, data) {
       this[type] = data;
@@ -14,6 +14,7 @@ it("loses only gel that crosses the floor, never refills drained volume, and fin
     setIndices() {}
     setNormals() {}
     update() {}
+    clear() {}
   }
   class MeshInstance {
     constructor(mesh, material) {
@@ -68,6 +69,12 @@ it("loses only gel that crosses the floor, never refills drained volume, and fin
       frames: 0,
     },
   });
+
+  return surface;
+}
+
+it("loses only gel that crosses the floor, never refills drained volume, and finishes only below the threshold", () => {
+  const surface = fixture();
   surface.update(0.1);
   assert.ok(Math.abs(surface.sourceVolume - 0.5) < 1e-6);
   assert.equal(surface.drained, false);
@@ -82,4 +89,85 @@ it("loses only gel that crosses the floor, never refills drained volume, and fin
   surface.update(0.1);
   assert.equal(surface.drained, true);
   assert.ok(surface.sourceVolume < 1e-9);
+});
+
+it("measures every outline's deposit from the same body and keeps it visibly wet", () => {
+  const bodyShape = new pc.BoxGeometry();
+  const body = {
+    node: new pc.Entity(),
+    mesh: {
+      getPositions: out => out.push(...bodyShape.positions),
+      getIndices: out => out.push(...bodyShape.indices),
+      getVertexStream: () => {},
+    },
+  };
+  for (const width of [0.6, 0.85, 1.2]) {
+    const surface = fixture();
+    surface.filmEnabled = true;
+    const shape = new pc.BoxGeometry();
+    const positions = shape.positions.map((value, index) => index % 3 === 0 ? value * width : index % 3 === 2 ? value * 0.1 : value);
+    const outline = {
+      node: new pc.Entity(),
+      mesh: {
+        getPositions: out => out.push(...positions),
+        getIndices: out => out.push(...shape.indices),
+        morph: { targets: [] },
+      },
+    };
+    surface.owner.getImpactMeshes = () => [body];
+    surface.splash.variation = { profile: { node: "outline" } };
+    surface.splash.model.findByName = () => ({ render: { meshInstances: [outline] } });
+    const frame = new pc.Entity();
+    frame.setPosition(0, -2, 0);
+    surface.bind({
+      entity: frame,
+      getSurfaceMeshInstances: () => [outline],
+    }, -1);
+    surface.update(0.2);
+
+    assert.ok(Math.abs(surface.initialVolume - 0.35) < 1e-8, "outline choice cannot change the captured body's deposited mass");
+    assert.ok(surface.renderIndices.length > 0, "a live deposit must produce visible triangles");
+    assert.ok(surface.sourceVolume > 0);
+  }
+});
+
+it("hands a folding impact to bounded film before signed-volume cancellation creates a spike", () => {
+  for (const normalSign of [-1, 1]) {
+    for (const age of [0.088, 0.089]) {
+      const surface = fixture();
+      surface.filmEnabled = true;
+      surface.floor = -2;
+      surface.normalSign = normalSign;
+      surface.start = Float32Array.from(surface.basis, (value, index) => index % 3 === 2 ? 0.25 - value : value);
+      surface.transform.setScale(1, 1, normalSign);
+      surface.initialVolume = 0.1;
+      surface.sourceVolume = 0.04;
+      surface.age = age;
+
+      surface.update(0.001);
+
+      assert.ok(surface.film, "nearly cancelling geometry must not receive an unbounded depth correction");
+      assert.ok(Math.abs(surface.sourceVolume - 0.04) < 1e-8, "the handoff retains only the remaining mass");
+      assert.ok(Math.max(...surface.film.heights) <= 0.12 + 1e-8);
+      assert.ok(surface.positions.every(Number.isFinite));
+      assert.equal(surface.drained, false);
+    }
+  }
+});
+
+it("keeps the contact-centred patch when a folded impact projects outside the leaf", () => {
+  const surface = fixture();
+  surface.filmEnabled = true;
+  surface.floor = -2;
+  surface.start = Float32Array.from(surface.basis, (value, index) => index % 3 === 0 ? value + 6 : index % 3 === 2 ? .25 - value : value);
+  surface.field.contains = (x, y) => Math.abs(x) < .6 && Math.abs(y) < .6;
+  surface.initialVolume = .1;
+  surface.sourceVolume = .04;
+  surface.age = .088;
+  surface.update(.001);
+  assert.ok(surface.film);
+  assert.equal(surface.drained, false);
+  assert.ok(Math.abs(surface.sourceVolume - .04) < 1e-8);
+  assert.ok(surface.renderIndices.length > 0);
+  assert.ok(surface.film.minX < 0, "fallback uses the actual impact footprint, not the airborne body's off-door projection");
 });

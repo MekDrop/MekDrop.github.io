@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { it } from "node:test";
 import * as pc from "playcanvas";
 import { LatchSurface } from "../../../../../../src/game/objects/enemies/latch-slug/LatchSurface.js";
+import { gelVolume } from "../../../../../../src/game/objects/enemies/latch-slug/LatchImpactShape.js";
 
 it("retains all 32 splats through repeated group transfers and releases only the last group's resources", () => {
   class Entity extends pc.Entity {
@@ -34,6 +35,14 @@ it("retains all 32 splats through repeated group transfers and releases only the
     destroy: () => {},
   });
   const shape = new pc.BoxGeometry();
+  const front = [];
+  for (let i = 0; i < shape.indices.length; i += 3) {
+    const triangle = shape.indices.slice(i, i + 3);
+    const positive = index => shape.positions[index * 3 + 2] > 0;
+    if (triangle.every(positive)) {
+      front.push(...triangle);
+    }
+  }
   const original = {
     mesh: {
       getPositions: out => out.push(...shape.positions),
@@ -68,6 +77,7 @@ it("retains all 32 splats through repeated group transfers and releases only the
       normalSign: 1,
       positions: shape.positions.map((v, i) => i % 3 === 2 ? v * 0.08 + 0.1 : v * 0.8),
       indices: shape.indices,
+      renderIndices: front,
       sourceVolume: 0.0512,
       age: 0.02,
     });
@@ -80,6 +90,10 @@ it("retains all 32 splats through repeated group transfers and releases only the
   fresh.age = 0.02;
   assert.equal(old.touches(fresh), true, "first wet contact must merge before flattening can pull the outlines apart");
   old.merge(fresh);
+  app.fire("prerender");
+  const merged = fresh.visibleEntity.render.meshInstances[0].mesh;
+  assert.ok(Math.min(...merged.positions.filter((value, index) => index % 3 === 2)) < 0.061, "merging must retain the real gel back, not mistake the visible front for a solid");
+  assert.ok(Math.abs(Math.abs(gelVolume(merged.positions, merged.indices)) - old.sourceVolume - fresh.sourceVolume) < 1e-6);
   const extra = Array.from({ length: 30 }, (_, index) => create((index % 7 - 3) * 0.12));
   const joined = [old, fresh];
   for (const surface of extra) {

@@ -113,15 +113,16 @@ export class LatchGelUnion {
     let scraped = false;
     for (const surface of this.members) {
       scraped ||= surface.hasScrapes;
+      const geometry = surface.volumeGeometry;
       const transform = new pc.Mat4().mul2(inverse, surface.splash.entity.getWorldTransform());
-      const positions = new Float32Array(surface.positions.length);
+      const positions = new Float32Array(geometry.positions.length);
       for (let i = 0; i < positions.length; i += 3) {
-        transform.transformPoint(point.set(surface.positions[i], surface.positions[i + 1], surface.positions[i + 2]), point);
+        transform.transformPoint(point.set(geometry.positions[i], geometry.positions[i + 1], geometry.positions[i + 2]), point);
         positions.set([point.x, point.y, point.z * this.#normalSign], i);
       }
       patches.push({
         positions,
-        indices: surface.renderIndices ?? surface.indices,
+        indices: geometry.indices,
         volume: surface.sourceVolume,
       });
     }

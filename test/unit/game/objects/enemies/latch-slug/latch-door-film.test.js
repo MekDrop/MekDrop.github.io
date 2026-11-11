@@ -12,6 +12,42 @@ function film() {
   });
 }
 
+test("raised hardware between impact vertices cannot erase a fresh deposit", () => {
+  const f = new LatchDoorFilm({
+    positions: new Float32Array([-0.4, 0, 0.03, 0.4, 0, 0.03, 0.4, 0.7, 0.03, -0.4, 0.7, 0.03]),
+    indices: [0, 1, 2, 0, 2, 3],
+    field: { height: (x, y) => Math.abs(x) < 0.399 && y > 0.001 && y < 0.699 ? 0.3 : 0 },
+    floor: -1,
+    volume: 0.01,
+  });
+
+  assert.ok(Math.abs(f.volume - 0.01) < 1e-10);
+  assert.equal(f.drained, false);
+  assert.ok(f.renderIndices.length > 0);
+  f.update(1 / 60);
+  assert.ok(Math.abs(f.volume - 0.01) < 1e-10);
+  assert.equal(f.drained, false);
+});
+
+test("a nearly empty raster redistributes gel without amplifying one sample into a spike", () => {
+  const f = new LatchDoorFilm({
+    positions: new Float32Array([-0.4, 0, -0.1, 0.4, 0, -0.1, 0.4, 0.7, -0.1, -0.4, 0.7, 0.04]),
+    indices: [0, 1, 2, 0, 2, 3],
+    field: { height: () => 0 },
+    floor: -1,
+    volume: 0.04,
+  });
+
+  assert.ok(Math.abs(f.volume - 0.04) < 1e-10);
+  assert.ok(Math.max(...f.heights) <= 0.12 + 1e-10);
+  assert.ok(f.renderIndices.length > 0);
+  for (let frame = 0; frame < 60; frame++) {
+    f.update(1 / 60);
+  }
+  assert.ok(Math.abs(f.volume - 0.04) < 1e-10);
+  assert.ok(Math.max(...f.heights) < 0.13);
+});
+
 test("actual impact skin seeds a bounded single-valued film with exact mass", () => {
   const f = film();
   assert.ok(f.count <= 4096);

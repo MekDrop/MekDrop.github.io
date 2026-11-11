@@ -1,5 +1,7 @@
 import { gelVolume } from "./LatchImpactShape.js";
 
+const MIN_COVERAGE_THICKNESS = 0.000001;
+
 /**
  * Door-plane union of wet footprints, retaining each patch at its impact area.
  * This is a visual surface reconstruction; Ammo retains all collision ownership.
@@ -101,15 +103,53 @@ export class LatchCoverage {
       this.#connect();
     }
     this.#build();
-    const volume = Math.abs(gelVolume(this.positions, this.indices));
-    const scale = volume > 1e-10 ? wanted / volume : 1;
+    this.#conserveVolume(wanted);
+    this.volume = Math.abs(gelVolume(this.positions, this.indices));
+  }
+
+  /**
+   * Restore mass across the entire wet mesh, rather than magnifying one thin
+   * sample into a spike. Mesh volume is linear in these fixed-XY heights.
+   * @param {number} wanted
+   */
+  #conserveVolume(wanted) {
+    const heights = new Float64Array(this.topIndices.length);
     for (let i = 0; i < this.topIndices.length; i++) {
       const top = this.topIndices[i] * 3 + 2, base = this.baseIndices[i] * 3 + 2;
       if (top !== base) {
-        this.positions[top] = this.positions[base] + (this.positions[top] - this.positions[base]) * scale;
+        heights[i] = Math.max(0, this.positions[top] - this.positions[base]);
+        this.positions[top] = this.positions[base] + 1;
       }
     }
-    this.volume = Math.abs(gelVolume(this.positions, this.indices));
+    const area = Math.abs(gelVolume(this.positions, this.indices));
+    if (!Number.isFinite(area) || area <= 1e-10) {
+      for (let i = 0; i < this.topIndices.length; i++) {
+        const top = this.topIndices[i] * 3 + 2, base = this.baseIndices[i] * 3 + 2;
+        if (top !== base) {
+          this.positions[top] = this.positions[base] + heights[i];
+        }
+      }
+
+      return;
+    }
+    const ceiling = Math.max(0.12, wanted / area * 1.5);
+    for (let i = 0; i < this.topIndices.length; i++) {
+      const top = this.topIndices[i] * 3 + 2, base = this.baseIndices[i] * 3 + 2;
+      if (top !== base) {
+        heights[i] = Math.min(heights[i], ceiling);
+        this.positions[top] = this.positions[base] + heights[i];
+      }
+    }
+    const volume = Math.abs(gelVolume(this.positions, this.indices));
+    const capacity = area * ceiling - volume;
+    for (let i = 0; i < this.topIndices.length; i++) {
+      const top = this.topIndices[i] * 3 + 2, base = this.baseIndices[i] * 3 + 2;
+      if (top !== base) {
+        const height = volume >= wanted && volume > 0 ? heights[i] * wanted / volume
+          : heights[i] + (ceiling - heights[i]) * (capacity > 0 ? (wanted - volume) / capacity : 0);
+        this.positions[top] = this.positions[base] + height;
+      }
+    }
   }
 
   /**
@@ -124,7 +164,7 @@ export class LatchCoverage {
     const queue = new Int32Array(count);
     let components = 0;
     for (let i = 0; i < count; i++) {
-      occupied[i] = this.#front[i] > this.#back[i] ? 1 : 0;
+      occupied[i] = this.#front[i] - this.#back[i] > MIN_COVERAGE_THICKNESS ? 1 : 0;
     }
     for (let i = 0; i < count; i++) {
       if (!occupied[i] || labels[i] >= 0) {
@@ -266,7 +306,8 @@ export class LatchCoverage {
   #build() {
     const thickness = new Float64Array(this.#front.length);
     for (let i = 0; i < thickness.length; i++) {
-      thickness[i] = Math.max(0, this.#front[i] - this.#back[i]);
+      const depth = this.#front[i] - this.#back[i];
+      thickness[i] = depth > MIN_COVERAGE_THICKNESS ? depth : 0;
     }
     this.topIndices = [];
     this.baseIndices = [];

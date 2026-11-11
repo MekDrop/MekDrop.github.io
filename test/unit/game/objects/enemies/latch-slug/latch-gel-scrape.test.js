@@ -425,3 +425,23 @@ test("production film bites retain the door jam until the final collected portio
   assert.equal(jams.size,0);
   surface.destroy();
 });
+
+test("merged film excludes dry solver support even when neighboring patches disagree outside their wet footprint", () => {
+  const first = fixture(), second = fixture();
+  for (const surface of [first,second]) {
+    surface.filmEnabled = true;
+    surface.field.height = x => Math.abs(x) > .7 ? .3 : 0;
+    surface.update(.01);
+  }
+  second.frame = first.frame;
+  second.splash.entity.setPosition(.15,0,0);
+  first.merge(second);
+  first.owner.app.fire('prerender');
+  const mesh = first.visibleEntity.render.meshInstances[0].mesh;
+  assert.ok(mesh.indices.length > 0);
+  const xs = mesh.indices.map(index => mesh.positions[index * 3]);
+  const ys = mesh.indices.map(index => mesh.positions[index * 3 + 1]);
+  assert.ok(Math.max(...xs) < .75, "dry support cannot create a tall bar beside the actual wet patch");
+  assert.ok(Math.min(...xs) > -.6);
+  assert.ok(Math.max(...ys) < .6 && Math.min(...ys) > -.6);
+});

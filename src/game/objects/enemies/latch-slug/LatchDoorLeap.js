@@ -84,14 +84,13 @@ export class LatchDoorLeap {
     }
     this.#point = sample.point;
     const start = owner.position.clone().add(new owner.pc.Vec3(0, owner.height / 2, 0));
-    const center = sample.point.clone().add(sample.normal.clone().mulScalar(owner.radius + 0.015));
+    const center = sample.point.clone().add(sample.normal.clone().mulScalar(owner.radius - 0.025));
     const delta = center.sub(start);
     const gravity = Math.abs(owner.app?.systems?.rigidbody?.gravity?.y ?? -9.81);
-    // Reach a distinct apex, then strike while descending. A low, nearly flat
-    // trajectory with a held stretched pose reads as powered flight instead.
-    const apex = Math.max(start.y, start.y + delta.y) + 0.35;
-    const lift = Math.sqrt(2 * gravity * (apex - start.y));
-    const duration = lift / gravity + Math.sqrt(2 * (apex - start.y - delta.y) / gravity);
+    // A brief contact-directed lunge, without an extra hovering apex. Aim the
+    // capsule slightly into the leaf so native contact occurs by this time.
+    const duration = Math.max(0.24, Math.min(0.4, Math.hypot(delta.x, delta.z) / 3));
+    const lift = delta.y / duration + gravity * duration / 2;
     // Solve only the initial velocity. Ammo integrates gravity and all contacts.
     body.linearVelocity = new owner.pc.Vec3(delta.x / duration,
       lift, delta.z / duration);

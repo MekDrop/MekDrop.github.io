@@ -216,3 +216,47 @@ test('a yielding slug still blocks the Bell Bug until it clears the way', () => 
   assert.equal(motion.constrain(), true);
   assert.deepEqual(body.linearVelocity, new Vec3(0, -0.5, -1.15));
 });
+
+test('a queued bug cannot sidestep onto a tread that supports its center but not its feet', () => {
+  const {body,motion} = fixture(.7,-.7);
+  motion.owner.deltaTime = .2;
+  motion.owner.stepSupport = { surface: x => Math.abs(x) < .6 ? { point: new Vec3(x,0,0) } : null };
+  for (let frame = 0; frame < 10; frame++) {
+    body.linearVelocity.set(0,-.5,-1.15);
+    motion.constrain();
+    assert.equal(body.linearVelocity.x,0);
+    assert.equal(body.linearVelocity.y,-.5);
+  }
+});
+
+test('passing completes a fixed step instead of rotating it again as the door heading changes', () => {
+  const {body,motion} = fixture(0,-.94);
+  motion.owner.deltaTime = .2;
+  for (let frame = 0; frame < 4; frame++) {
+    body.linearVelocity.set(0,-.5,-1.15);
+    motion.constrain();
+  }
+  const direction = body.linearVelocity.clone();
+  direction.y = 0;
+  direction.normalize();
+  motion.owner.position.add(direction.clone().mulScalar(.15));
+  body.linearVelocity.set(-.1,-.5,-1.15);
+  motion.constrain();
+  const actual = body.linearVelocity.clone();
+  actual.y = 0;
+  actual.normalize();
+  assert.ok(direction.dot(actual) > .999999);
+  assert.equal(body.linearVelocity.y,-.5);
+});
+
+test('a stopped higher peer on the stairs keeps its follower queued instead of repeatedly overtaking', () => {
+  const {body,motion} = fixture(0,-.8,.25);
+  motion.owner.deltaTime = .2;
+  for (let frame = 0; frame < 30; frame++) {
+    body.linearVelocity.set(0,-.5,-1.15);
+    motion.constrain();
+    assert.equal(body.linearVelocity.x,0);
+    assert.ok(Math.abs(body.linearVelocity.z) < 1e-9);
+    assert.equal(body.linearVelocity.y,-.5);
+  }
+});

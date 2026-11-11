@@ -36,6 +36,7 @@ export class LatchDoorFilm {
     this.base = new Float32Array(this.count * 6);
     this.positions = new Float32Array(this.count * 6);
     this.indices = []; this.frontIndices = [];
+    const footprint = new Uint8Array(this.count);
     for (let y = 0; y < this.ny; y++) {
       for (let x = 0; x < this.nx; x++) {
         const v = y * this.nx + x, px = this.minX + x * this.dx, py = this.minY + y * this.dy;
@@ -51,6 +52,9 @@ export class LatchDoorFilm {
     for (let i = 0; i < indices.length; i += 3) {
       const a = indices[i] * 3, b = indices[i + 1] * 3, c = indices[i + 2] * 3;
       const ax = positions[a], ay = positions[a + 1], bx = positions[b], by = positions[b + 1], cx = positions[c], cy = positions[c + 1];
+      const az = positions[a + 2] - field.height(ax, ay);
+      const bz = positions[b + 2] - field.height(bx, by);
+      const cz = positions[c + 2] - field.height(cx, cy);
       const area = (by - cy) * (ax - cx) + (cx - bx) * (ay - cy);
       if (Math.abs(area) < 1e-10) {
         continue;
@@ -63,11 +67,11 @@ export class LatchDoorFilm {
           const u = ((by - cy) * (px - cx) + (cx - bx) * (py - cy)) / area;
           const w = ((cy - ay) * (px - cx) + (ax - cx) * (py - cy)) / area;
           if (this.supported[v] && u >= -0.00001 && w >= -0.00001 && u + w <= 1.00001) {
-            // Carry deposited thickness around a projecting stone return.
-            // Subtracting the arch's forward offset here would erase the goo
-            // at exactly the ninety-degree corner despite real support.
-            const sourceBase = field.height(px,py);
-            this.heights[v] = Math.max(this.heights[v], u * positions[a + 2] + w * positions[b + 2] + (1 - u - w) * positions[c + 2] - sourceBase);
+            footprint[v] = 1;
+            // Transfer thickness above each source vertex's support. Sampling
+            // support at the destination instead can put a coarse triangle
+            // behind raised door hardware and erase the entire deposit.
+            this.heights[v] = Math.max(this.heights[v], u * az + w * bz + (1 - u - w) * cz);
           }
         }
       }
@@ -89,7 +93,7 @@ export class LatchDoorFilm {
     for (const [a,b] of rim) {
       this.indices.push(a,b,a+this.count,b,b+this.count,a+this.count);
     }
-    const seeded = this.volume;
+    this.#conserveDeposit(volume, footprint);
     // Impact establishes the deposited width. Subsequent relaxation may refill
     // bites and descend, but must not wet new columns farther sideways.
     this.wetColumns = new Uint8Array(this.nx);
@@ -98,13 +102,38 @@ export class LatchDoorFilm {
         this.wetColumns[i%this.nx] = 1;
       }
     }
-    if (seeded > 1e-12) {
-      for (let i = 0; i < this.count; i++) {
-        this.heights[i] *= volume / seeded;
-      }
-    }
     this.initialVolume = this.volume;
     this.refresh();
+  }
+
+  /**
+   * Spread rasterization loss across the supported impact footprint. Multiplying
+   * a nearly empty raster by volume / seeded creates metre-long gel spikes.
+   * @param {number} volume
+   * @param {Uint8Array} footprint
+   */
+  #conserveDeposit(volume, footprint) {
+    let area = 0;
+    for (let i = 0; i < this.count; i++) {
+      area += footprint[i] * this.areas[i];
+    }
+    if (area <= 0) {
+      return;
+    }
+    const ceiling = Math.max(0.12, volume / area * 1.5);
+    let capacity = 0;
+    for (let i = 0; i < this.count; i++) {
+      this.heights[i] = Math.min(this.heights[i], ceiling);
+      capacity += footprint[i] * (ceiling - this.heights[i]) * this.areas[i];
+    }
+    const seeded = this.volume;
+    for (let i = 0; i < this.count; i++) {
+      if (seeded >= volume && seeded > 0) {
+        this.heights[i] *= volume / seeded;
+      } else if (capacity > 0 && footprint[i]) {
+        this.heights[i] += (ceiling - this.heights[i]) * (volume - seeded) / capacity;
+      }
+    }
   }
 
   /**

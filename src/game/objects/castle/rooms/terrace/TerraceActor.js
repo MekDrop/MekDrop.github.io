@@ -3,6 +3,7 @@ import { NpcDoorAvoidance } from "../../../shared/NpcDoorAvoidance.js";
 import { ServantHeroClearance } from "../../../shared/ServantHeroClearance.js";
 import { ResidentFootPlacement } from "../../residents/ResidentFootPlacement.js";
 import { ResidentHandContact } from "../../residents/ResidentHandContact.js";
+import { KingSwordCollision } from "../../../characters/royal/king/KingSwordCollision.js";
 import { castleStraightStairSurfaces, castleStraightStairSurfaceHeight, castleStraightStairStepCount } from "../../stairs/CastleStraightStairs.js";
 
 const LOOPING_ANIMATIONS = new Set([
@@ -189,6 +190,9 @@ export class TerraceActor {
     this.#leftHand = this.#model.findByName("Servant left grip") ??
       this.#model.findByName("Royal left hand");
     this.#normalize();
+    if (kind === "king") {
+      new KingSwordCollision(pc, this.#model);
+    }
     if (kind === "servant") {
       this.#footPlacement = new ResidentFootPlacement(pc, this.#entity, this.#model);
       this.#handContact = new ResidentHandContact(pc, this.#model);
