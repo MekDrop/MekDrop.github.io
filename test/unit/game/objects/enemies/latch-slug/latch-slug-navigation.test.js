@@ -51,11 +51,12 @@ function fixture(rise = .25) {
     radius:.42,
     height:.84,
     actors:[castle],
+    runtime: {},
     app:{
       systems:{
         rigidbody:{
           gravity:new pc.Vec3(0,-9.81,0),
-          raycastFirst:(from,to)=>Math.abs(from.y-to.y)>.01?{
+          raycastFirst:(from,to)=>from.y > rise && to.y <= rise?{
             point:new pc.Vec3(from.x,rise,from.z),
             normal:new pc.Vec3(0,1,0),
           }:null,
@@ -94,6 +95,23 @@ test("uses the authored entrance stairs and a measured quarter-tile Ammo step wi
   assert.equal(navigation.approachDoor(door),false,"top tread is ready for the door leap");
   owner.elapsed=1;
   assert.equal(navigation.crawling,false,"normal speed returns after leaving the treads");
+});
+
+test("a nearby body or low ceiling prevents the stair motor from lifting the slug", () => {
+  for (const overhead of [false, true]) {
+    const { owner, door, navigation, forces } = fixture();
+    const physics = owner.app.systems.rigidbody;
+    const support = physics.raycastFirst;
+    physics.raycastFirst = (from, to, options) => {
+      const blocked = overhead ? to.y > from.y : Math.abs(from.y - to.y) < 0.001;
+
+      return blocked ? { entity: new pc.Entity("obstruction") } : support(from, to, options);
+    };
+    navigation.approachDoor(door);
+    assert.equal(forces.length, 0);
+    assert.equal(owner.entity.rigidbody.linearVelocity.y, 0);
+    navigation.destroy();
+  }
 });
 
 test("does not turn a high obstacle into a step or invent a staircase where none exists",()=>{

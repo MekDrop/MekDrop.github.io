@@ -61,6 +61,15 @@ test('six rigid feet follow separate tread heights without accumulating offsets 
       assert.ok(Math.abs(bone.getLocalPosition().y - 0.1) < 1e-6);
     }
   }
+  owner.clip = 'idle_nervous';
+  app.fire('prerender', 1 / 60);
+  for (const bone of bones) {
+    const world = bone.getPosition();
+    const ground = world.z < 0 ? 0.3 : 0;
+    assert.ok(Math.abs(world.y - (0.1 * BellBugCalibration.scale + BellBugCalibration.y + ground + BellBugCalibration.groundClearance)) < 1e-5,
+      'waiting on the stairs preserves each planted foot instead of snapping back to a flat pose');
+  }
+  app.fire('postrender');
   owner.stateName = 'BellBugPanicState';
   owner.clip = 'hide_loop';
   app.fire('prerender', 1 / 60);

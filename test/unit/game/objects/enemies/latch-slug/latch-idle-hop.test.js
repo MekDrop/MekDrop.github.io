@@ -20,7 +20,10 @@ const fixture = (random = () => 0) => {
       systems: {
         rigidbody: {
           gravity: new Vec3(0, -9.81, 0),
-          raycastFirst: (from, to) => from.y > to.y ? { normal: Vec3.UP } : null,
+          raycastFirst: (from, to) => from.y > to.y ? {
+            normal: Vec3.UP,
+            point: new Vec3(from.x, 0, from.z),
+          } : null,
         },
       },
     },
@@ -117,7 +120,10 @@ it("requires supporting ground and checks headroom across the capsule before jum
   assert.equal(hop.clearance, true);
   owner.app.systems.rigidbody.raycastFirst = () => null;
   assert.equal(hop.clearance, false);
-  owner.app.systems.rigidbody.raycastFirst = () => ({ normal: Vec3.UP });
+  owner.app.systems.rigidbody.raycastFirst = () => ({
+    normal: Vec3.UP,
+    point: new Vec3(),
+  });
   assert.equal(hop.clearance, false, "a ceiling blocks the hop");
   assert.ok(Math.abs(hop.lift ** 2 / (2 * 9.81) - 0.5) < 1e-6);
   assert.ok(hop.flightDuration > 0.6 && hop.flightDuration < 0.7);
@@ -144,4 +150,29 @@ it("keeps idle hops clear of nearby Bell Bug feet and other living colliders", (
   assert.equal(hop.clearance,true);
   bug.alive=true;bug.entity.rigidbody.type="static";
   assert.equal(hop.clearance,true, 'supporting floors and static props use the existing Ammo clearance rays');
+});
+
+it("rejects a hop while straddling stair treads or an unsupported edge", () => {
+  for (const edge of [false, true]) {
+    const { owner, hop } = fixture();
+    owner.app.systems.rigidbody.raycastFirst = (from, to) => {
+      if (from.y <= to.y) {
+        return null;
+      }
+      if (edge && from.z < 0) {
+        return null;
+      }
+
+      return {
+        normal: Vec3.UP,
+        point: new Vec3(from.x, from.z < 0 ? -0.15 : 0, from.z),
+      };
+    };
+    assert.equal(hop.clearance, false);
+    owner.app.systems.rigidbody.raycastFirst = (from, to) => from.y > to.y ? {
+      normal: Vec3.UP,
+      point: new Vec3(from.x, 0, from.z),
+    } : null;
+    assert.equal(hop.clearance, true, "a level landing still permits the hop");
+  }
 });

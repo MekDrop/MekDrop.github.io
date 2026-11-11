@@ -79,7 +79,7 @@ export class BellBugGroundPose {
       return;
     }
     const walking = b.stateName === "BellBugPursueState" &&
-      (b.clip === "scuttle_walk" || b.clip === "scuttle_run") &&
+      (b.clip === "scuttle_walk" || b.clip === "scuttle_run" || b.clip === "idle_nervous") &&
       b.grounded && !b.airborne && !b.carrier;
     if (!walking) {
       for (const leg of this.legs) {

@@ -354,6 +354,9 @@ export class LatchSlugNavigation {
       return;
     }
     if (owner.stairCrawl?.active) {
+      if (!this.#clearStep(destination, owner.stairCrawl.targetHeight)) {
+        return;
+      }
       this.#grip(owner.stairCrawl.targetHeight - owner.position.y);
 
       return;
@@ -385,6 +388,9 @@ export class LatchSlugNavigation {
     if (!reach) {
       return;
     }
+    if (!this.#clearStep(destination, owner.position.y + Math.max(0, rise))) {
+      return;
+    }
     direction.mulScalar(reach);
     const upper = owner.position.clone().add(new owner.pc.Vec3(0, owner.height * 0.7, 0));
     if (owner.app.systems.rigidbody.raycastFirst(upper, upper.clone().add(direction), options)) {
@@ -395,6 +401,51 @@ export class LatchSlugNavigation {
       rise = 0;
     }
     this.#grip(rise);
+  }
+
+  /**
+   * The tread ray measures support, not room for the raised body. Probe both
+   * shoulders and headroom against native colliders, including nearby actors.
+   * @param {import("playcanvas").Vec3} destination
+   * @param {number} floor
+   * @returns {boolean}
+   */
+  #clearStep(destination, floor) {
+    const owner = this.#owner, physics = owner.app.systems.rigidbody;
+    const direction = destination.clone().sub(owner.position);
+    direction.y = 0;
+    if (direction.length() < 0.001) {
+      return false;
+    }
+    direction.normalize();
+    const reach = owner.radius + 0.15;
+    const options = { filterCallback: this.#otherCollider.bind(this) };
+    for (const side of [-owner.radius * 0.8, 0, owner.radius * 0.8]) {
+      const start = owner.position.clone();
+      start.x -= direction.z * side;
+      start.z += direction.x * side;
+      start.y = floor + owner.height / 2;
+      const end = start.clone().add(direction.clone().mulScalar(reach));
+      if (physics.raycastFirst(start, end, options)) {
+        return false;
+      }
+      start.y = owner.position.y + owner.height - 0.02;
+      end.copy(start);
+      end.y = Math.max(floor, owner.position.y) + owner.height + 0.02;
+      if (physics.raycastFirst(start, end, options)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /**
+   * @param {import("playcanvas").Entity} entity
+   * @returns {boolean}
+   */
+  #otherCollider(entity) {
+    return entity !== this.#owner.entity && !entity.isDescendantOf(this.#owner.entity);
   }
 
   /**

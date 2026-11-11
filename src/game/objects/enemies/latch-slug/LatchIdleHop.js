@@ -87,6 +87,19 @@ export class LatchIdleHop {
     }
     const radius = owner.radius * 0.8;
     for (const [x, z] of [[0, 0], [radius, 0], [-radius, 0], [0, radius], [0, -radius]]) {
+      // A center contact can perch the sphere on a riser while its belly
+      // straddles two treads. Reserve a level landing across the footprint.
+      from.copy(owner.position);
+      from.x += x;
+      from.z += z;
+      from.y += 0.12;
+      to.copy(from);
+      to.y = owner.position.y - 0.18;
+      const support = physics.raycastFirst(from, to, options);
+      if (!support || support.normal.y < 0.8 ||
+        Math.abs(support.point.y - ground.point.y) > 0.04) {
+        return false;
+      }
       from.copy(owner.position);
       from.x += x;
       from.z += z;
