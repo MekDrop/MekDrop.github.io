@@ -8,3 +8,4 @@ export { CastleBuildPlanInteriorDepthInvalidError } from "./CastleBuildPlanInter
 export { CastleBuildPlanStyleMissingError } from "./CastleBuildPlanStyleMissingError.js";
 export { CastleBuildPlanWallMissingError } from "./CastleBuildPlanWallMissingError.js";
 export { CastleRoomSizeInvalidError } from "./CastleRoomSizeInvalidError.js";
+export { GardenVineAttachmentNotFoundError } from "./GardenVineAttachmentNotFoundError.js";

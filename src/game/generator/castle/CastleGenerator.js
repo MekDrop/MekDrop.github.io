@@ -41,7 +41,7 @@ export class CastleGenerator {
       ? await ObjectDataCache.resolveAsync("castle-plans", {
         ...input,
         atticAccessVersion: 4,
-        furnishingVersion: 3,
+        furnishingVersion: 4,
       }, generate)
       : await generate();
     scheduler.throwIfAborted();

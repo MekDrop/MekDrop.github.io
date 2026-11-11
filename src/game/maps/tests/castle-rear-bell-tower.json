@@ -6481,6 +6481,22 @@
           {
             "label": "Storybook (4)",
             "script": "objects.getAll(\"castle\")[0].regenerate(2);"
+          },
+          {
+            "label": "Seating close-up",
+            "script": "const s=[...objects].find(o=>o.definition?.object===\"GardenShelter\");const p=s.definition.position;s.previewOptions.runtime.camera.targetY=p.y+1.4;camera.setFirstPerson(false);camera.setViewport({zoom:3.2,rotation:0,panX:p.x,panZ:p.z});"
+          },
+          {
+            "label": "Vine close-up",
+            "script": "const s=[...objects].find(o=>o.definition?.object===\"GardenShelter\");const p=s.definition.position;s.previewOptions.runtime.camera.targetY=p.y+1.4;camera.setFirstPerson(false);camera.setViewport({zoom:3.2,rotation:2,panX:p.x,panZ:p.z});"
+          },
+          {
+            "label": "Shelter preview",
+            "script": "const s=[...objects].find(o=>o.definition?.object===\"GardenShelter\");s.capturePreview().then(r=>console.info(\"SHELTER_PREVIEW\",JSON.stringify(r)));"
+          },
+          {
+            "label": "Inspect all vine sides",
+            "script": "const s=[...objects].find(o=>o.definition?.object===\"GardenShelter\");(async()=>{for(const [yaw,elevation] of [[0,15],[90,15],[180,15],[270,15],[140,85],[140,-30],[140,25]]){const r=await s.capturePreview(yaw,elevation);console.info(\"PERGOLA_VIEW\",yaw,elevation,JSON.stringify(r));}await s.capturePreview(220,26,true);await s.capturePreview(220,15,true,new s.previewOptions.pc.Vec3(-1.4,2.8,-1.2));await s.capturePreview(220,16,true,new s.previewOptions.pc.Vec3(-1.02,2.31,-1.61),.22);}) ();"
           }
         ]
       }

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
-import { Camera, Entity, EventHandler, PROJECTION_ORTHOGRAPHIC, PROJECTION_PERSPECTIVE } from "playcanvas";
+import { Camera, Entity, EventHandler, PROJECTION_ORTHOGRAPHIC, PROJECTION_PERSPECTIVE, ASPECT_MANUAL } from "playcanvas";
 import { DirectionalShadowCoverage } from "../../../../src/game/rendering/DirectionalShadowCoverage.js";
 
 /**
@@ -55,4 +55,26 @@ it("unsubscribes when the sunlight is destroyed", () => {
   camera.farClip = 500;
   app.fire("prerender");
   assert.equal(light.shadowDistance, 250);
+});
+
+it("keeps the ground and island underside covered without allocating the atlas to empty sky", () => {
+  const { app, camera, light } = fixture();
+  const node = new Entity("orbit camera");
+  camera.node = node;
+  camera.orthoHeight = 6;
+  camera.aspectRatioMode = ASPECT_MANUAL;
+  camera.aspectRatio = 1.5;
+  node.setPosition(0, 14, 14);
+  node.setEulerAngles(-45, 0, 0);
+  app.fire("prerender");
+  assert.ok(light.shadowDistance < 80, "close-up shadows should not span 250 metres");
+  const upperY = node.getPosition().y + camera.orthoHeight * Math.abs(node.up.y);
+  assert.ok(upperY + node.forward.y * light.shadowDistance <= -31.99,
+    "even the highest screen corner reaches the conservative ground floor");
+  node.setPosition(0, 150, 150);
+  app.fire("prerender");
+  assert.equal(light.shadowDistance, camera.farClip, "high cameras retain full distant coverage");
+  node.setEulerAngles(0, 0, 0);
+  app.fire("prerender");
+  assert.equal(light.shadowDistance, camera.farClip, "horizontal views keep full coverage");
 });

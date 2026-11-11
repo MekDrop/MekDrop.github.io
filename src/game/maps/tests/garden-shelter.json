@@ -1,0 +1,474 @@
+{
+  "cols": 10,
+  "rows": 10,
+  "grid": [
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  ],
+  "heightmap": [
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  ],
+  "tileMeta": [
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ]
+  ],
+  "objects": [
+    {
+      "id": "garden-shelter",
+      "object": "GardenShelter",
+      "variant": "pergola",
+      "position": {
+        "x": 0,
+        "y": 1.02,
+        "z": 0
+      },
+      "rotation": 0,
+      "tile": {
+        "col": 5,
+        "row": 5
+      }
+    },
+    {
+      "id": "tea-table",
+      "object": "Table",
+      "width": 1.15,
+      "depth": 0.9,
+      "height": 0.73,
+      "position": {
+        "x": 0,
+        "y": 1.02,
+        "z": 0
+      },
+      "rotation": 0,
+      "tile": {
+        "col": 5,
+        "row": 5
+      }
+    },
+    {
+      "id": "tea-chair-left",
+      "object": "Chair",
+      "position": {
+        "x": -1.15,
+        "y": 1.02,
+        "z": 0
+      },
+      "rotation": 180,
+      "tile": {
+        "col": 4,
+        "row": 5
+      }
+    },
+    {
+      "id": "tea-chair-right",
+      "object": "Chair",
+      "position": {
+        "x": 1.15,
+        "y": 1.02,
+        "z": 0
+      },
+      "rotation": 0,
+      "tile": {
+        "col": 6,
+        "row": 5
+      }
+    },
+    {
+      "id": "hero-spawn",
+      "object": "SpawnPoint",
+      "position": {
+        "x": 3,
+        "y": 1.03,
+        "z": 3
+      }
+    }
+  ],
+  "animationViewport": {
+    "zoom": 2.4,
+    "rotation": 2,
+    "panX": 0,
+    "panZ": 0
+  },
+  "testControls": {
+    "panels": [
+      {
+        "title": "Pergola clearance",
+        "x": 16,
+        "y": 140,
+        "buttons": [
+          {
+            "label": "Toggle sunlight shadows",
+            "script": "const s=[...objects].find(o=>o.definition?.object===\"GardenShelter\");const a=s.previewOptions.pc.Application.getApplication();const l=a.root.findByName('Sunlight').light;l.castShadows=!l.castShadows;console.info('SUN_SHADOWS',l.castShadows);"
+          },
+          {
+            "label": "Inspect all vine sides",
+            "script": "const s=[...objects].find(o=>o.definition?.object===\"GardenShelter\");(async()=>{for(const [yaw,elevation] of [[0,15],[90,15],[180,15],[270,15],[140,85],[140,-30],[140,25]]){const r=await s.capturePreview(yaw,elevation);console.info(\"PERGOLA_VIEW\",yaw,elevation,JSON.stringify(r));}await s.capturePreview(220,26,true);await s.capturePreview(220,15,true,new s.previewOptions.pc.Vec3(-1.4,2.8,-1.2));await s.capturePreview(220,16,true,new s.previewOptions.pc.Vec3(-1.02,2.31,-1.61),.22);}) ();"
+          },
+          {
+            "label": "Seating view",
+            "script": "camera.setFirstPerson(false);camera.setViewport({zoom:3,rotation:0,panX:0,panZ:0});"
+          },
+          {
+            "label": "Reverse view",
+            "script": "camera.setFirstPerson(false);camera.setViewport({zoom:3,rotation:2,panX:0,panZ:0});"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -17,6 +17,48 @@ const room = {
   height: 4,
 };
 
+it("faces both tea chairs toward the table in either terrace bay", () => {
+  const generator = new GardenTerraceRoomGenerator();
+  for (const furnishingSeed of [0, 1, 4, 5]) {
+    const items = generator.furnish({
+      ...room,
+      furnishingSeed,
+    });
+    const table = items.find(item => item.object === "Table");
+    for (const chair of items.filter(item => item.object === "Chair")) {
+      const yaw = chair.rotation * Math.PI / 180;
+      // The authored backrest is at +X; the open seat faces local -X.
+      const facingTable = -Math.cos(yaw) * (table.x - chair.x) +
+        Math.sin(yaw) * (table.z - chair.z);
+      assert.ok(facingTable > 1, "the open seat must face into the table");
+    }
+  }
+});
+
+it("publishes inward-facing chairs after castle rotation and seed mirroring", async () => {
+  for (const seed of [0, 1, 4, 5]) {
+    for (const side of ["NORTH", "EAST", "SOUTH", "WEST"]) {
+      const map = JSON.parse(await readFile(new URL("../../../../../../../src/game/maps/tests/castle-rear-bell-tower.json", import.meta.url), "utf8"));
+      const castle = map.objects.find(item => item.object === "Castle");
+      castle.seed = seed;
+      castle.doors[0].side = side;
+      castle.buildPlan = await CastleGenerator.generate(castle);
+      LeisureRoomMapObjects.prepareMap(map);
+      const props = map.objects.filter(item => item.sourceCastleId === castle.id && item.id.includes("-leisure-terrace-"));
+      const table = props.find(item => item.object === "Table");
+      const chairs = props.filter(item => item.object === "Chair");
+      assert.equal(chairs.length, 2);
+      for (const chair of chairs) {
+        const yaw = chair.rotation * Math.PI / 180;
+        const dx = table.position.x - chair.position.x;
+        const dz = table.position.z - chair.position.z;
+        const alignment = (-Math.cos(yaw) * dx + Math.sin(yaw) * dz) / Math.hypot(dx, dz);
+        assert.ok(alignment > 0.999, `seed ${seed}, ${side}: chair must open toward table, got ${alignment}`);
+      }
+    }
+  }
+});
+
 it("selects reproducible paired garden/storybook seeds and keeps the tower corridor empty", () => {
   const generator = new GardenTerraceRoomGenerator();
   for (const seed of [0, 1, 2, 3, 4, 5, 6, 7, 17, "garden"]) {

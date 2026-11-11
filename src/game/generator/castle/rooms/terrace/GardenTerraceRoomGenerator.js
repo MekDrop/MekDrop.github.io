@@ -74,11 +74,13 @@ export class GardenTerraceRoomGenerator extends AbstractCastleRoomGenerator {
       items.push(this.#item("Chair", x - 1.15, z, 0.6, 0.6, {
         supportId: shelterId,
         underSupport: true,
-        rotation: -90,
+        rotation: 180,
+        mirrorRotationOffset: 180,
       }), this.#item("Chair", x + 1.15, z, 0.6, 0.6, {
         supportId: shelterId,
         underSupport: true,
-        rotation: 90,
+        rotation: 0,
+        mirrorRotationOffset: 180,
       }));
     }
     items.push(this.#item("Teapot", x, z, 0.8, 0.4, {

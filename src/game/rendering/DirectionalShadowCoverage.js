@@ -1,8 +1,8 @@
 import { PROJECTION_ORTHOGRAPHIC } from "playcanvas";
 
 /**
- * Keeps orthographic receivers inside the sun's shadow frustum, including when
- * an orbit or zoomed-out camera sees beyond the usual gameplay distance.
+ * Fits sunlight coverage to orthographic ground receivers while retaining
+ * distant coverage for high orbit cameras and the perspective gameplay range.
  */
 export class DirectionalShadowCoverage {
   /**
@@ -29,13 +29,33 @@ export class DirectionalShadowCoverage {
   }
 
   #update() {
-    // A fixed world-space distance can end in front of visible orthographic
-    // geometry. Cover its full depth instead; perspective keeps a local budget.
+    // A fixed distance can miss distant orbit receivers, while the full camera
+    // depth wastes most shadow texels on sky. Perspective keeps a local budget.
     const shadowDistance = this.#camera.projection === PROJECTION_ORTHOGRAPHIC
-      ? this.#camera.farClip
+      ? this.#orthographicDistance()
       : Math.min(24, this.#camera.farClip);
     if (this.#light.shadowDistance !== shadowDistance) {
       this.#light.shadowDistance = shadowDistance;
     }
+  }
+
+  /**
+   * Keep sky beyond the ground out of the single shadow atlas. The camera's
+   * far plane also contains clouds; spending texels there erases thin rafters.
+   * @returns {number}
+   */
+  #orthographicDistance() {
+    const camera = this.#camera;
+    const node = camera.entity ?? camera.node;
+    if (!node || node.forward.y >= -0.01) {
+      return camera.farClip;
+    }
+    // Include the highest orthographic corner and a conservative basement /
+    // floating-island depth below world ground, including offscreen casters.
+    const upperCorner = camera.orthoHeight * (Math.abs(node.up.y) +
+      Math.abs(node.right.y) * camera.aspectRatio);
+    const groundDepth = (node.getPosition().y + upperCorner + 32) / -node.forward.y;
+
+    return Math.min(camera.farClip, Math.max(24, groundDepth));
   }
 }
