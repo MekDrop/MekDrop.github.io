@@ -548,7 +548,21 @@ export class GameModelLibrary {
    */
   async #runLoad(job) {
     try {
-      await this.#loadModel(job.url);
+      for (let attempt = 0; ; attempt += 1) {
+        if (this.#destroyed) {
+          throw new GameModelLibraryDestroyedError({ url: job.url });
+        }
+        try {
+          await this.#loadModel(job.url);
+          break;
+        } catch (error) {
+          // PlayCanvas reports interrupted XHR requests with this string.
+          // Parser and image allocation failures should surface immediately.
+          if (!(error instanceof GameModelLoadError) || error.cause !== "Network error" || attempt >= 2) {
+            throw error;
+          }
+        }
+      }
       job.resolve();
     } catch (error) {
       job.reject(error);

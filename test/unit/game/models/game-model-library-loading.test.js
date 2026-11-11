@@ -142,6 +142,41 @@ test("failed model loads retain the decoding cause and can be retried", async ()
   library.destroy();
 });
 
+test("interrupted model requests retry without duplicating concurrent loads", async () => {
+  const assets = new ModelRegistry();
+  const library = new GameModelLibrary({
+    pc: { Asset },
+    app: { assets },
+  });
+  const loading = library.load(["/wardrobe.glb"]);
+  const duplicate = library.load(["/wardrobe.glb"]);
+  assets.fail("/wardrobe.glb", "Network error");
+  await setImmediate();
+  assert.equal(assets.started.length, 2);
+  assert.equal(assets.removed.length, 1);
+  assets.succeed("/wardrobe.glb");
+  await Promise.all([loading, duplicate]);
+  library.destroy();
+});
+
+test("persistent network failures stop after three attempts and preserve the cause", async () => {
+  const assets = new ModelRegistry();
+  const library = new GameModelLibrary({
+    pc: { Asset },
+    app: { assets },
+  });
+  const loading = library.load(["/wardrobe.glb"]);
+  const rejection = assert.rejects(loading, (error) => error instanceof GameModelLoadError && error.cause === "Network error");
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    assets.fail("/wardrobe.glb", "Network error");
+    await setImmediate();
+  }
+  await rejection;
+  assert.equal(assets.started.length, 3);
+  assert.equal(assets.removed.length, 3);
+  library.destroy();
+});
+
 test("destroy cancels queued work and disposes models that finish loading late", async () => {
   const assets = new ModelRegistry();
   const library = new GameModelLibrary({
