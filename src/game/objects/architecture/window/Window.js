@@ -4,6 +4,7 @@ import slitUrl from "../../../models/castle/windows/slit-window.glb?url";
 
 import { WindowLayout } from "./WindowLayout.js";
 import { WindowModules } from "./WindowModules.js";
+import { AmberGlass } from "../amber-glass/AmberGlass.js";
 import { IslandObjectRoots } from "../../shared/IslandObjectRoots.js";
 
 /**
@@ -56,7 +57,18 @@ export class Window {
     const modelLibrary = models;
     const visual = modelLibrary.instantiate(window.role === "slit" ? slitUrl : window.role === "hall" && window.height > 0.75 ? hallUrl : roomUrl);
     visual.name = `Castle ${window.role} recessed window`;
-    WindowModules.fit(visual, window);
+    const paneRows = WindowModules.fit(visual, window);
+    Window.#shadeFrames(visual);
+    if (!window.open) {
+      // Preserve the authored softly faceted glass and restrained indoor warmth.
+      // Back-face culling prevents the closed pane doubling its opacity.
+      AmberGlass.add(pc, visual, {
+        authored: true,
+        paneRows,
+        opacity: 0.82,
+        cull: pc.CULLFACE_BACK,
+      });
+    }
     if (window.open) {
       for (const node of visual.find(Window.#findNode)) {
         node.destroy();
@@ -166,6 +178,35 @@ export class Window {
    */
   static #findNode(node) {
     return /^(Amber glass pane |Fine oak transom |Central oak mullion)/.test(node.name);
+  }
+
+  /**
+   * Retain shared timber grain while giving the recessed frame a dark oak tint.
+   * @param {import("playcanvas").Entity} visual
+   */
+  static #shadeFrames(visual) {
+    const materials = new Map();
+    for (const render of visual.findComponents("render")) {
+      for (const instance of render.meshInstances) {
+        const source = instance.material;
+        if (source.name !== "Dark oak frames and mullions") {
+          continue;
+        }
+        if (!materials.has(source)) {
+          const material = source.clone();
+          material.diffuse.set(0.66, 0.43, 0.25);
+          material.diffuseMapTint = true;
+          material.update();
+          materials.set(source, material);
+        }
+        instance.material = materials.get(source);
+      }
+    }
+    visual.once("destroy", () => {
+      for (const material of materials.values()) {
+        material.destroy();
+      }
+    });
   }
 
   /**

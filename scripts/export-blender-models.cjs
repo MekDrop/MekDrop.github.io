@@ -177,6 +177,9 @@ async function exportModel(model, blender, sourceSize) {
       throw new BlenderExportError("Blender did not embed the source size in the GLB");
     }
     externalizeSharedWood(temporaryOutput, path.join(projectRoot, "src/game/textures/wood/timber-grain.png"));
+    externalizeSharedWood(temporaryOutput, path.join(projectRoot, "src/game/textures/glass/amber-frosted.png"), "amber-frosted");
+    externalizeSharedWood(temporaryOutput, path.join(projectRoot, "src/game/textures/glass/window-frosted.png"), "window-frosted");
+    externalizeSharedWood(temporaryOutput, path.join(projectRoot, "src/game/textures/glass/window-warmth.png"), "window-warmth");
     const { rebindExportedSkins } = await import("./rebind-exported-skins.mjs");
     rebindExportedSkins(temporaryOutput);
     fs.renameSync(temporaryOutput, output);
@@ -247,6 +250,9 @@ async function main() {
         const output = model.slice(0, -".blend".length) + ".glb";
         if (!force && getSourceSizeFromGlb(output) === sourceSize) {
           externalizeSharedWood(output, path.join(projectRoot, "src/game/textures/wood/timber-grain.png"));
+          externalizeSharedWood(output, path.join(projectRoot, "src/game/textures/glass/amber-frosted.png"), "amber-frosted");
+          externalizeSharedWood(output, path.join(projectRoot, "src/game/textures/glass/window-frosted.png"), "window-frosted");
+          externalizeSharedWood(output, path.join(projectRoot, "src/game/textures/glass/window-warmth.png"), "window-warmth");
           const { rebindExportedSkins } = await import("./rebind-exported-skins.mjs");
           rebindExportedSkins(output);
           skipped += 1;

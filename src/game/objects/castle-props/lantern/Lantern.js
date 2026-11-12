@@ -3,7 +3,7 @@ import modelUrl from "../../../models/castle/props/entrance-lantern.glb?url";
 import wallModelUrl from "../../../models/castle/props/wall-lantern.glb?url";
 import tableModelUrl from "../../../models/castle/props/table-lantern.glb?url";
 import { AbstractCastleProp } from "../../shared/AbstractCastleProp.js";
-import { LanternGlass } from "./LanternGlass.js";
+import { AmberGlass } from "../../architecture/amber-glass/AmberGlass.js";
 import { Fire } from "../../fire/Fire.js";
 import { FireEffect } from "../../fire/FireEffect.js";
 
@@ -62,7 +62,7 @@ export class Lantern extends AbstractCastleProp {
     }
     const type = definition.type ?? "entrance";
     if (definition.flame ?? type !== "wall") {
-      LanternGlass.add(pc, model);
+      AmberGlass.add(pc, model);
       Fire.attach(pc, model, type === "table" ? {
         x: 0,
         y: 0.11,

@@ -5,11 +5,12 @@ export class WindowModules {
   /**
    * @param {import("playcanvas").Entity} visual
    * @param {{width:number,height:number,role:string}} window
+   * @returns {number} Number of rows in the fitted glazing.
    */
   static fit(visual, window) {
     const panes = visual.find(WindowModules.#findNode);
     if (!panes.length) {
-      return;
+      return 1;
     }
     const sourceColumns = new Set(panes.map(WindowModules.#mapNode)).size;
     const sourceRows = panes.length / sourceColumns;
@@ -43,6 +44,8 @@ export class WindowModules {
     this.#repeat(visual, /^Central oak mullion/, columns - 1, "x", columns);
     WindowModules.#fitJamb(visual, window, 1);
     WindowModules.#fitJamb(visual, window, -1);
+
+    return rows;
   }
 
   /**

@@ -6,13 +6,14 @@ const path = require("node:path");
  * Blender embeds images in GLB even when the .blend uses an external PNG.
  * @param {string} filename
  * @param {string} texturePath
+ * @param {string} imageName
  * @returns {boolean}
  */
-function externalizeSharedWood(filename, texturePath) {
+function externalizeSharedWood(filename, texturePath, imageName = "timber-grain") {
   const input = fs.readFileSync(filename);
   const jsonLength = input.readUInt32LE(12);
   const gltf = JSON.parse(input.toString("utf8", 20, 20 + jsonLength));
-  const images = (gltf.images ?? []).filter((image) => image.name === "timber-grain");
+  const images = (gltf.images ?? []).filter((image) => image.name === imageName);
   if (!images.length) {
     return false;
   }
@@ -31,6 +32,7 @@ function externalizeSharedWood(filename, texturePath) {
     const key = images.includes(gltf.images[texture.source]) ? JSON.stringify(texture) : null;
     if (key && sharedTextures.has(key)) {
       textureRemap.set(index, sharedTextures.get(key));
+
       return false;
     }
     const nextIndex = new Set(textureRemap.values()).size;
@@ -83,9 +85,12 @@ function externalizeSharedWood(filename, texturePath) {
     view.byteOffset = byteLength;
     byteLength += view.byteLength;
     remap.set(index, remap.size);
+
     return true;
   });
-  visit(gltf, (owner, index) => { owner.bufferView = remap.get(index); });
+  visit(gltf, (owner, index) => {
+    owner.bufferView = remap.get(index);
+  });
   gltf.buffers[0].byteLength = byteLength;
   const json = Buffer.from(JSON.stringify(gltf));
   const jsonPadding = Buffer.alloc((4 - json.length % 4) % 4, 0x20);
@@ -104,6 +109,7 @@ function externalizeSharedWood(filename, texturePath) {
     return false;
   }
   fs.writeFileSync(filename, output);
+
   return true;
 }
 
