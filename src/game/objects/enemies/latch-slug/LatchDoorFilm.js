@@ -1,5 +1,7 @@
 const DENSITY_KG_PER_CUBIC_METRE = 1200;
 const COHESIVE_FLOW_RESISTANCE = 1.5;
+const FLOOR_HOLDBACK_SECONDS = 180;
+const MAX_SUPPORT_STEP_METRES = 0.08;
 
 /**
  * Fixed-coordinate wet film. Ammo owns impact, obstruction and door contact;
@@ -8,12 +10,13 @@ const COHESIVE_FLOW_RESISTANCE = 1.5;
  */
 export class LatchDoorFilm {
   /**
-   * @param {{positions:Float32Array,indices:number[],field:{height:(x:number,y:number)=>number,contains?:(x:number,y:number)=>boolean,support?:(x:number,y:number)=>number|null},floor:number,volume:number}} options
+   * @param {{positions:Float32Array,indices:number[],field:{height:(x:number,y:number)=>number,contains?:(x:number,y:number)=>boolean,support?:(x:number,y:number)=>number|null,canCross?:(x1:number,y:number,z1:number,x2:number,z2:number)=>boolean},floor:number,volume:number}} options
    */
   constructor({ positions, indices, field, floor, volume }) {
     this.field = field;
     this.density = DENSITY_KG_PER_CUBIC_METRE;
     this.flowSpeed = 0.015;
+    this.age = 0;
     this.floor = floor;
     this.changed = false;
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
@@ -23,18 +26,21 @@ export class LatchDoorFilm {
     }
     // Leave dry space around the wet footprint. The solver boundary must never
     // become the visible edge as the blob spreads and refills a scraped gap.
-    this.minX = minX - 0.6;
+    this.minX = minX - 1.2;
     // The bottom of the transport grid is the real sill, not an invisible
     // shelf a fixed distance below the impact. Otherwise high splats pile up
     // against that shelf and settle into the simulation rectangle.
     this.minY = floor;
-    const width = maxX - minX + 1.2, height = Math.max(0.45, maxY - this.minY + 0.45);
+    const width = maxX - minX + 2.4, height = Math.max(0.45, maxY - this.minY + 0.45);
     this.nx = Math.max(4, Math.min(64, Math.ceil(width / 0.032) + 1));
     this.ny = Math.max(4, Math.min(64, Math.ceil(height / 0.032) + 1));
     this.dx = width / (this.nx - 1); this.dy = height / (this.ny - 1);
     this.count = this.nx * this.ny;
     this.heights = new Float64Array(this.count);
+    this.runoff = new Float64Array(this.nx);
+    this.runoffSource = new Int32Array(this.nx);
     this.supported = new Uint8Array(this.count);
+    this.seamPassable = new Uint8Array(this.count);
     this.areas = new Float64Array(this.count);
     this.base = new Float32Array(this.count * 6);
     this.positions = new Float32Array(this.count * 6);
@@ -51,6 +57,18 @@ export class LatchDoorFilm {
         const z = support ?? field.height(px,py);
         this.areas[v] = this.dx * this.dy * (x === 0 || x === this.nx - 1 ? 0.5 : 1) * (y === 0 || y === this.ny - 1 ? 0.5 : 1);
         this.base.set([px, py, z], v * 3); this.base.set([px, py, z], (v + this.count) * 3);
+      }
+    }
+    if (this.dx <= 0.08 && field.canCross) {
+      for (let y = 0; y < this.ny; y++) {
+        for (let x = 0; x + 2 < this.nx; x++) {
+          const a = y * this.nx + x, b = a + 1, c = a + 2;
+          if (this.supported[a] && !this.supported[b] && this.supported[c] &&
+            Math.abs(this.base[a * 3 + 2] - this.base[c * 3 + 2]) <= MAX_SUPPORT_STEP_METRES &&
+            field.canCross(this.base[a * 3], this.base[a * 3 + 1], this.base[a * 3 + 2], this.base[c * 3], this.base[c * 3 + 2])) {
+            this.seamPassable[a] = 1;
+          }
+        }
       }
     }
     // Rasterize the actual visible impact skin, taking only its outward height.
@@ -106,8 +124,9 @@ export class LatchDoorFilm {
       this.indices.push(a,b,a+this.count,b,b+this.count,a+this.count);
     }
     this.#conserveDeposit(volume, footprint);
-    // Impact establishes the deposited width. Subsequent relaxation may refill
-    // bites and descend, but must not wet new columns farther sideways.
+    this.#taperFootprint(volume, footprint);
+    // Retain the initial footprint for diagnostics; pressure may later carry
+    // gel into adjacent supported columns.
     this.wetColumns = new Uint8Array(this.nx);
     for (let i=0;i<this.count;i++) {
       if (this.heights[i] > 0.002) {
@@ -128,6 +147,7 @@ export class LatchDoorFilm {
   #connectFootprint(footprint, doorSamples) {
     const connected = new Uint8Array(this.count), queue = new Int32Array(this.count);
     let head = 0, tail = 0, nearest = -1, distance = Infinity;
+    let nearestDoor = -1, doorDistance = Infinity;
     for (let i = 0; i < this.count; i++) {
       if (!footprint[i]) {
         continue;
@@ -137,19 +157,21 @@ export class LatchDoorFilm {
         nearest = i;
         distance = d;
       }
-      if (doorSamples[i]) {
-        connected[i] = 1;
-        queue[tail++] = i;
+      if (doorSamples[i] && d < doorDistance) {
+        nearestDoor = i;
+        doorDistance = d;
       }
     }
-    if (tail === 0 && nearest >= 0) {
-      connected[nearest] = 1;
-      queue[tail++] = nearest;
+    const seed = nearestDoor >= 0 ? nearestDoor : nearest;
+    if (seed >= 0) {
+      connected[seed] = 1;
+      queue[tail++] = seed;
     }
     while (head < tail) {
       const i = queue[head++], x = i % this.nx;
       for (const next of [x > 0 ? i - 1 : -1, x < this.nx - 1 ? i + 1 : -1, i - this.nx, i + this.nx]) {
-        if (next >= 0 && next < this.count && footprint[next] && !connected[next]) {
+        if (next >= 0 && next < this.count && footprint[next] && !connected[next] &&
+          Math.abs(this.base[i * 3 + 2] - this.base[next * 3 + 2]) <= MAX_SUPPORT_STEP_METRES) {
           connected[next] = 1;
           queue[tail++] = next;
         }
@@ -194,6 +216,66 @@ export class LatchDoorFilm {
   }
 
   /**
+   * Fade the deposited thickness into its contact line before redistributing
+   * the same volume. A uniform refill turns a clipped impact into a slab with
+   * a vertical fin at the edge of a door or wall.
+   * @param {number} volume
+   * @param {Uint8Array} footprint
+   */
+  #taperFootprint(volume, footprint) {
+    const distance = new Int32Array(this.count), queue = new Int32Array(this.count);
+    let head = 0, tail = 0;
+    for (let i = 0; i < this.count; i++) {
+      if (!footprint[i]) {
+        continue;
+      }
+      const x = i % this.nx, y = Math.floor(i / this.nx);
+      if (x === 0 || x === this.nx - 1 || y === 0 || y === this.ny - 1 ||
+        !footprint[i - 1] || !footprint[i + 1] || !footprint[i - this.nx] || !footprint[i + this.nx] ||
+        Math.abs(this.base[i * 3 + 2] - this.base[(i - 1) * 3 + 2]) > MAX_SUPPORT_STEP_METRES ||
+        Math.abs(this.base[i * 3 + 2] - this.base[(i + 1) * 3 + 2]) > MAX_SUPPORT_STEP_METRES ||
+        Math.abs(this.base[i * 3 + 2] - this.base[(i - this.nx) * 3 + 2]) > MAX_SUPPORT_STEP_METRES ||
+        Math.abs(this.base[i * 3 + 2] - this.base[(i + this.nx) * 3 + 2]) > MAX_SUPPORT_STEP_METRES) {
+        distance[i] = 1;
+        queue[tail++] = i;
+      }
+    }
+    while (head < tail) {
+      const i = queue[head++], x = i % this.nx;
+      for (const next of [x > 0 ? i - 1 : -1, x + 1 < this.nx ? i + 1 : -1, i - this.nx, i + this.nx]) {
+        if (next >= 0 && next < this.count && footprint[next] && !distance[next]) {
+          distance[next] = distance[i] + 1;
+          queue[tail++] = next;
+        }
+      }
+    }
+    const envelope = new Float64Array(this.count);
+    let area = 0;
+    for (let i = 0; i < this.count; i++) {
+      const t = Math.min(1, distance[i] / 4);
+      envelope[i] = t * t * (3 - 2 * t);
+      area += envelope[i] * this.areas[i];
+    }
+    if (area <= 0) {
+      return;
+    }
+    const cap = Math.max(0.12, volume / area * 1.2);
+    let capacity = 0;
+    for (let i = 0; i < this.count; i++) {
+      this.heights[i] = Math.min(this.heights[i] * envelope[i], cap * envelope[i]);
+      capacity += (cap * envelope[i] - this.heights[i]) * this.areas[i];
+    }
+    const seeded = this.volume;
+    for (let i = 0; i < this.count; i++) {
+      if (seeded >= volume && seeded > 0) {
+        this.heights[i] *= volume / seeded;
+      } else if (capacity > 0) {
+        this.heights[i] += (cap * envelope[i] - this.heights[i]) * (volume - seeded) / capacity;
+      }
+    }
+  }
+
+  /**
    * @returns {number}
    */
   get volume() {
@@ -221,10 +303,17 @@ export class LatchDoorFilm {
 
   /**
    * @param {number} dt
+   * @param {number} pressureScale Combined mass of touching deposits relative to this deposit.
    */
-  update(dt) {
-    const steps = Math.ceil(Math.min(Math.max(dt,0),0.1) / 0.008);
-    const step = steps ? Math.min(dt,0.1) / steps : 0;
+  update(dt, pressureScale = 1) {
+    this.runoff.fill(0);
+    this.runoffSource.fill(-1);
+    const elapsed = Math.min(Math.max(dt, 0), 0.1);
+    this.age += elapsed;
+    const runoffTime = Math.min(elapsed, Math.max(0, this.age - FLOOR_HOLDBACK_SECONDS));
+    const steps = Math.ceil(elapsed / 0.008);
+    const step = steps ? elapsed / steps : 0;
+    this.#openWetSeams();
     const columnDepth = new Float64Array(this.nx);
     for (let i = 0; i < this.count; i++) {
       columnDepth[i % this.nx] = Math.max(columnDepth[i % this.nx], this.heights[i]);
@@ -238,23 +327,25 @@ export class LatchDoorFilm {
             if (b < 0 || !this.supported[a] || !this.supported[b]) {
               continue;
             }
-            if (b === a+1 && (!this.wetColumns[a%this.nx] || !this.wetColumns[b%this.nx])) {
+            if (Math.abs(this.base[a * 3 + 2] - this.base[b * 3 + 2]) > MAX_SUPPORT_STEP_METRES) {
               continue;
             }
             const h = this.heights[a], k = this.heights[b];
             // A nearly dry contact line must not diffuse across the entire
             // simulation rectangle. Thick gel still redistributes into bites.
             const mobility = Math.min(1, (Math.max(h,k) / 0.035) ** 2);
-            // Ordinary settling transports the authored contour. Diffusing
-            // every intact column into its neighbours flattens a round splat
-            // into a rectangular sheet. Lateral relaxation is for cut gaps.
-            let flux = this.changed ? (h - k) * Math.min(this.areas[a],this.areas[b]) * step * 2 * mobility / COHESIVE_FLOW_RESISTANCE : 0;
+            // Preserve the contour at ordinary depths; relieve pressure when
+            // gel piles up, as well as when it flows back into a cut gap.
+            const pressureH = Math.max(0, h * pressureScale - 0.1) / pressureScale;
+            const pressureK = Math.max(0, k * pressureScale - 0.1) / pressureScale;
+            let flux = (this.changed ? h - k : pressureH - pressureK) *
+              Math.min(this.areas[a],this.areas[b]) * step * 2 * mobility / COHESIVE_FLOW_RESISTANCE;
             if (b === a + this.nx) {
-              // Advect each cohesive column at one thickness-dependent speed.
-              // Cell-local back-pressure used to leave the upper gel behind
-              // while filling every dry row below it, producing square tails.
+              // Advect cohesive columns downward, but slow the flow into an
+              // already thick cell so a blocked sill cannot create a fin.
               const depth = columnDepth[x];
-              flux = -k * this.areas[b] * Math.min(0.14, step * this.flowSpeed * (this.density/1000) * Math.min(4,(depth / 0.05) ** 2) / (this.dy*COHESIVE_FLOW_RESISTANCE));
+              const space = Math.max(0, 1 - h / 0.18);
+              flux = -k * this.areas[b] * Math.min(0.14, step * this.flowSpeed * (this.density/1000) * Math.min(4,(depth / 0.05) ** 2) / (this.dy*COHESIVE_FLOW_RESISTANCE)) * space;
             }
             const donor = flux > 0 ? a : b;
             const amount = Math.min(Math.abs(flux), this.heights[donor] * this.areas[donor] * 0.18);
@@ -266,13 +357,98 @@ export class LatchDoorFilm {
       for (let i = 0; i < this.count; i++) {
         this.heights[i] = Math.max(0, this.heights[i] + delta[i] / this.areas[i]);
       }
-      if (this.minY <= this.floor + 0.0001) {
-        for (let x = 0; x < this.nx; x++) {
-          this.heights[x] *= Math.exp(-step * 5);
+    }
+    this.#settleSideEdges(elapsed);
+    if (runoffTime > 0 && this.minY <= this.floor + 0.0001) {
+      for (let x = 0; x < this.nx; x++) {
+        const before = this.heights[x];
+        this.heights[x] *= Math.exp(-runoffTime * 5);
+        this.runoff[x] = (before - this.heights[x]) * this.areas[x];
+        if (this.runoff[x] > 0) {
+          this.runoffSource[x] = x;
         }
       }
     }
+    // Door meshes can stop just above the ground or leave a narrow seam at
+    // the sill. Hand off the lowest supported cell to the separately sampled
+    // floor; the receiver returns the volume if there is no floor contact.
+    for (let x = 0; runoffTime > 0 && x < this.nx; x++) {
+      if (this.runoffSource[x] >= 0) {
+        continue;
+      }
+      for (let y = 1; y < this.ny && y * this.dy <= 0.22; y++) {
+        const index = y * this.nx + x;
+        if (!this.supported[index]) {
+          continue;
+        }
+        const before = this.heights[index];
+        this.heights[index] *= Math.exp(-runoffTime * 0.8);
+        this.runoff[x] = (before - this.heights[index]) * this.areas[index];
+        this.runoffSource[x] = index;
+        break;
+      }
+    }
     this.refresh();
+  }
+
+  /**
+   * Form a continuous small gel neck over a seam only after Ammo confirms
+   * that its two supported faces are unobstructed. The neck takes volume
+   * from the wet side; it never teleports gel to the far side.
+   */
+  #openWetSeams() {
+    for (let a = 0; a < this.count; a++) {
+      if (!this.seamPassable[a] || this.supported[a + 1]) {
+        continue;
+      }
+      const b = a + 1, c = a + 2, donor = this.heights[a] >= this.heights[c] ? a : c;
+      if (this.heights[donor] <= 0.004) {
+        continue;
+      }
+      this.supported[b] = 1;
+      const depth = (this.base[a * 3 + 2] + this.base[c * 3 + 2]) / 2;
+      this.base[b * 3 + 2] = depth;
+      this.base[(b + this.count) * 3 + 2] = depth;
+      const volume = Math.min(this.heights[donor] * 0.25, 0.02) * this.areas[donor];
+      this.heights[donor] -= volume / this.areas[donor];
+      this.heights[b] += volume / this.areas[b];
+    }
+  }
+
+  /**
+   * Move a thick rim back into its connected surface when a solid corner
+   * blocks sideways flow. This keeps the contact line tapered as gel settles,
+   * without removing mass or blocking an unobstructed seam transfer.
+   * @param {number} dt
+   */
+  #settleSideEdges(dt) {
+    const delta = new Float64Array(this.count), fraction = 1 - Math.exp(-dt * 4);
+    for (let y = 0; y < this.ny; y++) {
+      for (let x = 1; x < this.nx - 1; x++) {
+        const i = y * this.nx + x;
+        if (!this.supported[i] || this.heights[i] <= 0) {
+          continue;
+        }
+        for (const direction of [-1, 1]) {
+          const outside = i + direction, inside = i - direction;
+          const blocked = !this.supported[outside] ||
+            Math.abs(this.base[i * 3 + 2] - this.base[outside * 3 + 2]) > MAX_SUPPORT_STEP_METRES;
+          const seam = direction > 0 ? this.seamPassable[i] : x >= 2 && this.seamPassable[i - 2];
+          if (!blocked || seam || !this.supported[inside] ||
+            Math.abs(this.base[i * 3 + 2] - this.base[inside * 3 + 2]) > MAX_SUPPORT_STEP_METRES) {
+            continue;
+          }
+          const excess = Math.max(0, this.heights[i] - this.heights[inside] * 0.4);
+          const capacity = Math.max(0, 0.18 - this.heights[inside]);
+          const volume = Math.min(excess * this.areas[i] * fraction, capacity * this.areas[inside]);
+          delta[i] -= volume;
+          delta[inside] += volume;
+        }
+      }
+    }
+    for (let i = 0; i < this.count; i++) {
+      this.heights[i] = Math.max(0, this.heights[i] + delta[i] / this.areas[i]);
+    }
   }
 
   /**
@@ -313,6 +489,15 @@ export class LatchDoorFilm {
     for (let i = 0; i < this.indices.length; i += 3) {
       const a = this.indices[i], b = this.indices[i+1], c = this.indices[i+2];
       if (a >= this.count && b >= this.count && c >= this.count) {
+        continue;
+      }
+      if (!this.supported[a % this.count] || !this.supported[b % this.count] || !this.supported[c % this.count]) {
+        continue;
+      }
+      const za = this.base[(a % this.count) * 3 + 2];
+      const zb = this.base[(b % this.count) * 3 + 2];
+      const zc = this.base[(c % this.count) * 3 + 2];
+      if (Math.max(za, zb, zc) - Math.min(za, zb, zc) > MAX_SUPPORT_STEP_METRES) {
         continue;
       }
       // Trace the wet footprint, not the rectangular solver domain. Sub-mm

@@ -329,6 +329,56 @@ test("fixed film uploads outward triangles on either door side without mutating 
   }
 });
 
+test("merged film closes its volume at the visible contact contour", () => {
+  for (const sign of [1, -1]) {
+    const surface = fixture();
+    surface.filmEnabled = true;
+    surface.update(0);
+    surface.normalSign = sign;
+    surface.update(0);
+    const { film } = surface, geometry = surface.volumeGeometry;
+    let moved = 0;
+    for (let i = 0; i < film.count; i++) {
+      const front = i * 3, back = (i + film.count) * 3;
+      assert.equal(geometry.positions[back], geometry.positions[front]);
+      assert.equal(geometry.positions[back + 1], geometry.positions[front + 1]);
+      assert.ok(Math.abs(geometry.positions[front + 2] - geometry.positions[back + 2] - film.heights[i] * sign) < 1e-6);
+      if (film.heights[i] <= 0.004 && (film.renderPositions[front] !== film.base[front] ||
+        film.renderPositions[front + 1] !== film.base[front + 1])) {
+        moved++;
+      }
+    }
+    assert.ok(moved > 0, "the fixture includes interpolated edge vertices");
+    surface.destroy();
+  }
+});
+
+test("impact bulge settles into the same conserved film before merging", () => {
+  for (const sign of [1, -1]) {
+    const surface = fixture();
+    surface.filmEnabled = true;
+    surface.update(0);
+    surface.normalSign = sign;
+    surface.age = 0;
+    surface.update(0);
+    const volume = surface.sourceVolume;
+    let index = 0;
+    for (let i = 1; i < surface.film.count; i++) {
+      if (surface.film.heights[i] > surface.film.heights[index]) {
+        index = i;
+      }
+    }
+    const start = surface.mesh.positions[index * 3 + 2] * sign;
+    const settled = surface.positions[index * 3 + 2] * sign;
+    assert.ok(start > settled, "the contact retains outward body depth");
+    surface.age = 0.65;
+    surface.update(0);
+    assert.ok(Math.abs(surface.mesh.positions[index * 3 + 2] - surface.positions[index * 3 + 2]) < 1e-7);
+    assert.ok(Math.abs(surface.sourceVolume - volume) < 1e-9);
+    surface.destroy();
+  }
+});
+
 
 test("production film collects actual world-space skin on the negative door side and conserves repeated bite accounting", () => {
   const surface = fixture();

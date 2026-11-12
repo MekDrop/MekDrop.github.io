@@ -136,11 +136,24 @@ export class LatchGelUnion {
       support = /**
        * @param {number} x
        * @param {number} y
-       * @returns {number}
+       * @returns {number|null}
        */
         (x, y) => {
           local.transformPoint(sample.set(x, y, 0), sample);
-          sample.z = reference.field.height(sample.x, sample.y) * this.#normalSign;
+          const film = reference.film;
+          if (film) {
+            const column = Math.round((sample.x - film.minX) / film.dx);
+            const row = Math.round((sample.y - film.minY) / film.dy);
+            if (column < 0 || column >= film.nx || row < 0 || row >= film.ny || !film.supported[row * film.nx + column]) {
+              return null;
+            }
+            sample.z = film.base[(row * film.nx + column) * 3 + 2] * this.#normalSign;
+          } else {
+            if (reference.field.contains && !reference.field.contains(sample.x, sample.y)) {
+              return null;
+            }
+            sample.z = reference.field.height(sample.x, sample.y) * this.#normalSign;
+          }
           world.transformPoint(sample, sample);
 
           return sample.z * this.#normalSign + 0.004;

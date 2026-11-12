@@ -127,8 +127,7 @@ export class LatchSplash {
   update(dt) {
     this.age += dt;
     this.surface.update(dt);
-    // The authored clip continues down past the threshold. The surface clips
-    // runoff at floor contact; only fully drained patches release their jam.
+    // The surface transfers gel that reaches the sill onto supported ground.
   }
 
   clear() {

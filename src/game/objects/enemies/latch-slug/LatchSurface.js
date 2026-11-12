@@ -1,6 +1,7 @@
 import { LatchDoorFilm } from "./LatchDoorFilm.js";
 import { LatchGelScrape } from "./LatchGelScrape.js";
 import { LatchGelUnion } from "./LatchGelUnion.js";
+import { LatchGroundRunoff } from "./LatchGroundRunoff.js";
 import { LatchDoorSurface } from "./LatchDoorSurface.js";
 import { LatchFootprint } from "./LatchFootprint.js";
 import { bodyToGel, gelVolume, impactTriangles, impactVolume } from "./LatchImpactShape.js";
@@ -8,6 +9,7 @@ import { bodyToGel, gelVolume, impactTriangles, impactVolume } from "./LatchImpa
 const DEPOSIT_VOLUME_FRACTION = 0.35;
 const MAX_TRANSITION_VOLUME_GAIN = 4;
 const IMPACT_TRANSITION_SECONDS = 0.18;
+const IMPACT_VISUAL_SETTLE_SECONDS = 0.65;
 
 /**
  * Continuous visual deformation of authored geometry. Ammo still owns contact
@@ -91,6 +93,7 @@ export class LatchSurface {
     // Outside the leaf, only wet real neighbouring masonry. A short native
     // ray accepts the arch/wall but cannot invent support across open air.
     this.field.support = this.#masonrySupport.bind(this);
+    this.field.canCross = this.#canCrossSeam.bind(this);
     this.original = this.splash.model.findByName(this.splash.variation.profile.node).render.meshInstances[0];
     this.basis = [];
     this.indices = [];
@@ -170,6 +173,34 @@ export class LatchSurface {
 
     return nearest ? this.inverse.transformPoint(nearest).z*this.normalSign+0.003 : null;
   }
+
+  /**
+   * @param {number} x1
+   * @param {number} y
+   * @param {number} z1
+   * @param {number} x2
+   * @param {number} z2
+   * @returns {boolean}
+   */
+  #canCrossSeam(x1, y, z1, x2, z2) {
+    const { pc, app } = this.owner;
+    if (!app.systems?.rigidbody?.raycastAll) {
+      return false;
+    }
+    const transform = this.splash.entity.getWorldTransform();
+    const start = transform.transformPoint(new pc.Vec3(x1, y, (z1 + 0.015) * this.normalSign));
+    const end = transform.transformPoint(new pc.Vec3(x2, y, (z2 + 0.015) * this.normalSign));
+    const length = start.distance(end);
+    for (const hit of app.systems.rigidbody.raycastAll(start, end)) {
+      const fraction = Number.isFinite(hit.hitFraction) ? hit.hitFraction
+        : hit.point && length > 0 ? start.distance(hit.point) / length : 0.5;
+      if (hit.entity.rigidbody?.type !== "dynamic" && fraction > 0.02 && fraction < 0.98) {
+        return false;
+      }
+    }
+
+    return true;
+  }
   /**
    * @param {number} dt
    */
@@ -180,7 +211,15 @@ export class LatchSurface {
     if (this.film) {
       this.age += dt;
       this.film.flowSpeed = this.#authoredOozeSpeed();
-      this.film.update(dt);
+      const combinedVolume = this.#union?.active
+        ? [...this.#union.members].reduce(LatchSurface.#sumSourceVolume, 0) : this.sourceVolume;
+      const pressure = this.sourceVolume > 1e-9 ? Math.max(1, combinedVolume / this.sourceVolume) : 1;
+      this.film.update(dt, pressure);
+      if (!this.groundRunoff && this.film.runoff.some(LatchSurface.#hasRunoff) &&
+        this.owner.app.systems?.rigidbody?.raycastAll) {
+        this.groundRunoff = new LatchGroundRunoff(this);
+      }
+      this.groundRunoff?.update(dt);
       this.#showFilm();
 
       return;
@@ -342,6 +381,23 @@ export class LatchSurface {
   }
 
   /**
+   * @param {number} sum
+   * @param {LatchSurface} surface
+   * @returns {number}
+   */
+  static #sumSourceVolume(sum, surface) {
+    return sum + surface.sourceVolume;
+  }
+
+  /**
+   * @param {number} volume
+   * @returns {boolean}
+   */
+  static #hasRunoff(volume) {
+    return volume > 0;
+  }
+
+  /**
    * @param {number} gain
    * @returns {boolean}
    */
@@ -428,16 +484,44 @@ export class LatchSurface {
       }
     }
     this.sourceVolume = this.film.volume;
-    this.drained = this.film.drained;
+    this.drained = this.film.drained && !(this.groundRunoff?.film.volume > 1e-7);
     this.metrics.sourceVolume = this.sourceVolume;
     this.metrics.volume = this.sourceVolume;
     this.metrics.frames++;
     for (let i = 2; i < this.positions.length; i += 3) {
       this.positions[i] *= this.normalSign;
     }
-    this.mesh.setPositions(this.positions);
+    // The captured body has depth at contact. Present a short outward bulge
+    // while it settles into the conserved film; the solver and its volume
+    // remain unchanged, and the bulge never extends behind the support.
+    const visual = this.positions.slice();
+    const progress = Math.max(0, Math.min(1, this.age / IMPACT_VISUAL_SETTLE_SECONDS));
+    const bulge = (1 - progress) ** 2 * (1 + 2 * progress) * 0.22;
+    let left = Infinity, right = -Infinity, bottom = Infinity, top = -Infinity;
+    if (bulge > 0) {
+      for (let i = 0; i < this.film.count; i++) {
+        if (this.film.heights[i] <= 0.004) {
+          continue;
+        }
+        left = Math.min(left, this.film.base[i * 3]);
+        right = Math.max(right, this.film.base[i * 3]);
+        bottom = Math.min(bottom, this.film.base[i * 3 + 1]);
+        top = Math.max(top, this.film.base[i * 3 + 1]);
+      }
+      const width = Math.max(this.film.dx, (right - left) / 2);
+      const height = Math.max(this.film.dy, (top - bottom) / 2);
+      for (let i = 0; i < this.film.count; i++) {
+        if (this.film.heights[i] <= 0.004) {
+          continue;
+        }
+        const x = (this.film.base[i * 3] - (left + right) / 2) / width;
+        const y = (this.film.base[i * 3 + 1] - (bottom + top) / 2) / height;
+        visual[i * 3 + 2] += Math.sqrt(Math.max(0, 1 - x * x - y * y)) * this.normalSign * bulge;
+      }
+    }
+    this.mesh.setPositions(visual);
     this.mesh.setIndices(this.renderIndices);
-    this.mesh.setNormals(pc.calculateNormals(this.positions,this.renderIndices));
+    this.mesh.setNormals(pc.calculateNormals(visual,this.renderIndices));
     this.mesh.update();
     this.#footprint = null;
     this.owner.finishSplatTransition();
@@ -462,7 +546,16 @@ export class LatchSurface {
         indices: this.indices,
       };
     }
-    const count = this.film.count, indices = [];
+    const count = this.film.count, indices = [], positions = this.positions.slice();
+    for (let i = 0; i < count; i++) {
+      const front = i * 3, back = (i + count) * 3;
+      // The visible contact contour moves dry vertices between grid cells.
+      // Close the volume at that same contour; leaving the back vertex at its
+      // old grid position produces false wedges and vertical fins in the union.
+      positions[back] = positions[front];
+      positions[back + 1] = positions[front + 1];
+      positions[back + 2] = positions[front + 2] - this.film.heights[i] * this.normalSign;
+    }
     for (let i = 0; i < this.film.renderIndices.length; i += 3) {
       const a = this.film.renderIndices[i], b = this.film.renderIndices[i + 1], c = this.film.renderIndices[i + 2];
       if (a >= count || b >= count || c >= count) {
@@ -478,7 +571,7 @@ export class LatchSurface {
     }
 
     return {
-      positions: this.positions,
+      positions,
       indices,
     };
   }
@@ -509,6 +602,9 @@ export class LatchSurface {
         candidates.push(Object.assign(point, { gooThickness: this.positions[i + 2] * this.normalSign - this.base[i + 2] }));
       }
     }
+    if (this.groundRunoff) {
+      candidates.push(...this.groundRunoff.candidates(origin, maxReach));
+    }
     candidates.sort(LatchSurface.#thickestFirst);
 
     return candidates;
@@ -538,12 +634,14 @@ export class LatchSurface {
     const transform = this.splash.entity.getWorldTransform();
     const inverse = transform.clone().invert();
     if (this.film) {
+      const ground = this.groundRunoff?.cut(start, end, radius);
       const beforePositions = this.positions.slice();
       const from = inverse.transformPoint(start), to = inverse.transformPoint(end);
       from.z *= this.normalSign; to.z *= this.normalSign;
       const removed = this.film.cut(from, to, radius);
-      if (removed > 1e-7 && onCollect) {
-        const selected = [], point = new this.owner.pc.Vec3();
+      const total = removed + (ground?.volume ?? 0);
+      if (total > 1e-7 && onCollect) {
+        const selected = ground?.positions ?? [], point = new this.owner.pc.Vec3();
         for (let i = 0; i < this.film.frontIndices.length; i += 3) {
           const triangle = this.film.frontIndices.slice(i,i+3);
           let touched = false;
@@ -561,13 +659,13 @@ export class LatchSurface {
         onCollect({
           positions:selected,
           material:this.material,
-          volume:removed,
+          volume:total,
         });
       }
       this.#showFilm();
       this.#union?.invalidate();
 
-      return removed;
+      return total;
     }
     const previous = this.scrape.remaining.slice();
     const beforePositions = this.positions.slice();
@@ -633,13 +731,14 @@ export class LatchSurface {
   }
 
   /**
-   * Binding only happens at door impact. The first visible wet frame can join;
-   * waiting for the full flattening animation can miss a brief real contact.
+   * Binding only happens at door impact. Wait for the short impact presentation
+   * before merging, so the union cannot replace an in-progress settling shape.
    * @param {LatchSurface} other
    * @returns {boolean}
    */
   touches(other) {
-    return this.age >= 1 / 60 && other.age >= 1 / 60 && this.footprint.touches(other.footprint);
+    return this.age >= IMPACT_VISUAL_SETTLE_SECONDS && other.age >= IMPACT_VISUAL_SETTLE_SECONDS &&
+      this.footprint.touches(other.footprint);
   }
 
   /**
@@ -670,6 +769,8 @@ export class LatchSurface {
   }
 
   clear() {
+    this.groundRunoff?.destroy();
+    this.groundRunoff = null;
     this.#union?.remove(this);
     this.#union = null;
     this.entity.enabled = false;
@@ -680,6 +781,8 @@ export class LatchSurface {
   }
 
   destroy() {
+    this.groundRunoff?.destroy();
+    this.groundRunoff = null;
     this.#union?.remove(this);
     this.#union = null;
     this.entity.destroy();

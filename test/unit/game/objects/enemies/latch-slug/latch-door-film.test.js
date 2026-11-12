@@ -113,6 +113,82 @@ test("actual impact skin seeds a bounded single-valued film with exact mass", ()
   }
 });
 
+test("a clipped impact tapers at its supported edge without losing volume", () => {
+  const f = new LatchDoorFilm({
+    positions: new Float32Array([-0.5, 0, 0.12, 0.5, 0, 0.12, 0.5, 0.8, 0.12, -0.5, 0.8, 0.12]),
+    indices: [0, 1, 2, 0, 2, 3],
+    field: {
+      height: () => 0,
+      contains: x => x < 0.1,
+    },
+    floor: -1,
+    volume: 0.04,
+  });
+  let edge = -Infinity, edgePeak = 0, centerPeak = 0;
+  for (let i = 0; i < f.count; i++) {
+    if (f.heights[i] <= 0) {
+      continue;
+    }
+    const x = f.base[i * 3];
+    if (x > edge + 1e-5) {
+      edge = x;
+      edgePeak = 0;
+    }
+    if (Math.abs(x - edge) < 1e-5) {
+      edgePeak = Math.max(edgePeak, f.heights[i]);
+    }
+    if (x > -0.35 && x < -0.2) {
+      centerPeak = Math.max(centerPeak, f.heights[i]);
+    }
+  }
+  assert.ok(edgePeak < centerPeak * 0.5, "the contact edge does not end in a thick vertical slab");
+  assert.ok(Math.abs(f.volume - 0.04) < 1e-9);
+});
+
+test("an initial splat keeps only the impact-connected component", () => {
+  const f = new LatchDoorFilm({
+    positions: new Float32Array([
+      -0.2, -0.2, 0.1, 0.2, -0.2, 0.1, 0.2, 0.2, 0.1, -0.2, 0.2, 0.1,
+      0.6, -0.2, 0.1, 0.8, -0.2, 0.1, 0.8, 0.2, 0.1, 0.6, 0.2, 0.1,
+    ]),
+    indices: [0, 1, 2, 0, 2, 3, 4, 5, 6, 4, 6, 7],
+    field: { height: () => 0 },
+    floor: -1,
+    volume: 0.02,
+  });
+  for (let i = 0; i < f.count; i++) {
+    if (f.base[i * 3] > 0.5) {
+      assert.equal(f.heights[i], 0, "a detached fragment is not seeded beside the impact");
+    }
+  }
+  assert.ok(Math.abs(f.volume - 0.02) < 1e-9);
+});
+
+test("a sharp change in support depth tapers both sides of the impact", () => {
+  const f = new LatchDoorFilm({
+    positions: new Float32Array([-0.5, 0, 0.3, 0.5, 0, 0.3, 0.5, 0.8, 0.3, -0.5, 0.8, 0.3]),
+    indices: [0, 1, 2, 0, 2, 3],
+    field: { height: x => x < 0 ? 0 : 0.25 },
+    floor: -1,
+    volume: 0.04,
+  });
+  let near = 0, middle = 0;
+  for (let i = 0; i < f.count; i++) {
+    const x = f.base[i * 3], y = f.base[i * 3 + 1];
+    if (y < 0.3 || y > 0.5) {
+      continue;
+    }
+    if (Math.abs(x) < f.dx) {
+      near = Math.max(near, f.heights[i]);
+    }
+    if (x > -0.35 && x < -0.2) {
+      middle = Math.max(middle, f.heights[i]);
+    }
+  }
+  assert.ok(near < middle * 0.5, "the gel narrows rather than forming a fin at the corner");
+  assert.ok(Math.abs(f.volume - 0.04) < 1e-9);
+});
+
 test("thicker pockets descend faster while the fixed grid cannot fold into a fin", () => {
   const thick=film(),thin=film();
   thick.heights.fill(0);thin.heights.fill(0);
@@ -129,6 +205,28 @@ test("thicker pockets descend faster while the fixed grid cannot fold into a fin
   const top=centroid(thick);
   thick.update(0.1);thin.update(0.1);
   assert.ok(top-centroid(thick) > (top-centroid(thin))*1.5);
+});
+
+test("gel accumulating above a blocked surface does not become a deep fin", () => {
+  const f = film();
+  f.heights.fill(0);
+  const middle = Math.floor(f.nx / 2), barrier = Math.floor(f.ny / 3);
+  for (let x = 0; x < f.nx; x++) {
+    f.supported[barrier * f.nx + x] = 0;
+  }
+  for (let y = barrier + 1; y < barrier + 16 && y < f.ny; y++) {
+    for (let x = middle - 3; x <= middle + 3; x++) {
+      f.heights[y * f.nx + x] = 0.1;
+      f.wetColumns[x] = 1;
+    }
+  }
+  f.flowSpeed = 0.5;
+  const volume = f.volume;
+  for (let frame = 0; frame < 600; frame++) {
+    f.update(1 / 60);
+  }
+  assert.ok(Math.max(...f.heights) < 0.25, "back-pressure prevents an outward spike");
+  assert.ok(Math.abs(f.volume - volume) < 1e-8, "blocked gel remains accounted for");
 });
 
 test("sub-millimetre residue does not render the rectangular solver domain", () => {
@@ -197,7 +295,7 @@ test("transport cannot fill unsupported air beside the door or arch", () => {
   }
 });
 
-test("settling and gap refill never widen the impact footprint", () => {
+test("a lightly loaded film retains its impact footprint", () => {
   const f = film();
   const width = f.wetColumns.slice();
   for (let frame=0;frame<600;frame++) {
@@ -210,6 +308,198 @@ test("settling and gap refill never widen the impact footprint", () => {
   }
 });
 
+test("combined gel pressure spreads into adjacent supported masonry without creating mass", () => {
+  const f = new LatchDoorFilm({
+    positions: new Float32Array([-0.35, 0, 0.08, -0.05, 0, 0.08, -0.05, 0.6, 0.08, -0.35, 0.6, 0.08]),
+    indices: [0, 1, 2, 0, 2, 3],
+    field: {
+      height: () => 0,
+      contains: x => x <= 0,
+      support: x => x < 0.4 ? 0 : null,
+    },
+    floor: -1,
+    volume: 0.012,
+  });
+  f.flowSpeed = 0;
+  const initial = f.volume;
+  for (let frame = 0; frame < 600; frame++) {
+    f.update(1 / 60, 5);
+  }
+  let overflow = 0;
+  for (let i = 0; i < f.count; i++) {
+    if (f.base[i * 3] > 0.02) {
+      overflow += f.heights[i] * f.areas[i];
+    }
+    if (!f.supported[i]) {
+      assert.equal(f.heights[i], 0);
+    }
+  }
+  assert.ok(overflow > 0.0001, "pressure wets connected stone beside the door");
+  assert.ok(Math.abs(f.volume - initial) < 1e-8, "overflow redistributes existing gel");
+});
+
+test("gel grows a conserved neck across a clear one-cell seam", () => {
+  for (const direction of [-1, 1]) {
+    const f = film();
+    f.heights.fill(0);
+    f.supported.fill(1);
+    f.flowSpeed = 0;
+    const seam = Math.floor(f.nx / 2), row = Math.floor(f.ny * 0.65);
+    for (let y = 0; y < f.ny; y++) {
+      f.supported[y * f.nx + seam] = 0;
+      f.seamPassable[y * f.nx + seam - 1] = 1;
+    }
+    f.heights[row * f.nx + seam - direction] = 0.16;
+    const before = f.volume;
+    for (let frame = 0; frame < 900; frame++) {
+      f.update(1 / 60, 5);
+    }
+    let across = 0, neck = 0;
+    for (let i = 0; i < f.count; i++) {
+      const x = i % f.nx;
+      if ((x - seam) * direction > 0) {
+        across += f.heights[i] * f.areas[i];
+      }
+      if (x === seam) {
+        neck += f.heights[i] * f.areas[i];
+      }
+    }
+    assert.ok(across > 0.00001, "pressure transfers gel to the supported opposite side");
+    assert.ok(neck > 0, "the connection contains gel rather than teleporting it across");
+    const edges = new Map();
+    for (let i = 0; i < f.renderIndices.length; i += 3) {
+      const triangle = f.renderIndices.slice(i, i + 3).map(index => index % f.count);
+      for (const vertex of triangle) {
+        const neighbors = edges.get(vertex) ?? new Set();
+        for (const other of triangle) {
+          neighbors.add(other);
+        }
+        edges.set(vertex, neighbors);
+      }
+    }
+    const visited = new Set(), pending = [row * f.nx + seam - direction];
+    while (pending.length) {
+      const vertex = pending.pop();
+      if (visited.has(vertex)) {
+        continue;
+      }
+      visited.add(vertex);
+      for (const next of edges.get(vertex) ?? []) {
+        pending.push(next);
+      }
+    }
+    let visibleAcross = false;
+    for (const vertex of visited) {
+      visibleAcross ||= (vertex % f.nx - seam) * direction > 0 && f.heights[vertex] > 0.004;
+    }
+    assert.ok(visibleAcross, "the visible mesh forms one connected mass across the seam");
+    assert.ok(Math.abs(f.volume - before) < 1e-9);
+  }
+});
+
+test("a solid obstruction blocks transfer across an otherwise narrow supported seam", () => {
+  const makeFilm = canCross => new LatchDoorFilm({
+    positions: new Float32Array([-0.4, 0, 0.12, 0.4, 0, 0.12, 0.4, 0.7, 0.12, -0.4, 0.7, 0.12]),
+    indices: [0, 1, 2, 0, 2, 3],
+    field: {
+      height: () => 0,
+      contains: x => x < 0,
+      support: x => x >= 0.05 ? 0 : null,
+      canCross,
+    },
+    floor: -1,
+    volume: 0.04,
+  });
+  const blocked = makeFilm(() => false), clear = makeFilm(() => true);
+  assert.ok(clear.seamPassable.some(isNonzero), "a clear seam can carry gel");
+  assert.ok(blocked.seamPassable.every(isZero), "a wall prevents all seam transfers");
+  for (const f of [blocked, clear]) {
+    for (let i = 0; i < f.renderIndices.length; i++) {
+      assert.equal(f.supported[f.renderIndices[i] % f.count], 1,
+        "rendered gel uses only supported vertices");
+    }
+  }
+});
+
+test("a projecting masonry corner blocks flow and render triangles across its depth step", () => {
+  const f = film(), corner = Math.floor(f.nx / 2), row = Math.floor(f.ny / 2);
+  f.heights.fill(0);
+  f.supported.fill(1);
+  f.flowSpeed = 0;
+  for (let i = 0; i < f.count; i++) {
+    const depth = i % f.nx < corner ? 0 : 0.25;
+    f.base[i * 3 + 2] = depth;
+    f.base[(i + f.count) * 3 + 2] = depth;
+  }
+  f.heights[row * f.nx + corner - 1] = 0.16;
+  const volume = f.volume;
+  for (let frame = 0; frame < 300; frame++) {
+    f.update(1 / 60, 5);
+  }
+  for (let i = 0; i < f.count; i++) {
+    if (i % f.nx >= corner) {
+      assert.equal(f.heights[i], 0, "gel cannot pass through the corner");
+    }
+  }
+  for (let i = 0; i < f.renderIndices.length; i += 3) {
+    const depths = [];
+    for (let j = 0; j < 3; j++) {
+      depths.push(f.base[(f.renderIndices[i + j] % f.count) * 3 + 2]);
+    }
+    assert.ok(Math.max(...depths) - Math.min(...depths) <= 0.08, "triangles do not cut across the corner");
+  }
+  assert.ok(Math.abs(f.volume - volume) < 1e-9);
+});
+
+test("downward flow cannot pass through a vertical support-depth discontinuity", () => {
+  const f = film(), barrier = Math.floor(f.ny / 2), column = Math.floor(f.nx / 2);
+  f.heights.fill(0);
+  f.supported.fill(1);
+  f.flowSpeed = 1;
+  for (let i = 0; i < f.count; i++) {
+    const depth = Math.floor(i / f.nx) < barrier ? 0.25 : 0;
+    f.base[i * 3 + 2] = depth;
+    f.base[(i + f.count) * 3 + 2] = depth;
+  }
+  f.heights[barrier * f.nx + column] = 0.15;
+  const volume = f.volume;
+  for (let frame = 0; frame < 300; frame++) {
+    f.update(1 / 60);
+  }
+  for (let i = 0; i < f.count; i++) {
+    if (Math.floor(i / f.nx) < barrier) {
+      assert.equal(f.heights[i], 0);
+    }
+  }
+  assert.ok(Math.abs(f.volume - volume) < 1e-9);
+});
+
+test("gel settling against a blocked side retains a tapered edge and its mass", () => {
+  const f = film(), corner = Math.floor(f.nx / 2), row = Math.floor(f.ny / 2);
+  f.heights.fill(0);
+  f.supported.fill(1);
+  f.flowSpeed = 0;
+  for (let y = 0; y < f.ny; y++) {
+    f.supported[y * f.nx + corner] = 0;
+  }
+  f.heights[row * f.nx + corner - 1] = 0.15;
+  f.heights[row * f.nx + corner - 2] = 0.1;
+  const volume = f.volume;
+  for (let frame = 0; frame < 120; frame++) {
+    f.update(1 / 60);
+  }
+  assert.ok(f.heights[row * f.nx + corner - 1] < f.heights[row * f.nx + corner - 2] * 0.5);
+  assert.ok(Math.abs(f.volume - volume) < 1e-9);
+});
+
+/**
+ * @param {number} value
+ * @returns {boolean}
+ */
+function isNonzero(value) {
+  return value !== 0;
+}
+
 test("a supported projecting arch receives gel without adding mass or coating air", () => {
   const f = new LatchDoorFilm({
     positions:new Float32Array([-0.4,0,0.12,0.4,0,0.12,0.4,0.7,0.12,-0.4,0.7,0.12]),
@@ -217,7 +507,7 @@ test("a supported projecting arch receives gel without adding mass or coating ai
     field:{
       height:()=>0,
       contains:x=>x<0,
-      support:x=>x<0.3?0.45:null,
+      support:x=>x<0.3?0.04:null,
     },
     floor:-1,
     volume:0.04,
@@ -227,7 +517,7 @@ test("a supported projecting arch receives gel without adding mass or coating ai
     const x = f.base[i*3];
     if (x>0.05 && x<0.25 && f.heights[i]>0.004) {
       wrapped++;
-      assert.ok(f.positions[i*3+2]>0.45);
+      assert.ok(f.positions[i*3+2]>0.04);
     }
     if (x>0.3) {
       assert.equal(f.heights[i],0);
@@ -235,6 +525,26 @@ test("a supported projecting arch receives gel without adding mass or coating ai
   }
   assert.ok(wrapped>0, "the forward offset of stone does not erase the deposit");
   assert.ok(Math.abs(f.volume-0.04)<1e-10);
+});
+
+test("the initial impact cannot seed gel through a projecting wall corner", () => {
+  const f = new LatchDoorFilm({
+    positions: new Float32Array([-0.4, 0, 0.12, 0.4, 0, 0.12, 0.4, 0.7, 0.12, -0.4, 0.7, 0.12]),
+    indices: [0, 1, 2, 0, 2, 3],
+    field: {
+      height: () => 0,
+      contains: x => x < 0,
+      support: x => x < 0.4 ? 0.25 : null,
+    },
+    floor: -1,
+    volume: 0.04,
+  });
+  for (let i = 0; i < f.count; i++) {
+    if (f.base[i * 3] >= 0) {
+      assert.equal(f.heights[i], 0, "the separated wall face is not part of the initial impact");
+    }
+  }
+  assert.ok(Math.abs(f.volume - 0.04) < 1e-9);
 });
 
 test("a high impact can descend to the real sill instead of pooling on the solver boundary", () => {
@@ -258,6 +568,49 @@ test("a high impact can descend to the real sill instead of pooling on the solve
   assert.ok(lowMass > 0.001 || f.volume < 0.019,
     "gel must travel below the old impact-minus-0.65m boundary or drain at the sill");
 });
+
+test("the lowest supported wall cell hands runoff across a narrow sill gap", () => {
+  const f = film();
+  f.age = 180;
+  f.heights.fill(0);
+  const column = Math.floor(f.nx / 2), source = f.nx * 2 + column;
+  f.supported[column] = 0;
+  f.supported[f.nx + column] = 0;
+  f.supported[source] = 1;
+  f.heights[source] = 0.1;
+  const before = f.volume;
+  f.update(0.1);
+  assert.ok(f.runoff[column] > 0);
+  assert.equal(f.runoffSource[column], source);
+  let runoff = 0;
+  for (const amount of f.runoff) {
+    runoff += amount;
+  }
+  assert.ok(Math.abs(f.volume + runoff - before) < 1e-9);
+});
+
+test("door gel cannot reach the floor during the first three minutes", () => {
+  const f = film();
+  f.heights.fill(0);
+  const column = Math.floor(f.nx / 2);
+  f.heights[column] = 0.1;
+  f.age = 179.8;
+  const before = f.volume;
+  f.update(0.1);
+  f.update(0.1);
+  assert.ok(Math.abs(f.volume - before) < 1e-9, "the wall retains its gel before the holdback ends");
+  assert.ok(f.runoff.every(isZero), "no gel is transferred to the floor");
+  f.update(0.1);
+  assert.ok(f.runoff[column] > 0, "runoff begins after three minutes");
+});
+
+/**
+ * @param {number} value
+ * @returns {boolean}
+ */
+function isZero(value) {
+  return value === 0;
+}
 
 test("one impact cannot seed a detached masonry strip across an unsupported jamb gap", () => {
   const f = new LatchDoorFilm({

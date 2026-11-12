@@ -8,7 +8,7 @@ const MIN_COVERAGE_THICKNESS = 0.000001;
  */
 export class LatchCoverage {
   /**
-   * @type {((x:number,y:number)=>number)|null}
+   * @type {((x:number,y:number)=>number|null)|null}
    */
   #surfaceHeight;
   /**
@@ -68,7 +68,7 @@ export class LatchCoverage {
   /**
    * @param {Array<{positions:ArrayLike<number>,indices:ArrayLike<number>,volume:number}>} patches
    * @param {boolean} cohesive Keep previously merged wet film connected.
-   * @param {((x:number,y:number)=>number)|null} surfaceHeight Door support under new connecting film.
+   * @param {((x:number,y:number)=>number|null)|null} surfaceHeight Actual support under new connecting film.
    */
   constructor(patches, cohesive = false, surfaceHeight = null) {
     this.#surfaceHeight = surfaceHeight;
@@ -142,10 +142,12 @@ export class LatchCoverage {
     }
     const volume = Math.abs(gelVolume(this.positions, this.indices));
     const capacity = area * ceiling - volume;
+    const proportional = volume > 1e-10 && volume < wanted &&
+      Math.max(...heights) * wanted / volume <= ceiling;
     for (let i = 0; i < this.topIndices.length; i++) {
       const top = this.topIndices[i] * 3 + 2, base = this.baseIndices[i] * 3 + 2;
       if (top !== base) {
-        const height = volume >= wanted && volume > 0 ? heights[i] * wanted / volume
+        const height = (volume >= wanted || proportional) && volume > 0 ? heights[i] * wanted / volume
           : heights[i] + (ceiling - heights[i]) * (capacity > 0 ? (wanted - volume) / capacity : 0);
         this.positions[top] = this.positions[base] + height;
       }
@@ -176,7 +178,7 @@ export class LatchCoverage {
       while (head < tail) {
         const current = queue[head++];
         for (const next of this.#neighbors(current)) {
-          if (occupied[next] && labels[next] < 0) {
+          if (occupied[next] && labels[next] < 0 && this.#canTraverse(current, next)) {
             labels[next] = components;
             queue[tail++] = next;
           }
@@ -202,6 +204,9 @@ export class LatchCoverage {
     while (head < tail && this.connections < components - 1) {
       const current = queue[head++];
       for (const next of this.#neighbors(current)) {
+        if (!this.#canTraverse(current, next)) {
+          continue;
+        }
         if (labels[next] < 0) {
           labels[next] = labels[current];
           source[next] = source[current];
@@ -213,12 +218,17 @@ export class LatchCoverage {
         if (a === b) {
           continue;
         }
-        roots[b] = a;
-        this.connections++;
         const start = source[current], end = source[next];
         const startX = start % this.#columns, startY = Math.floor(start / this.#columns);
         const dx = end % this.#columns - startX, dy = Math.floor(end / this.#columns) - startY;
         const length = Math.max(Math.abs(dx), Math.abs(dy));
+        // A thin film can bridge a short clear seam. Connecting every pair of
+        // formerly merged components creates long, unsupported-looking rods.
+        if (Math.hypot(dx, dy) * this.#step > 0.1) {
+          continue;
+        }
+        roots[b] = a;
+        this.connections++;
         const depth = Math.max(0.008, Math.min(0.04, (this.#front[start] - this.#back[start] + this.#front[end] - this.#back[end]) * 0.25));
         for (let k = 0; k <= length; k++) {
           const blend = k / Math.max(1, length);
@@ -228,7 +238,11 @@ export class LatchCoverage {
             if (!occupied[cell]) {
               const x = this.#left + cell % this.#columns * this.#step;
               const y = this.#bottom + Math.floor(cell / this.#columns) * this.#step;
-              const support = Math.max(base, this.#surfaceHeight?.(x, y) ?? base);
+              const sampled = this.#surfaceHeight?.(x, y);
+              if (this.#surfaceHeight && sampled == null) {
+                continue;
+              }
+              const support = Math.max(base, sampled ?? base);
               this.#back[cell] = Math.min(this.#back[cell], support);
               this.#front[cell] = Math.max(this.#front[cell], support + depth);
             }
@@ -236,6 +250,24 @@ export class LatchCoverage {
         }
       }
     }
+  }
+
+  /**
+   * @param {number} from
+   * @param {number} to
+   * @returns {boolean}
+   */
+  #canTraverse(from, to) {
+    if (!this.#surfaceHeight) {
+      return true;
+    }
+    const fromX = this.#left + from % this.#columns * this.#step;
+    const fromY = this.#bottom + Math.floor(from / this.#columns) * this.#step;
+    const toX = this.#left + to % this.#columns * this.#step;
+    const toY = this.#bottom + Math.floor(to / this.#columns) * this.#step;
+    const start = this.#surfaceHeight(fromX, fromY), end = this.#surfaceHeight(toX, toY);
+
+    return start != null && end != null && Math.abs(start - end) <= 0.08;
   }
 
   /**
@@ -308,8 +340,9 @@ export class LatchCoverage {
     }
     for (let i = 0; i < front.length; i++) {
       if (front[i] - back[i] > MIN_COVERAGE_THICKNESS) {
-        this.#front[i] = Math.max(this.#front[i], front[i]);
+        const previous = Number.isFinite(this.#back[i]) ? this.#front[i] - this.#back[i] : 0;
         this.#back[i] = Math.min(this.#back[i], back[i]);
+        this.#front[i] = this.#back[i] + previous + front[i] - back[i];
       }
     }
   }
@@ -379,6 +412,16 @@ export class LatchCoverage {
    */
   #face(a, b, c, thickness, boundary, neighbors) {
     const nodes = [a, b, c], top = [], back = [];
+    let minSupport = Infinity, maxSupport = -Infinity;
+    for (const node of nodes) {
+      if (thickness[node] > 0) {
+        minSupport = Math.min(minSupport, this.#back[node]);
+        maxSupport = Math.max(maxSupport, this.#back[node]);
+      }
+    }
+    if (maxSupport - minSupport > 0.08) {
+      return;
+    }
     const edgePoints = [];
     for (let edge = 0; edge < 3; edge++) {
       const current = nodes[edge], next = nodes[(edge + 1) % 3];

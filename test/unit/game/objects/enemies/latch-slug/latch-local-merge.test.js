@@ -70,6 +70,28 @@ it("merges the occupied area of both splats without shrinking either one into an
   assert.ok(Math.max(...union.positions.filter((_, i) => i % 3 === 2)) < 0.3);
 });
 
+it("adds new gel at the impact instead of thickening the entire older splat equally", () => {
+  const left = patch(-0.3), right = patch(0.3);
+  const one = new LatchCoverage([left]), both = new LatchCoverage([left, right]);
+  const depthAt = (coverage, x) => {
+    let distance = Infinity, depth = 0;
+    for (let i = 0; i < coverage.topIndices.length; i++) {
+      const top = coverage.topIndices[i] * 3, base = coverage.baseIndices[i] * 3;
+      const candidate = Math.hypot(coverage.positions[top] - x, coverage.positions[top + 1]);
+      if (candidate < distance) {
+        distance = candidate;
+        depth = coverage.positions[top + 2] - coverage.positions[base + 2];
+      }
+    }
+
+    return depth;
+  };
+  const oldLobe = depthAt(both, -0.5), overlap = depthAt(both, 0);
+  assert.ok(overlap > oldLobe * 1.5, "overlap retains both local contributions");
+  assert.ok(Math.abs(oldLobe - depthAt(one, -0.5)) < 0.02, "distant older gel does not get the new impact's mass");
+  assert.ok(Math.abs(both.volume - left.volume - right.volume) < 1e-6);
+});
+
 it("has no older-patch bias and removes only the expired area's contribution", () => {
   const left = patch(-0.3), right = patch(0.3);
   const forward = new LatchCoverage([left, right]), reverse = new LatchCoverage([right, left]);
@@ -81,7 +103,7 @@ it("has no older-patch bias and removes only the expired area's contribution", (
 });
 
 it("keeps previously coalesced lobes joined by wet film as their drip contours separate", () => {
-  const upper = patch(0, 0.65), lower = patch(0, -0.65);
+  const upper = patch(0, 0.425), lower = patch(0, -0.425);
   const separate = new LatchCoverage([upper, lower]);
   const merged = new LatchCoverage([upper, lower], true);
   assert.equal(separate.connections, 0, "unrelated, never-touching splats do not gain a bridge");
@@ -133,4 +155,30 @@ it("keeps previously coalesced lobes joined by wet film as their drip contours s
   }
   assert.equal(supported, true);
   assert.ok(Math.abs(overBrace.volume - upper.volume - lower.volume) < 1e-6);
+});
+
+it("does not reconstruct a gel bridge across unsupported masonry", () => {
+  const left = patch(-0.6), right = patch(0.6);
+  const union = new LatchCoverage([left, right], true, (x) => Math.abs(x) < 0.1 ? null : 0.06);
+  assert.equal(union.connections, 0);
+  for (let i = 0; i < union.topIndices.length; i++) {
+    const top = union.topIndices[i] * 3, base = union.baseIndices[i] * 3;
+    if (Math.abs(union.positions[top]) < 0.08) {
+      assert.ok(union.positions[top + 2] - union.positions[base + 2] < 1e-8,
+        "unsupported space receives no connecting film");
+    }
+  }
+});
+
+it("does not invent a long neck between separated gel patches", () => {
+  const upper = patch(0, 0.65), lower = patch(0, -0.65);
+  const union = new LatchCoverage([upper, lower], true, () => 0.06);
+  assert.equal(union.connections, 0);
+  for (let i = 0; i < union.topIndices.length; i++) {
+    const top = union.topIndices[i] * 3, base = union.baseIndices[i] * 3;
+    if (Math.abs(union.positions[top + 1]) < 0.15) {
+      assert.ok(union.positions[top + 2] - union.positions[base + 2] < 1e-8,
+        "dry space between distant patches stays dry");
+    }
+  }
 });
