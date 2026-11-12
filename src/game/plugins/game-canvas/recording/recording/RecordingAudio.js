@@ -79,7 +79,15 @@ export class RecordingAudio {
 
   sync() {
     const active = new Set();
-    for (const component of this.#app.root.findComponents("sound")) {
+    // The sound system already indexes its components. Traversing the entire
+    // scene graph every frame makes recording large maps unnecessarily costly.
+    const store = this.#app.systems?.sound?.store;
+    const components = store
+      ? Object.values(store)
+        .filter(RecordingAudio.#isAttached.bind(null, this.#app.root))
+        .map(RecordingAudio.#soundComponent)
+      : this.#app.root.findComponents("sound");
+    for (const component of components) {
       for (const slot of Object.values(component.slots)) {
         for (const instance of slot.instances) {
           active.add(instance);
@@ -105,6 +113,23 @@ export class RecordingAudio {
         this.#disconnect(instance, connection);
       }
     }
+  }
+
+  /**
+   * @param {pc.Entity} root
+   * @param {{entity: pc.Entity}} entry
+   * @returns {boolean}
+   */
+  static #isAttached(root, entry) {
+    return entry.entity.root === root && Boolean(entry.entity.sound);
+  }
+
+  /**
+   * @param {{entity: pc.Entity}} entry
+   * @returns {pc.SoundComponent}
+   */
+  static #soundComponent(entry) {
+    return entry.entity.sound;
   }
 
   /**

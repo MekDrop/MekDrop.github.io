@@ -1,5 +1,5 @@
 import { CastleSwapEffect } from "./CastleSwapEffect.js";
-import { CastleGenerator } from "../../generator/castle/CastleGenerator.js";
+import { CastlePlanLoader } from "../../generator/castle/CastlePlanLoader.js";
 import { CastleMapPreparation } from "./ground/CastleMapPreparation.js";
 import gardenTextureUrl from "src/assets/game/tiles/grass-top.png";
 import carpetTextureUrl from "src/assets/game/textures/castle-carpet.png";
@@ -202,14 +202,19 @@ export class Castle extends CastleEntityBuilder {
       effect = new CastleSwapEffect(this.#pc, this.#effectApp, this.#definition.buildPlan.input.position, this.entity, this.#runtime.audioLibrary);
       // Build during the mist fade-in instead of adding its duration to generation.
       const [buildPlan] = await Promise.all([
-        CastleGenerator.generate({
-          ...this.#definition,
-          seed,
-        }),
+        CastlePlanLoader.generate(this.#definition, seed),
         new Promise(Castle.#waitForMist),
       ]);
       if (!this.entity) {
         return null;
+      }
+      if (effect.includePlan(buildPlan)) {
+        // New world-space particles need a full lifetime to fill the expanded
+        // volume before the larger replacement becomes visible.
+        await new Promise(Castle.#waitForMist);
+        if (!this.entity) {
+          return null;
+        }
       }
       const sign = this.#runtime.objects.getAll(SCENE_OBJECT_TYPE.MAP_OBJECT)
         .find(this.#findObject.bind(this));

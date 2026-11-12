@@ -91,3 +91,34 @@ it("keeps moving batches current, then returns to stationary caching", () => {
   update();
   assert.equal(actual, 17);
 });
+
+it("does not reread stable bone matrices but notices ancestor changes", () => {
+  const root = new GraphNode("batch");
+  const parent = new GraphNode("parent");
+  const bone = new GraphNode("bone");
+  parent.addChild(bone);
+  let reads = 0;
+  const getWorldTransform = bone.getWorldTransform.bind(bone);
+  bone.getWorldTransform = () => {
+    reads++;
+
+    return getWorldTransform();
+  };
+  const skin = {
+    bones: [bone],
+    updateMatrixPalette: () => {},
+  };
+  cacheRigidBatchPalette({
+    dynamic: true,
+    meshInstance: { skinInstance: skin },
+  });
+  skin.updateMatrixPalette(root, 0);
+  const initial = reads;
+  for (let i = 0; i < 100; i++) {
+    skin.updateMatrixPalette(root, i);
+  }
+  assert.equal(reads, initial);
+  parent.setLocalPosition(1, 0, 0);
+  skin.updateMatrixPalette(root, 101);
+  assert.ok(reads > initial);
+});

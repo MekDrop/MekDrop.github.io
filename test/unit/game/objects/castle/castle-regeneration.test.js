@@ -23,10 +23,15 @@ test("generates during the mist and waits for both before replacing", async (t) 
     },
   };
   class Effect {
+    includePlan(received) {
+      assert.equal(received, plan);
+
+      return true;
+    }
     finish() {}
     destroy() {}
   }
-  const Driver = new Function("CastleGenerator", "CastleSwapEffect", "SCENE_OBJECT_TYPE", `return class Castle { ${methods} }`)(generator, Effect, { MAP_OBJECT: "mapObject" });
+  const Driver = new Function("CastlePlanLoader", "CastleSwapEffect", "SCENE_OBJECT_TYPE", `return class Castle { ${methods} }`)(generator, Effect, { MAP_OBJECT: "mapObject" });
   const castle = new Driver();
   castle.entity = {};
   castle._definition = { buildPlan: { input: { position: {} } } };
@@ -46,6 +51,9 @@ test("generates during the mist and waits for both before replacing", async (t) 
   completeGeneration(plan);
   await new Promise((resolve) => setImmediate(resolve));
   assert.equal(replaced, false);
+  t.mock.timers.tick(1200);
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(replaced, false, "expanded mist must fill before the new castle appears");
   t.mock.timers.tick(1200);
   await new Promise((resolve) => setImmediate(resolve));
   assert.equal(replaced, true);

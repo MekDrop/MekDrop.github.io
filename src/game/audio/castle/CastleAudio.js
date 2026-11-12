@@ -1,5 +1,5 @@
 /**
- * CC0 recordings shared by castle effects and player interactions.
+ * Original synthesis and CC0 recordings for castle effects and interactions.
  * See copyrights.txt for the per-file provenance.
  */
 export class CastleAudio {

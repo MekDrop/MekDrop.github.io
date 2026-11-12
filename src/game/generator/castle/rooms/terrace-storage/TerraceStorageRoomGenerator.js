@@ -1,4 +1,4 @@
-import { Vec2 } from "playcanvas";
+import { Vec2 } from "playcanvas/build/playcanvas/src/core/math/vec2.js";
 import { AbstractCastleRoomGenerator } from "../AbstractCastleRoomGenerator.js";
 import { RoomFurnishingChoices } from "../RoomFurnishingChoices.js";
 import { StorageRoomBarrels } from "./StorageRoomBarrels.js";

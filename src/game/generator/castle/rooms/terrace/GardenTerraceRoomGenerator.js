@@ -1,4 +1,4 @@
-import { Vec2 } from "playcanvas";
+import { Vec2 } from "playcanvas/build/playcanvas/src/core/math/vec2.js";
 import { GenerationRandom } from "../../../map/GenerationRandom.js";
 import { AbstractCastleRoomGenerator } from "../AbstractCastleRoomGenerator.js";
 import { CASTLE_TERRACE_STYLE } from "../../../../enum/CastleTerraceStyle.js";

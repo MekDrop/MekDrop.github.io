@@ -79,3 +79,34 @@ it("keeps moving batches current, then returns to stationary caching", () => {
   update();
   assert.equal(actual, 17);
 });
+
+it("does not reread stable world matrices but notices ancestor changes", () => {
+  const parent = new GraphNode("parent");
+  const node = new GraphNode("prop");
+  parent.addChild(node);
+  let reads = 0;
+  const getWorldTransform = node.getWorldTransform.bind(node);
+  node.getWorldTransform = () => {
+    reads++;
+
+    return getWorldTransform();
+  };
+  const batch = {
+    dynamic: true,
+    origMeshInstances: [{
+      node,
+      mesh: { aabb: new BoundingBox() },
+    }],
+    updateBoundingBox: () => {},
+  };
+  cacheRigidBatchBounds(batch);
+  batch.updateBoundingBox();
+  const initial = reads;
+  for (let i = 0; i < 100; i++) {
+    batch.updateBoundingBox();
+  }
+  assert.equal(reads, initial);
+  parent.setLocalPosition(1, 0, 0);
+  batch.updateBoundingBox();
+  assert.ok(reads > initial);
+});

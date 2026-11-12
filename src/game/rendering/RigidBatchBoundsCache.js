@@ -10,6 +10,8 @@ export function cacheRigidBatchBounds(batch) {
   }
   installed.add(batch);
   let snapshot = null;
+  let previousNodes = [];
+  let versions = [];
   let consecutiveChanges = 0;
   let bypassFrames = 0;
   const update = batch.updateBoundingBox.bind(batch);
@@ -31,16 +33,24 @@ export function cacheRigidBatchBounds(batch) {
       // Truncating them would make unchanged fractional bounds appear dirty.
       if (changed) {
         snapshot = new Float64Array(meshes.length * 22);
+        previousNodes = new Array(meshes.length);
+        versions = new Array(meshes.length);
       }
       for (let meshIndex = 0; meshIndex < meshes.length; meshIndex++) {
         const mesh = meshes[meshIndex];
-        const matrix = mesh.node.getWorldTransform().data;
+        const node = mesh.node;
         const offset = meshIndex * 22;
-        for (let component = 0; component < 16; component++) {
-          if (snapshot[offset + component] !== matrix[component]) {
-            changed = true;
+        if (node !== previousNodes[meshIndex] || typeof node._aabbVer !== "number" ||
+          versions[meshIndex] !== node._aabbVer) {
+          const matrix = node.getWorldTransform().data;
+          for (let component = 0; component < 16; component++) {
+            if (snapshot[offset + component] !== matrix[component]) {
+              changed = true;
+            }
+            snapshot[offset + component] = matrix[component];
           }
-          snapshot[offset + component] = matrix[component];
+          previousNodes[meshIndex] = node;
+          versions[meshIndex] = node._aabbVer;
         }
         const bounds = mesh.mesh.aabb;
         for (let component = 0; component < 6; component++) {

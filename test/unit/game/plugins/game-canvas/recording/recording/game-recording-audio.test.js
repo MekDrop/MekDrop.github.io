@@ -94,3 +94,37 @@ it("provides a live audio track on silent maps without changing global audio vol
   recorder.sync();recorder.destroy();
   assert.equal(f.track.stopped, true);
 });
+
+it("uses the sound registry and ignores detached sound entities", () => {
+  const f = setup();
+  const attached = f.instance();
+  const detached = f.instance();
+  const detachedSlot = { instances: [detached] };
+  f.slot.instances.push(attached);
+  f.app.root.findComponents = () => assert.fail("must not traverse the scene graph");
+  f.app.systems = {
+    sound: {
+      store: {
+        attached: {
+          entity: {
+            root: f.app.root,
+            sound: { slots: { tone: f.slot } },
+          },
+        },
+        detached: {
+          entity: {
+            root: {},
+            sound: { slots: { tone: detachedSlot } },
+          },
+        },
+      },
+    },
+  };
+  const recorder = new RecordingAudio(f.app);
+  assert.ok(attached.nodes[0].targets.has(f.destination));
+  assert.deepEqual(detached.nodes, [null, null]);
+  f.app.systems.sound.store.attached.entity.root = {};
+  recorder.sync();
+  assert.deepEqual(attached.nodes, [null, null]);
+  recorder.destroy();
+});

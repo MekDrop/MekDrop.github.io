@@ -2,6 +2,7 @@ import { GAME_RECORDING_STATE } from "../../../../enum/GameRecordingState.js";
 import { RecordingVideoEncoderUnavailableError } from "../../../../errors/recording/index.js";
 import { RecordingCanvas } from "./RecordingCanvas.js";
 import { RecordingAudio } from "./RecordingAudio.js";
+import { RecordingAudioCapture } from "./RecordingAudioCapture.js";
 import { AvcRecordingConfiguration } from "./AvcRecordingConfiguration.js";
 
 const FRAME_RATE = 60;
@@ -165,28 +166,34 @@ export class GameRecorder {
          */
         onEncodedPacket: GameRecorder.#onEncodedPacket,
       });
-      session.audioSource = new media.MediaStreamAudioTrackSource(
-        session.audio.stream.getAudioTracks()[0],
-        {
-          codec: "aac",
-          bitrate: 128_000,
-          transform: {
-            numberOfChannels: 2,
-            sampleRate: 48000,
-          },
+      const audioEncoding = {
+        codec: "aac",
+        bitrate: 128_000,
+        transform: {
+          numberOfChannels: 2,
+          sampleRate: 48000,
         },
-      );
+      };
+      if (typeof MediaRecorder === "function") {
+        session.audioCapture = new RecordingAudioCapture(session.audio.stream);
+        session.audioSource = new media.AudioBufferSource(audioEncoding);
+      } else {
+        session.audioSource = new media.MediaStreamAudioTrackSource(
+          session.audio.stream.getAudioTracks()[0], audioEncoding,
+        );
+        session.audioSource.errorPromise.catch(/**
+         *
+         * @param {Error} error
+         */
+          (error) => this.#fail(session, error));
+      }
       session.output.addVideoTrack(session.videoSource, { frameRate: FRAME_RATE });
       session.output.addAudioTrack(session.audioSource);
-      session.audioSource.errorPromise.catch(/**
-       *
-       * @param {Error} error
-       */
-        (error) => this.#fail(session, error));
       await session.output.start();
       if (this.#destroyed || this.#session !== session) {
         return;
       }
+      session.audioCapture?.start();
       session.recordingStartedAt = performance.now();
       session.lastVideoFrame = -1;
       this.#captureVideoFrame(session, session.recordingStartedAt);
@@ -216,6 +223,11 @@ export class GameRecorder {
     session.frameHandle?.off();
     try {
       await session.videoFramePromise;
+      if (session.audioCapture) {
+        const audio = await session.audioCapture.stop();
+        const buffer = await this.#app.soundManager.context.decodeAudioData(await audio.arrayBuffer());
+        await session.audioSource.add(buffer);
+      }
       await session.output.finalize();
       if (!this.#destroyed) {
         const blob = new Blob([session.target.buffer], { type: "video/mp4" });
@@ -290,6 +302,7 @@ export class GameRecorder {
     // Disconnect synchronously while the PlayCanvas audio context still exists.
     if (!session.released) {
       session.released = true;
+      session.audioCapture?.destroy();
       session.audio?.destroy();
       session.compositor?.destroy();
     }

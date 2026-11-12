@@ -3,7 +3,7 @@ Verified: 2026-10-28
 
 All NEW clips in this directory are CC0 1.0 Universal (SPDX: CC0-1.0).
 Commercial use, modification and redistribution are permitted; attribution is
-not required. Voluntary credits: "Sounds by Kenney, AntumDeluge and CogFireStudios (CC0)".
+not required. Voluntary credits: "Sounds by Kenney and AntumDeluge (CC0)".
 License: https://creativecommons.org/publicdomain/zero/1.0/
 Full legal text: CC0-1.0.txt (in this directory).
 This does not change the licenses of existing sounds elsewhere in audio/.
@@ -59,16 +59,11 @@ and converted to 48 kHz mono WAV and Ogg Vorbis.
 bridgeCrack1, bridgeCrack2: wood_breaking_01.ogg, wood_breaking_02.ogg.
 bridgeTimbers: wood_falling_01.ogg. Converted to 48 kHz mono WAV and Vorbis.
 
-CogFireStudios — Big Scary Portal Open
-Local basenames: transition, transitionRelease (each with WAV and Ogg copies)
-Source and CC0 declaration: https://freesound.org/people/CogFireStudios/sounds/617761/
-Downloaded public HQ preview: https://cdn.freesound.org/previews/617/617761_7614679-hq.mp3
-Original title: Big Scary Portal Open. Original publication: 2022-02-06.
-Retrieved: 2026-10-28. CC0 1.0 Universal; attribution is not required.
-The public MP3 preview was used; the original WAV was not downloaded.
-Adaptation: lowered pitch/sample rate to 75%, resampled to 48 kHz.
-transition: slowed fourfold, trimmed to 20 seconds, 35 Hz high-pass / 1800 Hz
-low-pass, then a two-second crossfade to form an eighteen-second energy loop.
-transitionRelease: first 1.6 seconds reversed, filtered at 35–2500 Hz and faded.
-Both clips have gain adjustment and are mono PCM WAV / nominal 192 kbps Vorbis.
-Playback loops for the actual effect duration; volume follows the mist's fades.
+Original synthesized castle transformation audio
+Local basenames: transition, transitionRelease (WAV and Ogg copies).
+Created for this project, 2026-11-12. No third-party recordings or samples.
+transition: an eight-second airy wind and irregular sparkling tones over a soft
+harmonic bed. transitionRelease: a related upward shimmer and resolving chord,
+with a 1.65-second tail. Synthesized tones and noise; no sampled melodies.
+48 kHz mono PCM WAV masters and Ogg Vorbis copies.
+Playback sustains through generation and resolves as the mist flows away.

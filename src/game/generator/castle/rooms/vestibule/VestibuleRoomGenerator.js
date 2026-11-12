@@ -1,5 +1,5 @@
 import { PaintingCatalog } from "../../../../objects/castle-props/painting/PaintingCatalog.js";
-import { Vec2 } from "playcanvas";
+import { Vec2 } from "playcanvas/build/playcanvas/src/core/math/vec2.js";
 import { AbstractCastleRoomGenerator } from "../AbstractCastleRoomGenerator.js";
 import { VestibuleIslandFurnishing } from "./VestibuleIslandFurnishing.js";
 import { VestibuleWallFurnishing } from "./VestibuleWallFurnishing.js";
