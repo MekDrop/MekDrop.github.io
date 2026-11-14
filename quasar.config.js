@@ -109,6 +109,9 @@ module.exports = configure(function (ctx) {
       // distDir
 
       extendViteConf(viteConf, { isClient, isServer }) {
+        viteConf.optimizeDeps ??= {};
+        viteConf.optimizeDeps.include ??= [];
+        viteConf.optimizeDeps.include.push("mediabunny", "@mediabunny/aac-encoder");
         if (ctx.dev) {
           viteConf.plugins.push(require("./scripts/game-assets/vite-plugin.cjs")(__dirname));
         }
