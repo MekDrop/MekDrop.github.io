@@ -129,6 +129,25 @@ it("rebuilding a restored deck restores every capability graph", () => {
   }
 });
 
+it("keeps walkers off growing slime until the connected span publishes support", () => {
+  const map = fixture(3);
+  const rebuilt = map.tileMeta.flat().filter((meta) => meta.bridgeCollapsed);
+  for (const meta of rebuilt) {
+    meta.bridgeCollapsed = false;
+    meta.bridgeSlime = true;
+    meta.bridgeSlimeSupported = false;
+  }
+  WalkingPaths.rebuild(map);
+  assert.equal(connected(map.enemyNavigation.graphs.get(ENEMY_TRAVERSAL.WALKING), "0,1,2", "16,1,2"), false);
+  assert.equal(connected(map.enemyNavigation.graphs.get(ENEMY_TRAVERSAL.FLYING), "0,1,2", "16,1,2"), true);
+  for (const meta of rebuilt) {
+    meta.bridgeSlimeSupported = true;
+  }
+  WalkingPaths.rebuild(map);
+  assert.equal(map.enemyNavigation.gaps.length, 0);
+  assert.equal(connected(map.enemyNavigation.graphs.get(ENEMY_TRAVERSAL.WALKING), "0,1,2", "16,1,2"), true);
+});
+
 it("a descending jumper cannot take off again without actual ground contact", () => {
   const owner = ownerFixture(fixture(), ENEMY_TRAVERSAL.JUMPING, -0.85);
   owner.grounded = false;

@@ -32,9 +32,13 @@ export class WaveAiController {
   }
   /**
    * @param {import("./WaveDirectorState.js").WaveDirectorState["snapshot"]} state
+   * @param {Array<{creature:string,count:number,gateId:string}>|null} rebuildOrders
    * @returns {Array}
    */
-  commands(state) {
+  commands(state, rebuildOrders = null) {
+    if (rebuildOrders !== null) {
+      return this.#rebuildCommands(state, rebuildOrders);
+    }
     if (state.clock < this.#nextWave || !state.gates.length || state.queue.length || state.active >= state.maxActive) {
       return [];
     }
@@ -52,5 +56,38 @@ export class WaveAiController {
         creature: offer.creature,
         gateId: state.gates[this.#gateCursor++ % state.gates.length],
       }));
+  }
+
+  /**
+   * @param {import("./WaveDirectorState.js").WaveDirectorState["snapshot"]} state
+   * @param {Array<{creature:string,count:number,gateId:string}>} orders
+   * @returns {Array}
+   */
+  #rebuildCommands(state, orders) {
+    const commands = [];
+    let coins = state.coins;
+    const capacity = state.maxQueued - state.queue.length;
+    for (const order of orders) {
+      const offer = state.offers.find(/**
+       *
+       * @param {{creature:string,cost:number}} candidate
+       */
+        (candidate) => candidate.creature === order.creature);
+      if (!offer || !state.gates.includes(order.gateId)) {
+        continue;
+      }
+      const count = Math.min(order.count, capacity - commands.length, Math.floor(coins / offer.cost));
+      for (let index = 0; index < count; index += 1) {
+        commands.push({
+          type: "buy",
+          sequence: state.nextSequence + commands.length,
+          creature: order.creature,
+          gateId: order.gateId,
+        });
+        coins -= offer.cost;
+      }
+    }
+
+    return commands;
   }
 }

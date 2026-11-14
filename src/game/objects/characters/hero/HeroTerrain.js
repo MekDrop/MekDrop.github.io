@@ -105,7 +105,9 @@ export class HeroTerrain {
         }
 
         const type = this.#mapData.grid[row][col];
-        const bridgeGap = Boolean(this.#mapData.tileMeta?.[row]?.[col]?.bridgeCollapsed);
+        const metadata = this.#mapData.tileMeta?.[row]?.[col];
+        const bridgeGap = Boolean(metadata?.bridgeCollapsed ||
+          (metadata?.bridgeSlime && !metadata.bridgeSlimeSupported && collisionSurface === null));
         const riverSourceCover =
           type === TileType.WATER
             ? this.#riverSourceCoverAtCell(col, row)
@@ -398,7 +400,7 @@ export class HeroTerrain {
   terrainSurfaceHeightAt(col, row, x, z) {
     const type = this.#mapData.grid[row][col];
     const metadata = this.#mapData.tileMeta?.[row]?.[col];
-    if (metadata?.bridgeCollapsed) {
+    if (metadata?.bridgeCollapsed || metadata?.bridgeSlime) {
       return Number.isFinite(metadata.bridgeGroundHeight) ? metadata.bridgeGroundHeight : -Infinity;
     }
     if (metadata?.bridgeProfile) {

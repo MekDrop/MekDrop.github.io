@@ -2959,13 +2959,12 @@ export class Hero {
     ) {
       return false;
     }
-    if (this.#physics.groundContact(this.#position)?.movingSupport) {
+    const movingSupport = this.#physics.groundContact(this.#position)?.movingSupport;
+    if (movingSupport) {
       // A falling deck is supported by Ammo. A remembered stair target must
       // never pin the capsule back to a height the deck has already left.
       this.#automaticStepGroundingRemaining = 0;
       this.#automaticStepTargetHeight = null;
-
-      return false;
     }
     if (
       this.#automaticStepGroundingRemaining > 0 &&
@@ -2995,12 +2994,24 @@ export class Hero {
       (movementZ / movementLength) * stepProbeOffset;
     // Ammo's dynamic capsule has no configurable step offset. Apply a bounded
     // lift only when the support ahead is within a normal walking step.
-    const physicsHeight = this.#physics.surfaceAt(
+    const stepSurface = this.#physics.surfaceAt(
       probeX,
       probeZ,
       this.#position.y + MAX_AUTOMATIC_STEP_HEIGHT,
       this.#position.y - STEP_CLEARANCE,
-    )?.height;
+    );
+    if (movingSupport) {
+      // A rider may leave a live deck onto a reachable static bank. Never
+      // manufacture a step against the moving tissue itself or an actor.
+      let owner = stepSurface?.entity;
+      while (owner && !owner.rigidbody) {
+        owner = owner.parent;
+      }
+      if (stepSurface?.movingSupport || owner?.rigidbody?.type !== "static") {
+        return false;
+      }
+    }
+    const physicsHeight = stepSurface?.height;
     const stepHeight = [physicsHeight]
       .filter(this.#isReachableAutomaticStepHeight.bind(this))
       .reduce(Hero.#selectHighestSurface, -Infinity);

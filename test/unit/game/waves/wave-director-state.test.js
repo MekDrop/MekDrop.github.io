@@ -10,12 +10,118 @@ const buy = (sequence, gateId = "west") => ({
   creature: "LatchSlug",
   gateId,
 });
+
+test("bridge repairs buy only the required slimes immediately and hold ordinary purchases", () => {
+  const state = new WaveDirectorState({maxQueued: 2});
+  state.gates = ["west", "east"];
+  for (let sequence = 1; sequence <= 2; sequence += 1) {
+    state.submit({
+      ...buy(sequence),
+      creature: "BellBug",
+    }, "ai");
+  }
+  const repairs = [{
+    creature: "LatchSlug",
+    count: 1,
+    gateId: "east",
+  }];
+  state.rebuildOrders = repairs;
+  const ai = new WaveAiController({firstWaveDelay: 100});
+  const commands = ai.commands(state.snapshot, repairs);
+  assert.equal(commands.length, 1);
+  assert.equal(commands[0].creature, "LatchSlug");
+  assert.equal(commands[0].gateId, "east");
+  assert.equal(state.submit(commands[0], "ai").accepted, true);
+  const dispatched = [];
+  state.advance(20, (order) => {
+    dispatched.push(order.creature);
+
+    return order.orderId;
+  });
+  assert.deepEqual(dispatched, ["LatchSlug"]);
+  assert.deepEqual(ai.commands(state.snapshot, [{
+    ...repairs[0],
+    count: 0,
+  }]), []);
+  state.rebuildOrders = null;
+  assert.equal(state.snapshot.queue.length, 2);
+  state.advance(1, (order) => {
+    dispatched.push(order.creature);
+
+    return order.orderId;
+  });
+  assert.deepEqual(dispatched, ["LatchSlug", "BellBug"]);
+});
 function fixture(config = {}) {
   const state = new WaveDirectorState(config);
   state.gates = ["west", "east"];
 
   return state;
 }
+
+test("repair dispatch stops at outstanding demand and funds an empty purse", () => {
+  const state = fixture({initialCoins: 0});
+  const repair = {
+    creature: "LatchSlug",
+    gateId: "east",
+    count: 2,
+    dispatchCount: 1,
+  };
+  state.rebuildOrders = [repair];
+  assert.equal(state.snapshot.coins, 30);
+  state.submit(buy(1, "east"), "ai");
+  state.submit(buy(2, "east"), "ai");
+  const dispatched = [];
+  state.advance(30, (order) => {
+    dispatched.push(order.orderId);
+
+    return order.orderId;
+  });
+  state.advance(30, (order) => {
+    dispatched.push(order.orderId);
+
+    return order.orderId;
+  });
+  assert.equal(dispatched.length, 1);
+  state.rebuildOrders = null;
+  assert.equal(state.snapshot.queue.length, 1);
+});
+
+test("required bridge slimes bypass a full population cap and ordinary waves remain capped", () => {
+  const state = fixture({maxActive: 1});
+  state.submit({
+    ...buy(1),
+    creature: "BellBug",
+  }, "ai");
+  state.advance(4, () => "combatant");
+  assert.equal(state.snapshot.active, 1);
+  const repairs = [{
+    creature: "LatchSlug",
+    count: 1,
+    gateId: "east",
+  }];
+  state.rebuildOrders = repairs;
+  const ai = new WaveAiController({firstWaveDelay: 0});
+  const commands = ai.commands(state.snapshot, repairs);
+  assert.equal(commands.length, 1);
+  state.submit(commands[0], "ai");
+  state.advance(3, () => "repair-slime");
+  assert.equal(state.snapshot.active, 2);
+  assert.deepEqual(ai.commands(state.snapshot, [{
+    ...repairs[0],
+    count: 0,
+  }]), []);
+  state.rebuildOrders = null;
+  state.submit(buy(state.snapshot.nextSequence), "ai");
+  let spawned = false;
+  state.advance(30, () => {
+    spawned = true;
+
+    return "extra";
+  });
+  assert.equal(spawned, false);
+  assert.equal(state.snapshot.queue.length, 1);
+});
 
 test("bell bugs cost more than slime and the AI includes them in later waves", () => {
   const state=fixture();

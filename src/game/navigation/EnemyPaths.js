@@ -20,7 +20,8 @@ export class EnemyPaths {
     for (let row = 0; row < map.rows; row++) {
       for (let col = 0; col < map.cols; col++) {
         const meta = map.tileMeta?.[row]?.[col];
-        if (meta?.bridgeCollapsed || meta?.bridgeCollapsing || meta?.overpassCollapsed) {
+        if (meta?.bridgeCollapsed || meta?.bridgeCollapsing || meta?.overpassCollapsed ||
+          (meta?.bridgeSlime && !meta.bridgeSlimeSupported)) {
           const overpass = meta?.overpassCollapsed && meta.overpass;
           gaps.push({
             col,

@@ -33,6 +33,10 @@ export class LatchPeerYield {
    * @type {string}
    */
   phase = "";
+  /**
+   * @type {boolean}
+   */
+  bridgePassage = false;
 
   /**
    * @param {import("./LatchSlug.js").LatchSlug} owner
@@ -49,7 +53,76 @@ export class LatchPeerYield {
 
     return b.alive && !b.carrier && !b.airborne && !b.gatewayArrival.active
       && !b.statuses.has("stun") && !b.statuses.has("confused")
-      && ["LatchSeekState", "LatchDogState", "LatchAnnoyedState"].includes(b.stateName);
+      && (["LatchSeekState", "LatchDogState", "LatchAnnoyedState"].includes(b.stateName) || this.bridgeTravel);
+  }
+
+  /**
+   * @returns {boolean}
+   */
+  get bridgeTravel() {
+    const b = this.owner;
+    const state = b.behavior?.currentState;
+
+    return b.stateName === "LatchBridgeState" && Boolean(state) && !state.contactLatch?.point &&
+      !state.spreading && state.recoveringAge === null && !state.bankReturn;
+  }
+
+  /**
+   * @returns {boolean}
+   */
+  get requestsPassage() {
+    return this.owner.annoyance.active || this.bridgeTravel;
+  }
+
+  /**
+   * @param {import("./LatchSlug.js").LatchSlug} peer
+   * @returns {boolean}
+   */
+  #canAsk(peer) {
+    if (!peer.peerYield.requestsPassage) {
+      return true;
+    }
+    if (this.owner.annoyance.active !== peer.annoyance.active) {
+      return this.owner.annoyance.active;
+    }
+    if (this.bridgeTravel && peer.peerYield.bridgeTravel) {
+      const staging = Boolean(this.owner.behavior.currentState.assignment?.staging);
+      const peerStaging = Boolean(peer.behavior.currentState.assignment?.staging);
+      if (staging !== peerStaging) {
+        return !staging;
+      }
+    }
+
+    return this.bridgeTravel && peer.peerYield.bridgeTravel && this.#priorityKey() < peer.peerYield.#priorityKey();
+  }
+
+  /**
+   * @returns {string}
+   */
+  #priorityKey() {
+    const owner = this.owner;
+
+    return `${owner.definition?.id ?? ""}:${owner.entity.getGuid?.() ?? owner.actors.indexOf(owner)}`;
+  }
+
+  /**
+   * @param {import("./LatchSlug.js").LatchSlug} requester
+   * @param {import("playcanvas").Vec3} fallback
+   * @returns {import("playcanvas").Vec3}
+   */
+  #travelDirection(requester, fallback) {
+    if (!requester.peerYield.bridgeTravel) {
+      return fallback;
+    }
+    const state = requester.behavior.currentState;
+    const target = state.assignment?.waypoints?.[state.waypointIndex] ?? state.assignment?.approach;
+    if (!target) {
+      return fallback;
+    }
+    const heading = target.clone().sub(requester.position);
+    heading.y = 0;
+
+    return heading.length() > 0.05 ? heading.normalize() : fallback;
   }
 
   /**
@@ -66,7 +139,8 @@ export class LatchPeerYield {
     }
     const actors = b.runtime.objects?.getWithMethod?.("clearPeerStep") ?? b.actors;
     for (const peer of actors) {
-      if (peer === b || !peer.peerYield || !peer.alive || peer.carrier || peer.airborne
+      if (peer === b || !peer.peerYield || !peer.alive || peer.carrier || peer.airborne || peer.isBridgeCommitted ||
+        peer.entity?.rigidbody?.enabled === false
         || Math.abs(peer.position.y - b.position.y) > 0.6) {
         continue;
       }
@@ -84,8 +158,8 @@ export class LatchPeerYield {
         continue;
       }
       body.linearVelocity = velocity.sub(offset.clone().mulScalar(closing));
-      if (b.annoyance.active && peer.peerYield.available && !this.receiver && !this.requester
-        && !peer.annoyance.active && !peer.peerYield.requester && !peer.peerYield.receiver) {
+      if (this.requestsPassage && peer.peerYield.available && !this.receiver && !this.requester
+        && this.#canAsk(peer) && !peer.peerYield.requester && !peer.peerYield.receiver) {
         peer.peerYield.#request(b, offset);
       }
     }
@@ -97,20 +171,29 @@ export class LatchPeerYield {
    */
   #request(requester, direction) {
     const b = this.owner;
-    const home = b.position.clone();
-    for (const sign of [-1, 1]) {
-      const aside = home.clone().add(new b.pc.Vec3(direction.z, 0, -direction.x)
-        .mulScalar(sign * (b.radius + requester.radius + 0.16)));
+    const repeated = this.requester === requester;
+    const home = repeated ? this.home.clone() : b.position.clone();
+    const heading = this.#travelDirection(requester, direction);
+    const normal = new b.pc.Vec3(heading.z, 0, -heading.x);
+    const lateral = b.position.clone().sub(requester.position).dot(normal);
+    const preferred = requester.peerYield.bridgeTravel && lateral > 0 ? 1 : -1;
+    for (const sign of [preferred, -preferred]) {
+      // The motor deliberately stops within 0.06m of its target. Keep that
+      // arrival tolerance outside the wait-phase corridor revalidation band.
+      const arrivalBuffer = requester.peerYield.bridgeTravel ? 0.08 : 0;
+      const amount = sign * (b.radius + requester.radius + 0.16 + arrivalBuffer) - (requester.peerYield.bridgeTravel ? lateral : 0);
+      const aside = b.position.clone().add(normal.clone().mulScalar(amount));
       if (!b.clearPeerStep(aside, requester)) {
         continue;
       }
       this.requester = requester;
+      this.bridgePassage = requester.peerYield.bridgeTravel;
       requester.peerYield.receiver = b;
       this.home = home;
       this.aside = aside;
-      this.direction = direction.clone();
+      this.direction = heading.clone();
       this.age = 0;
-      this.phase = "notice";
+      this.phase = repeated ? "aside" : "notice";
       b.stop();
       requester.stop();
       b.playClip(ANIMATION.STARTLED);
@@ -146,20 +229,20 @@ export class LatchPeerYield {
       return;
     }
     this.age += dt;
-    if (!peer.peerYield.available || !peer.annoyance.active) {
+    if (!peer.peerYield.available || !peer.peerYield.requestsPassage) {
       this.phase = "return";
     }
     if (this.phase === "notice") {
       b.stop();
       b.playClip(this.age < 0.3 ? ANIMATION.STARTLED : ANIMATION.TURN);
-      if (this.age >= 0.7 && b.pack.canSee(peer)) {
+      if (this.age >= (this.bridgePassage ? 0.2 : 0.7) && b.pack.canSee(peer)) {
         this.phase = "aside";
       }
     } else if (this.phase === "aside") {
       if (!b.clearPeerStep(this.aside, peer)) {
         b.stop();
       } else if (b.position.distance(this.aside) > 0.06) {
-        b.moveToward({ position: this.aside }, 0.65, 0.04);
+        b.moveToward({ position: this.aside }, this.bridgePassage ? 0.95 : 0.65, 0.04);
         b.playClip(ANIMATION.SCOOT);
       } else {
         b.stop();
@@ -168,10 +251,19 @@ export class LatchPeerYield {
     } else if (this.phase === "wait") {
       b.stop();
       b.playClip(ANIMATION.SIT_LOOP);
+      if (peer.peerYield.bridgeTravel) {
+        const heading = this.#travelDirection(peer, this.direction);
+        const normal = new b.pc.Vec3(heading.z, 0, -heading.x);
+        const relative = b.position.clone().sub(peer.position);
+        const clearance = b.radius + peer.radius + 0.16;
+        if (relative.dot(heading) > -clearance && Math.abs(relative.dot(normal)) < clearance - 0.02) {
+          this.#request(peer, heading);
+        }
+      }
       const offset = peer.position.clone().sub(this.home);
       const clearance = b.radius + peer.radius + 0.18;
       // Do not return just because the passer paused beside us.
-      if (offset.dot(this.direction) > clearance || offset.length() > 2.5) {
+      if (this.phase === "wait" && (offset.dot(this.direction) > clearance || offset.length() > 2.5)) {
         this.phase = "return";
       }
     } else if (this.phase === "return") {
@@ -199,5 +291,6 @@ export class LatchPeerYield {
     this.receiver = null;
     this.requester = null;
     this.phase = "";
+    this.bridgePassage = false;
   }
 }

@@ -5,14 +5,16 @@ import { it } from "node:test";
 import Ammo from "sync-ammo/dist/ammo.module.js";
 import { TerrainPhysicsSurface } from "../../../../src/game/collision/TerrainPhysicsSurface.js";
 
-for (const collapsed of [false, true]) {
-  it(collapsed ? "removes the destroyed deck from Ammo raycasts while preserving river banks" :
-    "keeps the river open below high bridges while retaining deck collisions", () => {
+for (const state of ["intact", "collapsed", "growing slime", "supported slime"]) {
+  const supported = state === "intact";
+  it(`keeps river banks and exposes only supported decks to Ammo: ${state}`, () => {
     const mapData = JSON.parse(readFileSync(new URL("../../../../src/game/maps/tests/river-high-bridge.json", import.meta.url)));
     MapObjectDefinitions.prepare(mapData);
-    if (collapsed) {
-      mapData.tileMeta[3][6].bridgeCollapsed = true;
-      mapData.tileMeta[3][7].bridgeCollapsed = true;
+    for (const col of [6, 7]) {
+      const metadata = mapData.tileMeta[3][col];
+      metadata.bridgeCollapsed = state === "collapsed";
+      metadata.bridgeSlime = state.endsWith("slime");
+      metadata.bridgeSlimeSupported = state === "supported slime";
     }
     let mesh;
     const pc = {
@@ -91,8 +93,8 @@ for (const collapsed of [false, true]) {
     };
     try {
       assert.equal(hits([-1, 0.5, 0], [4, 0.5, 0]), false, "the current must pass under both bridge tiles");
-      assert.equal(hits([2, 3, 0], [2, 1.9, 0]), !collapsed, "only intact deck supports walking");
-      assert.equal(hits([2, 0.5, 0], [2, 1.9, 0]), !collapsed, "only intact deck retains its underside");
+      assert.equal(hits([2, 3, 0], [2, 1.9, 0]), supported, "only supported deck supports walking");
+      assert.equal(hits([2, 0.5, 0], [2, 1.9, 0]), supported, "only supported deck retains its underside");
       assert.equal(hits([0, 0.5, 0], [0, 0.5, 1]), true, "river banks remain solid");
     } finally {
       world.removeCollisionObject(body);

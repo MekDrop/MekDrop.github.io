@@ -8,6 +8,7 @@ import { LatchGlue } from "../../../../../../src/game/objects/enemies/latch-slug
 import { DoorJam } from "../../../../../../src/game/objects/architecture/door/DoorJam.js";
 import { Enemy } from "../../../../../../src/game/objects/enemies/shared/Enemy.js";
 import { SceneObjectRegistry } from "../../../../../../src/game/rendering/scene/SceneObjectRegistry.js";
+import { slimeBridgeTransferProgress } from "../../../../../../src/game/objects/path/BridgeSlimeTiming.js";
 
 const shaderHooks = registerHooks({
   load: (url, context, nextLoad) => {
@@ -35,6 +36,233 @@ it("yields to Bell Bugs without giving other enemies the same priority", () => {
   assert.equal(LatchSlug.prototype.yieldsTo({ isBellBug: true }), true);
   assert.equal(LatchSlug.prototype.yieldsTo({ isEnemy: true }), false);
   assert.equal(LatchSlug.prototype.yieldsTo({ isBellBug: false }), false);
+});
+
+it("keeps a committed bridge identity dormant and recovers its same actor at its own failed mass", () => {
+  const { slug } = fixture();
+  slug.entity.collision = { enabled: true };
+  const body = slug.entity.rigidbody;
+  const teleports = [];
+  body.teleport = (position) => teleports.push(position.clone());
+  slug.behavior.changeTo("LatchBridgeState");
+  const state = slug.behavior.currentState;
+  state.spreading = true;
+  state.committed = true;
+  state.assignment = { station: 2 };
+  state.bridge = { getRebuildAttemptStatus: () => "complete" };
+  slug.commitBridgeContribution();
+  assert.equal(body.enabled, false);
+  assert.equal(slug.entity.collision.enabled, false);
+  assert.equal(slug.isBridgeCommitted, true);
+  const health = slug.health;
+  assert.equal(slug.receiveDamage(10), 0);
+  assert.equal(slug.health, health);
+  assert.equal(slug.applyStatus("stun", { duration: 1 }), false);
+  assert.equal(slug.canBeCarriedBy({ entity: new pc.Entity() }), false);
+  slug.gelMass.update = () => assert.fail("committed identity must not run ordinary actor updates");
+  slug.idleHop.update = () => assert.fail("committed identity must not run idle AI");
+  slug.update(0.1);
+  const recovery = new pc.Vec3(2, 0.7, 4);
+  const velocity = new pc.Vec3(0.2, -0.3, 0);
+  slug.recoverBridgeContribution(recovery, velocity);
+  assert.equal(slug.isBridgeCommitted, false);
+  assert.equal(body.enabled, true);
+  assert.equal(slug.entity.collision.enabled, true);
+  assert.ok(slug.position.distance(recovery) < 0.00001);
+  assert.deepEqual(teleports[0].toArray(), recovery.toArray());
+  assert.deepEqual(body.linearVelocity.toArray(), velocity.toArray());
+  assert.notEqual(body.linearVelocity, velocity);
+  assert.equal(slug.airborne, true);
+  assert.equal(slug.grounded, false);
+});
+
+it("releases a retained identity before bridge disposal and never resurrects a destroyed actor", () => {
+  const { slug } = fixture();
+  const entity = slug.entity;
+  slug.entity.collision = { enabled: true };
+  const body = entity.rigidbody;
+  let aligned = 0;
+  let released = 0;
+  body.teleport = () => {
+    aligned++;
+  };
+  slug.behavior.changeTo("LatchBridgeState");
+  const state = slug.behavior.currentState;
+  state.spreading = true;
+  state.committed = true;
+  state.assignment = { station: 2 };
+  state.bridge = {
+    getRebuildAttemptStatus: () => "complete",
+    releaseRebuildStation: () => {
+      released++;
+    },
+  };
+  const currentBridge = state.bridge;
+  const staleBridge = {};
+  assert.equal(slug.ownsBridgeContribution(currentBridge, 2), true);
+  assert.equal(slug.ownsBridgeContribution(staleBridge, 2), false);
+  assert.equal(slug.ownsBridgeContribution(currentBridge, 3), false);
+  slug.commitBridgeContribution();
+  const position = new pc.Vec3(1, 0.7, 3);
+  const velocity = new pc.Vec3(0.2, -0.3, 0);
+  slug.releaseBridgeContribution(position, velocity, staleBridge, 2);
+  assert.equal(aligned, 0);
+  assert.equal(body.enabled, false);
+  assert.equal(slug.isBridgeCommitted, true);
+  assert.equal(state.bridge, currentBridge);
+  slug.releaseBridgeContribution(position, velocity, currentBridge, 2);
+  assert.equal(slug.entity, entity);
+  assert.equal(slug.isBridgeCommitted, false);
+  assert.equal(slug.stateName, "LatchSeekState");
+  assert.equal(body.enabled, true);
+  assert.equal(entity.collision.enabled, true);
+  assert.equal(released, 1);
+  assert.equal(aligned, 1);
+  assert.ok(slug.position.distance(position) < 0.00001);
+  assert.deepEqual(body.linearVelocity.toArray(), velocity.toArray());
+  assert.equal(state.bridge, null);
+  assert.equal(slug.ownsBridgeContribution(null, undefined), false);
+  slug.destroy();
+  assert.equal(slug.ownsBridgeContribution(currentBridge, 2), false);
+  slug.releaseBridgeContribution(position, velocity);
+  assert.equal(aligned, 1, "bridge cleanup cannot reconstitute an already destroyed actor");
+});
+
+it("a grounded bridge traveler retains its lease only with verified bank or assigned tissue beneath its feet", () => {
+  const { slug } = fixture();
+  slug.behavior.changeTo("LatchBridgeState");
+  const state = slug.behavior.currentState;
+  const bridge = {};
+  const bank = { rigidbody: { type: "static" } };
+  const tissue = { rigidbody: { type: "dynamic" } };
+  let hit = {
+    entity: bank,
+    point: slug.position.clone(),
+    normal: pc.Vec3.UP,
+  };
+  slug.app = { systems: { rigidbody: { raycastFirst: (from, to, options) => hit && options.filterCallback(hit.entity) ? hit : null } } };
+  slug.entity.rigidbody.body = {};
+  slug.grounded = true;
+  slug.airborne = false;
+  state.bridge = bridge;
+  state.assignment = {
+    station: 2,
+    supports: [{ entity: tissue }],
+  };
+  assert.equal(slug.isBridgeApproachingFromGround(bridge, 2), true);
+  assert.equal(slug.isBridgeApproachingFromGround({}, 2), false);
+  assert.equal(slug.isBridgeApproachingFromGround(bridge, 3), false);
+  hit.entity = tissue;
+  assert.equal(slug.isBridgeApproachingFromGround(bridge, 2), true);
+  hit.entity = { rigidbody: { type: "dynamic" } };
+  assert.equal(slug.isBridgeApproachingFromGround(bridge, 2), false, "foreign moving bodies cannot authorize the lease");
+  hit.entity = bank;
+  hit.point.y -= 1;
+  assert.equal(slug.isBridgeApproachingFromGround(bridge, 2), false, "a sticky grounded flag above a gap cannot authorize travel");
+  hit = null;
+  assert.equal(slug.isBridgeApproachingFromGround(bridge, 2), false);
+});
+
+it("only an exact living native bridge grip permits continuing a pending lease", () => {
+  const { slug } = fixture();
+  slug.behavior.changeTo("LatchBridgeState");
+  const state = slug.behavior.currentState;
+  const bridge = {};
+  const support = { rigidbody: { body: {} } };
+  state.bridge = bridge;
+  state.assignment = {
+    station: 2,
+    supports: [{ entity: support }],
+  };
+  const latch = {
+    constraint: {},
+    point: new pc.Vec3(),
+    other: support,
+  };
+  state.contactLatch = latch;
+  assert.equal(slug.isBridgeBoundTo(bridge, 2), true);
+  assert.equal(slug.isBridgeBoundTo({}, 2), false);
+  assert.equal(slug.isBridgeBoundTo(bridge, 3), false);
+  latch.constraint = null;
+  assert.equal(slug.isBridgeBoundTo(bridge, 2), false, "logical grip during body replacement cannot authorize traversal");
+  latch.constraint = {};
+  state.assignment.supports = [];
+  assert.equal(slug.isBridgeBoundTo(bridge, 2), false, "an unrelated body contact cannot authorize the bridge lease");
+  const originalPosition = slug.position.clone();
+  const bank = new pc.Vec3(-3.5, 2, 7);
+  slug.cancelBridgeApproach({}, 2, bank);
+  assert.equal(state.returning, false, "another bridge cannot cancel this actor's current work");
+  slug.cancelBridgeApproach(bridge, 2, bank);
+  assert.equal(state.returning, true);
+  assert.deepEqual(state.recoveryBankTarget.toArray(), bank.toArray());
+  assert.deepEqual(slug.position.toArray(), originalPosition.toArray(), "dependent cancellation never reconstitutes or moves the live actor");
+});
+
+it("native candidate admission removes the original donor collider exactly once and pending failure restores that actor", () => {
+  const { slug } = fixture();
+  const original = slug.entity;
+  original.collision = { enabled: true };
+  let gripRemoved = 0;
+  let status = "growing";
+  const recovery = {
+    position: new pc.Vec3(1, 0.6, 4),
+    velocity: new pc.Vec3(0.2, -0.4, 0),
+  };
+  slug.behavior.changeTo("LatchBridgeState");
+  const state = slug.behavior.currentState;
+  state.spreading = true;
+  state.assignment = { station: 2 };
+  state.contactLatch = {
+    destroy: () => {
+      gripRemoved++;
+    },
+  };
+  const bridge = {
+    getRebuildAttemptStatus: () => status,
+    getRebuildRecovery: () => recovery,
+    getRebuildMorphProgress: () => ({
+      progress: state.validating ? 1 : Math.min(0.999, slimeBridgeTransferProgress(state.age)),
+      nativeAdmitted: state.validating,
+    }),
+  };
+  state.bridge = bridge;
+  let scale = 1;
+  slug.setBridgeMorphScale = (value) => {
+    scale = value;
+  };
+  slug.update(1.45);
+  assert.ok(Math.abs(scale ** 3 + slimeBridgeTransferProgress(1.45) - 1) < 0.00001,
+    "source and growing destination share complementary volume on the same clock");
+  slug.update(0.75);
+  assert.ok(scale >= 0.099, "the donor stays visibly nonzero until its actual native handoff");
+  assert.equal(original.rigidbody.enabled, true);
+  assert.equal(slug.beginBridgeMaterialValidation({}, 2), false);
+  assert.equal(original.rigidbody.enabled, true);
+  assert.equal(gripRemoved, 0);
+  assert.equal(slug.beginBridgeMaterialValidation(bridge, 2), true);
+  assert.equal(gripRemoved, 1);
+  assert.equal(state.contactLatch, null);
+  assert.equal(state.validating, true);
+  assert.equal(state.committed, false);
+  assert.equal(original.rigidbody.enabled, false);
+  assert.equal(original.collision.enabled, false);
+  slug.gelMass.update = () => assert.fail("a native-admitted donor cannot run a second active actor simulation");
+  slug.update(0.35);
+  assert.equal(scale, 0, "native handoff finishes the same morph rather than beginning a second shrink");
+  assert.equal(original.rigidbody.enabled, false);
+  slug.update(0.35);
+  assert.equal(scale, 0);
+  assert.equal(original.rigidbody.enabled, false);
+  status = "failed";
+  slug.update(0.1);
+  assert.equal(slug.entity, original);
+  assert.equal(original.rigidbody.enabled, true);
+  assert.equal(original.collision.enabled, true);
+  assert.equal(state.validating, false);
+  assert.equal(slug.isBridgeCommitted, false);
+  assert.ok(slug.position.distance(recovery.position) < 0.00001);
+  assert.deepEqual(original.rigidbody.linearVelocity.toArray(), recovery.velocity.toArray());
+  assert.equal(slug.airborne, true);
 });
 
 it("restricts live status recipients without reading terrain positions, including after registry changes", () => {
@@ -1030,6 +1258,21 @@ it("a second slug commits and splats even when the first impact has jammed the l
   assert.equal(first.door.jammed, true);
   second.slug.clearGlue();
   assert.equal(first.door.jammed, false);
+});
+
+it("ordinary ground movement keeps its requested speed through every foot-wave phase", () => {
+  const { slug } = fixture(1);
+  const target = { position: new pc.Vec3(10, 0, 0) };
+  for (const phase of [0, 0.4, 0.8, 1.2, 1.6]) {
+    slug.crawlTime = phase;
+    slug.moveToward(target, 0.85);
+    assert.ok(Math.abs(slug.entity.rigidbody.linearVelocity.x - 0.85) < 1e-6);
+  }
+  slug.behavior.changeTo("LatchBridgeState");
+  slug.crawlTime = 0;
+  slug.moveToward(target, 0.85);
+  assert.ok(Math.abs(slug.entity.rigidbody.linearVelocity.x - 0.85 * 0.85) < 1e-6,
+    "careful bridge movement remains isolated to active rebuilding");
 });
 
 it("boosts actual slime movement only after seven scoops and drops back to normal when stamina runs out", () => {

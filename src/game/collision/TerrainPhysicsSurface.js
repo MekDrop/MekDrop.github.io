@@ -110,6 +110,7 @@ export class TerrainPhysicsSurface {
     this.#indexSourceCovers();
     this.refresh();
     this.#app.on?.("bridge:collapsed", this.#onBridgeCollapsed, this);
+    this.#app.on?.("bridge:restored", this.#onBridgeCollapsed, this);
   }
 
   get entity() {
@@ -162,6 +163,7 @@ export class TerrainPhysicsSurface {
 
   destroy() {
     this.#app.off?.("bridge:collapsed", this.#onBridgeCollapsed, this);
+    this.#app.off?.("bridge:restored", this.#onBridgeCollapsed, this);
     this.#entity?.destroy();
     this.#mesh?.destroy();
     this.#material?.destroy();
@@ -275,7 +277,7 @@ export class TerrainPhysicsSurface {
   #tileSurface(col, row) {
     const type = this.#mapData.grid[row][col];
     const collapsed = this.#mapData.tileMeta?.[row]?.[col];
-    if (collapsed?.bridgeCollapsed) {
+    if (collapsed?.bridgeCollapsed || collapsed?.bridgeSlime) {
       const ground = collapsed.bridgeGroundHeight;
 
       return Number.isFinite(ground) ? [ground, ground, ground, ground] : null;
@@ -381,7 +383,7 @@ export class TerrainPhysicsSurface {
   #isBridge(col, row) {
     const metadata = this.#mapData.tileMeta?.[row]?.[col];
 
-    return !metadata?.bridgeCollapsed &&
+    return !metadata?.bridgeCollapsed && !metadata?.bridgeSlime &&
       (metadata?.renderMode === "BRIDGE" || this.#riverBridges.has(`${col},${row}`));
   }
 

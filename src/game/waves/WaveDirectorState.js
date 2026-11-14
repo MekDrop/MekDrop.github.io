@@ -55,6 +55,10 @@ export class WaveDirectorState {
    * @type {number}
    */
   #spent = 0;
+  /**
+   * @type {Array<{creature:string,gateId:string,count:number,dispatchCount:number}>|null}
+   */
+  #rebuildOrders = null;
 
   /**
    * @param {Partial<typeof WAVE_CONFIG>} config
@@ -82,6 +86,40 @@ export class WaveDirectorState {
   }
 
   /**
+   * Temporarily holds ordinary purchases without spending or refunding them again.
+   * @param {Array<{creature:string,gateId:string,count:number,dispatchCount?:number}>|null} orders
+   */
+  set rebuildOrders(orders) {
+    this.#rebuildOrders = orders === null ? null : structuredClone(orders);
+    for (const order of this.#rebuildOrders ?? []) {
+      order.dispatchCount ??= order.count;
+    }
+    let requiredCoins = 0;
+    for (const order of orders ?? []) {
+      const offer = this.#config.offers.find(/**
+       * @param {{creature:string,cost:number}} candidate
+       */
+        (candidate) => candidate.creature === order.creature);
+      requiredCoins += (offer?.cost ?? 0) * order.count;
+    }
+    // A stranded route must remain recoverable after the combat purse runs out.
+    const funding = Math.max(0, requiredCoins - this.#coins);
+    this.#coins += funding;
+    this.#earned += funding;
+  }
+
+  /**
+   * @param {{creature:string,gateId:string}} order
+   * @returns {boolean}
+   */
+  #canDispatch(order) {
+    return this.#rebuildOrders === null || this.#rebuildOrders.some(/**
+     * @param {{creature:string,gateId:string,dispatchCount:number}} repair
+     */
+      (repair) => repair.creature === order.creature && repair.gateId === order.gateId && repair.dispatchCount > 0);
+  }
+
+  /**
    * @returns {{coins:number,clock:number,wave:number,earned:number,spent:number,controllerId:string,nextSequence:number,gates:string[],offers:Array,queue:Array,active:number,maxActive:number,maxQueued:number}}
    */
   get snapshot() {
@@ -95,7 +133,7 @@ export class WaveDirectorState {
       nextSequence: (this.#lastSequence.get(this.#controllerId) ?? 0) + 1,
       gates: this.#gates,
       offers: this.#config.offers,
-      queue: this.#queue,
+      queue: this.#queue.filter(this.#canDispatch.bind(this)),
       active: [...this.#units.values()].filter(/**
    * @param {{alive:boolean}} u
        */
@@ -145,7 +183,7 @@ export class WaveDirectorState {
         reason: "invalid-gate",
       };
     }
-    if (this.#queue.length >= this.#config.maxQueued) {
+    if (this.snapshot.queue.length >= this.#config.maxQueued) {
       return {
         accepted: false,
         reason: "queue-full",
@@ -160,7 +198,7 @@ export class WaveDirectorState {
     const previous = this.#queue.filter(/**
    * @param {WaveOrder|{creature:string,cost:number,spawnSeconds:number}} o
      */
-      o=>o.gateId === command.gateId).at(-1);
+      o=>o.gateId === command.gateId && this.#canDispatch(o)).at(-1);
     const orderId = `${controllerId}:${command.sequence}`;
     if (!this.#queue.length) {
       this.#wave += 1;
@@ -194,10 +232,15 @@ export class WaveDirectorState {
     }
     this.#clock += dt;
     for (const order of [...this.#queue]) {
+      if (!this.#canDispatch(order)) {
+        continue;
+      }
       if (!this.#gates.includes(order.gateId)) {
         this.#refund(order); continue;
       }
-      if (order.readyAt > this.#clock || this.snapshot.active >= this.#config.maxActive) {
+      // Repair demand already bounds its purchases to the outstanding stations.
+      // Existing combatants must not prevent rebuilding their only route forward.
+      if (order.readyAt > this.#clock || (this.#rebuildOrders === null && this.snapshot.active >= this.#config.maxActive)) {
         continue;
       }
       const unitId = spawn({...order});
@@ -208,6 +251,13 @@ export class WaveDirectorState {
         this.#refund(order); continue;
       }
       this.#queue.splice(this.#queue.indexOf(order), 1);
+      const repair = this.#rebuildOrders?.find(/**
+       * @param {{creature:string,gateId:string,dispatchCount:number}} candidate
+       */
+        (candidate) => candidate.creature === order.creature && candidate.gateId === order.gateId && candidate.dispatchCount > 0);
+      if (repair) {
+        repair.dispatchCount -= 1;
+      }
       this.#units.set(unitId, {
         alive: true,
         orderId: order.orderId,

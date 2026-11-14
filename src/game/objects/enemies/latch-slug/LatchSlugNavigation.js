@@ -1,6 +1,7 @@
 import { CastleResidentMotion } from "../../castle/residents/CastleResidentMotion.js";
 import { NpcObstacleProbe } from "../../shared/NpcObstacleProbe.js";
 import { LatchCompanionRoute } from "./LatchCompanionRoute.js";
+import { LatchBridgeApproach } from "./LatchBridgeApproach.js";
 
 /**
  * Reuses the production castle floor/stair planner as a look-ahead cursor.
@@ -101,6 +102,9 @@ export class LatchSlugNavigation {
    * @returns {boolean}
    */
   clearPeerStep(point, peer) {
+    if (peer.peerYield?.bridgeTravel || this.#owner.peerYield?.bridgePassage) {
+      return LatchBridgeApproach.clearPeerStep(this.#owner, point, peer);
+    }
     return this.#companionRoute.clearSegment(point, peer);
   }
 

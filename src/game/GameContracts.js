@@ -89,6 +89,8 @@
  * @property {string} [renderMode]
  * @property {boolean} [bridgeCollapsed] Missing two-lane bridge station, set on hammer impact.
  * @property {boolean} [bridgeCollapsing] Unsupported station queued to fall; enemies avoid the complete failing span.
+ * @property {boolean} [bridgeSlime] Rebuilt station whose mass is simulated by the bridge.
+ * @property {boolean} [bridgeSlimeSupported] Connected, settled slime span admits navigation; its live rigid bodies own support.
  * @property {number} [bridgeGroundHeight] Terrain retained beneath a bridge deck.
  * @property {boolean} [bridgeGroundPath] The retained surface is an authored walking path.
  * @property {number} [baseHeight]

@@ -37,6 +37,15 @@ export class GroundCollisionWorld {
     return collider;
   }
 
+  /**
+   * @param {import("../objects/ObjectTypes.js").MapObjectLike} collider
+   */
+  remove(collider) {
+    this.#colliders.delete(collider);
+    this.#physicsSurfaceColliders.delete(collider);
+    this.#capsuleSupportColliders.delete(collider);
+  }
+
   clear() {
     this.#colliders.clear();
     this.#physicsSurfaceColliders.clear();

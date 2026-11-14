@@ -62,11 +62,13 @@ function fixture(material) {
 
 it("keeps the real lower path connected before, during and after bridge destruction", () => {
   const { map, cells } = fixture("path");
-  for (const state of ["intact", "bridgeCollapsing", "bridgeCollapsed"]) {
+  for (const state of ["intact", "bridgeCollapsing", "bridgeCollapsed", "growing slime"]) {
     for (const { col, row } of cells) {
       const meta = map.tileMeta[row][col];
       meta.bridgeCollapsing = state === "bridgeCollapsing";
       meta.bridgeCollapsed = state === "bridgeCollapsed";
+      meta.bridgeSlime = state === "growing slime";
+      meta.bridgeSlimeSupported = false;
       assert.equal(meta.bridgeGroundPath, true);
     }
     WalkingPaths.rebuild(map);

@@ -34,6 +34,8 @@ import { LatchStairSurface } from "./LatchStairSurface.js";
 import { LatchHurry } from "./LatchHurry.js";
 import { LatchIdleHop } from "./LatchIdleHop.js";
 import { LatchIdleHopState } from "./states/LatchIdleHopState.js";
+import { LatchBridgeState } from "./states/LatchBridgeState.js";
+import { LatchBridgeApproach } from "./LatchBridgeApproach.js";
 const LOOPING_CLIPS = new Set([
   ANIMATION.IDLE_DOG, ANIMATION.WADDLE_WALK, ANIMATION.WADDLE_RUN, ANIMATION.PANT,
   ANIMATION.SIT_LOOP, ANIMATION.FOLLOW, ANIMATION.ANTENNA_WAG, ANIMATION.STUN,
@@ -80,6 +82,26 @@ export class LatchSlug extends Enemy {
    * @type {LatchDoorLeap}
    */
   #doorLeap;
+  /**
+   * @type {LatchBridgeState}
+   */
+  #bridgeState = new LatchBridgeState();
+  /**
+   * @type {number}
+   */
+  #bridgeRetryDelay = 0;
+  /**
+   * @type {boolean}
+   */
+  #bridgeCommitted = false;
+  /**
+   * @type {boolean}
+   */
+  #bridgeValidating = false;
+  /**
+   * @type {boolean}
+   */
+  #disposed = false;
   /**
    * @type {import("playcanvas").EventHandle|null}
    */
@@ -191,6 +213,7 @@ export class LatchSlug extends Enemy {
     for (const StateClass of [LatchAnnoyedState, LatchSeekState, LatchDogState, LatchPressState, LatchLeapState, LatchIdleHopState, LatchReactionState, LatchDeadState, LatchClipState]) {
       this.behavior.add(StateClass.name, new StateClass());
     }
+    this.behavior.add(LatchBridgeState.name, this.#bridgeState);
     this.behavior.changeTo(LatchSeekState.name);
   }
 
@@ -200,6 +223,27 @@ export class LatchSlug extends Enemy {
    */
   approachDoor(door) {
     return this.#navigation.approachDoor(door);
+  }
+
+  /**
+   * @param {import("playcanvas").Vec3} position
+   */
+  approachBridge(position) {
+    if (LatchBridgeApproach.advance(this, position)) {
+      return;
+    }
+    const target = { position };
+    this.moveToward(this.#navigation.next(target) ?? target, 0.9, 0.12);
+  }
+
+  /**
+   * @param {number} scale
+   */
+  setBridgeMorphScale(scale) {
+    this.#model?.setLocalScale(scale, scale, scale);
+    if (this.#model) {
+      this.#model.enabled = scale > 0;
+    }
   }
 
   /**
@@ -226,8 +270,10 @@ export class LatchSlug extends Enemy {
       return true;
     }
 
-    // The foot wave carries a mostly steady body, with a gentle gather phase.
-    const pulse = this.stairCrawl?.active ? 1 : 1 - 0.15 * Math.cos(this.crawlTime * Math.PI * 2 / 1.6);
+    // Ordinary ground travel retains its requested pace. Only the careful
+    // bridge approach gathers with the foot wave; stairs own their motor.
+    const pulse = this.stateName === LatchBridgeState.name && !this.stairCrawl?.active ?
+      1 - 0.15 * Math.cos(this.crawlTime * Math.PI * 2 / 1.6) : 1;
 
     const moving = super.moveToward(target, Math.min(speed, limit) * pulse, arrivalRadius);
     this.heroBump.constrain();
@@ -446,9 +492,23 @@ export class LatchSlug extends Enemy {
     if (!Number.isFinite(dt) || dt <= 0) {
       return;
     }
+    if (this.#bridgeCommitted || this.#bridgeValidating) {
+      this.deltaTime = dt;
+      this.elapsed += dt;
+      this.#bridgeState.execute(this);
+
+      return;
+    }
+    this.#bridgeRetryDelay = Math.max(0, this.#bridgeRetryDelay - dt);
     this.heroBump.update();
     if (!this.peerYield.available) {
       this.peerYield.cancel();
+    }
+    if (this.alive && !this.carrier && !this.airborne && !this.gatewayArrival.active
+      && !this.statuses.has("stun") && !this.statuses.has("confused")
+      && [LatchSeekState.name, LatchDogState.name].includes(this.stateName)
+      && this.#bridgeRetryDelay === 0 && this.#bridgeState.claim(this)) {
+      this.behavior.changeTo(LatchBridgeState.name);
     }
     if (this.alive && this.annoyance.active && !this.carrier && !this.airborne
       && !this.gatewayArrival.active && !this.statuses.has("stun") && !this.statuses.has("confused")
@@ -635,6 +695,9 @@ export class LatchSlug extends Enemy {
    * @param {import("playcanvas").ContactResult} result
    */
   onDoorContact(result) {
+    if (this.behavior.currentState instanceof LatchBridgeState) {
+      this.#bridgeState.contact(this, result);
+    }
     // Ammo's manifold order can reverse the normal on castle compound floors.
     // Confirm support by the actual contact point beneath the capsule instead
     // of assuming every floor reports a positive world-space Y normal.
@@ -761,6 +824,11 @@ export class LatchSlug extends Enemy {
   }
 
   onLanded() {
+    if (this.behavior.currentState instanceof LatchBridgeState) {
+      this.playClip(ANIMATION.LAND);
+
+      return;
+    }
     if (this.behavior.currentState instanceof LatchIdleHopState) {
       this.behavior.currentState.land(this);
 
@@ -835,7 +903,240 @@ export class LatchSlug extends Enemy {
     this.behavior.changeTo(LatchDeadState.name);
   }
 
+  /**
+   * @returns {boolean}
+   */
+  get rebuildContributionConsumed() {
+    return this.#bridgeState.spreading;
+  }
+
+  /**
+   * @returns {boolean}
+   */
+  get isBridgeCommitted() {
+    return this.#bridgeCommitted || this.#bridgeValidating;
+  }
+
+  /**
+   * @param {import("../../path/Bridge.js").Bridge} bridge
+   * @param {number} station
+   * @returns {boolean}
+   */
+  ownsBridgeContribution(bridge, station) {
+    return !this.#disposed && this.alive && bridge != null && this.#bridgeState.assignment !== null && this.#bridgeState.bridge === bridge &&
+      this.#bridgeState.assignment?.station === station;
+  }
+
+  /**
+   * @param {import("../../path/Bridge.js").Bridge} bridge
+   * @param {number} station
+   * @returns {boolean}
+   */
+  isBridgeBoundTo(bridge, station) {
+    const latch = this.#bridgeState.contactLatch;
+
+    return this.ownsBridgeContribution(bridge, station) && !this.carrier &&
+      Boolean(latch?.constraint && latch.point && latch.other?.rigidbody?.body) &&
+      Boolean(this.#bridgeState.assignment.supports?.some(/**
+       *
+       * @param {{entity:import("playcanvas").Entity}} support
+       */
+        (support) => support.entity === latch.other));
+  }
+
+  /**
+   * Continue an already assigned approach across harmless support vibration.
+   * Verify feet against real bank/tissue support rather than a sticky flag.
+   * @param {import("../../path/Bridge.js").Bridge} bridge
+   * @param {number} station
+   * @returns {boolean}
+   */
+  isBridgeApproachingFromGround(bridge, station) {
+    if (!this.ownsBridgeContribution(bridge, station) || this.isBridgeCommitted || this.carrier ||
+      this.#bridgeState.assignment.staging || !this.grounded || this.airborne ||
+      this.stateName !== LatchBridgeState.name || !this.entity.rigidbody?.body) {
+      return false;
+    }
+    const start = this.position.clone();
+    const end = this.position.clone();
+    start.y += 0.12;
+    end.y -= 0.16;
+    const hit = this.app.systems.rigidbody.raycastFirst(start, end, {
+      filterCallback: /**
+                       * @param {import("playcanvas").Entity} entity
+                       */
+        (entity) => entity !== this.entity && (entity.rigidbody?.type === "static" ||
+          this.#bridgeState.assignment.supports?.some(/**
+                                                       * @param {{entity:import("playcanvas").Entity}} support
+                                                       */
+            (support) => support.entity === entity)),
+    });
+
+    return Boolean(hit?.normal?.y >= 0.65 && hit.point && Math.abs(hit.point.y - this.position.y) <= 0.15);
+  }
+
+  /**
+   * @param {import("../../path/Bridge.js").Bridge} bridge
+   * @param {number} station
+   * @param {import("playcanvas").Vec3} bankTarget
+   */
+  cancelBridgeApproach(bridge, station, bankTarget) {
+    if (this.ownsBridgeContribution(bridge, station) && !this.isBridgeCommitted && !this.carrier) {
+      this.#bridgeState.cancelApproach(this, bankTarget);
+    }
+  }
+
+  /**
+   * @param {number} amount
+   * @param {import("../shared/Enemy.js").EnemyActor|null} [source]
+   * @param {string} [kind]
+   * @returns {number}
+   */
+  receiveDamage(amount, source = null, kind = "physical") {
+    return this.isBridgeCommitted ? 0 : super.receiveDamage(amount, source, kind);
+  }
+
+  /**
+   * @param {string} name
+   * @param {Parameters<Enemy["applyStatus"]>[1]} [options]
+   * @returns {boolean}
+   */
+  applyStatus(name, options) {
+    return this.isBridgeCommitted ? false : super.applyStatus(name, options);
+  }
+
+  /**
+   * @param {import("../shared/Enemy.js").EnemyActor} carrier
+   * @returns {boolean}
+   */
+  canBeCarriedBy(carrier) {
+    return !this.isBridgeCommitted && super.canBeCarriedBy(carrier);
+  }
+
+  /**
+   * Transfer the same actor's native mass to its candidate material exactly
+   * when that material enters Ammo, avoiding two simultaneous donor bodies.
+   * @param {import("../../path/Bridge.js").Bridge} bridge
+   * @param {number} station
+   * @returns {boolean}
+   */
+  beginBridgeMaterialValidation(bridge, station) {
+    if (!this.ownsBridgeContribution(bridge, station)) {
+      return false;
+    }
+    this.#bridgeState.contactLatch?.destroy();
+    this.#bridgeState.contactLatch = null;
+    this.#bridgeState.validating = true;
+    this.#bridgeValidating = true;
+    this.peerYield.cancel();
+    if (this.entity.rigidbody) {
+      this.entity.rigidbody.enabled = false;
+    }
+    if (this.entity.collision) {
+      this.entity.collision.enabled = false;
+    }
+
+    return true;
+  }
+
+  /**
+   * The bridge's native mass now owns this same living identity. Its original
+   * actor remains dormant, without a second collider, AI, or visible model.
+   */
+  commitBridgeContribution() {
+    this.#bridgeValidating = false;
+    this.#bridgeCommitted = true;
+    this.peerYield.cancel();
+    this.stop();
+    if (this.entity.rigidbody) {
+      this.entity.rigidbody.enabled = false;
+    }
+    if (this.entity.collision) {
+      this.entity.collision.enabled = false;
+    }
+    if (this.#model) {
+      this.#model.enabled = false;
+    }
+  }
+
+  /**
+   * Reconstitute this identity at its own failed native mass, while its actor
+   * proxy is still invisible and disabled. Native gravity/contact then owns
+   * the inverse morph and landing; no distant replacement actor is spawned.
+   * @param {import("playcanvas").Vec3} position
+   * @param {import("playcanvas").Vec3|null} [velocity]
+   */
+  recoverBridgeContribution(position, velocity = null) {
+    const body = this.entity.rigidbody;
+    this.entity.setPosition(position);
+    body?.teleport?.(position);
+    if (this.entity.collision) {
+      this.entity.collision.enabled = true;
+    }
+    if (body) {
+      body.enabled = true;
+      body.linearVelocity = velocity?.clone() ?? new this.pc.Vec3();
+    }
+    this.#bridgeCommitted = false;
+    this.#bridgeValidating = false;
+    this.airborne = true;
+    this.grounded = false;
+    this.setBridgeMorphScale(0.001);
+    if (this.#model) {
+      this.#model.enabled = true;
+    }
+  }
+
+  /**
+   * A bridge being removed must release its retained living identities before
+   * deleting their native material and recovery records.
+   * @param {import("playcanvas").Vec3} position
+   * @param {import("playcanvas").Vec3|null} [velocity]
+   * @param {import("../../path/Bridge.js").Bridge} [bridge]
+   * @param {number} [station]
+   */
+  releaseBridgeContribution(position, velocity = null, bridge = this.#bridgeState.bridge, station = this.#bridgeState.assignment?.station) {
+    if (!this.ownsBridgeContribution(bridge, station)) {
+      return;
+    }
+    if (this.isBridgeCommitted) {
+      this.recoverBridgeContribution(position, velocity);
+    }
+    this.setBridgeMorphScale(1);
+    this.#bridgeState.spreading = false;
+    this.#bridgeState.committed = false;
+    this.#bridgeState.recoveringAge = null;
+    this.#bridgeRetryDelay = 15;
+    this.airborne = true;
+    this.grounded = false;
+    if (this.stateName === LatchBridgeState.name) {
+      this.behavior.changeTo(LatchSeekState.name);
+    } else {
+      this.#bridgeState.exit(this);
+    }
+  }
+
+  /**
+   * Release a stalled repair reservation without harming or relocating the slug.
+   */
+  releaseRebuildAssignment() {
+    if (this.#bridgeState.spreading) {
+      return;
+    }
+    this.#bridgeRetryDelay = 15;
+    if (this.stateName === LatchBridgeState.name) {
+      this.behavior.changeTo(LatchSeekState.name);
+    } else {
+      this.#bridgeState.exit(this);
+    }
+  }
+
   destroy() {
+    if (this.#disposed) {
+      return;
+    }
+    this.#disposed = true;
+    this.#bridgeState.exit(this);
     this.peerYield.cancel();
     this.scoopGel?.destroy();
     this.floorPuddle?.destroy();

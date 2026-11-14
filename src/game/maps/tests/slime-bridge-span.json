@@ -1,0 +1,2095 @@
+{
+  "cols": 16,
+  "rows": 22,
+  "numPaths": 0,
+  "grid": [
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  ],
+  "heightmap": [
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0.5,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0.5,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0.5,
+      0.5,
+      0.5,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      0.5,
+      0.5,
+      0.5,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      2,
+      2,
+      2,
+      2,
+      2,
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      2,
+      2,
+      2,
+      2,
+      2,
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  ],
+  "tileMeta": [
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    [
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 0.5,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      }
+    ],
+    [
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST",
+        "renderMode": "BRIDGE"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      }
+    ],
+    [
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST",
+        "renderMode": "BRIDGE"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      }
+    ],
+    [
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 0.5,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      }
+    ],
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    [
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 0.5,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 0.5,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 0.5,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      }
+    ],
+    [
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST",
+        "renderMode": "BRIDGE"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST",
+        "renderMode": "BRIDGE"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST",
+        "renderMode": "BRIDGE"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      }
+    ],
+    [
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST",
+        "renderMode": "BRIDGE"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST",
+        "renderMode": "BRIDGE"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST",
+        "renderMode": "BRIDGE"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      }
+    ],
+    [
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 0.5,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 0.5,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 0.5,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      }
+    ],
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    [
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 0.5,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 0.5,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 0.5,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 0.5,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 0.5,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 0.5,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      }
+    ],
+    [
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST",
+        "renderMode": "BRIDGE"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST",
+        "renderMode": "BRIDGE"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST",
+        "renderMode": "BRIDGE"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST",
+        "renderMode": "BRIDGE"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST",
+        "renderMode": "BRIDGE"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST",
+        "renderMode": "BRIDGE"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      }
+    ],
+    [
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST",
+        "renderMode": "BRIDGE"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST",
+        "renderMode": "BRIDGE"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST",
+        "renderMode": "BRIDGE"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST",
+        "renderMode": "BRIDGE"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST",
+        "renderMode": "BRIDGE"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST",
+        "renderMode": "BRIDGE"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "PATH",
+        "direction": "EAST"
+      }
+    ],
+    [
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 0.5,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 0.5,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 0.5,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 0.5,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 0.5,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 0.5,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      },
+      {
+        "baseHeight": 2,
+        "surfaceType": "GRASS",
+        "direction": "EAST"
+      }
+    ],
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ],
+    [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ]
+  ],
+  "pipeData": [],
+  "mergeZones": [],
+  "trunkStart": null,
+  "mapName": "Living slime span",
+  "layoutSignature": "test_bridge-collapse",
+  "objects": [
+    {
+      "id": "hero-spawn",
+      "object": "SpawnPoint",
+      "position": {
+        "x": 0,
+        "y": 0.64,
+        "z": 8.5
+      }
+    },
+    {
+      "id": "span-slug-0",
+      "object": "LatchSlug",
+      "position": {
+        "x": -4.8,
+        "y": 2.14,
+        "z": 6.55
+      },
+      "testClip": "sit_loop"
+    },
+    {
+      "id": "span-slug-1",
+      "object": "LatchSlug",
+      "position": {
+        "x": -4.8,
+        "y": 2.14,
+        "z": 7.45
+      },
+      "testClip": "sit_loop"
+    },
+    {
+      "id": "span-slug-2",
+      "object": "LatchSlug",
+      "position": {
+        "x": -5.85,
+        "y": 2.14,
+        "z": 6.55
+      },
+      "testClip": "sit_loop"
+    },
+    {
+      "id": "span-slug-3",
+      "object": "LatchSlug",
+      "position": {
+        "x": -5.85,
+        "y": 2.14,
+        "z": 7.45
+      },
+      "testClip": "sit_loop"
+    },
+    {
+      "id": "span-slug-4",
+      "object": "LatchSlug",
+      "position": {
+        "x": -6.9,
+        "y": 2.14,
+        "z": 6.55
+      },
+      "testClip": "sit_loop"
+    },
+    {
+      "id": "span-slug-5",
+      "object": "LatchSlug",
+      "position": {
+        "x": -6.9,
+        "y": 2.14,
+        "z": 7.45
+      },
+      "testClip": "sit_loop"
+    }
+  ],
+  "animationViewport": {
+    "zoom": 1.5,
+    "rotation": 0,
+    "panX": 0,
+    "panZ": 7
+  },
+  "testControls": {
+    "panels": [
+      {
+        "title": "Slime span",
+        "statusTargetId": "bridge-x-5-17.5-2",
+        "buttons": [
+          {
+            "label": "Collapse and rebuild",
+            "script": "const bridge=[...objects].find(o=>o.definition?.object==='Bridge'&&o.definition.span?.start===5&&o.definition.span?.crossCenter===17.5);if(bridge){objects.getOne('hero').teleport({x:0,y:0.64,z:8.5});bridge.collapseStation(5);window.setTimeout(()=>{for(const slug of [...objects].filter(o=>o.definition?.id?.startsWith('span-slug-')))slug.resumeBehavior();},3500);}"
+          },
+          {
+            "label": "Span view",
+            "script": "camera.setViewport({zoom:1.5,rotation:0,panX:0,panZ:7});"
+          },
+          {
+            "label": "Close view",
+            "script": "camera.setViewport({zoom:5,rotation:0,panX:-1,panZ:7});"
+          },
+          {
+            "label": "Hero at bank",
+            "script": "objects.getOne('hero').teleport({x:-3.5,y:2.14,z:7});"
+          }
+        ]
+      }
+    ]
+  }
+}

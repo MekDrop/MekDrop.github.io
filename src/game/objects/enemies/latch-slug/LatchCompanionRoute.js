@@ -327,7 +327,7 @@ export class LatchCompanionRoute {
   #occupied(point, human, allowSeparation = false) {
     const owner = this.owner;
     for (const actor of new Set([...this.#socialActors, human])) {
-      if (actor === owner || actor.alive === false || actor.carrier || actor.airborne ||
+      if (actor === owner || actor.alive === false || actor.carrier || actor.airborne || actor.isBridgeCommitted ||
         (actor !== human && !actor.affection)) {
         continue;
       }

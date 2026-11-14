@@ -93,6 +93,15 @@ function fixture() {
   };
 }
 
+it("a dormant living bridge identity cannot occupy its former bank position in the social planner", () => {
+  const { owner, human, front } = fixture();
+  const route = new LatchCompanionRoute(owner, () => false);
+  const next = new Vec3(1.9, 0, 0);
+  assert.equal(route.clearSegment(next, human), false);
+  front.isBridgeCommitted = true;
+  assert.equal(route.clearSegment(next, human), true);
+});
+
 it("changes lanes to pass a settled slime and reach an empty place beside the human", () => {
   const { owner, human, front } = fixture();
   const route = new LatchCompanionRoute(owner, () => false);

@@ -569,6 +569,11 @@ export class HeroPhysicsController {
       return false;
     }
     const surfaces = moving.findByTag(SUPPORT_SURFACE_TAG);
+    // Simple dynamic boxes own their collision face directly. Compound bridge
+    // fragments declare child slabs instead; findByTag excludes the root.
+    if (moving.tags.has(SUPPORT_SURFACE_TAG)) {
+      surfaces.push(moving);
+    }
 
     return surfaces.some(/**
      * @param {import("playcanvas").Entity} surface
