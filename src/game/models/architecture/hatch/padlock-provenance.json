@@ -1,0 +1,18 @@
+{
+  "source": "padlock.blend",
+  "runtime": "padlock.glb",
+  "authoring": "Original local Blender model; no paid provider used.",
+  "dimensionsMetres": {
+    "width": 0.14,
+    "height": 0.08,
+    "depth": 0.295
+  },
+  "parts": [
+    "brass body",
+    "iron U shackle",
+    "keyway",
+    "hasp strap",
+    "rivets"
+  ],
+  "placement": "Flush-mounted underside hasp, closed U shackle, solid brass body and recessed keyway facing the room."
+}

@@ -21,6 +21,11 @@ it("layers expression without scale drift and restores the authored eyes on tear
     app.fire("postupdate", 1 / 60);
   }
   assert.ok(eye.getLocalScale().y > 3);
+  acting.pose("sword", "GroundRest");
+  for (let frame = 0; frame < 60; frame++) {
+    app.fire("postupdate", 1 / 60);
+  }
+  assert.ok(Math.abs(eye.getLocalScale().y - 1.5) < 0.01, "resting eyes relax to half open");
   acting.destroy();
   assert.equal(eye.getLocalScale().y, 3);
   app.fire("postupdate", 1);

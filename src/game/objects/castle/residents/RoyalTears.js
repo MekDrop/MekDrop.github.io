@@ -37,6 +37,10 @@ export class RoyalTears {
    */
   #princess;
   /**
+   * @type {import("playcanvas").Entity|null}
+   */
+  #handkerchief;
+  /**
    *
     * @type {number}
    */
@@ -52,6 +56,10 @@ export class RoyalTears {
   constructor({ pc, app, royal }) {
     this.#royal = royal;
     this.#princess = Boolean(royal.findByName("Princess handkerchief"));
+    this.#handkerchief = royal.findByName("Princess handkerchief grip");
+    if (this.#handkerchief) {
+      this.#handkerchief.enabled = false;
+    }
     this.#mesh = new pc.Mesh(app.graphicsDevice);
     this.#mesh.setPositions([
       -0.06, 0, 0, 0.06, 0, 0,
@@ -90,6 +98,9 @@ export class RoyalTears {
   #update(deltaTime) {
     const layer = this.#royal.anim.baseLayer;
     const crying = layer.activeState === ROYAL_ANIMATION.CRY;
+    if (this.#handkerchief) {
+      this.#handkerchief.enabled = crying;
+    }
     for (const particle of this.#particles) {
       particle.enabled = crying;
     }

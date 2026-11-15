@@ -51,7 +51,8 @@ export class KingTrainingExpression {
   pose(action, clip) {
     this.#active = action === "sword";
     this.#target = !this.#active ? 1 : /Failure/.test(clip) ? 1.3
-      : /Strike|Slash|Thrust|Lunge|Swing/.test(clip) ? 0.55 : 0.8;
+      : /GroundSitDown|GroundRest/.test(clip) ? 0.5
+        : /Strike|Slash|Thrust|Lunge|Swing/.test(clip) ? 0.55 : 0.8;
   }
 
   /**

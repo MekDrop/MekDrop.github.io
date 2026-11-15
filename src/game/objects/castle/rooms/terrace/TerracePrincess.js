@@ -111,6 +111,27 @@ export class TerracePrincess {
   }
 
   /**
+   * World distance between the chair anchor and the sit clip's standing start.
+   * The wider standing hem needs this clearance before the skirt gathers.
+   * @returns {number}
+   */
+  get sittingApproachDistance() {
+    return 0.7 * this.model.getWorldTransform().getScale().z;
+  }
+
+  /**
+   * Transfer the completed stand-up clip's horizontal offset into navigation.
+   */
+  settleStandingPose() {
+    const posture = this.model.findByName("Royal animation rig").getPosition();
+    const position = this.entity.getPosition().clone();
+    position.x = posture.x;
+    position.z = posture.z;
+    this.entity.setPosition(position);
+    this.pose("idle", 0);
+  }
+
+  /**
    *
    * @param {string} action
    * @param {number} time

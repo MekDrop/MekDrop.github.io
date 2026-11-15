@@ -25,9 +25,9 @@ export class PrincessLeisureBehavior extends RoyalTerraceActivityBehavior {
         new PrincessOnThroneState(),
         new PrincessWantsTeaState(),
         new PrincessEnterLeisureState(walkDuration),
-        new PrincessSitState(1.4),
+        new PrincessSitState(2),
         new PrincessDrinkTeaState(),
-        new PrincessStandState(1.4),
+        new PrincessStandState(2),
         new PrincessReturnToThroneState(walkDuration),
       ],
       phases: {

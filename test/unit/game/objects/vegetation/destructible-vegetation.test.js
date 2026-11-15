@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { DestructibleVegetation } from "../../../../../src/game/objects/vegetation/DestructibleVegetation.js";
 import { SurfaceSpatialIndex } from "../../../../../src/game/objects/shared/SurfaceSpatialIndex.js";
+import * as pc from "playcanvas";
 
 function createEntity() {
   return {
@@ -43,6 +44,23 @@ describe("destructible vegetation grass footprint", () => {
       });
       const index = new SurfaceSpatialIndex();
       index.add(vegetation, vegetation.surfaceBounds);
+      const contacts = [
+        {
+          x: 0,
+          y: 0.375,
+          z: 0,
+        },
+        {
+          x: -0.5,
+          y: 0.125,
+          z: -0.25,
+        },
+        {
+          x: 0.75,
+          y: 0.125,
+          z: 0.25,
+        },
+      ];
       for (let damage = 0; damage < 4; damage++) {
         for (let x = -6; x <= -2; x += 0.25) {
           for (let z = 2; z <= 6; z += 0.25) {
@@ -56,7 +74,9 @@ describe("destructible vegetation grass footprint", () => {
             }
           }
         }
-        vegetation.cut();
+        if (damage < contacts.length) {
+          assert.equal(vegetation.cut(contacts[damage]).health, 2 - damage);
+        }
       }
     }
   });
@@ -88,8 +108,24 @@ describe("destructible vegetation grass footprint", () => {
     assert.equal(vegetation.grassWeightAt(2, 4, 3.002), 0);
     assert.equal(vegetation.grassWeightAt(1.75, 4, 4), 0);
 
-    vegetation.cut();
-    const result = vegetation.cut();
+    vegetation.cut({
+      x: -0.25,
+      y: 0.125,
+      z: 0,
+    });
+    assert.equal(vegetation.grassWeightAt(1.75, 4, 3.002), 0);
+    assert.equal(vegetation.grassWeightAt(2.25, 4, 3.002), 1);
+    vegetation.cut({
+      x: 0.25,
+      y: 0.125,
+      z: 0,
+    });
+    const result = vegetation.cut({
+      x: 0,
+      y: 0.375,
+      z: 0,
+    });
+    assert.equal(result.destroyed, true);
     assert.deepEqual(result.groundFootprint, [
       {
         x: -0.25,
@@ -108,58 +144,41 @@ describe("destructible vegetation grass footprint", () => {
 
   it("preserves generated tree and bush occupied volume with fewer Ammo shapes", () => {
     const physicsEntities = [];
-    class PhysicsEntity {
+    const shapes = [];
+    const destroyedShapes = [];
+    const world = {
+      createShape: (options) => options,
+      addCompoundChild: (compound, shape, position) => shapes.push({
+        compound,
+        shape,
+        position,
+      }),
+      destroyShape: (shape) => destroyedShapes.push(shape),
+    };
+    class PhysicsEntity extends pc.Entity {
       constructor(name) {
-        this.name = name;
-        this.children = [];
+        super(name);
+
         this.components = {};
-        this.tags = { add: (tag) => (this.tag = tag) };
         physicsEntities.push(this);
-      }
-
-      setLocalPosition(x, y, z) {
-        this.position = {
-          x,
-          y,
-          z,
-        };
-      }
-
-      setLocalEulerAngles(x, y, z) {
-        this.rotation = {
-          x,
-          y,
-          z,
-        };
-      }
-
-      addChild(child) {
-        this.children.push(child);
       }
 
       addComponent(type, options) {
         this.components[type] = options;
-      }
-
-      destroy() {
-        this.destroyed = true;
-      }
-    }
-    class Vec3 {
-      constructor(x, y, z) {
-        Object.assign(this, {
-          x,
-          y,
-          z,
-        });
+        if (type === "collision") {
+          this.collision = {
+            shape: {},
+            system: { physicsWorld: world },
+          };
+        }
       }
     }
     const vegetation = new DestructibleVegetation({
       pc: {
+        ...pc,
         Entity: PhysicsEntity,
-        Vec3,
       },
-      modelLibrary: { instantiate: () => createEntity() },
+      modelLibrary: { instantiate: () => new pc.Entity("tree model") },
       modelUrl: "tree.glb",
       id: "test-tree",
       variant: "oak",
@@ -184,9 +203,10 @@ describe("destructible vegetation grass footprint", () => {
       ({ name }) => name === "Tree physics collider",
     );
     assert.equal(collider.name, "Tree physics collider");
-    assert.equal(collider.tag, undefined);
+    assert.equal(collider.tags.has("hero-surface-ignore"), false);
     assert.equal(collider.components.collision.type, "compound");
-    assert.equal(collider.children.length, 3);
+    assert.equal(collider.children.length, 0, "compound boxes are engine shapes, not child entities");
+    assert.equal(shapes.length, 3);
     for (const point of [
       {
         x: 0,
@@ -212,15 +232,15 @@ describe("destructible vegetation grass footprint", () => {
         z: -0.25,
       },
     ]) {
-      assert.ok(collider.children.some(({ position, components }) => {
-        const half = components.collision.halfExtents;
+      assert.ok(shapes.some(({ position, shape }) => {
+        const half = shape.halfExtents;
 
         return Math.abs(position.x - point.x) < half.x &&
           Math.abs(position.y - point.y) < half.y && Math.abs(position.z - point.z) < half.z;
       }));
     }
-    const volume = collider.children.reduce((total, child) => {
-      const half = child.components.collision.halfExtents;
+    const volume = shapes.reduce((total, { shape }) => {
+      const half = shape.halfExtents;
 
       return total + 8 * half.x * half.y * half.z;
     }, 0);
@@ -234,10 +254,10 @@ describe("destructible vegetation grass footprint", () => {
 
     const bush = new DestructibleVegetation({
       pc: {
+        ...pc,
         Entity: PhysicsEntity,
-        Vec3,
       },
-      modelLibrary: { instantiate: () => createEntity() },
+      modelLibrary: { instantiate: () => new pc.Entity("bush model") },
       modelUrl: "bush.glb",
       id: "test-bush",
       variant: "round-bush",
@@ -255,8 +275,22 @@ describe("destructible vegetation grass footprint", () => {
       ({ name }) => name === "Bush physics collider",
     );
     assert.equal(bushCollider.components.collision.type, "compound");
-    assert.equal(bushCollider.children.length, 1);
+    assert.equal(bushCollider.children.length, 0);
+    const bushShapes = shapes.filter(({ compound }) => compound === bushCollider.collision.shape);
+    assert.equal(bushShapes.length, 1);
+    const bushHalf = bushShapes[0].shape.halfExtents;
+    assert.equal(8 * bushHalf.x * bushHalf.y * bushHalf.z, 2 * 0.25 ** 3);
     assert.equal(bushCollider.components.rigidbody.type, "static");
     assert.equal(bush.movementCollisionDepthAt(0, 0, 0.18, 0, 0.22), 0);
+    const originalTreeShapes = shapes.slice(0, 3).map(({ shape }) => shape);
+    vegetation.cut({
+      x: 0.25,
+      y: 0.375,
+      z: 0,
+    });
+    assert.deepEqual(destroyedShapes, originalTreeShapes, "cutting releases the replaced compound shapes");
+    vegetation.entity.destroy();
+    bush.entity.destroy();
+    assert.equal(destroyedShapes.length, shapes.length, "all allocated shapes are released on destruction");
   });
 });

@@ -439,7 +439,7 @@ export class CastleTerraceActivity {
   }
 
   #canInspect() {
-    return !this.#stopped;
+    return !this.#stopped && !this.#royalBehavior.active;
   }
 
   #enter() {

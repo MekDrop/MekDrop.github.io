@@ -61,6 +61,10 @@ export class TerraceRoyalActions {
    */
   #activityTime = 0;
   /**
+   * @type {string|null}
+   */
+  #phase = null;
+  /**
    * @type {CastleResidentMotion|null}
    */
   #motion = null;
@@ -165,10 +169,18 @@ export class TerraceRoyalActions {
       return;
     }
     const phase = behavior.stagePhase;
+    const startingPhase = phase !== this.#phase;
+    this.#phase = phase;
     if (this.#motion) {
       if ([PHASE.ROYAL_ENTER, PHASE.ROYAL_EXIT].includes(phase)) {
         const target = this.#kind === "queen" ? QUEEN_APPROACH_POSITION
           : this.#kind === "princess" ? [-0.75, 0, 3.2] : [0, 0, 3.1];
+        if (this.#kind === "princess") {
+          target[0] += this.#princessApproachDistance;
+          if (phase === PHASE.ROYAL_EXIT && startingPhase) {
+            this.#royal.settleStandingPose();
+          }
+        }
         this.#motion.moveTo(phase === PHASE.ROYAL_EXIT ? this.#motion.home
           : this.#world(...target));
 
@@ -217,6 +229,9 @@ export class TerraceRoyalActions {
     const target = this.#kind === "princess"
       ? [-0.75, 0, 3.2] : [0, 0, 3.1];
     if ([PHASE.ROYAL_ENTER, PHASE.ROYAL_EXIT].includes(phase)) {
+      if (this.#kind === "princess") {
+        target[0] += this.#princessApproachDistance;
+      }
       syncTerraceWalk({
         actor: this.#royal,
         target,
@@ -346,6 +361,14 @@ export class TerraceRoyalActions {
     const point = this.#royal.entity.getPosition().clone().set(x, y, z);
 
     return this.#stage.getWorldTransform().transformPoint(point, point);
+  }
+
+  /**
+   * @returns {number}
+   */
+  get #princessApproachDistance() {
+    return this.#royal.sittingApproachDistance /
+      this.#stage.getWorldTransform().getScale().x;
   }
 
   /**
