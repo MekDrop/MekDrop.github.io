@@ -49,6 +49,9 @@ test("Wire suspends a pending territorial contact without releasing the claim", 
   assert.equal(challenger.stateElapsed, 0);
   shaman.onBellRung({ duration: 2 });
   challenger.update(0.71);
+  assert.equal(challenger.stateName, "GremlinTerritorialAttackState");
+  assert.equal(occupant.health, 100);
+  challenger.update(0.36);
   assert.equal(occupant.health, 92);
   assert.equal(occupant.target, tower);
 });
