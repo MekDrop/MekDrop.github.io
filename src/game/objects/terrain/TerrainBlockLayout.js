@@ -267,12 +267,12 @@ export class TerrainBlockLayout {
           continue;
         }
 
-        // Excavated paths at the island datum still need a complete floor.
+        // Keep the thin floor above the biased top faces of the island underside.
         if (type === TileType.PATH && height === 0) {
           this.#instanceRenderer.addBoxMatrix(
             SURFACE_MATERIALS[type],
             this.#pathEarthSideMaterial(col, row, 0),
-            x, -0.025, z, 0, CUBE_SCALE, 0.05, CUBE_SCALE,
+            x, -0.025 + SURFACE_ELEVATION_BIAS + 0.001, z, 0, CUBE_SCALE, 0.05, CUBE_SCALE,
             "full", "none",
           );
         }
@@ -335,19 +335,21 @@ export class TerrainBlockLayout {
       overpass.deckElevation - 1,
     );
     for (let deckRow = row; deckRow <= row + 1; deckRow += 1) {
-      this.#instanceRenderer.addBoxMatrix(
-        SURFACE_MATERIALS[TileType.PATH],
-        fasciaMaterial,
-        col + 0.5 - (cols - 1) / 2,
-        overpass.deckElevation - deckThickness / 2,
-        deckRow - (rows - 1) / 2,
-        0,
-        2,
-        deckThickness,
-        CUBE_SCALE,
-        "surfaceOnly",
-        "none",
-      );
+      for (let deckCol = col; deckCol <= col + 1; deckCol += 1) {
+        this.#instanceRenderer.addBoxMatrix(
+          `pathTile:${deckCol}:${deckRow}:${overpass.deckElevation - 1}`,
+          fasciaMaterial,
+          deckCol - (cols - 1) / 2,
+          overpass.deckElevation - deckThickness / 2,
+          deckRow - (rows - 1) / 2,
+          0,
+          CUBE_SCALE,
+          deckThickness,
+          CUBE_SCALE,
+          "surfaceOnly",
+          "none",
+        );
+      }
     }
     const span = {
       horizontal: false,

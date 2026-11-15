@@ -62,6 +62,7 @@ export class Earth {
         case "turfSide": return earth.topSideForTile(col, row, level);
         case "overpassSide": return earth.overpassSideForTile(col, row, level);
         case "surface": return selector.cubeMaterials(runtime.mapData.grid[row][col], true, col, row, level).top;
+        case "pathTile": return selector.cubeMaterials(runtime.mapData.grid[row][col], true, col, row, level).top;
         default: return value;
       }
     };

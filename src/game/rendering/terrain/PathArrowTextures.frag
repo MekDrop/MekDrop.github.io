@@ -20,6 +20,9 @@ vec4 routePaint() {
     vec2 atlasUv = vec2(uv.x, (uv.y + float(layer)) / uRouteLayers);
     vec4 mask = texture2D(uRouteMask, atlasUv);
     vec4 metadata = texture2D(uRouteHeight, atlasUv);
+    // Linear mask filtering can reach beyond the nearest metadata texel.
+    // Empty metadata has no palette, and must not paint at height zero.
+    if (metadata.b < 0.5 / 255.0) continue;
     vec2 heightBytes = floor(metadata.rg * 255.0 + 0.5);
     float height = (heightBytes.x * 256.0 + heightBytes.y) / 65535.0 * uRouteHeightRange;
     // A stair tread can sit a full 0.25 block above its logical ramp plane.

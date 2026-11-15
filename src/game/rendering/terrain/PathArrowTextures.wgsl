@@ -25,6 +25,7 @@ fn routePaint() -> vec4f {
     let atlasUv = vec2f(uv.x, (uv.y + f32(layer)) / uniform.uRouteLayers);
     var mask = textureSampleLevel(uRouteMask, uRouteMaskSampler, atlasUv, 0.0);
     var metadata = textureSampleLevel(uRouteHeight, uRouteHeightSampler, atlasUv, 0.0);
+    if (metadata.b < 0.5 / 255.0) { continue; }
     let heightBytes = floor(metadata.rg * 255.0 + 0.5);
     let height = (heightBytes.x * 256.0 + heightBytes.y) / 65535.0 * uniform.uRouteHeightRange;
     // Match the quarter-block tread and riser allowance used by GLSL.

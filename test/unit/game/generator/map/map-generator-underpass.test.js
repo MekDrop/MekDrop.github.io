@@ -4,6 +4,8 @@ import { MapGenerator } from "../../../../../src/game/generator/map/MapGenerator
 import { PathOverpassCollider } from "../../../../../src/game/collision/PathOverpassCollider.js";
 import { PathSurfaceValidator } from "../../../../../src/game/generator/map/PathSurfaceValidator.js";
 import { InvalidOverpassError } from "../../../../../src/game/errors/map/index.js";
+import { TerrainBlockDefinitions } from "../../../../../src/game/objects/terrain/TerrainBlockDefinitions.js";
+import { SURFACE_ELEVATION_BIAS } from "../../../../../src/game/rendering/terrain/TerrainMaterialMaps.js";
 
 it("excavates a connected two-lane underpass beneath a level road", async () => {
   const map = await MapGenerator.generate({
@@ -47,6 +49,15 @@ it("excavates a connected two-lane underpass beneath a level road", async () => 
   assert.equal(collider.blocksMovementAt(x, z, 0.2, 0, 0.4), false);
   assert.equal(collider.surfaceHeightAt(x, z), 2);
   assert.equal(collider.ceilingHeightAt(x, z), 2 - plan.deckThickness);
+  TerrainBlockDefinitions.populate(map);
+  const crossing = map.objects.find((object) => object.object === "Overpass");
+  const deckTiles = crossing.deckCommands.filter((command) => command.args[9] === "surfaceOnly");
+  assert.equal(deckTiles.length, 4);
+  assert.ok(deckTiles.every((command) => command.args[6] === 1 && command.args[8] === 1));
+  const floor = map.renderCommands.find((command) => command.args[0] === "path" &&
+    command.args[2] === x - 0.5 && command.args[4] === z - 0.5 && command.args[7] === 0.05);
+  assert.ok(floor);
+  assert.ok(floor.args[3] + floor.args[7] * (0.5 + SURFACE_ELEVATION_BIAS) > SURFACE_ELEVATION_BIAS);
   const cell = plan.lowerSlopeCells[0];
   map.tileMeta[cell.row][cell.col].slope.highHeight += 0.5;
   assert.throws(() => new PathSurfaceValidator().validateOverpass(
