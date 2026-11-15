@@ -96,7 +96,7 @@ it("matches vertical and horizontal perspective FOV without camera translation",
   field.destroy();
 });
 
-it("keeps the orthographic sky lens fixed across map zoom changes", () => {
+it("scales the orthographic sky lens with camera zoom", () => {
   const { field, camera, parameters, render } = fixture();
   camera.projection = pc.PROJECTION_ORTHOGRAPHIC;
   camera.orthoHeight = 10;
@@ -104,17 +104,16 @@ it("keeps the orthographic sky lens fixed across map zoom changes", () => {
   const lens = parameters.get("uSkyLens");
   camera.orthoHeight = 80;
   render();
-  assert.deepEqual(parameters.get("uSkyLens"), lens);
+  assert.deepEqual(parameters.get("uSkyLens"), lens.map((value) => value * 8));
   field.destroy();
 });
 
-it("advects clouds with ambient wind and removes its render listener", () => {
+it("keeps clouds fixed as wind changes and removes its render listener", () => {
   const { field, parameters, render, disposed } = fixture();
   const before = [...parameters.get("uCloudTravel")];
   field.update(0.1);
   render();
-  assert.ok(parameters.get("uCloudTravel")[0] > before[0]);
-  assert.equal(parameters.get("uCloudTravel")[1], before[1]);
+  assert.deepEqual(parameters.get("uCloudTravel"), before);
   assert.equal(field.windSpeed, 0.2);
   field.destroy();
   assert.equal(disposed(), true);

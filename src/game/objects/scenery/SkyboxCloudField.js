@@ -6,6 +6,8 @@ import cloudVoxels from "./CloudVoxelVariants.json";
 import { CloudShadows } from "./CloudShadows.js";
 import skySettings from "./CloudSkySettings.json";
 
+const REFERENCE_ORTHO_HEIGHT = 24;
+
 /**
  * Direction-sampled procedural skybox shared by both gameplay cameras.
  */
@@ -141,17 +143,15 @@ export class SkyboxCloudField {
     const dt = Math.min(deltaTime, 0.1);
     this.#elapsed += dt;
     this.#wind = getAmbientWind(this.#elapsed);
-    this.#travel.x += this.#wind.direction.x * this.#wind.speed * dt * 0.08;
-    this.#travel.y += this.#wind.direction.z * this.#wind.speed * dt * 0.08;
   }
 
   #syncCamera() {
     const camera = this.#camera;
-    // Orthographic scenery still needs a spread of sky directions. Use a fixed
-    // virtual lens so map zoom never stretches the sky or changes cloud size.
-    const tangent = Math.tan(
-      ((camera.projection === PROJECTION_PERSPECTIVE ? camera.fov : 60) * Math.PI) / 360,
-    );
+    // Scale the virtual sky lens with the orthographic camera so zoom affects
+    // the sky and island by the same screen-space factor.
+    const tangent = camera.projection === PROJECTION_PERSPECTIVE
+      ? Math.tan((camera.fov * Math.PI) / 360)
+      : Math.tan(Math.PI / 6) * camera.orthoHeight / REFERENCE_ORTHO_HEIGHT;
     const aspect = camera.aspectRatio;
     this.#material.setParameter(
       "uSkyLens",
