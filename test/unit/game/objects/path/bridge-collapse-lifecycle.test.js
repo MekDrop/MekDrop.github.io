@@ -8,8 +8,12 @@ import { MapObjectDefinitions } from "../../../../../src/game/objects/MapObjectD
 // articulated fragment boundary are replaced. Drop measurements are controlled
 // explicitly rather than advancing a timer to pretend that physics happened.
 const sourceUrl = new URL("../../../../../src/game/objects/path/Bridge.js", import.meta.url);
-const source = readFileSync(sourceUrl, "utf8")
-  .replace('import { BridgeSlimeArtwork } from "./BridgeSlimeArtwork.js";', `
+/**
+ * @param {string} source
+ */
+function stubGraphics(source) {
+  return source
+    .replace('import { BridgeSlimeArtwork } from "./BridgeSlimeArtwork.js";', `
     class BridgeSlimeArtwork {
       static modelUrls = [];
       constructor({root}) { root.testSlimeDeck = this; }
@@ -21,14 +25,14 @@ const source = readFileSync(sourceUrl, "utf8")
       destroy() {}
     }
   `)
-  .replace('import { BridgeRailingKit } from "./BridgeRailingKit.js";', `
+    .replace('import { BridgeRailingKit } from "./BridgeRailingKit.js";', `
     class BridgeRailingKit {
       static modelUrls = ["rail", "post"];
       addRailing() {}
       build() { return []; }
     }
   `)
-  .replace('import { BridgeArtwork } from "./BridgeArtwork.js";', `
+    .replace('import { BridgeArtwork } from "./BridgeArtwork.js";', `
     class BridgeArtwork {
       static modelUrls = [];
       boxes = [];
@@ -39,7 +43,7 @@ const source = readFileSync(sourceUrl, "utf8")
       destroy() { this.disposed = true; }
     }
   `)
-  .replace('import { BridgeDeckFragment } from "./BridgeDeckFragment.js";', `
+    .replace('import { BridgeDeckFragment } from "./BridgeDeckFragment.js";', `
     class BridgeDeckFragment {
       age = 0;
       drop = 0;
@@ -88,7 +92,7 @@ const source = readFileSync(sourceUrl, "utf8")
       }
     }
   `)
-  .replace('import { BridgeImpactDebris } from "./BridgeImpactDebris.js";', `
+    .replace('import { BridgeImpactDebris } from "./BridgeImpactDebris.js";', `
     class BridgeImpactDebris {
       static prepareResources({app}) {
         app.fragmentEvents.push({kind:'resources-prepared'});
@@ -119,7 +123,12 @@ const source = readFileSync(sourceUrl, "utf8")
       }
     }
   `)
-  .replace(/from "(\.\.?\/[^\"]+)"/g, (_match, path) => `from "${new URL(path, sourceUrl).href}"`);
+    .replace(/from "(\.\.?\/[^\"]+)"/g, (_match, path) => `from "${new URL(path, sourceUrl).href}"`);
+}
+const slimeSource = stubGraphics(readFileSync(new URL("SlimeBridge.js", sourceUrl), "utf8"));
+const slimeUrl = `data:text/javascript;base64,${Buffer.from(slimeSource).toString("base64")}`;
+const source = stubGraphics(readFileSync(sourceUrl, "utf8"))
+  .replace(new URL("SlimeBridge.js", sourceUrl).href, slimeUrl);
 const { Bridge } = await import(`data:text/javascript;base64,${Buffer.from(source).toString("base64")}`);
 
 /**
@@ -761,7 +770,7 @@ it("reserves only reachable construction fronts on each worker's bank", () => {
 
 
 it("keeps admitted suspension paths during sway and withdraws them after actual disconnection", async () => {
-  const controlledSource = source.replace(/import \{ BridgeSlimePhysics \} from "[^"]+BridgeSlimePhysics.js";/, `
+  const controlledSlimeSource = slimeSource.replace(/import \{ BridgeSlimePhysics \} from "[^"]+BridgeSlimePhysics.js";/, `
     class BridgeSlimePhysics {
       connected = true;
       settled = true;
@@ -772,6 +781,8 @@ it("keeps admitted suspension paths during sway and withdraws them after actual 
       destroy() {}
     }
   `);
+  const controlledSlimeUrl = `data:text/javascript;base64,${Buffer.from(controlledSlimeSource).toString("base64")}`;
+  const controlledSource = source.replace(slimeUrl, controlledSlimeUrl);
   const { Bridge: ControlledBridge } = await import(`data:text/javascript;base64,${Buffer.from(controlledSource).toString("base64")}`);
   const context = fixture(3, true, (map, target) => {
     for (const cell of target.span.cells) {
@@ -1087,7 +1098,10 @@ it("releases a retained contributor locally with native momentum before bridge d
       assert.equal(removed, false);
       assert.equal(owningBridge, bridge);
       assert.equal(ownedStation, station);
-      released = { position, velocity };
+      released = {
+        position,
+        velocity,
+      };
       // State cleanup may request rollback; disposal must not rebuild itself.
       assert.equal(bridge.failRebuildAttempt(station, donor), false);
     },
@@ -1143,6 +1157,7 @@ it("disassociates failed attempt ownership when its recovered worker releases th
     position: bridge.stationPosition(station - 1),
     ownsBridgeContribution: () => {
       checks++;
+
       return false;
     },
   };
@@ -1220,6 +1235,7 @@ it("forecasts the next worker load before predecessor validation and unlocks the
     const sync = bridgePhysics.sync.bind(bridgePhysics);
     bridgePhysics.sync = (...args) => {
       forecast = new Map(args[4]);
+
       return sync(...args);
     };
     bridge.reserveRebuildStation(first);
@@ -1333,6 +1349,7 @@ it("hands physical ownership to candidate material before validation and snapsho
       assert.equal(ownedStation, station);
       assert.equal(materialExists, false);
       sourceActive = false;
+
       return true;
     },
   };
@@ -1340,6 +1357,7 @@ it("hands physical ownership to candidate material before validation and snapsho
   bridgePhysics.sync = (...args) => {
     materialExists = args[0].has(station);
     assert.equal(sourceActive && materialExists, false);
+
     return sync(...args);
   };
   bridge.reserveRebuildStation(donor);
@@ -1378,6 +1396,7 @@ it("does not create candidate mass when the original identity rejects its handof
   const sync = bridgePhysics.sync.bind(bridgePhysics);
   bridgePhysics.sync = (...args) => {
     admitted ||= args[0].has(station);
+
     return sync(...args);
   };
   bridge.reserveRebuildStation(donor);
@@ -1401,22 +1420,35 @@ it("shares one volume clock and withholds full visual transfer until the native 
     position: bridge.stationPosition(station - 1),
     beginBridgeMaterialValidation: () => {
       handoff = bridge.getRebuildMorphProgress(station, donor);
+
       return true;
     },
   };
   const stranger = { position: donor.position.clone() };
   bridge.reserveRebuildStation(donor);
   bridge.restoreSlimeStation(station, donor);
-  assert.deepEqual(bridge.getRebuildMorphProgress(station, donor), { progress: 0, nativeAdmitted: false });
+  assert.deepEqual(bridge.getRebuildMorphProgress(station, donor), {
+    progress: 0,
+    nativeAdmitted: false,
+  });
   bridge.onFrame(0.55);
   assert.equal(bridge.getRebuildMorphProgress(station, donor).progress, 0.15625);
   bridge.onFrame(0.55);
-  assert.deepEqual(bridge.getRebuildMorphProgress(station, donor), { progress: 0.5, nativeAdmitted: false });
-  assert.deepEqual(bridge.getRebuildMorphProgress(station, stranger), { progress: 0, nativeAdmitted: false });
+  assert.deepEqual(bridge.getRebuildMorphProgress(station, donor), {
+    progress: 0.5,
+    nativeAdmitted: false,
+  });
+  assert.deepEqual(bridge.getRebuildMorphProgress(station, stranger), {
+    progress: 0,
+    nativeAdmitted: false,
+  });
   bridge.onFrame(1.1);
   assert.ok(handoff.progress < 1);
   assert.equal(handoff.nativeAdmitted, false);
-  assert.deepEqual(bridge.getRebuildMorphProgress(station, donor), { progress: 1, nativeAdmitted: true });
+  assert.deepEqual(bridge.getRebuildMorphProgress(station, donor), {
+    progress: 1,
+    nativeAdmitted: true,
+  });
   bridge.destroy();
   context.otherBridge.destroy();
 });
@@ -1488,6 +1520,7 @@ it("keeps the next worker staged until actual redistribution finishes, including
     position: bridge.stationPosition(target.span.start - 1),
     beginBridgeMaterialValidation: () => {
       handoffs++;
+
       return true;
     },
   };
@@ -1579,9 +1612,18 @@ it("sends artwork only current native poses after structural rollback replaces t
   bridge.onFrame(2.3);
   bridge.onFrame(0.2);
   let live = new Set([first, first + 1]);
-  const oldSurvivor = { position: bridge.stationPosition(first), thickness: 1 };
-  const removed = { position: bridge.stationPosition(first + 1), thickness: 1 };
-  const newSurvivor = { position: bridge.stationPosition(first), thickness: 2 };
+  const oldSurvivor = {
+    position: bridge.stationPosition(first),
+    thickness: 1,
+  };
+  const removed = {
+    position: bridge.stationPosition(first + 1),
+    thickness: 1,
+  };
+  const newSurvivor = {
+    position: bridge.stationPosition(first),
+    thickness: 2,
+  };
   bridgePhysics.update = () => new Map([[first, oldSurvivor], [first + 1, removed]]);
   bridgePhysics.getPose = (station) => live.has(station) ? station === first ? newSurvivor : removed : null;
   bridgePhysics.getEntity = () => null;
@@ -1589,6 +1631,7 @@ it("sends artwork only current native poses after structural rollback replaces t
   const sync = bridgePhysics.sync.bind(bridgePhysics);
   bridgePhysics.sync = (...args) => {
     live = new Set(args[0].keys());
+
     return sync(...args);
   };
   bridge.onFrame(0.01);
@@ -1620,6 +1663,7 @@ it("passes actual bank and free-front orientation to physics for either axis and
       const sync = bridgePhysics.sync.bind(bridgePhysics);
       bridgePhysics.sync = (...args) => {
         captured = args;
+
         return sync(...args);
       };
       const donor = { position: bridge.stationPosition(bankStation) };
@@ -1663,6 +1707,7 @@ it("identifies an intact internal deck as the anchor of a partially reconstructe
     const sync = bridgePhysics.sync.bind(bridgePhysics);
     bridgePhysics.sync = (...args) => {
       captured = args;
+
       return sync(...args);
     };
     const donor = { position: bridge.stationPosition(anchor + direction) };
@@ -1796,6 +1841,7 @@ it("transfers a genuinely bound donor under safe live load without waiting for i
     isBridgeBoundTo: (owner, station) => bound && owner === bridge && station === first + 1,
     beginBridgeMaterialValidation: () => {
       handoffs++;
+
       return true;
     },
   };
@@ -1877,6 +1923,7 @@ it("retains an authenticated grounded approach across temporary load-readiness l
     isBridgeApproachingFromGround: (owner, ownedStation) => groundedApproach && owner === bridge && ownedStation === station + 1,
     beginBridgeMaterialValidation: () => {
       handoffs++;
+
       return true;
     },
   };
@@ -1933,5 +1980,21 @@ it("feeds artwork live owned donor positions before each growth update and remov
   const replacement = bridge.entity.children.find((child) => child.testSlimeDeck)?.testSlimeDeck;
   assert.equal(replacement.sources.size, 0);
   bridge.destroy();
+  context.otherBridge.destroy();
+});
+
+
+it("keeps the living replacement independent of wooden visual rebuilds and disposes its root", () => {
+  const context = fixture(1, true);
+  const { bridge, target } = context;
+  const replacement = bridge.entity.findByName("Living bridge replacement");
+  const originalArtwork = replacement.testSlimeDeck;
+  bridge.collapseStation(target.span.start);
+  assert.equal(bridge.entity.findByName("Living bridge replacement"), replacement);
+  assert.notEqual(replacement.testSlimeDeck, originalArtwork);
+  assert.equal(bridge.entity.children.filter((child) => child === replacement).length, 1);
+  bridge.destroy();
+  assert.equal(replacement.parent, null);
+  assert.equal(replacement.children.length, 0);
   context.otherBridge.destroy();
 });

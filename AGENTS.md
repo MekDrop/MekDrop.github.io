@@ -6,6 +6,10 @@ Quasar 2/Vue 3 personal site with a PlayCanvas isometric 3D game layer. `src/lay
 
 Start with [docs/ai/task-map.md](docs/ai/task-map.md) for task locations and focused verification. Read only the relevant focused rule files in `docs/ai/`.
 
+## Model Fallback
+
+If the main model cannot perform a specified task, delegate it to the latest available Sol model with low reasoning effort. The main model must review the resulting changes against the task's acceptance criteria before accepting them. Follow higher-priority instructions and tool availability when delegating; if the fallback is unavailable, report the limitation.
+
 ## Architecture Invariants
 
 - Render visible game overlays, prompts, status, counters, and controls as PlayCanvas HUD under `src/game/ui/`, not as visible HTML over `GameCanvas.vue`. Hidden HTML may mirror text for accessibility semantics.
