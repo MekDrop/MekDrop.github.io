@@ -349,3 +349,57 @@ it("bridge sidestep arrival tolerance cannot trigger an endless aside-wait repla
     assert.equal(settled.peerYield.phase, "wait", "arrival slack stays safely outside the requested corridor");
   }
 });
+
+it("a native peer already outside the bridge corridor releases passage when its final sidestep is blocked", () => {
+  const { passer, settled } = fixture();
+  passer.annoyance.active = false;
+  passer.stateName = "LatchBridgeState";
+  passer.behavior = {
+    currentState: {
+      assignment: { approach: new pc.Vec3(3, 0, 0) },
+      recoveringAge: null,
+      spreading: false,
+    },
+  };
+  passer.peerYield.constrain();
+  assert.equal(passer.peerYield.receiver, settled);
+  settled.peerYield.phase = "aside";
+  settled.peerYield.bridgePassage = true;
+  settled.position.set(0.9, 0, 1.01);
+  settled.clearPeerStep = () => false;
+  const before = settled.position.clone();
+  settled.peerYield.update(0.1);
+  assert.equal(settled.peerYield.phase, "wait");
+  assert.deepEqual(settled.position, before, "only the real reached clearance admits passage; no pose is changed");
+  passer.peerYield.update(0.1);
+  assert.equal(passer.peerYield.receiver, settled, "the peer still waits until the original passer has crossed");
+  settled.peerYield.update(0.1);
+  assert.equal(settled.peerYield.phase, "wait");
+});
+
+it("a bridge peer replans an obstructed partial sidestep instead of holding the passer forever", () => {
+  const { passer, settled } = fixture();
+  passer.annoyance.active = false;
+  passer.stateName = "LatchBridgeState";
+  passer.behavior = {
+    currentState: {
+      assignment: { approach: new pc.Vec3(3, 0, 0) },
+      recoveringAge: null,
+      spreading: false,
+    },
+  };
+  passer.peerYield.constrain();
+  const home = settled.peerYield.home.clone();
+  settled.peerYield.phase = "aside";
+  settled.peerYield.bridgePassage = true;
+  settled.peerYield.aside = new pc.Vec3(0.9, 0, -1.1);
+  settled.position.z = 0.3;
+  settled.clearPeerStep = (point) => point.z > settled.position.z;
+  const before = settled.position.clone();
+  settled.peerYield.update(2.1);
+  assert.equal(settled.peerYield.phase, "aside");
+  assert.ok(settled.peerYield.aside.z > 0.3, "the new supported free side replaces the blocked target");
+  assert.equal(settled.peerYield.age, 0);
+  assert.deepEqual(settled.peerYield.home, home);
+  assert.deepEqual(settled.position, before);
+});

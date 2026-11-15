@@ -93,6 +93,22 @@ export class BridgeSlimePhysics {
    */
   #anticipatedLoads = new Map();
   /**
+   * @type {Map<number,number>}
+   */
+  #poolMasses = new Map();
+  /**
+   * @type {boolean}
+   */
+  #supportPending = false;
+  /**
+   * @type {number}
+   */
+  #supportGraceAge = 0;
+  /**
+   * @type {number}
+   */
+  #permanentCount = 0;
+  /**
    * @type {number}
    */
   #preparation = 0;
@@ -127,8 +143,10 @@ export class BridgeSlimePhysics {
    * @param {boolean} connected
    * @param {Map<number,number>} failures
    * @param {Map<number,number>} anticipatedLoads Existing front station to outgoing map direction.
+   * @param {Map<number,number>} poolMasses Bank reservoir stations to actual admitted donor units.
+   * @param {boolean} supportPending Additional bank donor units are still required.
    */
-  sync(stations, supported, connected, failures = new Map(), anticipatedLoads = new Map()) {
+  sync(stations, supported, connected, failures = new Map(), anticipatedLoads = new Map(), poolMasses = new Map(), supportPending = false) {
     const ammo = globalThis.Ammo;
     if (!ammo?.btPoint2PointConstraint || !this.#app.systems?.rigidbody?.dynamicsWorld) {
       return;
@@ -138,9 +156,9 @@ export class BridgeSlimePhysics {
      * @param {number} station
      */
       (station) => `${station}:${stations.get(station).toString()}:${Number(supported(station - 1))}:${Number(supported(station + 1))}`);
-    const signature = `${anchors.join(",")}:${connected}:${JSON.stringify([...failures])}:${JSON.stringify([...anticipatedLoads])}`;
+    const signature = `${anchors.join(",")}:${connected}:${JSON.stringify([...failures])}:${JSON.stringify([...anticipatedLoads])}:${JSON.stringify([...poolMasses])}`;
     const frontChanged = JSON.stringify([...anticipatedLoads]) !== JSON.stringify([...this.#anticipatedLoads]);
-    const materialChanged = stations.size !== this.#bodies.size;
+    const materialChanged = stations.size !== this.#bodies.size || JSON.stringify([...poolMasses]) !== JSON.stringify([...this.#poolMasses]);
     if (!connected && anticipatedLoads.size > 0 && (frontChanged || materialChanged)) {
       this.#preparationStarts = new Map();
       for (const station of stations.keys()) {
@@ -151,6 +169,13 @@ export class BridgeSlimePhysics {
       }
       this.#preparation = 0;
     }
+    const permanentCount = stations.size - poolMasses.size;
+    if (permanentCount !== this.#permanentCount) {
+      this.#supportGraceAge = 0;
+      this.#permanentCount = permanentCount;
+    }
+    this.#supportPending = supportPending;
+    this.#poolMasses = new Map(poolMasses);
     this.#attempts = new Map(failures);
     this.#anticipatedLoads = new Map(anticipatedLoads);
     if (connected || stations.size === 0) {
@@ -191,7 +216,9 @@ export class BridgeSlimePhysics {
       const previous = this.#bodies.get(station - 1);
       const following = this.#bodies.get(station + 1);
       const neighbor = previous ?? following;
-      if (neighbor) {
+      if (poolMasses.has(station)) {
+        entity.setPosition(target.x, target.y - 0.13, target.z);
+      } else if (neighbor) {
         const direction = previous ? 1 : -1;
         const origin = neighbor.entity.getWorldTransform().transformPoint(new this.#pc.Vec3(
           this.#horizontal ? direction : 0, 0, this.#horizontal ? 0 : direction,
@@ -211,7 +238,9 @@ export class BridgeSlimePhysics {
       } else {
         entity.setPosition(target.x, target.y - 0.13, target.z);
       }
-      entity.tags.add("hero-moving-support", "hero-support-surface", "capsule-support");
+      if (!poolMasses.has(station)) {
+        entity.tags.add("hero-moving-support", "hero-support-surface", "capsule-support");
+      }
       entity.addComponent("collision", {
         type: "box",
         halfExtents: new this.#pc.Vec3(this.#horizontal ? 0.5 : 0.94, 0.13, this.#horizontal ? 0.94 : 0.5),
@@ -223,6 +252,10 @@ export class BridgeSlimePhysics {
         restitution: 0.02,
         linearDamping: 0.65,
         angularDamping: 0.8,
+        // Reservoir gel wets the bank contact patch, just like the bridge's
+        // adhesive root. Its world pins transmit the finite native load; the
+        // terrain collider must not eject that intentionally embedded patch.
+        ...(poolMasses.has(station) ? { mask: this.#pc.BODYMASK_NOT_STATIC } : {}),
       });
       this.#bodies.set(station, {
         entity,
@@ -343,8 +376,8 @@ export class BridgeSlimePhysics {
       }
       for (const direction of [-1, 1]) {
         const key = `${station}:${direction}`;
-        const boundary = !this.#bodies.has(station + direction);
-        const eligible = boundary && this.#supported(station + direction);
+        const boundary = !this.#bodies.has(station + direction) || this.#poolMasses.has(station + direction);
+        const eligible = boundary && (this.#poolMasses.has(station) ? this.#supported(station) && this.#poolBankContact(target) : this.#supported(station + direction));
         if (!eligible) {
           changed = this.#banks.delete(key) || changed;
           if (boundary) {
@@ -378,6 +411,26 @@ export class BridgeSlimePhysics {
     return entity.getWorldTransform().transformPoint(new this.#pc.Vec3(
       this.#horizontal ? direction * 0.5 : 0, 0, this.#horizontal ? 0 : direction * 0.5,
     ));
+  }
+
+  /**
+   * A reservoir is grounded on its own verified bank footprint. It does not
+   * borrow support from another tile farther inland or from the missing span.
+   * @param {import("playcanvas").Vec3} target
+   * @returns {boolean}
+   */
+  #poolBankContact(target) {
+    for (const along of [-0.4, 0.4]) {
+      for (const across of [-0.75, 0.75]) {
+        const point = target.clone().add(new this.#pc.Vec3(this.#horizontal ? along : across, 0, this.#horizontal ? across : along));
+        const height = this.#groundHeight(point, target.y);
+        if (height === null || Math.abs(height - target.y) > 0.1) {
+          return false;
+        }
+      }
+    }
+
+    return true;
   }
 
   /**
@@ -469,7 +522,20 @@ export class BridgeSlimePhysics {
       }
       direction = anchoredStart ? 1 : anchoredEnd ? -1 : 0;
       const trussVolume = this.#truss.allocate(first, last, ACTOR_MASS.LATCH_SLUG);
-      const deckVolume = last - first + 1 - trussVolume;
+      let donorUnits = 0;
+      for (let index = first; index <= last; index++) {
+        donorUnits += this.#poolMasses.get(index) ?? 1;
+      }
+      const deckVolume = donorUnits - trussVolume;
+      let reservedVolume = 0;
+      const pooled = this.#poolMasses.has(first) || this.#poolMasses.has(last);
+      if (pooled) {
+        for (let index = first; index <= last; index++) {
+          reservedVolume += this.#poolMasses.has(index) ? 0.5 : 1;
+        }
+      }
+      const reserveScale = Math.min(1, deckVolume / Math.max(0.001, reservedVolume));
+      reservedVolume *= reserveScale;
       const weights = new Map();
       let total = 0;
       let initialVolume = 0;
@@ -495,13 +561,18 @@ export class BridgeSlimePhysics {
         const share = !this.#connected && direction
           ? 0.12 / weights.size + 0.58 * weight / total + (distance === 0 ? 0.3 : 0)
           : weight / total;
-        const targetVolume = share * deckVolume;
+        // Once real temporary gel has arrived, permanent tiles retain viable
+        // full sections. Only the excess forms bank ballast and reinforcement;
+        // more donors must not simply scale an already-starved free tip.
+        const minimumVolume = pooled ? (this.#poolMasses.has(index) ? 0.5 : 1) * reserveScale : 0;
+        const targetVolume = minimumVolume + share * (deckVolume - reservedVolume);
         const anchorBias = direction && last > first ? 1 - distance / (last - first) : 1;
         // Removing material from a downstream rib must deepen it enough to
         // retain bending stiffness (I scales as area² * profile²). Otherwise
         // a dramatic reservoir would simply starve the worker's next support.
         const stiffnessProfile = Math.max(1, (weight / total) / share);
-        const targetProfile = this.#connected ? 1 : baseProfile * (1 + constructionDemand * 0.2 * anchorBias) * stiffnessProfile;
+        const targetProfile = this.#poolMasses.has(index) ? 1.25 : this.#connected ? 1 :
+          baseProfile * (1 + constructionDemand * 0.2 * anchorBias) * stiffnessProfile;
         const start = this.#preparationStarts.get(index);
         const progress = preparing && !this.#connected ? this.#preparation : 1;
         const previousVolume = (start?.volume ?? 1) / initialVolume * deckVolume;
@@ -635,8 +706,13 @@ export class BridgeSlimePhysics {
     // The next torque is still held over a full native step; using render dt
     // here would overestimate damping/stiffness and excite that step's inertia.
     const step = deltaTime > 0 ? Math.max(this.#app.systems.rigidbody.fixedTimeStep ?? 1 / 60, deltaTime) : 1 / 240;
-    const stiffness = mass * gravity * 6 * profile ** 2;
-    const damping = mass * 8 * profile;
+    const sectionDepth = Math.max(0.2, Number.isFinite(half.y) ? half.y / 0.13 : profile);
+    // Anchored surplus gel actively tensions the longitudinal tissue. The
+    // pressure remains a finite reciprocal native torque, with capacity still
+    // proportional to the actual donated mass and physical section depth.
+    const reinforcement = this.#poolMasses.size > 0 ? 2 : 1;
+    const stiffness = mass * gravity * 6 * sectionDepth ** 2 * reinforcement;
+    const damping = mass * 8 * sectionDepth * Math.sqrt(reinforcement);
     // Implicit spring coefficients remain dissipative when a render update
     // spans several native substeps. An explicit damping torque can overshoot
     // the box's small angular inertia and inject a violent alternating spin.
@@ -644,7 +720,7 @@ export class BridgeSlimePhysics {
     const spring = stiffness / denominator;
     const drag = (damping + stiffness * step) / denominator;
     const torque = worldError.mulScalar(-spring).sub(speed.mulScalar(drag));
-    const limit = mass * gravity * 3 * profile;
+    const limit = mass * gravity * 3 * sectionDepth * reinforcement;
     if (torque.length() > limit) {
       torque.normalize().mulScalar(limit);
     }
@@ -658,6 +734,7 @@ export class BridgeSlimePhysics {
    */
   update(deltaTime = 1 / 60) {
     this.#reachAge += Math.max(0, deltaTime);
+    this.#supportGraceAge += Math.max(0, deltaTime);
     // Failed attempts return fully to gravity. Periodic retries let the living
     // front recover when a movable obstacle clears without inventing new mass.
     if (!this.#connected && this.#materialComplete && this.#reachAge >= 38) {
@@ -695,7 +772,16 @@ export class BridgeSlimePhysics {
       const axis = transform.transformVector(new this.#pc.Vec3(this.#horizontal ? 1 : 0, 0, this.#horizontal ? 0 : 1));
       const forward = this.#horizontal ? axis.x : axis.z;
       const stressed = entity.up.y <= 0.65 || forward <= 0.2;
-      const stressAge = stressed ? (this.#stressAge.get(station) ?? 0) + Math.max(0, deltaTime) : 0;
+      // A connected liquid branch may fold while its already-requested bank
+      // mass arrives and redistributes. This never publishes traversal support.
+      // The grace is bounded per actual permanent handoff and immediately ends
+      // if the native path to an adhesive bank disappears.
+      const preparingSupport = this.isAwaitingSupport(station);
+      const anchorLost = this.#poolMasses.size > 0 && !this.#hasNativeAnchor(station);
+      const capacityStall = this.#poolMasses.size > 0 && this.#anticipatedLoads.has(station) &&
+        this.#supportGraceAge >= 30 && !this.isLoadReady(station);
+      const stressAge = (stressed || anchorLost || capacityStall) && !preparingSupport
+        ? (this.#stressAge.get(station) ?? 0) + Math.max(0, deltaTime) : 0;
       this.#stressAge.set(station, stressAge);
       if (!this.#materialComplete && stressAge >= 2) {
         this.#failedStations.add(station);
@@ -745,6 +831,32 @@ export class BridgeSlimePhysics {
     this.#settled = settled;
 
     return poses;
+  }
+
+  /**
+   * @param {number} station
+   * @returns {boolean}
+   */
+  isAwaitingSupport(station) {
+    return this.#poolMasses.size > 0 && this.#supportGraceAge < 30 &&
+      this.#hasNativeAnchor(station) && (this.#supportPending || this.#preparation < 1 || this.#reachAge < 4);
+  }
+
+  /**
+   * @param {number} station
+   * @returns {boolean}
+   */
+  #hasNativeAnchor(station) {
+    let first = station;
+    let last = station;
+    while (this.#links.has(first - 1)) {
+      first--;
+    }
+    while (this.#links.has(last)) {
+      last++;
+    }
+
+    return this.#banks.has(first + ":-1") || this.#banks.has(last + ":1");
   }
 
   /**
@@ -886,6 +998,8 @@ export class BridgeSlimePhysics {
       start: transform.transformPoint(new this.#pc.Vec3(this.#horizontal ? -0.5 : 0, 0.13 * scale * profile, this.#horizontal ? 0 : -0.5)),
       end: transform.transformPoint(new this.#pc.Vec3(this.#horizontal ? 0.5 : 0, 0.13 * scale * profile, this.#horizontal ? 0 : 0.5)),
       connected: this.#connected,
+      reservoir: this.#poolMasses.has(station),
+      fluid: !this.#connected,
       linkedPrevious: this.#links.has(station - 1),
       anchorDirection: this.#flowDirections.get(station) ?? 0,
       braces: this.#truss.poses(station),

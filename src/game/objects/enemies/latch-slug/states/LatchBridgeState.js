@@ -14,7 +14,7 @@ export class LatchBridgeState extends State {
    */
   bridge = null;
   /**
-   * @type {{station:number, position:import("playcanvas").Vec3, approach:import("playcanvas").Vec3, settleSeconds?:number, waypoints?:import("playcanvas").Vec3[], supports?:{station:number,entity:import("playcanvas").Entity,position:import("playcanvas").Vec3,start:import("playcanvas").Vec3,end:import("playcanvas").Vec3}[]}|null}
+   * @type {{station:number, position:import("playcanvas").Vec3, approach:import("playcanvas").Vec3, feedApproach?:import("playcanvas").Vec3, settleSeconds?:number, waypoints?:import("playcanvas").Vec3[], supports?:{station:number,entity:import("playcanvas").Entity,position:import("playcanvas").Vec3,start:import("playcanvas").Vec3,end:import("playcanvas").Vec3}[]}|null}
    */
   assignment = null;
   /**
@@ -281,6 +281,7 @@ export class LatchBridgeState extends State {
   #failAndRetry(owner) {
     this.returnSupports = this.#captureReturnSupports(this.assignment.supports ?? []);
     this.bridge.failRebuildAttempt?.(this.assignment.station, owner, Boolean(this.contactLatch?.point));
+    owner.setBridgeLiquidOwnership?.(false);
     owner.setBridgeMorphScale(1);
     this.spreading = false;
     if (this.contactLatch?.point) {
@@ -387,10 +388,12 @@ export class LatchBridgeState extends State {
       const progress = Math.min(1, this.recoveringAge / 0.7);
       owner.setBridgeMorphScale(Math.max(0.001, progress * progress * (3 - 2 * progress)));
       if (progress >= 1) {
+        owner.setBridgeLiquidOwnership?.(false);
+        owner.setBridgeMorphScale(1);
         this.recoveringAge = null;
         this.spreading = false;
         if (this.recoveryBankTarget) {
-          this.bankReturn = new LatchBankReturn(owner, this.recoveryBankTarget);
+          this.bankReturn = new LatchBankReturn(owner, this.recoveryBankTarget, { arrivalRadius: this.assignment?.counterweight ? 0.04 : 0.4 });
           this.recoveryBankTarget = null;
         } else {
           owner.releaseRebuildAssignment();
@@ -528,6 +531,11 @@ export class LatchBridgeState extends State {
     const previousSupports = this.assignment.supports ?? [];
     const previousApproach = this.assignment.approach;
     this.assignment = assignment;
+    if (assignment.feedApproach) {
+      this.#feedPool(owner, assignment);
+
+      return;
+    }
     const approach = assignment.approach;
     const contactPoint = this.contactLatch?.point;
     const placementDistance = Math.hypot(owner.position.x - assignment.position.x,
@@ -629,9 +637,57 @@ export class LatchBridgeState extends State {
   }
 
   /**
+   * A supported bank reservoir accepts each new individual at its real shore
+   * contact. The existing receiving skin carries that individual's conserved
+   * volume along the gel into the next tile; no capsule walks a growing pool.
+   * @param {import("../LatchSlug.js").LatchSlug} owner
+   * @param {NonNullable<LatchBridgeState["assignment"]>} assignment
+   */
+  #feedPool(owner, assignment) {
+    const target = assignment.feedApproach;
+    const distance = Math.hypot(owner.position.x - target.x, owner.position.z - target.z);
+    const grounded = owner.grounded && !owner.airborne &&
+      owner.isBridgeApproachingFromGround?.(this.bridge, assignment.station) !== false;
+    if (distance > 0.18 || !grounded) {
+      this.age = 0;
+      this.approachAge += owner.deltaTime;
+      this.stalledAge += owner.deltaTime;
+      if (distance < this.closestDistance - 0.1) {
+        this.closestDistance = distance;
+        this.stalledAge = 0;
+      }
+      if (owner.peerYield?.receiver || owner.peerYield?.requester) {
+        this.stalledAge = 0;
+      }
+      if (this.stalledAge >= 8 || this.approachAge >= 60) {
+        owner.stop();
+        owner.releaseRebuildAssignment();
+
+        return;
+      }
+      owner.playClip(ANIMATION.WADDLE_WALK);
+      owner.approachBridge(target);
+
+      return;
+    }
+    owner.stop();
+    owner.playClip(ANIMATION.IDLE_DOG);
+    this.age += owner.deltaTime;
+    if (this.age >= (assignment.settleSeconds ?? 1.1)) {
+      if (this.bridge.restoreSlimeStation(assignment.station, owner)) {
+        this.spreading = true;
+        this.age = 0;
+      } else {
+        owner.releaseRebuildAssignment();
+      }
+    }
+  }
+
+  /**
    * @param {import("../LatchSlug.js").LatchSlug} owner
    */
   exit(owner) {
+    owner.setBridgeLiquidOwnership?.(false);
     this.bankReturn?.destroy();
     this.bankReturn = null;
     if (this.spreading && this.bridge && this.assignment &&

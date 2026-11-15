@@ -2000,32 +2000,22 @@
       }
     },
     {
-      "id": "span-slug-0",
+      "id": "span-slug-7",
       "object": "LatchSlug",
       "position": {
-        "x": -4.8,
+        "x": -4,
         "y": 2.14,
-        "z": 6.55
+        "z": 6.9
       },
       "testClip": "sit_loop"
     },
     {
-      "id": "span-slug-1",
+      "id": "span-slug-11",
       "object": "LatchSlug",
       "position": {
-        "x": -4.8,
+        "x": -4,
         "y": 2.14,
-        "z": 7.45
-      },
-      "testClip": "sit_loop"
-    },
-    {
-      "id": "span-slug-2",
-      "object": "LatchSlug",
-      "position": {
-        "x": -5.85,
-        "y": 2.14,
-        "z": 6.55
+        "z": 7.9
       },
       "testClip": "sit_loop"
     },
@@ -2033,19 +2023,59 @@
       "id": "span-slug-3",
       "object": "LatchSlug",
       "position": {
-        "x": -5.85,
+        "x": -4,
         "y": 2.14,
-        "z": 7.45
+        "z": 5.9
       },
       "testClip": "sit_loop"
     },
     {
-      "id": "span-slug-4",
+      "id": "span-slug-15",
       "object": "LatchSlug",
       "position": {
-        "x": -6.9,
+        "x": -4,
         "y": 2.14,
-        "z": 6.55
+        "z": 8.9
+      },
+      "testClip": "sit_loop"
+    },
+    {
+      "id": "span-slug-6",
+      "object": "LatchSlug",
+      "position": {
+        "x": -5,
+        "y": 2.14,
+        "z": 6.9
+      },
+      "testClip": "sit_loop"
+    },
+    {
+      "id": "span-slug-10",
+      "object": "LatchSlug",
+      "position": {
+        "x": -5,
+        "y": 2.14,
+        "z": 7.9
+      },
+      "testClip": "sit_loop"
+    },
+    {
+      "id": "span-slug-2",
+      "object": "LatchSlug",
+      "position": {
+        "x": -5,
+        "y": 2.14,
+        "z": 5.9
+      },
+      "testClip": "sit_loop"
+    },
+    {
+      "id": "span-slug-14",
+      "object": "LatchSlug",
+      "position": {
+        "x": -5,
+        "y": 2.14,
+        "z": 8.9
       },
       "testClip": "sit_loop"
     },
@@ -2053,9 +2083,159 @@
       "id": "span-slug-5",
       "object": "LatchSlug",
       "position": {
-        "x": -6.9,
+        "x": -6,
         "y": 2.14,
-        "z": 7.45
+        "z": 6.9
+      },
+      "testClip": "sit_loop"
+    },
+    {
+      "id": "span-slug-9",
+      "object": "LatchSlug",
+      "position": {
+        "x": -6,
+        "y": 2.14,
+        "z": 7.9
+      },
+      "testClip": "sit_loop"
+    },
+    {
+      "id": "span-slug-1",
+      "object": "LatchSlug",
+      "position": {
+        "x": -6,
+        "y": 2.14,
+        "z": 5.9
+      },
+      "testClip": "sit_loop"
+    },
+    {
+      "id": "span-slug-13",
+      "object": "LatchSlug",
+      "position": {
+        "x": -6,
+        "y": 2.14,
+        "z": 8.9
+      },
+      "testClip": "sit_loop"
+    },
+    {
+      "id": "span-slug-4",
+      "object": "LatchSlug",
+      "position": {
+        "x": -7,
+        "y": 2.14,
+        "z": 6.9
+      },
+      "testClip": "sit_loop"
+    },
+    {
+      "id": "span-slug-8",
+      "object": "LatchSlug",
+      "position": {
+        "x": -7,
+        "y": 2.14,
+        "z": 7.9
+      },
+      "testClip": "sit_loop"
+    },
+    {
+      "id": "span-slug-0",
+      "object": "LatchSlug",
+      "position": {
+        "x": -7,
+        "y": 2.14,
+        "z": 5.9
+      },
+      "testClip": "sit_loop"
+    },
+    {
+      "id": "span-slug-12",
+      "object": "LatchSlug",
+      "position": {
+        "x": -7,
+        "y": 2.14,
+        "z": 8.9
+      },
+      "testClip": "sit_loop"
+    },
+    {
+      "id": "span-slug-16",
+      "object": "LatchSlug",
+      "position": {
+        "x": -7,
+        "y": 2.14,
+        "z": 5.9
+      },
+      "testClip": "sit_loop"
+    },
+    {
+      "id": "span-slug-17",
+      "object": "LatchSlug",
+      "position": {
+        "x": -6,
+        "y": 2.14,
+        "z": 5.9
+      },
+      "testClip": "sit_loop"
+    },
+    {
+      "id": "span-slug-18",
+      "object": "LatchSlug",
+      "position": {
+        "x": -5,
+        "y": 2.14,
+        "z": 5.9
+      },
+      "testClip": "sit_loop"
+    },
+    {
+      "id": "span-slug-19",
+      "object": "LatchSlug",
+      "position": {
+        "x": -4,
+        "y": 2.14,
+        "z": 5.9
+      },
+      "testClip": "sit_loop"
+    },
+    {
+      "id": "span-slug-20",
+      "object": "LatchSlug",
+      "position": {
+        "x": -7,
+        "y": 2.14,
+        "z": 6.9
+      },
+      "testClip": "sit_loop"
+    },
+    {
+      "id": "span-slug-21",
+      "object": "LatchSlug",
+      "position": {
+        "x": -6,
+        "y": 2.14,
+        "z": 6.9
+      },
+      "testClip": "sit_loop"
+    },
+    {
+      "id": "span-slug-22",
+      "object": "LatchSlug",
+      "position": {
+        "x": -5,
+        "y": 2.14,
+        "z": 6.9
+      },
+      "testClip": "sit_loop"
+    },
+    {
+      "id": "span-slug-23",
+      "object": "LatchSlug",
+      "position": {
+        "x": -4,
+        "y": 2.14,
+        "z": 6.9
       },
       "testClip": "sit_loop"
     }
@@ -2074,7 +2254,7 @@
         "buttons": [
           {
             "label": "Collapse and rebuild",
-            "script": "const bridge=[...objects].find(o=>o.definition?.object==='Bridge'&&o.definition.span?.start===5&&o.definition.span?.crossCenter===17.5);if(bridge){objects.getOne('hero').teleport({x:0,y:0.64,z:8.5});bridge.collapseStation(5);window.setTimeout(()=>{for(const slug of [...objects].filter(o=>o.definition?.id?.startsWith('span-slug-')))slug.resumeBehavior();},3500);}"
+            "script": "const bridge=[...objects].find(o=>o.definition?.object==='Bridge'&&o.definition.span?.start===5&&o.definition.span?.crossCenter===17.5);if(bridge){objects.getOne('hero').teleport({x:0,y:0.64,z:8.5});const donors=[...objects].filter(o=>o.definition?.id?.startsWith('span-slug-'));for(const slug of donors){slug.entity.enabled=false;slug.entity.rigidbody.enabled=false;slug.entity.collision.enabled=false;}bridge.collapseStation(5);let index=0;const release=()=>{if(index>=donors.length){window.clearInterval(timer);return;}if(!bridge.rebuildDemand){if(index>0)window.clearInterval(timer);return;}if(bridge.rebuildDemand.count<=0)return;const occupied=donors.slice(0,index).some(slug=>slug.alive&&slug.entity.enabled&&!slug.isBridgeCommitted&&slug.position.distance(new slug.pc.Vec3(-4.85,2,7))<2);if(occupied)return;const slug=donors[index++];slug.entity.setPosition(-4.85,2,7);slug.entity.rigidbody.teleport(-4.85,2,7);slug.entity.collision.enabled=true;slug.entity.rigidbody.enabled=true;slug.entity.enabled=true;slug.entity.rigidbody.linearVelocity=new slug.pc.Vec3();slug.grounded=false;slug.airborne=true;slug.resumeBehavior();};const timer=window.setInterval(release,8000);const kickoff=window.setTimeout(release,3500);bridge.entity.once(\"destroy\",()=>{window.clearInterval(timer);window.clearTimeout(kickoff);});}"
           },
           {
             "label": "Span view",

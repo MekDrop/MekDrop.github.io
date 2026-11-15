@@ -192,9 +192,11 @@ export class EnemyWaveDirector {
         liveReserved.set(key, live - usedLive);
         let workers = 0;
         for (const [actor, worker] of this.#repairWorkers) {
-          workers += Number(actor.alive && worker.key === key);
+          workers += Number(actor.alive && !actor.rebuildContributionConsumed && worker.key === key);
         }
-        // Bound rescue attempts when an approach remains permanently blocked.
+        // Bound stalled approaches, not identities already contributing gel.
+        // Completed deck and temporary bank tissue must never consume the
+        // rescue budget needed to finish a longer span.
         const capacity = Math.max(0, demand.count * 3 - workers);
         const retrying = snapshot.clock >= (this.#repairRetryAt.get(key) ?? 0);
         orders.push({
@@ -345,7 +347,7 @@ export class EnemyWaveDirector {
     for (const [actor, worker] of this.#repairWorkers) {
       if (!actor.alive) {
         this.#repairWorkers.delete(actor);
-      } else if (!worker.expired && clock - worker.started >= 180) {
+      } else if (!actor.rebuildContributionConsumed && !worker.expired && clock - worker.started >= 180) {
         worker.expired = true;
         actor.releaseRebuildAssignment?.();
         this.#repairRetryAt.set(worker.key, clock + 10);

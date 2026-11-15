@@ -1,8 +1,34 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { it } from "node:test";
+import { registerHooks } from "node:module";
+import { SLIME_BRIDGE_GROWTH_SECONDS } from "../../../../../src/game/objects/path/BridgeSlimeTiming.js";
 import * as playcanvas from "playcanvas";
 import { MapObjectDefinitions } from "../../../../../src/game/objects/MapObjectDefinitions.js";
+
+
+const assetHooks = registerHooks({
+  load: (url, context, nextLoad) => {
+    if (url.endsWith("?url")) {
+      return {
+        format: "module",
+        source: "export default " + JSON.stringify(url),
+        shortCircuit: true,
+      };
+    }
+    if (url.endsWith("?raw")) {
+      return {
+        format: "module",
+        source: "export default " + JSON.stringify(readFileSync(new URL(url.slice(0, -4)), "utf8")),
+        shortCircuit: true,
+      };
+    }
+
+    return nextLoad(url, context);
+  },
+});
+const { LatchSlug } = await import("../../../../../src/game/objects/enemies/latch-slug/LatchSlug.js");
+assetHooks.deregister();
 
 // Execute the production owner and WalkingPaths. Only graphics batching and the
 // articulated fragment boundary are replaced. Drop measurements are controlled
@@ -16,10 +42,11 @@ function stubGraphics(source) {
     .replace('import { BridgeSlimeArtwork } from "./BridgeSlimeArtwork.js";', `
     class BridgeSlimeArtwork {
       static modelUrls = [];
-      constructor({root}) { root.testSlimeDeck = this; }
+      constructor({root}) { root.testSlimeDeck = this; this.stations = []; }
       setSpanPoses(poses) { this.poses = poses; }
       setDonorSources(sources) { this.sources = sources; }
-      addStation() {}
+      setPoolTransfers(transfers) { for (const transfer of transfers) transfer.id.setBridgeLiquidOwnership?.(true); }
+      addStation(args) { this.stations.push(args); }
       setLoads() {}
       update() { this.updateSources = this.sources; }
       destroy() {}
@@ -204,6 +231,23 @@ function fixture(length, horizontal, prepare) {
     pc: playcanvas,
     app: {
       fragmentEvents: [],
+      systems: {
+        rigidbody: {
+          raycastFirst: (from) => {
+            const col = Math.round(from.x + (map.cols - 1) / 2);
+            const row = Math.round(from.z + (map.rows - 1) / 2);
+            if (!map.grid[row]?.[col]) {
+              return null;
+            }
+
+            return {
+              entity: { rigidbody: { type: "static" } },
+              point: new playcanvas.Vec3(from.x, map.heightmap[row][col], from.z),
+              normal: playcanvas.Vec3.UP,
+            };
+          },
+        },
+      },
       fire: (name, payload) => (name === "bridge:collapsing" ? signals : events).push({
         name,
         ...payload,
@@ -244,6 +288,72 @@ function fixture(length, horizontal, prepare) {
     events,
     signals,
   };
+}
+
+
+/**
+ * Exercise the real actor/state/bridge admission rather than gifting fake mass.
+ * Only the fixture's native body and graphical boundaries remain substituted.
+ * @param {ReturnType<typeof fixture>} context
+ * @param {number} direction
+ * @param {number} remaining
+ * @returns {import("../../../../../src/game/objects/enemies/latch-slug/LatchSlug.js").LatchSlug}
+ */
+function fundBankReservoir(context, direction = -1, remaining = 2) {
+  const { bridge, target } = context;
+  const bankStation = direction < 0 ? target.span.start - 1 : target.span.end + 1;
+  const bank = bridge.stationPosition(bankStation);
+  const objects = { getWithMethod: () => [bridge] };
+  const slug = new LatchSlug({
+    pc: playcanvas,
+    definition: { id: "temporary-bank-donor" },
+    runtime: { objects },
+  });
+  slug.entity.setPosition(bank);
+  slug.entity.rigidbody = {
+    enabled: true,
+    body: {},
+    linearVelocity: new playcanvas.Vec3(),
+    teleport: (position) => slug.entity.setPosition(position),
+  };
+  slug.entity.collision = { enabled: true };
+  slug.app = {
+    systems: {
+      rigidbody: {
+        raycastFirst: () => ({
+          entity: { rigidbody: { type: "static" } },
+          point: slug.position.clone(),
+          normal: playcanvas.Vec3.UP,
+        }),
+      },
+    },
+  };
+  slug.grounded = true;
+  slug.airborne = false;
+  slug.behavior.changeTo("LatchBridgeState");
+  const state = slug.behavior.currentState;
+  assert.equal(state.claim(slug), true);
+  assert.equal(state.assignment.counterweight, true, "insufficient support routes this actual donor into the shared bank pool");
+  slug.entity.setPosition(state.assignment.approach);
+  slug.deltaTime = 0.6;
+  state.execute(slug);
+  state.execute(slug);
+  assert.equal(state.spreading, true);
+  bridge.onFrame(SLIME_BRIDGE_GROWTH_SECONDS / 2);
+  state.execute(slug);
+  assert.equal(slug.entity.rigidbody.enabled, true, "before admission the original actor still owns native mass");
+  assert.equal(bridge.getRebuildMorphProgress(bankStation, slug).progress, 0.5);
+  bridge.onFrame(SLIME_BRIDGE_GROWTH_SECONDS / 2);
+  state.execute(slug);
+  assert.equal(slug.isBridgeCommitted, true);
+  assert.equal(slug.entity.rigidbody.enabled, false);
+  assert.equal(slug.entity.collision.enabled, false);
+  assert.equal(state.committed, true);
+  if (remaining > 1) {
+    fundBankReservoir(context, direction, remaining - 1);
+  }
+
+  return slug;
 }
 
 it("signals the whole bridge failure synchronously before releasing its first section", () => {
@@ -738,7 +848,7 @@ it("keeps a lower walking path open without demanding living replacement deck", 
   context.otherBridge.destroy();
 });
 
-it("reserves only reachable construction fronts on each worker's bank", () => {
+it("reserves only reachable construction fronts from the run's original bank", () => {
   for (const horizontal of [true, false]) {
     const context = fixture(3, horizontal, (map, target) => {
       for (const cell of target.span.cells) {
@@ -752,7 +862,7 @@ it("reserves only reachable construction fronts on each worker's bank", () => {
     const claim = bridge.reserveRebuildStation(first);
     assert.equal(claim.station, target.span.start);
     assert.equal(bridge.reserveRebuildStation(second), null);
-    assert.equal(bridge.reserveRebuildStation(far).station, target.span.end);
+    assert.equal(bridge.reserveRebuildStation(far), null);
     assert.equal(bridge.restoreSlimeStation(claim.station, first), true);
     assert.equal(bridge.reserveRebuildStation(second), null);
     bridge.onFrame(2.21);
@@ -946,6 +1056,7 @@ it("keeps the claimed bank direction and rejects a folded predecessor's backward
       }
     });
     const { bridge, bridgePhysics, target } = context;
+    const supportDonor = fundBankReservoir(context);
     const adjacent = target.span.end - 1;
     const center = bridge.stationPosition(adjacent);
     const forward = new playcanvas.Vec3(horizontal ? 0.5 : 0, 0, horizontal ? 0 : 0.5);
@@ -976,6 +1087,7 @@ it("keeps the claimed bank direction and rejects a folded predecessor's backward
     assert.equal(retry.attempt, 2);
     assert.deepEqual(retry.position, claim.position);
     assert.ok(retry.approach.distance(center) < claim.approach.distance(center));
+    supportDonor.destroy();
     bridge.destroy();
     context.otherBridge.destroy();
   }
@@ -1272,7 +1384,7 @@ it("forecasts the next worker load before predecessor validation and unlocks the
   }
 });
 
-it("stages one next contributor safely on each bank while its predecessor forms", () => {
+it("stages one next contributor safely on the original bank while its predecessor forms", () => {
   const context = fixture(3, true, (map, target) => {
     for (const cell of target.span.cells) {
       map.tileMeta[cell.row][cell.col].bridgeCollapsed = true;
@@ -1293,7 +1405,7 @@ it("stages one next contributor safely on each bank while its predecessor forms"
   assert.ok(stage.approach.x < bank.x);
   assert.equal(stage.approach.y, bank.y);
   assert.equal(bridge.reserveRebuildStaging(third), null);
-  assert.equal(bridge.reserveRebuildStaging(opposite).direction, 1);
+  assert.equal(bridge.reserveRebuildStaging(opposite), null);
   assert.equal(bridge.getRebuildAttemptStatus(stage.station, second), "failed");
   bridge.onFrame(2.3);
   bridge.onFrame(0.2);
@@ -1656,6 +1768,7 @@ it("passes actual bank and free-front orientation to physics for either axis and
         }
       });
       const { bridge, bridgePhysics, target, map } = context;
+      const supportDonor = fundBankReservoir(context, direction);
       const missing = direction < 0 ? target.span.end : target.span.start;
       const bankStation = direction < 0 ? target.span.start - 1 : target.span.end + 1;
       const front = missing + direction;
@@ -1669,8 +1782,9 @@ it("passes actual bank and free-front orientation to physics for either axis and
       const donor = { position: bridge.stationPosition(bankStation) };
       assert.equal(bridge.reserveRebuildStation(donor).direction, direction);
       bridge.restoreSlimeStation(missing, donor);
-      const [stations, supported, connected, , forecast] = captured;
-      assert.equal(stations.size, 2);
+      const [stations, supported, connected, , forecast, poolMasses] = captured;
+      assert.equal(stations.size, 3);
+      assert.equal(poolMasses.get(bankStation), 2);
       assert.equal(connected, false);
       assert.deepEqual([...forecast], [[front, -direction]]);
       assert.equal(supported(bankStation), true);
@@ -1684,6 +1798,7 @@ it("passes actual bank and free-front orientation to physics for either axis and
       map.grid[row][col] = original;
       map.heightmap[row][col] = 0;
       assert.equal(supported(bankStation), false);
+      supportDonor.destroy();
       bridge.destroy();
       context.otherBridge.destroy();
     }
@@ -1812,11 +1927,13 @@ it("requires physical load readiness for restored living metadata even without a
     }
   });
   const { bridge, target, options } = context;
+  const supportDonor = fundBankReservoir(context);
   const worker = { position: bridge.stationPosition(target.span.start - 1) };
   options.app.testLoadReady = false;
   assert.equal(bridge.reserveRebuildStation(worker), null);
   options.app.testLoadReady = true;
   assert.equal(bridge.reserveRebuildStation(worker).station, target.span.end);
+  supportDonor.destroy();
   bridge.destroy();
   context.otherBridge.destroy();
 });
@@ -1961,12 +2078,15 @@ it("feeds artwork live owned donor positions before each growth update and remov
   const { bridge, target } = context;
   const station = target.span.start;
   bridge.collapseStation(station);
+  const support = fundBankReservoir(context, -1, 1);
   const donor = { position: bridge.stationPosition(station - 1) };
   bridge.reserveRebuildStation(donor);
   bridge.restoreSlimeStation(station, donor);
   bridge.onFrame(0.1);
   const artwork = bridge.entity.children.find((child) => child.testSlimeDeck)?.testSlimeDeck;
   assert.deepEqual(artwork.sources.get(station), donor.position);
+  assert.equal(artwork.stations.find((entry) => entry.growing).bankFeed, true,
+    "a funded contribution advances from the shore through the single fluid skin");
   assert.equal(artwork.updateSources, artwork.sources);
   const captured = artwork.sources.get(station);
   donor.position.x += 0.17;
@@ -1979,6 +2099,7 @@ it("feeds artwork live owned donor positions before each growth update and remov
   bridge.onFrame(0.1);
   const replacement = bridge.entity.children.find((child) => child.testSlimeDeck)?.testSlimeDeck;
   assert.equal(replacement.sources.size, 0);
+  support.destroy();
   bridge.destroy();
   context.otherBridge.destroy();
 });
@@ -1996,5 +2117,307 @@ it("keeps the living replacement independent of wooden visual rebuilds and dispo
   bridge.destroy();
   assert.equal(replacement.parent, null);
   assert.equal(replacement.children.length, 0);
+  context.otherBridge.destroy();
+});
+
+it("a real slug merges as temporary bank gel, unlocks the next donor, and reforms after native far-bank attachment", () => {
+  const context = fixture(3, true, (map, target) => {
+    for (const cell of target.span.cells) {
+      map.tileMeta[cell.row][cell.col].bridgeCollapsed = cell.col === target.span.end;
+      map.tileMeta[cell.row][cell.col].bridgeSlime = cell.col !== target.span.end;
+    }
+  });
+  const { bridge, bridgePhysics, target, map } = context;
+  const bankStation = target.span.start - 1;
+  const original = fundBankReservoir(context);
+  const identity = original.entity;
+  const state = original.behavior.currentState;
+  const next = { position: bridge.stationPosition(bankStation) };
+  const placement = bridge.reserveRebuildStation(next);
+  assert.equal(placement.station, target.span.end, "the admitted real pool contributor unlocks the permanent frontier");
+  assert.equal(placement.counterweight, undefined);
+  assert.equal(original.ownsBridgeContribution(bridge, bankStation), true);
+  assert.equal(bridge.getRebuildAttemptStatus(bankStation, original), "complete");
+  assert.equal(original.alive, true);
+
+  // The fixture replaces native bodies. Feed the actual native attachment
+  // boundary explicitly; retain all production bridge, pool and actor behavior.
+  Object.defineProperty(bridgePhysics, "connected", { get: () => true });
+  for (const cell of target.span.cells) {
+    map.tileMeta[cell.row][cell.col].bridgeCollapsed = false;
+    map.tileMeta[cell.row][cell.col].bridgeSlime = true;
+  }
+  bridge.releaseRebuildStation(next);
+  bridge.onFrame(0);
+  bridge.onFrame(0.9);
+  assert.equal(bridge.getRebuildAttemptStatus(bankStation, original), "failed", "surplus pool tissue enters the existing reversible release path");
+  state.execute(original);
+  assert.equal(original.entity, identity, "recovery never spawns a replacement identity");
+  assert.equal(original.isBridgeCommitted, false);
+  assert.equal(identity.rigidbody.enabled, true);
+  assert.equal(identity.collision.enabled, true);
+  assert.equal(state.recoveringAge, 0);
+  const bank = bridge.stationPosition(bankStation);
+  assert.ok(original.position.distance(bank) < 1, "the same actor reforms locally at its bank gel");
+  original.app = {
+    systems: {
+      rigidbody: {
+        raycastFirst: (start) => ({
+          entity: { rigidbody: { type: "static" } },
+          point: new playcanvas.Vec3(start.x, bank.y, start.z),
+          normal: playcanvas.Vec3.UP,
+        }),
+      },
+    },
+  };
+  original.deltaTime = 0.7;
+  state.execute(original);
+  assert.equal(state.recoveringAge, null);
+  assert.ok(state.bankReturn.target.distance(bank) > 1, "the original actor walks away onto its own reserved shore space");
+  original.entity.setPosition(state.bankReturn.target);
+  state.execute(original);
+  assert.equal(original.stateName, "LatchSeekState", "the restored original actor resumes its ordinary lifecycle");
+  assert.equal(original.ownsBridgeContribution(bridge, bankStation), false);
+  assert.equal(original.alive, true);
+  original.destroy();
+  bridge.destroy();
+  context.otherBridge.destroy();
+});
+
+it("locks a rebuild run to its first shore for claims, pooled donors, staging and wave dispatch", () => {
+  for (const horizontal of [true, false]) {
+    for (const direction of [-1, 1]) {
+      const context = fixture(3, horizontal, (map, target) => {
+        for (const cell of target.span.cells) {
+          map.tileMeta[cell.row][cell.col].bridgeCollapsed = true;
+        }
+      });
+      const { bridge, target } = context;
+      const firstStation = direction < 0 ? target.span.start : target.span.end;
+      const otherStation = direction < 0 ? target.span.end : target.span.start;
+      const first = { position: bridge.stationPosition(firstStation + direction) };
+      const sameShore = { position: first.position.clone() };
+      const otherShore = { position: bridge.stationPosition(otherStation - direction) };
+      assert.equal(bridge.rebuildDemand.banks.length, 2);
+      assert.equal(bridge.reserveRebuildStation(first), null, "the first native unit must be bank mass, not a deck tile");
+      assert.equal(bridge.reserveRebuildStaging(first).direction, direction);
+      assert.equal(bridge.reserveRebuildStation(otherShore), null, "a simultaneous claimant cannot open a second construction front");
+      assert.equal(bridge.reserveRebuildStaging(otherShore), null, "neither waiting nor temporary gel may originate at the opposite shore");
+      assert.deepEqual(bridge.rebuildDemand.banks.map((bank) => bank.direction), [direction]);
+      assert.equal(bridge.rebuildDemand.banks[0].count, 3, "all requested workers dispatch to the chosen shore");
+      bridge.releaseRebuildStation(first);
+      assert.equal(bridge.reserveRebuildStation(otherShore), null, "a canceled approach cannot silently switch the run's origin");
+      const replacement = bridge.reserveRebuildStaging(sameShore);
+      assert.equal(replacement.counterweight, true);
+      bridge.releaseRebuildStation(sameShore);
+      const support = fundBankReservoir(context, direction, 1);
+      assert.equal(bridge.reserveRebuildStation(first).station, firstStation);
+      bridge.restoreSlimeStation(firstStation, first);
+      bridge.onFrame(SLIME_BRIDGE_GROWTH_SECONDS);
+      bridge.onFrame(0.2);
+      assert.equal(bridge.reserveRebuildStation(otherShore), null, "the opposite free bank remains excluded after the first contribution");
+      assert.equal(bridge.reserveRebuildStation(sameShore).station, firstStation - direction);
+      support.destroy();
+      bridge.destroy();
+      context.otherBridge.destroy();
+    }
+  }
+});
+
+it("a real next donor feeds a funded reservoir from its shore instead of walking to the remote tile", () => {
+  const context = fixture(3, true, (map, target) => {
+    for (const cell of target.span.cells) {
+      map.tileMeta[cell.row][cell.col].bridgeCollapsed = cell.col === target.span.end;
+      map.tileMeta[cell.row][cell.col].bridgeSlime = cell.col !== target.span.end;
+    }
+  });
+  const { bridge, bridgePhysics, target } = context;
+  const support = fundBankReservoir(context);
+  const adjacent = target.span.end - 1;
+  const center = bridge.stationPosition(adjacent);
+  bridgePhysics.getPose = (station) => station === adjacent ? {
+    position: center,
+    start: center.clone().add(new playcanvas.Vec3(-0.5, 0, 0)),
+    end: center.clone().add(new playcanvas.Vec3(0.5, 0, 0)),
+  } : null;
+  bridgePhysics.getEntity = () => null;
+  bridgePhysics.isTraversalSafe = () => true;
+  const donor = new LatchSlug({
+    pc: playcanvas,
+    definition: { id: "permanent-pool-feed" },
+    runtime: { objects: { getWithMethod: () => [bridge] } },
+  });
+  donor.entity.setPosition(bridge.stationPosition(target.span.start - 1));
+  donor.entity.rigidbody = {
+    enabled: true,
+    body: {},
+    linearVelocity: new playcanvas.Vec3(),
+  };
+  donor.entity.collision = { enabled: true };
+  donor.app = {
+    systems: {
+      rigidbody: {
+        raycastFirst: () => ({
+          entity: { rigidbody: { type: "static" } },
+          point: donor.position.clone(),
+          normal: playcanvas.Vec3.UP,
+        }),
+      },
+    },
+  };
+  donor.grounded = true;
+  donor.behavior.changeTo("LatchBridgeState");
+  const state = donor.behavior.currentState;
+  assert.equal(state.claim(donor), true);
+  assert.ok(state.assignment.feedApproach);
+  assert.ok(state.assignment.feedApproach.distance(state.assignment.position) > 2, "the new tile remains remote while the original source is physically on its bank");
+  donor.entity.setPosition(state.assignment.feedApproach);
+  const bankPosition = donor.position.clone();
+  donor.deltaTime = 0.6;
+  state.execute(donor);
+  state.execute(donor);
+  assert.equal(state.spreading, true);
+  assert.equal(donor.entity.rigidbody.enabled, true);
+  bridge.onFrame(SLIME_BRIDGE_GROWTH_SECONDS);
+  assert.equal(donor.entity.rigidbody.enabled, false, "native destination admission disables the one original source body");
+  bridge.onFrame(0.2);
+  state.execute(donor);
+  assert.equal(donor.isBridgeCommitted, true);
+  assert.deepEqual(donor.position, bankPosition, "volume flows into the remote native tile without teleporting or walking the actor proxy there");
+  assert.equal(bridge.getRebuildAttemptStatus(target.span.end, donor), "complete");
+  donor.destroy();
+  support.destroy();
+  bridge.destroy();
+  context.otherBridge.destroy();
+});
+
+it("native evidence can require multiple additional actual helpers before the same owner retries", () => {
+  const context = fixture(3, true, (map, target) => {
+    for (const cell of target.span.cells) {
+      map.tileMeta[cell.row][cell.col].bridgeCollapsed = cell.col === target.span.end;
+      map.tileMeta[cell.row][cell.col].bridgeSlime = cell.col !== target.span.end;
+    }
+  });
+  const { bridge, bridgePhysics, target } = context;
+  const support = fundBankReservoir(context);
+  const donor = { position: bridge.stationPosition(target.span.start - 1) };
+  const placement = bridge.reserveRebuildStation(donor);
+  bridge.restoreSlimeStation(placement.station, donor);
+  bridge.onFrame(SLIME_BRIDGE_GROWTH_SECONDS);
+  bridge.onFrame(0.2);
+  assert.equal(bridge.getRebuildAttemptStatus(placement.station, donor), "complete");
+  bridgePhysics.getFailedStations = () => [placement.station];
+  bridge.onFrame(0.01);
+  assert.equal(bridge.getRebuildAttemptStatus(placement.station, donor), "failed");
+  const next = { position: bridge.stationPosition(target.span.start - 1) };
+  assert.equal(bridge.reserveRebuildStation(next), null, "a failed capacity estimate cannot immediately repeat with unchanged support");
+  assert.equal(bridge.reserveRebuildStaging(next).counterweight, true);
+  bridge.releaseRebuildStation(next);
+  assert.equal(bridge.reserveRebuildStation(donor), null, "an existing retry lease obeys the same support threshold");
+  const firstExtra = fundBankReservoir(context, -1, 1);
+  assert.equal(bridge.reserveRebuildStation(donor), null, "one extra helper is insufficient after this native load failure");
+  const secondExtra = fundBankReservoir(context, -1, 1);
+  assert.equal(bridge.reserveRebuildStation(donor).station, placement.station, "two actual additional donors fund the original owner's retry");
+  firstExtra.destroy();
+  secondExtra.destroy();
+  support.destroy();
+  bridge.destroy();
+  context.otherBridge.destroy();
+});
+
+it("candidate validation waits only for bounded native funding and learns when admitted mass genuinely fails", () => {
+  const context = fixture(3, true, (map, target) => {
+    for (const cell of target.span.cells) {
+      map.tileMeta[cell.row][cell.col].bridgeCollapsed = cell.col === target.span.end;
+      map.tileMeta[cell.row][cell.col].bridgeSlime = cell.col !== target.span.end;
+    }
+  });
+  const { bridge, bridgePhysics, target, options } = context;
+  const support = fundBankReservoir(context);
+  const donor = { position: bridge.stationPosition(target.span.start - 1) };
+  bridge.reserveRebuildStation(donor);
+  bridge.restoreSlimeStation(target.span.end, donor);
+  bridgePhysics.isAwaitingSupport = () => true;
+  bridge.onFrame(SLIME_BRIDGE_GROWTH_SECONDS);
+  options.app.testPlacementStatus = "pending";
+  bridge.onFrame(13);
+  assert.equal(bridge.getRebuildAttemptStatus(target.span.end, donor), "growing", "the12s timer does not contradict the native attached funding grace");
+  assert.equal(context.map.tileMeta[target.span.cells[0].row][target.span.cells[0].col].bridgeSlimeSupported, false);
+  bridgePhysics.isAwaitingSupport = () => false;
+  bridge.onFrame(0.01);
+  assert.equal(bridge.getRebuildAttemptStatus(target.span.end, donor), "failed", "native timeout or lost support revokes that bounded exception");
+  assert.equal(bridge.reserveRebuildStation(donor), null, "a failed native candidate must fund the learned multi-helper threshold before retry");
+  support.destroy();
+  bridge.destroy();
+  context.otherBridge.destroy();
+});
+
+it("a crowded native pool lip keeps donor mass until a separately supported shore return is available", () => {
+  const context = fixture(3, true, (map, target) => {
+    for (const cell of target.span.cells) {
+      map.tileMeta[cell.row][cell.col].bridgeCollapsed = cell.col === target.span.end;
+      map.tileMeta[cell.row][cell.col].bridgeSlime = cell.col !== target.span.end;
+    }
+  });
+  const { bridge, bridgePhysics, target, options, map } = context;
+  const original = fundBankReservoir(context);
+  const bankStation = target.span.start - 1;
+  const bank = bridge.stationPosition(bankStation);
+  const blocker = {
+    entity: new playcanvas.Entity("occupied native emergence lip"),
+    radius: 0.42,
+    height: 1,
+    alive: true,
+  };
+  blocker.entity.setPosition(bank.clone().add(new playcanvas.Vec3(-0.25, 0, 0)));
+  blocker.entity.rigidbody = {
+    enabled: true,
+    type: "dynamic",
+  };
+  options.runtime.objects = [blocker];
+  Object.defineProperty(bridgePhysics, "connected", { get: () => true });
+  for (const cell of target.span.cells) {
+    map.tileMeta[cell.row][cell.col].bridgeCollapsed = false;
+  }
+  bridge.onFrame(2);
+  assert.equal(bridge.getRebuildAttemptStatus(bankStation, original), "complete", "an occupied lip cannot atomically duplicate a capsule into the crowd");
+  blocker.entity.setPosition(bank.clone().add(new playcanvas.Vec3(-2.01, 0, -1.05)));
+  bridge.onFrame(0);
+  bridge.onFrame(1);
+  assert.equal(bridge.getRebuildAttemptStatus(bankStation, original), "failed");
+  const recovery = bridge.getRebuildRecovery(bankStation, original);
+  assert.ok(Math.abs(recovery.bankTarget.x - (bank.x - 1.05)) < 0.001,
+    "a settled neighbor 0.96m away leaves the 0.84m capsule clear despite its 0.04m arrival tolerance");
+  assert.ok(recovery.bankTarget.x < bank.x - 1, "the actor walks away from the inlet onto validated shore terrain");
+  assert.ok(Math.hypot(recovery.bankTarget.x - recovery.position.x, recovery.bankTarget.z - recovery.position.z) > 1);
+  original.destroy();
+  blocker.entity.destroy();
+  bridge.destroy();
+  context.otherBridge.destroy();
+});
+
+it("the first real donor becomes only origin-bank mass before a second donor may form any deck", () => {
+  const context = fixture(3, true, (map, target) => {
+    for (const cell of target.span.cells) {
+      map.tileMeta[cell.row][cell.col].bridgeCollapsed = true;
+    }
+  });
+  const { bridge, bridgePhysics, target } = context;
+  let captured;
+  const original = bridgePhysics.sync.bind(bridgePhysics);
+  bridgePhysics.sync = (...args) => {
+    captured = args; original(...args);
+  };
+  const donor = fundBankReservoir(context, -1, 1);
+  const bank = target.span.start - 1;
+  assert.equal(donor.bridgeLiquidVisualOwned, true, "one skin owns the donating unit instead of a simultaneous shrinking prefab");
+  assert.equal(donor.entity.rigidbody.enabled, false);
+  assert.deepEqual([...captured[0].keys()], [bank]);
+  assert.equal(captured[5].get(bank), 1);
+  assert.equal(target.span.cells.some(({ row, col }) => context.map.tileMeta[row][col].bridgeSlime), false);
+  const next = { position: bridge.stationPosition(bank) };
+  assert.equal(bridge.reserveRebuildStation(next).station, target.span.start);
+  donor.destroy();
+  bridge.destroy();
   context.otherBridge.destroy();
 });

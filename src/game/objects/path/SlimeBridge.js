@@ -1,3 +1,4 @@
+import { BridgeCounterweightPool } from "./BridgeCounterweightPool.js";
 import { BridgeSlimeArtwork } from "./BridgeSlimeArtwork.js";
 import { BridgeGelLoads } from "./BridgeGelLoads.js";
 import { BridgeSlimePhysics } from "./BridgeSlimePhysics.js";
@@ -83,6 +84,23 @@ export class SlimeBridge {
    */
   #stagedContributors = new BridgeStagingQueue();
   /**
+   * @type {BridgeCounterweightPool}
+   */
+  #counterweights = new BridgeCounterweightPool();
+  /**
+   * The first physical claim chooses the shore for this construction run.
+   * @type {number|null}
+   */
+  #originDirection = null;
+  /**
+   * @type {Map<number,number>}
+   */
+  #supportFailures = new Map();
+  /**
+   * @type {Map<import("../enemies/latch-slug/LatchSlug.js").LatchSlug,import("playcanvas").Vec3>}
+   */
+  #counterweightReturnTargets = new Map();
+  /**
    * @type {Map<number, {age:number,source:import("playcanvas").Vec3}>}
    */
   #growingStations = new Map();
@@ -137,7 +155,8 @@ export class SlimeBridge {
       creature: "LatchSlug",
       count: count - donating,
       position: new this.#pc.Vec2(center.x, center.z),
-      banks: [this.#rebuildBank(-1, nearCount), this.#rebuildBank(1, farCount)].filter(Boolean),
+      banks: [this.#rebuildBank(-1, this.#originDirection ? count - donating : nearCount),
+        this.#rebuildBank(1, this.#originDirection ? count - donating : farCount)].filter(Boolean),
     } : null;
   }
 
@@ -148,6 +167,9 @@ export class SlimeBridge {
    * @returns {BridgeRebuildBank|null}
    */
   #rebuildBank(direction, count) {
+    if (this.#originDirection !== null && direction !== this.#originDirection) {
+      return null;
+    }
     const { span } = this.definition;
     const station = direction < 0 ? span.start - 1 : span.end + 1;
     if (!this.#isSlimeAnchor(station)) {
@@ -177,6 +199,10 @@ export class SlimeBridge {
    * @returns {{station:number,position:import("playcanvas").Vec3,approach:import("playcanvas").Vec3}|null}
    */
   reserveRebuildStation(slug) {
+    const poolAssignment = this.#counterweights.assignment(slug);
+    if (poolAssignment) {
+      return poolAssignment;
+    }
     if (!this.rebuildDemand) {
       return null;
     }
@@ -191,6 +217,10 @@ export class SlimeBridge {
           this.#rebuildReservations.delete(station);
           this.#reservationDirections.delete(station);
           continue;
+        }
+        const bankStation = direction < 0 ? span.start - 1 : span.end + 1;
+        if (this.#requiredCounterweights(direction) > (this.#counterweights.masses.get(bankStation) ?? 0)) {
+          return null;
         }
         const continuing = slug.isBridgeBoundTo?.(this.#bridge, station) === true ||
           slug.isBridgeApproachingFromGround?.(this.#bridge, station) === true;
@@ -209,6 +239,9 @@ export class SlimeBridge {
       if (direction === null || !this.#stagedContributors.canPromote(direction, slug)) {
         continue;
       }
+      if (this.#requiredCounterweights(direction) > (this.#counterweights.masses.get(direction < 0 ? span.start - 1 : span.end + 1) ?? 0)) {
+        continue;
+      }
       const placement = this.#rebuildPlacement(station, direction);
       if (!placement) {
         continue;
@@ -220,6 +253,7 @@ export class SlimeBridge {
       }
     }
     if (closest) {
+      this.#originDirection ??= closest.direction;
       this.#rebuildReservations.set(closest.station, slug);
       this.#reservationDirections.set(closest.station, closest.direction);
       this.#stagedContributors.release(slug);
@@ -234,6 +268,25 @@ export class SlimeBridge {
    * @returns {{station:number,position:import("playcanvas").Vec3,approach:import("playcanvas").Vec3,staging:boolean,direction:number}|null}
    */
   reserveRebuildStaging(slug) {
+    const existing = this.#counterweights.assignment(slug);
+    if (existing) {
+      return existing;
+    }
+    const { span } = this.definition;
+    const center = this.stationPosition((span.start + span.end) / 2);
+    const direction = (span.horizontal ? slug.position.x <= center.x : slug.position.z <= center.z) ? -1 : 1;
+    if (this.#originDirection !== null && direction !== this.#originDirection) {
+      return null;
+    }
+    const station = direction < 0 ? span.start - 1 : span.end + 1;
+    const bank = this.stationPosition(station);
+    if (this.rebuildDemand && this.#isSlimeAnchor(station) && Math.abs(slug.position.y - bank.y) <= 0.65 &&
+      this.#requiredCounterweights(direction) > this.#counterweights.count(direction)) {
+      this.#originDirection ??= direction;
+      this.#stagedContributors.release(slug);
+
+      return this.#counterweights.reserve(slug, direction, station, bank, span.horizontal);
+    }
     if (!this.rebuildDemand) {
       return null;
     }
@@ -243,6 +296,49 @@ export class SlimeBridge {
       isReady: this.#constructionReady.bind(this),
       reservationOwner: this.#rebuildReservations.get.bind(this.#rebuildReservations),
     });
+  }
+
+  /**
+   * Forecast the next worker's gravitational moment about the adhesive bank.
+   * The same three-body-length muscle lever is used by the native patch torque
+   * cap. Reserve finite bank gel before asking another actor onto that lever.
+   * @param {number} direction
+   * @returns {number}
+   */
+  #requiredCounterweights(direction) {
+    if (this.#slimePhysics.connected) {
+      return 0;
+    }
+    if (this.#collapsing()) {
+      return 1;
+    }
+    const { span } = this.definition;
+    let count = 0;
+    let station = direction < 0 ? span.start : span.end;
+    while (station >= span.start && station <= span.end && this.isIntact(station)) {
+      if (!this.#stationCells(station).some(this.#isSlimeCell.bind(this))) {
+        return 0;
+      }
+      count++;
+      station -= direction;
+    }
+    if (!count) {
+      return 1;
+    }
+    // Fund the post-extension component before admitting the next donor.
+    // Waiting until after that extension can let its thin predecessor fail
+    // before the additional support actor has reached the bank pool.
+    // This is an admission budget only; Ammo still decides contact and motion.
+    const nextCount = count + 1;
+    const moment = nextCount * nextCount / 2 + nextCount;
+
+    const failures = this.#supportFailures.get(direction) ?? 0;
+    // Native evidence requests batches sized by the span's actual load moment.
+    // Repeated failed estimates grow progressively (1, 3, 6... batches), so a
+    // long unsupported span is never limited to one arbitrary extra helper.
+    const reinforcement = Math.max(2, Math.ceil(moment / 6)) * failures * (failures + 1) / 2;
+
+    return Math.max(1, Math.ceil(moment / 3) - 1) + reinforcement;
   }
 
   /**
@@ -256,6 +352,9 @@ export class SlimeBridge {
     const map = this.#runtime.mapData;
     const along = span.horizontal ? position.x + (map.cols - 1) / 2 : position.z + (map.rows - 1) / 2;
     const direction = along <= station ? -1 : 1;
+    if (this.#originDirection !== null && direction !== this.#originDirection) {
+      return null;
+    }
     const bank = this.stationPosition(direction < 0 ? span.start - 1 : span.end + 1);
     const support = this.#slimePhysics.surfaceHeightAt?.(position.x, position.z, 0.1, position.y + 0.35);
     if (Math.abs(position.y - bank.y) > 0.65 &&
@@ -349,9 +448,16 @@ export class SlimeBridge {
       waypoints.reverse();
       supports.reverse();
 
+      const bankStation = direction < 0 ? this.definition.span.start - 1 : this.definition.span.end + 1;
+      const feedApproach = this.#counterweights.masses.has(bankStation) ? this.stationPosition(bankStation) : null;
+      if (feedApproach) {
+        feedApproach[this.definition.span.horizontal ? "x" : "z"] += direction * 0.95;
+      }
+
       return {
         station,
         direction,
+        feedApproach,
         placementEdge: edge.clone(),
         position: edge.clone().add(reach),
         approach: edge.sub(reach.mulScalar(Math.min(0.8, 0.3 + failures * 0.15))),
@@ -378,6 +484,11 @@ export class SlimeBridge {
    * @param {import("../enemies/latch-slug/LatchSlug.js").LatchSlug} slug
    */
   releaseRebuildStation(slug) {
+    this.#counterweightReturnTargets.delete(slug);
+    const poolStatus = this.#counterweights.status(slug);
+    if (poolStatus && this.#counterweights.release(slug) && !this.#destroying) {
+      this.#syncSlimePhysics();
+    }
     this.#stagedContributors.release(slug);
     for (const [station, owner] of this.#rebuildReservations) {
       if (owner === slug) {
@@ -402,6 +513,9 @@ export class SlimeBridge {
    * @returns {boolean}
    */
   restoreSlimeStation(station, slug) {
+    if (this.#counterweights.assignment(slug)?.station === station) {
+      return this.#counterweights.begin(slug);
+    }
     if (!this.rebuildDemand || this.isIntact(station) || this.#rebuildReservations.get(station) !== slug) {
       return false;
     }
@@ -417,8 +531,105 @@ export class SlimeBridge {
     this.#growingStations.set(station, {
       age: 0,
       source: slug.position.clone(),
+      bankFeed: true,
     });
     this.#rebuildBridge();
+
+    return true;
+  }
+
+  /**
+   * Reserve a clear real shore destination before material becomes a capsule.
+   * Its source remains the native pool lip; the recovered actor walks there
+   * under native control, rather than being placed at the reserved destination.
+   * @param {import("../enemies/latch-slug/LatchSlug.js").LatchSlug} owner
+   * @param {number} station
+   * @returns {boolean}
+   */
+  #prepareCounterweightReturn(owner, station) {
+    const recovery = this.getRebuildRecovery(station, owner);
+    const radius = owner.radius ?? 0.42;
+    const clearance = radius * 2 + 0.18;
+    if (!recovery || !this.#shoreSpaceClear(recovery.position, owner, clearance)) {
+      return false;
+    }
+    if (this.#counterweightReturnTargets.has(owner)) {
+      return true;
+    }
+    const bank = this.stationPosition(station);
+    const direction = station < this.definition.span.start ? -1 : 1;
+    const along = this.definition.span.horizontal ? "x" : "z";
+    const across = this.definition.span.horizontal ? "z" : "x";
+    const step = radius * 2 + 0.16;
+    for (let depth = 0; depth < 4; depth++) {
+      for (const side of [-1, 1, 0]) {
+        const target = bank.clone();
+        target[along] += direction * (1.05 + depth * step);
+        target[across] += side * (step + 0.05);
+        if (Math.hypot(target.x - recovery.position.x, target.z - recovery.position.z) < clearance ||
+          !this.#shoreSpaceClear(target, owner, radius * 2 + 0.1)) {
+          continue;
+        }
+        let reserved = false;
+        for (const position of this.#counterweightReturnTargets.values()) {
+          reserved ||= Math.hypot(position.x - target.x, position.z - target.z) < step * 0.98;
+        }
+        if (reserved || !this.#standingShore(target, radius)) {
+          continue;
+        }
+        this.#counterweightReturnTargets.set(owner, target);
+
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * @param {import("playcanvas").Vec3} point
+   * @param {import("../enemies/latch-slug/LatchSlug.js").LatchSlug} owner
+   * @param {number} clearance
+   * @returns {boolean}
+   */
+  #shoreSpaceClear(point, owner, clearance) {
+    for (const actor of this.#runtime.objects ?? []) {
+      if (actor === owner || actor.alive === false || actor.isBridgeCommitted || !actor.entity?.enabled ||
+        !actor.entity.rigidbody?.enabled || actor.entity.rigidbody.type === "static") {
+        continue;
+      }
+      const position = actor.entity.getPosition();
+      const height = Math.max(owner.height ?? 1, actor.height ?? actor.entity.collision?.height ?? 1);
+      const spacing = Math.max(clearance, (owner.radius ?? 0.42) + (actor.radius ?? 0.42) + 0.1);
+      if (Math.abs(position.y - point.y) < height &&
+        Math.hypot(position.x - point.x, position.z - point.z) < spacing) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /**
+   * @param {import("playcanvas").Vec3} point
+   * @param {number} radius
+   * @returns {boolean}
+   */
+  #standingShore(point, radius) {
+    const physics = this.#app.systems?.rigidbody;
+    if (!physics?.raycastFirst) {
+      return false;
+    }
+    const samples = [new this.#pc.Vec2(), new this.#pc.Vec2(radius, 0),
+      new this.#pc.Vec2(-radius, 0), new this.#pc.Vec2(0, radius), new this.#pc.Vec2(0, -radius)];
+    for (const offset of samples) {
+      const from = new this.#pc.Vec3(point.x + offset.x, point.y + 0.3, point.z + offset.y);
+      const to = new this.#pc.Vec3(from.x, point.y - 0.3, from.z);
+      const hit = physics.raycastFirst(from, to, { filterCollisionMask: this.#pc.BODYGROUP_STATIC });
+      if (!hit || hit.normal?.y < 0.8 || Math.abs(hit.point.y - point.y) > 0.15) {
+        return false;
+      }
+    }
 
     return true;
   }
@@ -430,9 +641,10 @@ export class SlimeBridge {
    * @returns {string}
    */
   getRebuildAttemptStatus(station, slug) {
+    const poolStatus = this.#counterweights.status(slug);
     const attempt = this.#rebuildAttempts.get(station);
 
-    return attempt?.owner === slug ? attempt.status : "failed";
+    return poolStatus ?? (attempt?.owner === slug ? attempt.status : "failed");
   }
 
   /**
@@ -443,6 +655,13 @@ export class SlimeBridge {
    * @returns {{progress:number,nativeAdmitted:boolean}}
    */
   getRebuildMorphProgress(station, slug) {
+    const poolMorph = this.#counterweights.morph(slug);
+    if (poolMorph) {
+      return {
+        ...poolMorph,
+        liquidSourceOwned: true,
+      };
+    }
     const attempt = this.#rebuildAttempts.get(station);
     const owned = attempt?.owner === slug && attempt.status !== "failed";
     const growth = owned ? this.#growingStations.get(station) : null;
@@ -451,6 +670,7 @@ export class SlimeBridge {
     return {
       progress: nativeAdmitted ? 1 : Math.min(0.999, slimeBridgeTransferProgress(growth?.age ?? 0)),
       nativeAdmitted,
+      liquidSourceOwned: owned,
     };
   }
 
@@ -461,6 +681,19 @@ export class SlimeBridge {
    * @returns {{position:import("playcanvas").Vec3,velocity:import("playcanvas").Vec3,bankTarget:import("playcanvas").Vec3}|null}
    */
   getRebuildRecovery(station, slug) {
+    if (this.#counterweights.status(slug)) {
+      const bank = this.stationPosition(station);
+      const pose = this.#slimePhysics.getPose(station);
+      const direction = station < this.definition.span.start ? -1 : 1;
+      const position = (direction < 0 ? pose?.start : pose?.end)?.clone() ?? bank.clone();
+      position[this.definition.span.horizontal ? "x" : "z"] += direction * 0.25;
+
+      return {
+        position,
+        velocity: this.#slimePhysics.getEntity(station)?.rigidbody?.linearVelocity?.clone() ?? new this.#pc.Vec3(),
+        bankTarget: this.#counterweightReturnTargets.get(slug)?.clone() ?? bank,
+      };
+    }
     const recovery = this.#rebuildRecoveries.get(station);
 
     return recovery?.owner === slug ? {
@@ -478,7 +711,15 @@ export class SlimeBridge {
    * @returns {boolean}
    */
   failRebuildAttempt(station, slug, preserveReservation = false) {
-    return !this.#destroying && this.#rollbackRebuildAttempt(station, slug, preserveReservation, false);
+    if (this.#counterweights.status(slug)) {
+      this.#counterweights.release(slug);
+      this.#syncSlimePhysics();
+
+      return true;
+    }
+    const nativeAdmitted = this.isIntact(station) && this.#rebuildAttempts.get(station)?.owner === slug;
+
+    return !this.#destroying && this.#rollbackRebuildAttempt(station, slug, preserveReservation, nativeAdmitted);
   }
 
   /**
@@ -506,6 +747,10 @@ export class SlimeBridge {
       return false;
     }
     this.#saveRebuildRecovery(station, slug);
+    if (structural) {
+      const direction = this.#reservationDirections.get(station);
+      this.#supportFailures.set(direction, (this.#supportFailures.get(direction) ?? 0) + 1);
+    }
     const map = this.#runtime.mapData;
     this.#placementFailures.set(station, (this.#placementFailures.get(station) ?? 0) + 1);
     this.#rebuildAttempts.set(station, {
@@ -686,7 +931,17 @@ export class SlimeBridge {
         }
       }
     }
-    this.#slimePhysics.sync(stations, this.#isSlimeAnchor.bind(this), connected, this.#placementFailures, anticipatedLoads);
+    const poolMasses = this.#counterweights.masses;
+    for (const station of poolMasses.keys()) {
+      stations.set(station, this.stationPosition(station));
+    }
+    const originBank = this.#originDirection < 0 ? span.start - 1 : span.end + 1;
+    if (!connected && this.#originDirection !== null && poolMasses.has(originBank) && stations.size === poolMasses.size) {
+      anticipatedLoads.set(originBank, -this.#originDirection);
+    }
+    const supportPending = this.#originDirection !== null &&
+      this.#requiredCounterweights(this.#originDirection) > (poolMasses.get(originBank) ?? 0);
+    this.#slimePhysics.sync(stations, this.#isSlimeAnchor.bind(this), connected, this.#placementFailures, anticipatedLoads, poolMasses, supportPending);
   }
 
   /**
@@ -884,6 +1139,9 @@ export class SlimeBridge {
       if (growth || slime) {
         this.#slimeDeck.addStation({
           growing: Boolean(growth),
+          bankFeed: growth?.bankFeed ?? false,
+          liquidSourceOwned: growth?.bankFeed ?? false,
+          sourceOwner: growth ? this.#rebuildAttempts.get(station)?.owner : null,
           growthAge: growth?.age ?? 0,
           sourcePosition: growth ? this.#rebuildAttempts.get(station)?.owner.position.clone() ?? growth.source : null,
           definition: this.definition,
@@ -913,7 +1171,15 @@ export class SlimeBridge {
    * @param {number} deltaTime
    */
   onFrame(deltaTime) {
+    if (this.#counterweights.update(deltaTime, this.#bridge, this.#requiredCounterweights.bind(this), this.#prepareCounterweightReturn.bind(this))) {
+      this.#syncSlimePhysics();
+    }
+    this.#slimeDeck?.setPoolTransfers?.(this.#counterweights.transfers, this.stationPosition.bind(this));
     const poses = this.#slimePhysics.update(deltaTime);
+    if (this.#slimePhysics.connected && !this.rebuildDemand) {
+      this.#originDirection = null;
+      this.#supportFailures.clear();
+    }
     this.#checkCommittedStructure();
     for (const station of poses.keys()) {
       const current = this.#slimePhysics.getPose(station);
@@ -967,7 +1233,7 @@ export class SlimeBridge {
           attempt.status = "complete";
           this.#publishSlimeStation(station);
         }
-      } else if (status === "failed" || attempt.age >= 12) {
+      } else if (status === "failed" || attempt.age >= 12 && !this.#slimePhysics.isAwaitingSupport?.(station)) {
         this.failRebuildAttempt(station, attempt.owner, true);
       } else {
         attempt.stableAge = 0;
@@ -977,6 +1243,11 @@ export class SlimeBridge {
 
   destroy() {
     this.#destroying = true;
+    for (const [owner, donor] of [...this.#counterweights.entries]) {
+      const recovery = this.getRebuildRecovery(donor.station, owner);
+      this.#counterweights.release(owner);
+      owner.releaseBridgeContribution?.(recovery?.position ?? donor.approach, recovery?.velocity, this.#bridge, donor.station);
+    }
     this.#stagedContributors.clear();
     for (const [station, attempt] of this.#rebuildAttempts) {
       if (!attempt.owner.ownsBridgeContribution?.(this.#bridge, station)) {
@@ -989,6 +1260,8 @@ export class SlimeBridge {
     this.#rebuildRecoveries.clear();
     this.#rebuildAttempts.clear();
     this.#placementFailures.clear();
+    this.#supportFailures.clear();
+    this.#counterweightReturnTargets.clear();
     this.#heldRetryReservations.clear();
     this.#runtime.collisionWorld?.remove?.(this.#slimePhysics);
     this.#slimePhysics.destroy();

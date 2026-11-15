@@ -882,3 +882,140 @@ it("allows a committed upright truss to accept load during small real solver vib
     context.destroy();
   }
 });
+
+it("adds only admitted bank donor units to native mass and returns exactly to the final even span", () => {
+  const context = fixture();
+  context.app.systems.rigidbody.raycastAll = (from) => from.x < 0 ? [{
+    point: new pc.Vec3(from.x, 2, from.z),
+    normal: pc.Vec3.UP,
+  }] : [];
+  try {
+    const stations = new Map([[0, new pc.Vec3(0, 2, 0)], [1, new pc.Vec3(1, 2, 0)]]);
+    const anchors = (station) => station < 0 || station > 1;
+    context.physics.sync(stations, anchors, false);
+    const permanentMass = 2 * ACTOR_MASS.LATCH_SLUG;
+    assert.ok(Math.abs(context.root.children.reduce((sum, body) => sum + body.rigidbody.mass, 0) - permanentMass) < 1e-9);
+    stations.set(-1, new pc.Vec3(-1, 2, 0));
+    const pools = new Map([[-1, 3]]);
+    context.physics.sync(stations, anchors, false, new Map(), new Map([[1, 1]]), pools);
+    context.physics.update(2);
+    const totalMass = context.root.children.reduce((sum, body) => sum + body.rigidbody.mass, 0);
+    assert.ok(Math.abs(totalMass - 5 * ACTOR_MASS.LATCH_SLUG) < 1e-9, "native reservoir plus deck and truss conserve every admitted donor");
+    assert.ok(context.physics.getEntity(-1).rigidbody.mass > 0);
+    assert.equal(context.physics.getEntity(-1).rigidbody.mask, pc.BODYMASK_NOT_STATIC);
+    assert.ok(context.physics.getPose(-1).volume > context.physics.getPose(1).volume,
+      `the actual native root contains the thick pool: ${context.physics.getPose(-1).volume}/${context.physics.getPose(1).volume}, pins ${context.joints.size}`);
+    assert.ok([...context.joints].some((joint) => joint.args[0] === context.physics.getEntity(-1).rigidbody.body), "reservoir is a constrained native participant");
+    stations.delete(-1);
+    context.physics.sync(stations, anchors, true);
+    assert.equal(context.physics.getEntity(-1), null);
+    assert.ok(Math.abs(context.root.children.reduce((sum, body) => sum + body.rigidbody.mass, 0) - permanentMass) < 1e-9);
+    assert.equal(context.physics.getPose(0).volume, 1);
+    assert.equal(context.physics.getPose(1).volume, 1);
+    assert.equal(context.physics.getPose(0).thickness, context.physics.getPose(1).thickness);
+    assert.equal(context.physics.getPose(0).width, context.physics.getPose(1).width);
+  } finally {
+    context.destroy();
+  }
+});
+
+it("temporary bank material reinforces full permanent sections instead of scaling a starved free tip", () => {
+  const context = fixture();
+  try {
+    const stations = new Map();
+    for (let station = -1; station <= 3; station++) {
+      stations.set(station, new pc.Vec3(station, 2, 0));
+    }
+    context.physics.sync(stations, (station) => station < 0, false,
+      new Map(), new Map([[3, 1]]), new Map([[-1, 3]]));
+    context.physics.update(2);
+    for (let station = 0; station <= 3; station++) {
+      assert.ok(context.physics.getPose(station).volume >= 1, "each permanent tile keeps a full donated section while extra gel supports the growing branch");
+    }
+    const total = context.root.children.reduce((sum, body) => sum + body.rigidbody.mass, 0);
+    assert.ok(Math.abs(total - 7 * ACTOR_MASS.LATCH_SLUG) < 1e-9, "the stronger sections and native bracing still use exactly seven actual donors");
+  } finally {
+    context.destroy();
+  }
+});
+
+it("bank funding grace is bounded and immediately loses protection without actual native anchoring", () => {
+  for (const detached of [false, true]) {
+    const context = fixture();
+    context.app.systems.rigidbody.raycastAll = (from) => [{
+      point: new pc.Vec3(from.x, 2, from.z),
+      normal: pc.Vec3.UP,
+    }];
+    try {
+      const stations = new Map([[-1, new pc.Vec3(-1, 2, 0)], [0, new pc.Vec3(0, 2, 0)], [1, new pc.Vec3(1, 2, 0)]]);
+      let anchored = true;
+      const support = (station) => anchored && station < 0;
+      const pool = new Map([[-1, 1]]);
+      context.physics.sync(stations, support, false, new Map(), new Map([[1, 1]]), pool, true);
+      context.physics.getEntity(1).setEulerAngles(0, 0, -90);
+      context.physics.update(2.1);
+      assert.deepEqual(context.physics.getFailedStations(), [], "temporarily folding attached gel waits for its requested real mass");
+      assert.equal(context.physics.isLoadReady(1), false, "grace never fabricates a traversable surface");
+      if (detached) {
+        anchored = false;
+        context.physics.sync(stations, support, false, new Map(), new Map([[1, 1]]), pool, true);
+        context.physics.update(2.1);
+      } else {
+        context.physics.update(30);
+      }
+      assert.ok(context.physics.getFailedStations().includes(1), detached ? "losing real bank contact revokes grace immediately" : "pending funding cannot suppress failure indefinitely");
+    } finally {
+      context.destroy();
+    }
+  }
+});
+
+it("funded but perpetually load-unsafe native tissue times out even without inversion", () => {
+  const context = fixture();
+  context.app.systems.rigidbody.raycastAll = (from) => from.x < 0 ? [{
+    point: new pc.Vec3(from.x, 2, from.z),
+    normal: pc.Vec3.UP,
+  }] : [];
+  try {
+    const stations = new Map([[-1, new pc.Vec3(-1, 2, 0)], [0, new pc.Vec3(0, 2, 0)], [1, new pc.Vec3(1, 2, 0)]]);
+    context.physics.sync(stations, (station) => station < 0, false,
+      new Map(), new Map([[1, 1]]), new Map([[-1, 3]]));
+    context.physics.getEntity(1).setEulerAngles(0, 0, -45);
+    context.physics.update(2.1);
+    assert.equal(context.physics.isTraversalSafe(1), true);
+    assert.equal(context.physics.isLoadReady(1), false);
+    assert.deepEqual(context.physics.getFailedStations(), []);
+    for (let second = 0; second < 30; second++) {
+      context.physics.update(1);
+    }
+    assert.ok(context.physics.getFailedStations().includes(1), "native capacity evidence cannot leave the next worker waiting forever between readiness thresholds");
+  } finally {
+    context.destroy();
+  }
+});
+
+it("the first pool is one grounded native unit with no deck body and loses its pins when its own footprint vanishes", () => {
+  const context = fixture();
+  let ground = true;
+  context.app.systems.rigidbody.raycastAll = (from) => ground && from.x >= -1.45 && from.x <= -0.55 ?
+    [{
+      point: new pc.Vec3(from.x, 2, from.z),
+      normal: pc.Vec3.UP,
+    }] : [];
+  try {
+    context.physics.sync(new Map([[-1, new pc.Vec3(-1, 2, 0)]]), (station) => station === -1, false,
+      new Map(), new Map(), new Map([[-1, 1]]));
+    const body = context.physics.getEntity(-1);
+    assert.equal(body.rigidbody.mass, ACTOR_MASS.LATCH_SLUG);
+    assert.equal(context.physics.getEntity(0), null);
+    assert.equal(body.tags.has("hero-support-surface"), false);
+    assert.ok(context.joints.size > 0, "real pins use the verified footprint, although another inland station is unsupported");
+    assert.equal(context.physics.connected, false);
+    ground = false;
+    context.physics.update(2.1);
+    assert.equal(context.joints.size, 0);
+    assert.ok(context.physics.getFailedStations().includes(-1));
+  } finally {
+    context.destroy();
+  }
+});

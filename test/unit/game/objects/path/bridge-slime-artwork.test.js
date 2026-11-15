@@ -3,17 +3,21 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { Mat4, Quat, Vec3 } from "playcanvas";
 import { SLIME_BRIDGE_GROWTH_SECONDS, slimeBridgeTransferProgress } from "../../../../../src/game/objects/path/BridgeSlimeTiming.js";
+import { bridgeSlimeLiquidEnvelope } from "../../../../../src/game/objects/path/BridgeSlimeLiquidEnvelope.js";
 
 const source = (await readFile(new URL("../../../../../src/game/objects/path/BridgeSlimeArtwork.js", import.meta.url), "utf8"))
   .replace(/^import .*;$/gm, "")
+  .replaceAll("bridgeSlimeLiquidEnvelope", `(${bridgeSlimeLiquidEnvelope.toString()})`)
   .replaceAll("SLIME_BRIDGE_GROWTH_SECONDS", String(SLIME_BRIDGE_GROWTH_SECONDS))
   .replaceAll("slimeBridgeTransferProgress", `(${slimeBridgeTransferProgress.toString().replaceAll("SLIME_BRIDGE_GROWTH_SECONDS", String(SLIME_BRIDGE_GROWTH_SECONDS))})`)
   .replace("return [firstModelUrl, secondModelUrl, thirdModelUrl];", 'return ["one", "two", "three"];');
-const { BridgeSlimeArtwork } = await import(`data:text/javascript,${encodeURIComponent(source)}`);
+const skinUrl = new URL("../../../../../src/game/objects/path/BridgeSlimeFluidSkin.js", import.meta.url).href;
+const { BridgeSlimeArtwork } = await import(`data:text/javascript,${encodeURIComponent(`import { BridgeSlimeFluidSkin } from ${JSON.stringify(skinUrl)};\n${source}`)}`);
 
 class Entity {
   constructor(name = "") {
     this.name = name;
+    this.enabled = true;
     this.position = new Vec3();
     this.scale = new Vec3(1, 1, 1);
   }
@@ -39,7 +43,12 @@ class Entity {
   setLocalEulerAngles(x, y, z) {
     this.angles = new Vec3(x, y, z);
   }
-  addComponent() {
+  addComponent(type, options) {
+    if (type === "render") {
+      for (const instance of options.meshInstances) {
+        instance.mesh.owner = this;
+      }
+    }
     this.anim = {
       addAnimationState: () => {},
       baseLayer: { play: () => {} },
@@ -76,6 +85,7 @@ function fixture(withRails = false, stationOptions = {}) {
           materials.push(this);
         }
         update() {}
+        destroy() {}
         clone() {
           return Object.assign(new this.constructor(), this);
         }
@@ -106,6 +116,7 @@ function fixture(withRails = false, stationOptions = {}) {
       },
       MeshInstance: class {
         constructor(mesh) {
+          this.mesh = mesh;
           mesh.hadColorsAtConstruction = Boolean(mesh.colors?.length);
         }
       },
@@ -886,3 +897,317 @@ test("the connected near-vertical receiving neck has no quarter-turn sheet flip"
     previous = across;
   }
 });
+
+test("temporary bank donors merge and split through one continuous conserved liquid neck", () => {
+  const { artwork, meshes } = fixture();
+  const owner = {};
+  const source = new Vec3(3, 2, 3.2);
+  const position = new Vec3(3, 2, 4);
+  const donorVolume = 0.94 * 0.13 * 0.5 * 8;
+  for (const progress of [0.1, 0.5, 0.9, 0.5, 0.1]) {
+    artwork.setPoolTransfers([{
+      id: owner,
+      station: -1,
+      source,
+      progress,
+    }], () => position);
+    artwork.update(0.1);
+    const flow = meshes.at(-1);
+    assert.ok(Math.abs(renderedVolume(flow) / donorVolume - 1) < 0.015, "the liquid neck contains the whole donating identity throughout melting");
+    assert.ok(flow.positions.every(Number.isFinite));
+    assert.equal(meshes.length, 1, "the same connected liquid skin survives both transfer directions");
+  }
+  artwork.setPoolTransfers([], () => position);
+  artwork.update(0);
+  assert.equal(meshes[0].owner.enabled, false, "finishing inverse morph hides the empty pooled skin");
+  artwork.destroy();
+});
+
+test("a seven-metre bank donation keeps one bounded closed fluid neck and its exact transferred unit", () => {
+  const { artwork, meshes } = fixture(false, {
+    growing: true,
+    bankFeed: true,
+    position: new Vec3(3, 0, 0),
+    sourcePosition: new Vec3(-1, 2, 5),
+  });
+  artwork.update(1.6);
+  const mesh = meshes.at(-1);
+  const expected = 0.94 * 0.13 * 0.5 * 8;
+  assert.ok(Math.abs(renderedVolume(mesh) - expected) < 1e-6);
+  assert.ok(mesh.positions.every(Number.isFinite));
+  const heights = mesh.positions.filter((_value, index) => index % 3 === 1);
+  assert.ok(Math.max(...heights) < 1.2, "a long receiving neck cannot become a large volume-normalization fan");
+  assert.ok(Math.min(...heights) > -1.2);
+});
+
+test("native fluid mass dissolves creature details then resolves the finished bridge rails without eyes", () => {
+  const { artwork, plank, rail, lowerRail, post, eye } = fixture(true);
+  for (const connected of [false, true]) {
+    artwork.setSpanPoses(new Map([[0, {
+      position: new Vec3(3, 2, 5),
+      start: new Vec3(3, 2, 4.5),
+      end: new Vec3(3, 2, 5.5),
+      width: 1,
+      thickness: 1,
+      volume: 1,
+      connected,
+      fluid: !connected,
+    }]]));
+    artwork.update(0);
+    assert.equal(plank.enabled, false, "the continuous gel skin forms the walking planks");
+    assert.equal(eye.enabled, false);
+    assert.equal(lowerRail.enabled, false);
+    for (const part of [rail, post]) {
+      assert.equal(part.enabled, connected, "gel rail shapes resolve only once both banks are connected");
+    }
+  }
+});
+
+test("a bank contribution pools locally before its shallow leading meniscus moves toward the frontier", () => {
+  const { artwork, meshes } = fixture(false, {
+    growing: true,
+    bankFeed: true,
+    position: new Vec3(0, 0, -5),
+    sourcePosition: new Vec3(3, 2, 5),
+  });
+  artwork.update(0.8);
+  const mesh = meshes.at(-1);
+  const alongBounds = () => meshes.at(-1).positions.filter((_value, index) => index % 3 === 2);
+  assert.ok(Math.min(...alongBounds()) > -0.9, "material first collects at the original shore instead of immediately stretching into a pipe");
+  assert.ok(Math.abs(renderedVolume(mesh) - 0.4888) < 1e-6);
+  artwork.update(1.6);
+  assert.ok(Math.min(...alongBounds()) < -2, "the same conserved skin then advances its wet edge toward the next section");
+  const rings = meshes.at(-1).positions;
+  const across = rings.filter((_value, index) => index % 3 === 0);
+  const vertical = rings.filter((_value, index) => index % 3 === 1);
+  assert.ok(Math.max(...across) - Math.min(...across) > (Math.max(...vertical) - Math.min(...vertical)) * 1.5,
+    "the travelling bolus stays wider than it is tall under surface tension");
+});
+
+test("linked liquid sections share their complete wet boundary despite native joint motion", () => {
+  const { artwork, meshes } = fixture();
+  artwork.setSpanPoses(new Map([
+    [0, {
+      position: new Vec3(3, 2, 5),
+      start: new Vec3(3, 2.1, 4.5),
+      end: new Vec3(3, 1.9, 5.5),
+      fluid: true,
+      width: 1.2,
+      thickness: 1.3,
+    }],
+    [1, {
+      position: new Vec3(3, 1.7, 6),
+      start: new Vec3(3.02, 1.85, 5.48),
+      end: new Vec3(3, 1.55, 6.5),
+      fluid: true,
+      linkedPrevious: true,
+      width: 1,
+      thickness: 1,
+    }],
+  ]));
+  artwork.update(0.2);
+  assertClosedUnion(meshes[0]);
+});
+
+test("forming liquid hides physical truss rods and its final rails emerge progressively", () => {
+  const { artwork, meshes, rail } = fixture(true);
+  const pose = {
+    position: new Vec3(3, 2, 5),
+    start: new Vec3(3, 2, 4.5),
+    end: new Vec3(3, 2, 5.5),
+    fluid: true,
+    connected: false,
+    braces: [{
+      id: "native-test",
+      start: new Vec3(3, 2, 5),
+      end: new Vec3(3, 1, 6),
+      radius: 0.1,
+    }],
+  };
+  artwork.setSpanPoses(new Map([[0, pose]]));
+  artwork.update(0.1);
+  assert.equal(meshes.length, 1, "native support remains a physics concern while one cohesive liquid skin is visible");
+  assert.equal(rail.enabled, false);
+  artwork.setSpanPoses(new Map([[0, {
+    ...pose,
+    fluid: false,
+    connected: true,
+    braces: [],
+  }]]));
+  artwork.update(0.3);
+  const emerging = rail.scale.length();
+  artwork.update(0.9);
+  assert.ok(rail.scale.length() > emerging * 3, "final railing grows out of the gel instead of appearing at full size");
+});
+
+test("stationary native fluid keeps an asymmetric moving outline at constant measured volume until final settlement", () => {
+  const { artwork, meshes } = fixture();
+  const pose = {
+    position: new Vec3(3, 2, 5),
+    start: new Vec3(3, 2, 4.5),
+    end: new Vec3(3, 2, 5.5),
+    width: 1.2,
+    thickness: 1.2,
+    fluid: true,
+    connected: false,
+  };
+  artwork.setSpanPoses(new Map([[0, pose]]));
+  artwork.update(0.17);
+  const first = [...meshes[0].positions];
+  const volume = renderedVolume(meshes[0]);
+  artwork.update(0.51);
+  const second = meshes[0].positions;
+  assert.ok(Math.abs(renderedVolume(meshes[0]) - volume) < 1e-6);
+  let motion = 0;
+  let asymmetry = 0;
+  for (let ring = 2; ring < 23; ring++) {
+    const left = (ring * 24) * 3;
+    const right = (ring * 24 + 12) * 3;
+    asymmetry = Math.max(asymmetry, Math.abs(second[left] + second[right]));
+    motion = Math.max(motion, Math.abs(second[left] - first[left]), Math.abs(second[right] - first[right]));
+  }
+  assert.ok(asymmetry > 0.12, "opposing shoulders are independent uneven lobes, not a uniform swept oval");
+  assert.ok(motion > 0.08, "the viscous outline moves even while all native support poses remain stationary");
+  artwork.setSpanPoses(new Map([[0, {
+    ...pose,
+    fluid: false,
+    connected: true,
+  }]]));
+  artwork.update(2);
+  const settled = meshes.at(-1).positions;
+  artwork.update(5);
+  assert.deepEqual(meshes.at(-1).positions, settled, "completed gel stops unsolicited fluid motion");
+  assert.equal(meshes.at(-1).owner.enabled, true, "the regular deck stays visible on later settled frames");
+});
+
+test("a partial helper joins one visible closed bank and deck skin without a second intersecting carrier", () => {
+  const { artwork, meshes } = fixture();
+  const native = {
+    position: new Vec3(3, 2, 5),
+    start: new Vec3(3, 2, 4.5),
+    end: new Vec3(3, 2, 5.5),
+    fluid: true,
+    connected: false,
+    volume: 1,
+  };
+  artwork.setSpanPoses(new Map([[0, native]]));
+  artwork.setPoolTransfers([{
+    id: {},
+    station: -1,
+    source: new Vec3(3, 2, 3.5),
+    progress: 0.5,
+  }], () => new Vec3(3, 2, 4));
+  artwork.update(0.1);
+  const visible = meshes.filter((mesh) => !mesh.destroyed && mesh.owner.enabled);
+  assert.equal(visible.length, 1, "incoming and admitted material have a true shared skin rather than intersecting surfaces");
+  assert.ok(Math.abs(renderedVolume(visible[0]) - 0.4888 * 2) < 1e-6);
+  assertClosedUnion(visible[0]);
+  assert.equal(native.liquidJoinPrevious, undefined, "pending visual union never changes native admission metadata");
+});
+
+test("a fully liquid-owned first donor has one whole visible unit and no premature deck region", () => {
+  const { artwork, meshes } = fixture();
+  const owner = { bridgeLiquidVisualOwned: true };
+  for (const progress of [0.05, 0.5, 0.95]) {
+    artwork.setPoolTransfers([{
+      id: owner,
+      station: -1,
+      source: new Vec3(3, 2, 3.5),
+      progress,
+    }], () => new Vec3(3, 2, 4));
+    artwork.update(0.1);
+    const visible = meshes.filter((mesh) => !mesh.destroyed && mesh.owner.enabled);
+    assert.equal(visible.length, 1);
+    assert.ok(Math.abs(renderedVolume(visible[0]) - 0.4888) < 1e-6, "the hidden prefab's remaining share is in the same fluid unit, never missing or duplicated");
+    const along = visible[0].positions.filter((_value, index) => index % 3 === 2);
+    assert.ok(Math.max(...along) <= -0.5 + 1e-6, "no missing deck region is admitted by a bank-only donor");
+  }
+});
+
+test("a connected retained reservoir stops unprompted fluid clocks but still follows native movement and load dents", () => {
+  const { artwork, meshes, wrapper } = fixture();
+  const bank = {
+    position: new Vec3(3, 2, 4),
+    start: new Vec3(3, 2, 3.5),
+    end: new Vec3(3, 2, 4.5),
+    volume: 1,
+    reservoir: true,
+    fluid: true,
+    connected: false,
+  };
+  const deck = {
+    position: new Vec3(3, 2, 5),
+    start: new Vec3(3, 2, 4.5),
+    end: new Vec3(3, 2, 5.5),
+    volume: 1,
+    fluid: true,
+    connected: false,
+    linkedPrevious: true,
+  };
+  artwork.setSpanPoses(new Map([[-1, bank], [0, deck]]));
+  artwork.update(0.2);
+  artwork.setSpanPoses(new Map([[-1, {
+    ...bank,
+    connected: true,
+    fluid: false,
+  }], [0, {
+    ...deck,
+    connected: true,
+    fluid: false,
+  }]]));
+  artwork.update(2);
+  const settled = [...meshes.at(-1).positions];
+  artwork.update(20);
+  assert.deepEqual(meshes.at(-1).positions, settled);
+  assert.equal(wrapper.child.anim.speed, 0);
+  artwork.setLoads(new Map([[0, {
+    compression: 0.5,
+    bounce: 0,
+    across: 0,
+    along: 0,
+  }]]));
+  artwork.update(0.1);
+  assert.notDeepEqual(meshes.at(-1).positions, settled, "real contact deformation remains active after spontaneous flow stops");
+});
+
+test("render ownership changes only after the first whole liquid mesh has been constructed", () => {
+  const { artwork, meshes } = fixture();
+  const owner = {
+    bridgeLiquidVisualOwned: false,
+    /**
+     * @param {boolean} owned
+     */
+    setBridgeLiquidOwnership(owned) {
+      this.bridgeLiquidVisualOwned = owned;
+    },
+  };
+  artwork.setPoolTransfers([{
+    id: owner,
+    station: -1,
+    source: new Vec3(3, 2, 3.5),
+    progress: 0.00001,
+  }], () => new Vec3(3, 2, 4));
+  assert.equal(owner.bridgeLiquidVisualOwned, false);
+  artwork.update(0);
+  assert.equal(owner.bridgeLiquidVisualOwned, true);
+  const visible = meshes.filter((mesh) => !mesh.destroyed && mesh.owner.enabled);
+  assert.equal(visible.length, 1);
+  assert.ok(Math.abs(renderedVolume(visible[0]) - 0.4888) < 1e-6);
+});
+
+/**
+ * @param {{indices:number[]}} mesh
+ */
+function assertClosedUnion(mesh) {
+  const edges = new Map();
+  for (let i = 0; i < mesh.indices.length; i += 3) {
+    for (let j = 0; j < 3; j++) {
+      const a = mesh.indices[i + j], b = mesh.indices[i + (j + 1) % 3];
+      const key = a < b ? `${a}:${b}` : `${b}:${a}`;
+      edges.set(key, (edges.get(key) ?? 0) + 1);
+    }
+  }
+  for (const count of edges.values()) {
+    assert.equal(count, 2, "the merged implicit surface has no open seam");
+  }
+}

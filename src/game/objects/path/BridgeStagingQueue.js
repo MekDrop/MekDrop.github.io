@@ -40,9 +40,9 @@ export class BridgeStagingQueue {
     }
     const approach = bank.clone();
     if (span.horizontal) {
-      approach.x += direction * 0.8;
+      approach.x += direction * 1.9;
     } else {
-      approach.z += direction * 0.8;
+      approach.z += direction * 1.9;
     }
     this.release(slug);
     this.#owners.set(direction, slug);

@@ -62,6 +62,11 @@ export class LatchSlug extends Enemy {
    * @type {import("playcanvas").Entity|null}
    */
   #model = null;
+
+  /**
+   * @type {boolean}
+   */
+  #liquidVisualOwned = false;
   /**
    * @type {LatchGroundCrawl|null}
    */
@@ -240,10 +245,31 @@ export class LatchSlug extends Enemy {
    * @param {number} scale
    */
   setBridgeMorphScale(scale) {
-    this.#model?.setLocalScale(scale, scale, scale);
+    const squash = 0.22 + 0.78 * Math.min(1, Math.max(0, scale)) ** 3;
+    const spread = scale / Math.sqrt(squash);
+    this.#model?.setLocalScale(spread, scale * squash, spread);
     if (this.#model) {
-      this.#model.enabled = scale > 0;
+      this.#model.enabled = scale > 0 && !this.#liquidVisualOwned;
     }
+  }
+
+  /**
+   * Transfer rendering of this whole unit to the bridge's single liquid skin.
+   * Native actor ownership and mass remain unchanged until admission.
+   * @param {boolean} owned
+   */
+  setBridgeLiquidOwnership(owned) {
+    this.#liquidVisualOwned = owned;
+    if (this.#model) {
+      this.#model.enabled = !owned && this.#model.getLocalScale().x > 0;
+    }
+  }
+
+  /**
+   * @returns {boolean}
+   */
+  get bridgeLiquidVisualOwned() {
+    return this.#liquidVisualOwned;
   }
 
   /**
@@ -1067,6 +1093,9 @@ export class LatchSlug extends Enemy {
    * @param {import("playcanvas").Vec3|null} [velocity]
    */
   recoverBridgeContribution(position, velocity = null) {
+    if (!this.#bridgeState.assignment?.counterweight) {
+      this.setBridgeLiquidOwnership(false);
+    }
     const body = this.entity.rigidbody;
     this.entity.setPosition(position);
     body?.teleport?.(position);
@@ -1083,7 +1112,7 @@ export class LatchSlug extends Enemy {
     this.grounded = false;
     this.setBridgeMorphScale(0.001);
     if (this.#model) {
-      this.#model.enabled = true;
+      this.#model.enabled = !this.#liquidVisualOwned;
     }
   }
 
@@ -1102,6 +1131,7 @@ export class LatchSlug extends Enemy {
     if (this.isBridgeCommitted) {
       this.recoverBridgeContribution(position, velocity);
     }
+    this.setBridgeLiquidOwnership(false);
     this.setBridgeMorphScale(1);
     this.#bridgeState.spreading = false;
     this.#bridgeState.committed = false;

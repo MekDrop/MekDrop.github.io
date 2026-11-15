@@ -8,10 +8,12 @@ export class LatchBankReturn {
   /**
    * @param {import("./LatchSlug.js").LatchSlug} owner
    * @param {import("playcanvas").Vec3} target
+   * @param {{arrivalRadius?:number}} options
    */
-  constructor(owner, target) {
+  constructor(owner, target, { arrivalRadius = 0.4 } = {}) {
     this.owner = owner;
     this.target = target.clone();
+    this.arrivalRadius = arrivalRadius;
     this.phase = "walk";
     this.grip = null;
     this.normal = null;
@@ -102,7 +104,7 @@ export class LatchBankReturn {
       this.stalledAge = 0;
     }
     const ground = this.#ground(owner.position);
-    if (ground && Math.hypot(owner.position.x - this.target.x, owner.position.z - this.target.z) < 0.4 &&
+    if (ground && Math.hypot(owner.position.x - this.target.x, owner.position.z - this.target.z) < this.arrivalRadius &&
       Math.abs(ground.point.y - this.target.y) < 0.15) {
       this.destroy();
       if (this.resumeTarget) {

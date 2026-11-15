@@ -367,3 +367,62 @@ test("unreachable opposite bank retains the original single nearest-gate attempt
   context.director.destroy();
   context.root.destroy();
 });
+
+test("consumed deck and pool identities never exhaust the remaining bridge repair worker budget", () => {
+  const root = new pc.Entity();
+  root._enabledInHierarchy = true;
+  const gate = {
+    definition: { id: "gate" },
+    entity: new pc.Entity(),
+    arrivalCount: 0,
+    entrancePath: () => ({ from: new pc.Vec3() }),
+  };
+  root.addChild(gate.entity);
+  const bridge = {
+    rebuildDemand: {
+      creature: "LatchSlug",
+      count: 1,
+      position: new pc.Vec2(),
+    },
+  };
+  const actors = [];
+  const director = new EnemyWaveDirector({
+    pc,
+    app: {},
+    definition: {
+      id: "director",
+      waveConfig: {
+        maxActive: 1,
+        maxQueued: 1,
+      },
+    },
+    runtime: {
+      objects: [gate, bridge],
+      spawnObject: (definition) => {
+        const actor = {
+          definition,
+          alive: true,
+          rebuildContributionConsumed: false,
+          releaseRebuildAssignment: () => assert.fail("consumed identities cannot expire as stalled approaches"),
+          destroy: () => {},
+        };
+        actors.push(actor);
+
+        return actor;
+      },
+    },
+  });
+  root.addChild(director.entity);
+  for (let contributor = 0; contributor < 9; contributor++) {
+    director.update(3);
+    director.update(3);
+    assert.equal(actors.length, contributor + 1, "a new worker can still arrive after earlier workers became deck or counterweights");
+    actors.at(-1).rebuildContributionConsumed = true;
+  }
+  assert.ok(actors.every((actor) => actor.alive));
+  bridge.rebuildDemand.count = 0;
+  director.update(181);
+  assert.equal(actors.length, 9, "the donor chain stops producing workers when repair demand is satisfied");
+  director.destroy();
+  root.destroy();
+});

@@ -1,4 +1,6 @@
 import { SLIME_BRIDGE_GROWTH_SECONDS, slimeBridgeTransferProgress } from "./BridgeSlimeTiming.js";
+import { bridgeSlimeLiquidEnvelope } from "./BridgeSlimeLiquidEnvelope.js";
+import { BridgeSlimeFluidSkin } from "./BridgeSlimeFluidSkin.js";
 import firstModelUrl from "../../models/bridge/bridge-slime-1.glb?url";
 import secondModelUrl from "../../models/bridge/bridge-slime-2.glb?url";
 import thirdModelUrl from "../../models/bridge/bridge-slime-3.glb?url";
@@ -6,8 +8,7 @@ import thirdModelUrl from "../../models/bridge/bridge-slime-3.glb?url";
 const GEL_CROSS_SECTION = [[1, 0], [1, 0.65], [0.88, 1], [0, 1], [-0.88, 1], [-1, 0.65], [-1, 0], [-1, -0.65], [-0.88, -1], [0, -1], [0.88, -1], [1, -0.65]];
 
 /**
- * Each station is one living contributor, with authored breathing, blinks and
- * curious gaze. Physics owns the live mass placement and support profile.
+ * Native physics owns the tissue; one conserved skin owns its liquid rendering.
  */
 export class BridgeSlimeArtwork {
   /**
@@ -83,6 +84,45 @@ export class BridgeSlimeArtwork {
    * @type {Map<number, import("playcanvas").Vec3>}
    */
   #donorSources = new Map();
+  /**
+   * @type {object[]}
+   */
+  #poolTransfers = [];
+
+  /**
+   * @type {Map<number, import("playcanvas").Vec3>}
+   */
+  #poolSources = new Map();
+
+  /**
+   * @type {BridgeSlimeFluidSkin|null}
+   */
+  #fluidSkin = null;
+
+  /**
+   * @type {number}
+   */
+  #frameDelta = 0;
+
+  /**
+   * @type {number}
+   */
+  #surfaceTime = 0;
+
+  /**
+   * @type {boolean}
+   */
+  #hasFormedFluid = false;
+
+  /**
+   * @type {number}
+   */
+  #finishAge = 0;
+
+  /**
+   * @type {boolean}
+   */
+  #flowActive = false;
 
   /**
    * @returns {string[]}
@@ -103,7 +143,7 @@ export class BridgeSlimeArtwork {
   /**
    * @param {{definition: import("../ObjectTypes.js").MapObjectDefinition, station: number, position: import("playcanvas").Vec3, startRise?: number, endRise?: number, growing?: boolean, growthAge?: number, sourcePosition?: import("playcanvas").Vec3|null}} options
    */
-  addStation({ definition, station, position, startRise = 0, endRise = 0, growing = false, growthAge = 0, sourcePosition = null }) {
+  addStation({ definition, station, position, startRise = 0, endRise = 0, growing = false, growthAge = 0, sourcePosition = null, bankFeed = false, liquidSourceOwned = false, sourceOwner = null }) {
     const variation = Math.abs(station * 7 + definition.span.start * 11) % 3;
     const url = BridgeSlimeArtwork.modelUrls[variation];
     const wrapper = new this.#pc.Entity(`Living slime bridge contributor ${station}`);
@@ -131,12 +171,16 @@ export class BridgeSlimeArtwork {
       model,
       wrapper,
       parts: stationParts,
+      idleSpeed: model.anim.speed,
     });
     if (growing) {
       model.enabled = false;
       const source = sourcePosition ? new this.#pc.Mat4().copy(this.#root.getWorldTransform()).invert().transformPoint(sourcePosition) : position.clone();
       this.#arrivals.push({
         station,
+        bankFeed,
+        liquidSourceOwned,
+        sourceOwner,
         entity: wrapper,
         carrier: this.#createFlow(null, 25, 24),
         complete: false,
@@ -174,11 +218,12 @@ export class BridgeSlimeArtwork {
       const material = new this.#pc.StandardMaterial();
       material.name = "Stretching live honey mass";
       material.diffuse = new this.#pc.Color(1, 0.79, 0.34);
-      material.opacity = 0.56;
+      material.diffuseVertexColor = true;
+      material.opacity = 0.9;
       material.blendType = this.#pc.BLEND_NORMAL;
-      material.depthWrite = false;
-      material.gloss = 0.78;
-      material.clearCoat = 0.35;
+      material.depthWrite = true;
+      material.gloss = 0.94;
+      material.clearCoat = 0.7;
       material.update();
       this.#flowMaterial = material;
     }
@@ -231,23 +276,23 @@ export class BridgeSlimeArtwork {
    * @param {import("playcanvas").Vec3} scale
    * @param {number} share
    * @param {number} progress
+   * @param {boolean} rounded
    */
-  #shapeReceivingBody(flow, source, position, direction, scale, share, progress) {
+  #shapeReceivingBody(flow, source, position, direction, scale, share, progress, rounded = false) {
     flow.enabled = share > 0.000001;
     if (!flow.enabled) {
       return;
     }
     const shapeTime = Math.max(0, Math.min(1, (progress - 0.5) / 0.46));
-    const shape = shapeTime * shapeTime * (3 - 2 * shapeTime);
+    const shape = rounded ? 0 : shapeTime * shapeTime * (3 - 2 * shapeTime);
     const rise = Math.max(0, Math.min(1, (progress - 0.2) / 0.38));
     const stretch = 1 + Math.sin(rise * Math.PI) * 2.25;
     const cupTime = Math.max(0, Math.min(1, (progress - 0.05) / 0.27));
-    const cup = Math.sin(cupTime * Math.PI);
+    const cup = rounded ? 0 : Math.sin(cupTime * Math.PI);
     const width = (0.5 + 0.44 * shape) / Math.sqrt(stretch) * scale.x;
     const height = (0.34 - 0.21 * shape) * stretch * scale.y;
     const depth = 0.5 / Math.sqrt(stretch) * scale.z;
-    const reference = Math.abs(direction.y) > 0.95 ? this.#pc.Vec3.RIGHT : this.#pc.Vec3.UP;
-    const bodySide = new this.#pc.Vec3().cross(direction, reference).normalize();
+    const bodySide = new this.#pc.Vec3().cross(direction, Math.abs(direction.y) > 0.95 ? this.#pc.Vec3.RIGHT : this.#pc.Vec3.UP).normalize();
     const bodyUp = new this.#pc.Vec3().cross(bodySide, direction).normalize();
     const center = position.clone().add(bodyUp.clone().mulScalar(height * (1 - 2 * shape)));
     const rear = center.clone().add(direction.clone().mulScalar(-depth * 0.85));
@@ -282,6 +327,7 @@ export class BridgeSlimeArtwork {
     const sides = 24;
     const positions = [];
     const colors = [];
+    const fluidRings = [];
     for (let ring = 0; ring < 25; ring += 1) {
       const tangent = centers[Math.min(24, ring + 1)].clone().sub(centers[Math.max(0, ring - 1)]);
       if (tangent.lengthSq() < 0.000001) {
@@ -296,6 +342,13 @@ export class BridgeSlimeArtwork {
       }
       side.normalize();
       const up = new this.#pc.Vec3().cross(side, tangent).normalize();
+      fluidRings.push({
+        center: centers[ring],
+        side,
+        up,
+        coordinate: ring / 24 * 1.7,
+        amount: rounded ? 1 : 0,
+      });
       const section = sections[ring];
       for (let vertex = 0; vertex < sides; vertex += 1) {
         const angle = vertex / sides * Math.PI * 2;
@@ -312,24 +365,7 @@ export class BridgeSlimeArtwork {
       }
     }
     const targetVolume = 0.94 * 0.13 * 0.5 * 8 * scale.x * scale.y * scale.z * share;
-    // Scale cross sections, never the anchored centreline. Iteration handles
-    // bent sections without moving the neck away from the physical donor.
-    for (let iteration = 0; iteration < 4; iteration += 1) {
-      let signedVolume = 0;
-      for (let triangle = 0; triangle < indices.length; triangle += 3) {
-        const a = indices[triangle] * 3;
-        const b = indices[triangle + 1] * 3;
-        const c = indices[triangle + 2] * 3;
-        signedVolume += positions[a] * (positions[b + 1] * positions[c + 2] - positions[b + 2] * positions[c + 1]) + positions[a + 1] * (positions[b + 2] * positions[c] - positions[b] * positions[c + 2]) + positions[a + 2] * (positions[b] * positions[c + 1] - positions[b + 1] * positions[c]);
-      }
-      const adjust = Math.sqrt(targetVolume / Math.max(0.00000001, Math.abs(signedVolume) / 6));
-      for (let vertex = 0; vertex < positions.length; vertex += 3) {
-        const anchor = centers[Math.floor(vertex / (sides * 3))];
-        positions[vertex] = anchor.x + (positions[vertex] - anchor.x) * adjust;
-        positions[vertex + 1] = anchor.y + (positions[vertex + 1] - anchor.y) * adjust;
-        positions[vertex + 2] = anchor.z + (positions[vertex + 2] - anchor.z) * adjust;
-      }
-    }
+    this.#liquify(positions, indices, fluidRings, sides, targetVolume);
     mesh.setPositions(positions);
     mesh.setColors32(colors);
     mesh.setNormals(this.#pc.calculateNormals(positions, indices));
@@ -337,9 +373,87 @@ export class BridgeSlimeArtwork {
   }
 
   /**
+   * A shared material field makes unequal puddle lobes, pinched waists and
+   * blunt connected fingers. It never restarts at a native station boundary.
+   * The closed skin is renormalized around its anchored ring centres, retaining
+   * its measured volume while its outline moves independently on either side.
+   * @param {number[]} positions
+   * @param {number[]} indices
+   * @param {Array<{center: import("playcanvas").Vec3, side: import("playcanvas").Vec3, up: import("playcanvas").Vec3, coordinate: number, amount: number}>} rings
+   * @param {number} sides
+   * @param {number|null} targetVolume
+   */
+  #liquify(positions, indices, rings, sides, targetVolume = null) {
+    targetVolume ??= BridgeSlimeArtwork.#closedVolume(positions, indices);
+    for (let ring = 0; ring < rings.length; ring++) {
+      const { center, side, up, coordinate, amount } = rings[ring];
+      if (amount <= 0) {
+        continue;
+      }
+      const phase = this.#surfaceTime;
+      const leftLobe = Math.exp(-(Math.sin(coordinate * 1.83 - phase * 0.51 + 0.7) ** 2) / 0.18);
+      const rightLobe = Math.exp(-(Math.sin(coordinate * 2.27 + phase * 0.37 + 2.1) ** 2) / 0.23);
+      const left = 1 + amount * (-0.2 + 0.19 * Math.sin(coordinate * 3.73 + phase * 0.61) + 0.53 * leftLobe);
+      const right = 1 + amount * (-0.2 + 0.17 * Math.sin(coordinate * 4.31 - phase * 0.43 + 1.2) + 0.57 * rightLobe);
+      for (let vertex = 0; vertex < sides; vertex++) {
+        const index = (ring * sides + vertex) * 3;
+        const offset = new this.#pc.Vec3(positions[index] - center.x, positions[index + 1] - center.y, positions[index + 2] - center.z);
+        const x = offset.dot(side);
+        const y = offset.dot(up);
+        const angle = vertex / sides * Math.PI * 2;
+        const finger = Math.cos(angle) ** 2 * (x < 0 ? leftLobe : rightLobe) * amount * 0.12;
+        const across = x * ((x < 0 ? left : right) + finger);
+        const vertical = y / ((left + right) * 0.5) + Math.abs(x) * amount * 0.065 * Math.sin(coordinate * 5.1 + phase * 1.3 + Math.cos(angle) * 2.2);
+        const shift = Math.abs(x) * amount * 0.17 * Math.sin(coordinate * 1.47 - phase * 0.63 + 1.6);
+        offset.add(side.clone().mulScalar(across - x + shift)).add(up.clone().mulScalar(vertical - y));
+        positions[index] = center.x + offset.x;
+        positions[index + 1] = center.y + offset.y;
+        positions[index + 2] = center.z + offset.z;
+      }
+    }
+    for (let iteration = 0; iteration < 6; iteration++) {
+      const scale = Math.sqrt(targetVolume / Math.max(1e-8, BridgeSlimeArtwork.#closedVolume(positions, indices)));
+      for (let vertex = 0; vertex < positions.length; vertex += 3) {
+        const center = rings[Math.floor(vertex / (sides * 3))].center;
+        positions[vertex] = center.x + (positions[vertex] - center.x) * scale;
+        positions[vertex + 1] = center.y + (positions[vertex + 1] - center.y) * scale;
+        positions[vertex + 2] = center.z + (positions[vertex + 2] - center.z) * scale;
+      }
+    }
+  }
+
+  /**
+   * @param {number[]} positions
+   * @param {number[]} indices
+   * @returns {number}
+   */
+  static #closedVolume(positions, indices) {
+    let volume = 0;
+    for (let triangle = 0; triangle < indices.length; triangle += 3) {
+      const a = indices[triangle] * 3;
+      const b = indices[triangle + 1] * 3;
+      const c = indices[triangle + 2] * 3;
+      volume += positions[a] * (positions[b + 1] * positions[c + 2] - positions[b + 2] * positions[c + 1]) + positions[a + 1] * (positions[b + 2] * positions[c] - positions[b] * positions[c + 2]) + positions[a + 2] * (positions[b] * positions[c + 1] - positions[b + 1] * positions[c]);
+    }
+
+    return Math.abs(volume) / 6;
+  }
+
+  /**
    * @param {number} deltaTime
    */
   update(deltaTime) {
+    this.#frameDelta = deltaTime;
+    let forming = false;
+    for (const pose of this.#spanPoses.values()) {
+      this.#hasFormedFluid ||= pose.fluid === true;
+      forming ||= pose.fluid === true;
+    }
+    this.#flowActive = forming || this.#poolTransfers.length > 0 || this.#arrivals.length > 0;
+    if (this.#flowActive) {
+      this.#surfaceTime += Math.max(0, deltaTime);
+    }
+    this.#finishAge = this.#flowActive ? 0 : this.#finishAge + Math.max(0, deltaTime);
     const shapes = new Map();
     const poses = new Map(this.#spanPoses);
     for (const arrival of this.#arrivals) {
@@ -382,8 +496,12 @@ export class BridgeSlimeArtwork {
       const shape = shapes.get(arrival.station);
       const target = shape?.position ?? arrival.target;
       const massScale = shape?.scale ?? new this.#pc.Vec3(1, 1, 1);
-      const position = new this.#pc.Vec3().lerp(arrival.source, target, ease);
-      position.y += Math.sin(travel * Math.PI) * 0.24;
+      // The new contribution first becomes a shore puddle. Only then does its
+      // leading meniscus advance over the existing wet surface to the frontier.
+      const bankTravel = Math.max(0, Math.min(1, (t - 0.34) / 0.55));
+      const bankEase = bankTravel * bankTravel * (3 - 2 * bankTravel);
+      const position = new this.#pc.Vec3().lerp(arrival.source, target, arrival.bankFeed ? bankEase : ease);
+      position.y += arrival.bankFeed ? 0 : Math.sin(travel * Math.PI) * 0.24;
       arrival.entity.setLocalPosition(position);
       const admitted = this.#spanPoses.has(arrival.station);
       const transferred = Math.min(slimeBridgeTransferProgress(arrival.age), admitted ? 1 : 0.999);
@@ -403,7 +521,11 @@ export class BridgeSlimeArtwork {
         part.entity.setLocalScale(part.scale.x * widen, part.scale.y * flatten, part.scale.z * widen);
         part.entity.setLocalPosition(part.position.x * unfold, part.position.y * unfold - 0.12 * (1 - unfold), part.position.z * unfold);
       }
-      this.#shapeReceivingBody(arrival.carrier, arrival.source, position, shape?.direction ?? arrival.direction, massScale, transferred * (1 - detail), transferred);
+      if (arrival.bankFeed) {
+        arrival.carrier.enabled = false;
+      } else {
+        this.#shapeReceivingBody(arrival.carrier, arrival.source, position, shape?.direction ?? arrival.direction, massScale, transferred * (1 - detail), transferred);
+      }
       if (t >= 1 && admitted) {
         arrival.complete = true;
         this.#stations.get(arrival.station).model.enabled = true;
@@ -421,7 +543,8 @@ export class BridgeSlimeArtwork {
     this.#poseRedistributionStreams();
     this.#poseNativeBraces();
     const cableAnchors = this.#suspensionAnchors();
-    for (const [station, { wrapper, parts }] of this.#stations) {
+    for (const [station, { wrapper, parts, model, idleSpeed }] of this.#stations) {
+      model.anim.speed = !this.#flowActive && this.#hasFormedFluid && this.#finishAge >= 1.2 ? 0 : idleSpeed;
       if (growingWrappers.has(wrapper)) {
         continue;
       }
@@ -429,6 +552,14 @@ export class BridgeSlimeArtwork {
       if (shape) {
         wrapper.setLocalPosition(shape.position);
         wrapper.setLocalScale(shape.scale);
+      }
+      if (this.#spanPoses.get(station)?.connected) {
+        for (const part of parts) {
+          const name = part.entity.name;
+          const body = name.startsWith("Gel plank") || name.startsWith("Continuous transparent underside") || name.startsWith("Gel longitudinal stringer");
+          const eye = name.startsWith("Watchful eye") || name.startsWith("Eye catchlight");
+          part.entity.enabled = !body && !eye;
+        }
       }
       this.#poseSuspension(station, wrapper, parts, cableAnchors);
       this.#poseDetails(station, wrapper, parts);
@@ -597,12 +728,64 @@ export class BridgeSlimeArtwork {
   #poseRedistributionStreams() {
     for (const [station, { parts }] of this.#stations) {
       for (const part of parts) {
+        if (this.#spanPoses.get(station)?.fluid) {
+          part.entity.enabled = false;
+          continue;
+        }
         if (part.entity.name.startsWith("Gel plank") || part.entity.name.startsWith("Continuous transparent underside") || part.entity.name.startsWith("Gel longitudinal stringer")) {
           part.entity.enabled = !this.#spanPoses.has(station);
         }
       }
     }
-    const entries = [...this.#spanPoses].filter(/**
+    let bankFeed = false;
+    for (const arrival of this.#arrivals) {
+      bankFeed ||= arrival.bankFeed;
+    }
+    if (this.#fluidSkin || this.#hasFormedFluid || this.#poolTransfers.length > 0 || bankFeed) {
+      this.#fluidSkin ??= new BridgeSlimeFluidSkin({
+        pc: this.#pc,
+        root: this.#root,
+      });
+      this.#fluidSkin.update({
+        nativePoses: this.#spanPoses,
+        arrivals: this.#arrivals,
+        poolTransfers: this.#poolTransfers,
+        poolSources: this.#poolSources,
+        time: this.#surfaceTime,
+        finishAge: this.#finishAge,
+        flowActive: this.#flowActive,
+        deltaTime: this.#frameDelta,
+        loads: this.#loads,
+      });
+      for (const flow of this.#redistributionFlows.values()) {
+        flow.enabled = false;
+      }
+      for (const transfer of this.#poolTransfers) {
+        transfer.id?.setBridgeLiquidOwnership?.(true);
+      }
+      for (const arrival of this.#arrivals) {
+        if (arrival.bankFeed) {
+          arrival.sourceOwner?.setBridgeLiquidOwnership?.(true);
+        }
+      }
+      const settledShare = this.#flowActive ? 0 : Math.max(0, Math.min(1, (this.#finishAge - 0.6) / 0.6));
+      this.#fluidSkin.setSettlement(settledShare);
+      if (settledShare === 0) {
+        return;
+      }
+      for (const flow of this.#redistributionFlows.values()) {
+        flow.enabled = true;
+      }
+    }
+    const liquidPoses = bridgeSlimeLiquidEnvelope({
+      pc: this.#pc,
+      transform: this.#root.getWorldTransform(),
+      nativePoses: this.#spanPoses,
+      arrivals: this.#arrivals,
+      poolTransfers: this.#poolTransfers,
+      poolSources: this.#poolSources,
+    });
+    const entries = [...liquidPoses].filter(/**
      * @param {[number, {redistribution?: object|null}]} entry
      */
       (entry) => Boolean(entry[1])).sort(BridgeSlimeArtwork.#stationOrder);
@@ -610,7 +793,7 @@ export class BridgeSlimeArtwork {
     for (const entry of entries) {
       const group = groups.at(-1);
       const previous = group?.at(-1);
-      if (previous && entry[0] === previous[0] + 1 && (entry[1].redistribution?.direction ?? 0) === (previous[1].redistribution?.direction ?? 0) && entry[1].linkedPrevious === true) {
+      if (previous && entry[0] === previous[0] + 1 && (entry[1].liquidJoinPrevious || (entry[1].redistribution?.direction ?? 0) === (previous[1].redistribution?.direction ?? 0) && entry[1].linkedPrevious === true)) {
         group.push(entry);
       } else {
         groups.push([entry]);
@@ -661,7 +844,7 @@ export class BridgeSlimeArtwork {
         const materialOffset = transport?.offset ?? 0;
         const samples = [];
         for (let section = 0; section < active.length; section += 1) {
-          const parts = active[section][1].sections;
+          const parts = active[section][1].reservoir || active[section][1].fluid ? null : active[section][1].sections;
           const count = parts?.length ?? 1;
           for (let part = 0; part < count; part += 1) {
             const steps = parts ? 8 : 24;
@@ -677,30 +860,64 @@ export class BridgeSlimeArtwork {
           }
         }
         for (const sign of [0]) {
-          const key = `${active[0][0]}:${active.at(-1)[0]}:${sign}:${samples.length}`;
+          let fluidSurface = this.#hasFormedFluid;
+          for (const entry of active) {
+            fluidSurface ||= entry[1].fluid || entry[1].reservoir;
+          }
+          const sides = fluidSurface ? 24 : 12;
+          const key = `${active[0][0]}:${active.at(-1)[0]}:${sign}:${samples.length}:${sides}`;
           used.add(key);
           let flow = this.#redistributionFlows.get(key);
           if (!flow) {
-            flow = this.#createFlow(this.#redistributionMaterial, samples.length);
+            flow = this.#createFlow(this.#redistributionMaterial, samples.length, sides);
             this.#redistributionFlows.set(key, flow);
           }
           const { mesh, indices } = this.#flowMeshes.get(flow);
           const positions = [];
           const colors = [];
+          const fluidRings = [];
           for (const sample of samples) {
             const { section, along, native } = sample;
             const pose = active[section][1];
             const start = inverse.transformPoint(pose.start);
             const end = inverse.transformPoint(pose.end);
+            const previousPose = active[section - 1]?.[1];
+            const nextPose = active[section + 1]?.[1];
+            if (pose.fluid || pose.reservoir) {
+              if (previousPose) {
+                start.lerp(start.clone(), inverse.transformPoint(previousPose.end), 0.5);
+              }
+              if (nextPose) {
+                end.lerp(end.clone(), inverse.transformPoint(nextPose.start), 0.5);
+              }
+            }
             let center = new this.#pc.Vec3().lerp(start, end, along);
             const tangent = end.clone().sub(start).normalize();
+            if (pose.fluid || pose.reservoir) {
+              const current = inverse.transformPoint(pose.position);
+              const from = previousPose ? current.clone().sub(inverse.transformPoint(previousPose.position)) : end.clone().sub(start);
+              const to = nextPose ? inverse.transformPoint(nextPose.position).sub(current) : end.clone().sub(start);
+              const length = end.clone().sub(start).length();
+              from.normalize().mulScalar(length);
+              to.normalize().mulScalar(length);
+              const t2 = along * along;
+              const t3 = t2 * along;
+              center = start.clone().mulScalar(2 * t3 - 3 * t2 + 1)
+                .add(from.clone().mulScalar(t3 - 2 * t2 + along))
+                .add(end.clone().mulScalar(-2 * t3 + 3 * t2))
+                .add(to.clone().mulScalar(t3 - t2));
+              tangent.lerp(from, to, along).normalize();
+            }
             let side = new this.#pc.Vec3(-tangent.z, 0, tangent.x).normalize();
             let up = new this.#pc.Vec3().cross(side, tangent).normalize();
             const neighborIndex = along < 0.5 ? section - 1 : section + 1;
             const neighbor = active[neighborIndex]?.[1];
             const blend = neighbor ? Math.abs(along - 0.5) : 0;
-            let width = (pose.width ?? 1) * (1 - blend) + (neighbor?.width ?? pose.width ?? 1) * blend;
-            let depth = (pose.thickness ?? 1) * (1 - blend) + (neighbor?.thickness ?? pose.thickness ?? 1) * blend;
+            const settledWidth = this.#hasFormedFluid ? 0.62 + 0.38 * Math.min(1, this.#finishAge / 1.2) : 1;
+            const narrow = pose.reservoir ? 1 : pose.fluid ? 0.62 : settledWidth;
+            const neighborNarrow = neighbor ? neighbor.reservoir ? 1 : neighbor.fluid ? 0.62 : settledWidth : narrow;
+            let width = (pose.width ?? 1) * narrow * (1 - blend) + (neighbor ? neighbor.width ?? 1 : pose.width ?? 1) * neighborNarrow * blend;
+            let depth = (pose.thickness ?? 1) / narrow * (1 - blend) + (neighbor ? neighbor.thickness ?? 1 : pose.thickness ?? 1) / neighborNarrow * blend;
             const volume = (pose.volume ?? 1) * (1 - blend) + (neighbor?.volume ?? pose.volume ?? 1) * blend;
             // Native dimensions already concentrate material at the bank and
             // narrow the outgoing span. Join those samples without fake bulges
@@ -734,19 +951,47 @@ export class BridgeSlimeArtwork {
                 radius -= (radius - Math.min(radius, nextRadius)) * edge;
                 height -= (height - Math.min(height, neighbor.halfExtents.y)) * edge;
               }
+              radius *= narrow;
+              height /= narrow;
               width = radius / 0.94;
               depth = height / 0.13;
             }
+            if (pose.reservoir) {
+              const towardSpan = (pose.flowDirection ?? 1) < 0 ? 1 - along : along;
+              const meniscus = Math.sqrt(Math.max(0.01, 1 - (1 - towardSpan) ** 2));
+              radius *= meniscus;
+              height *= meniscus;
+            }
+            if (pose.fluid && !pose.reservoir) {
+              const freeEdge = !nextPose ? 1 - along : !previousPose ? along : 1;
+              const round = Math.sqrt(Math.max(0.0025, 1 - Math.max(0, 1 - freeEdge / 0.22) ** 2));
+              radius *= round;
+              height *= round;
+            }
+            const materialPhase = (active[section][0] + along + materialOffset) * Math.PI * 2 - this.#surfaceTime * 3.1;
+            const breathing = this.#flowActive ? Math.sin(materialPhase) * Math.sin(along * Math.PI) * (pose.reservoir ? 0.065 : pose.fluid ? 0.035 : 0) : 0;
+            // Reciprocal axes keep the wet shoulder rolling without swelling
+            // a second packet of material into the native support envelope.
+            radius *= 1 + breathing;
+            height /= 1 + breathing;
             center.add(side.clone().mulScalar(sign * width * 0.85));
             // The skin sits on the authored plank tops. Its broad meniscus and
             // recessed seams keep the deck shape readable while exposing gel.
-            center.add(up.clone().mulScalar(native ? 0.003 : 0.003 - height));
+            const bankLift = pose.reservoir ? height * 1.8 * Math.sin((1 - ((pose.flowDirection ?? 1) < 0 ? 1 - along : along)) * Math.PI * 0.75) ** 2 : 0;
+            center.add(up.clone().mulScalar(native ? 0.003 : 0.003 - height + bankLift));
+            fluidRings.push({
+              center: center.clone(),
+              side: side.clone(),
+              up: up.clone(),
+              coordinate: active[section][0] + along,
+              amount: this.#flowActive ? 1 : this.#hasFormedFluid ? Math.max(0, 1 - this.#finishAge / 1.2) : 0,
+            });
             const relax = Math.sin((pose.redistribution?.progress ?? 0) * Math.PI);
-            const groove = 0.008 * (1 - 0.85 * relax) * Math.exp(-Math.pow(Math.sin(along * Math.PI * 4) * 8, 2));
+            const groove = (pose.reservoir || pose.fluid ? 0 : 0.008) * (1 - 0.85 * relax) * Math.exp(-Math.pow(Math.sin(along * Math.PI * 4) * 8, 2));
             const alpha = Math.round(BridgeSlimeArtwork.#sectionOpacity(1.88 * width, 0.26 * depth) * 255);
             const green = Math.max(0.4, Math.min(0.92, 0.67 + (volume - 1) * 1.5));
-            for (let vertex = 0; vertex < 12; vertex += 1) {
-              const angle = vertex / 12 * Math.PI * 2;
+            for (let vertex = 0; vertex < sides; vertex += 1) {
+              const angle = vertex / sides * Math.PI * 2;
               const cosine = Math.cos(angle);
               const sineValue = Math.sin(angle);
               const cornerX = Math.sign(cosine) * Math.abs(cosine) ** 0.65;
@@ -754,8 +999,9 @@ export class BridgeSlimeArtwork {
               const progress = pose.redistribution?.progress ?? 0;
               const rounding = Math.sin(progress * Math.PI) * 0.16;
               const shoulder = Math.sin(angle * 2) ** 2;
-              const crosswise = cornerX * (1 - rounding * shoulder);
-              const sine = cornerY * (1 - rounding * shoulder);
+              const finish = pose.reservoir || pose.fluid ? 0 : this.#hasFormedFluid ? Math.min(1, this.#finishAge / 1.2) : 1;
+              const crosswise = (cosine * (1 - finish) + cornerX * finish) * (1 - rounding * shoulder);
+              const sine = (sineValue * (1 - finish) + cornerY * finish) * (1 - rounding * shoulder);
               const radial = crosswise * radius;
               const load = this.#loads.get(active[section][0]);
               const across = radial - (load?.across ?? 0);
@@ -767,13 +1013,38 @@ export class BridgeSlimeArtwork {
               positions.push(center.x + side.x * radial + up.x * normalOffset, center.y + up.y * normalOffset, center.z + side.z * radial + up.z * normalOffset);
               const materialCoordinate = active[section][0] + along + materialOffset;
               const innerHighlight = Math.pow(Math.max(0, Math.sin(materialCoordinate * Math.PI * 2 / 0.75 + cornerX * 1.8)), 3);
-              const highlight = innerHighlight * 0.16;
+              const highlight = innerHighlight * (pose.reservoir || pose.fluid ? 0.085 : 0.07);
               colors.push(255, Math.round(Math.min(1, green + highlight) * 255), Math.round((0.16 + green * 0.18 + highlight * 0.65) * 255), alpha);
             }
           }
+          if (fluidSurface) {
+            let units = 0;
+            for (const entry of active) {
+              units += entry[1].volume ?? 1;
+            }
+            this.#liquify(positions, indices, fluidRings, sides, units * 0.4888);
+          }
           mesh.setPositions(positions);
           mesh.setColors32(colors);
-          mesh.setNormals(this.#pc.calculateNormals(positions, indices));
+          const normals = this.#pc.calculateNormals(positions, indices);
+          if (fluidSurface && normals.length) {
+            for (let ring = 1; ring < samples.length; ring++) {
+              if (samples[ring].section === samples[ring - 1].section) {
+                continue;
+              }
+              for (let side = 0; side < sides; side++) {
+                const a = ((ring - 1) * sides + side) * 3;
+                const b = (ring * sides + side) * 3;
+                const normal = new this.#pc.Vec3(normals[a] + normals[b], normals[a + 1] + normals[b + 1], normals[a + 2] + normals[b + 2]).normalize();
+                for (const index of [a, b]) {
+                  normals[index] = normal.x;
+                  normals[index + 1] = normal.y;
+                  normals[index + 2] = normal.z;
+                }
+              }
+            }
+          }
+          mesh.setNormals(normals);
           mesh.update(this.#pc.PRIMITIVE_TRIANGLES);
         }
       }
@@ -786,6 +1057,20 @@ export class BridgeSlimeArtwork {
         this.#redistributionFlows.delete(key);
       }
     }
+    for (const transfer of this.#poolTransfers) {
+      transfer.id?.setBridgeLiquidOwnership?.(true);
+    }
+    for (const arrival of this.#arrivals) {
+      if (arrival.bankFeed) {
+        arrival.sourceOwner?.setBridgeLiquidOwnership?.(true);
+      }
+    }
+    if (this.#fluidSkin && this.#redistributionMaterial) {
+      const share = this.#flowActive ? 0 : Math.max(0, Math.min(1, (this.#finishAge - 0.6) / 0.6));
+      this.#redistributionMaterial.opacity = share;
+      this.#redistributionMaterial.blendType = this.#pc.BLEND_NORMAL;
+      this.#redistributionMaterial.update();
+    }
   }
 
   /**
@@ -797,6 +1082,13 @@ export class BridgeSlimeArtwork {
    */
   #poseDetails(station, wrapper, parts) {
     const pose = this.#spanPoses.get(station);
+    if (pose?.fluid || pose?.reservoir) {
+      for (const part of parts) {
+        part.entity.enabled = false;
+      }
+
+      return;
+    }
     if (!pose) {
       return;
     }
@@ -805,6 +1097,11 @@ export class BridgeSlimeArtwork {
     const depth = Math.max(0.01, Math.abs(scale.y));
     const length = Math.max(0.01, Math.abs(scale.z));
     for (const part of parts) {
+      if (pose.connected && this.#hasFormedFluid && /Gel (handrail|lower rail|railing post)/.test(part.entity.name)) {
+        const progress = Math.min(1, this.#finishAge / 1.2);
+        const ease = progress * progress * (3 - 2 * progress);
+        part.entity.setLocalScale(part.entity.getLocalScale().clone().mulScalar(ease));
+      }
       const eye = part.entity.name.startsWith("Watchful eye");
       const glint = part.entity.name.startsWith("Eye catchlight");
       if (eye || glint) {
@@ -836,6 +1133,9 @@ export class BridgeSlimeArtwork {
     const used = new Set();
     const inverse = new this.#pc.Mat4().copy(this.#root.getWorldTransform()).invert();
     for (const pose of this.#spanPoses.values()) {
+      if (pose.fluid) {
+        continue;
+      }
       for (const brace of pose.braces ?? []) {
         if (!(brace.radius > 0)) {
           continue;
@@ -907,6 +1207,22 @@ export class BridgeSlimeArtwork {
   }
 
   /**
+   * Keep incoming and reforming units in the same conserved bank surface.
+   * @param {Array<{id:import("../enemies/latch-slug/LatchSlug.js").LatchSlug,station:number,source:import("playcanvas").Vec3,progress:number}>} transfers
+   * @param {(station:number)=>import("playcanvas").Vec3} stationPosition
+   */
+  setPoolTransfers(transfers, stationPosition) {
+    this.#poolTransfers = [];
+    for (const transfer of transfers) {
+      this.#poolTransfers.push({
+        ...transfer,
+        target: stationPosition(transfer.station),
+      });
+      this.#poolSources.set(transfer.station, transfer.source.clone());
+    }
+  }
+
+  /**
    * Keep the rendered neck attached to the donor's live native support motion.
    * @param {Map<number, import("playcanvas").Vec3>} sources
    */
@@ -930,6 +1246,8 @@ export class BridgeSlimeArtwork {
   }
 
   destroy() {
+    this.#fluidSkin?.destroy();
+    this.#fluidSkin = null;
     for (const arrival of this.#arrivals) {
       this.#flowMeshes.get(arrival.carrier)?.mesh.destroy();
       this.#flowMeshes.delete(arrival.carrier);

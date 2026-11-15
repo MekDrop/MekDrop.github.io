@@ -239,8 +239,17 @@ export class LatchPeerYield {
         this.phase = "aside";
       }
     } else if (this.phase === "aside") {
-      if (!b.clearPeerStep(this.aside, peer)) {
+      if (this.bridgePassage && this.#corridorClear(peer)) {
+        // A crowded bank can block the final few centimetres of a sidestep.
+        // Release the passer once the actual native body already clears its
+        // corridor instead of waiting forever for an unnecessarily exact pose.
         b.stop();
+        this.phase = "wait";
+      } else if (!b.clearPeerStep(this.aside, peer)) {
+        b.stop();
+        if (this.bridgePassage && this.age >= 2) {
+          this.#request(peer, this.direction);
+        }
       } else if (b.position.distance(this.aside) > 0.06) {
         b.moveToward({ position: this.aside }, this.bridgePassage ? 0.95 : 0.65, 0.04);
         b.playClip(ANIMATION.SCOOT);
@@ -279,6 +288,18 @@ export class LatchPeerYield {
       }
     }
     this.constrain();
+  }
+
+  /**
+   * @param {import("./LatchSlug.js").LatchSlug} peer
+   * @returns {boolean}
+   */
+  #corridorClear(peer) {
+    const heading = this.#travelDirection(peer, this.direction);
+    const normal = new this.owner.pc.Vec3(heading.z, 0, -heading.x);
+    const clearance = this.owner.radius + peer.radius + 0.16;
+
+    return Math.abs(this.owner.position.clone().sub(peer.position).dot(normal)) >= clearance;
   }
 
   cancel() {
